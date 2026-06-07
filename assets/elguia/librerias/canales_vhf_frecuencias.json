@@ -1,0 +1,107 @@
+{
+  "canales_vhf_frecuencias": {
+    "descripcion": "Canales VHF marinos utilizados en Argentina. Cada canal tiene una frecuencia fija asignada internacionalmente. El pescador debe conocer al menos el 16 y el 12 antes de salir al agua.",
+    "canales_principales": [
+      {
+        "canal": 12,
+        "frecuencia_mhz": 156.6,
+        "uso": "Canal oficial de trabajo y operaciones. Enlace directo con las dependencias de la Prefectura Naval Argentina. Es el canal de trabajo más usado en el río Paraná.",
+        "prioridad": "alta"
+      },
+      {
+        "canal": 16,
+        "frecuencia_mhz": 156.8,
+        "uso": "Canal internacional de socorro, seguridad y llamadas de emergencia. SOLO debe usarse para pedir auxilio o hacer la llamada inicial. Nunca para charla.",
+        "prioridad": "emergencia",
+        "regla_oro": "Si estás en peligro y no sabés qué canal usar, el 16 siempre está escuchado."
+      },
+      {
+        "canal": 70,
+        "frecuencia_mhz": 156.525,
+        "uso": "Exclusivo para Llamada Selectiva Digital (LSD). Se usa en emergencias automatizadas con equipos DSC. No se usa para voz.",
+        "prioridad": "emergencia_automatica",
+        "nota": "Solo funciona con radios VHF que tengan DSC incorporado."
+      }
+    ],
+    "canales_secundarios": [
+      {
+        "canal": 9,
+        "frecuencia_mhz": 156.45,
+        "uso": "Usos operativos y comunicaciones entre embarcaciones. Canal de trabajo alternativo."
+      },
+      {
+        "canal": 14,
+        "frecuencia_mhz": 156.7,
+        "uso": "Control de tráfico marítimo. Usado frecuentemente en zonas de puerto y canales navegables."
+      },
+      {
+        "canal": 72,
+        "frecuencia_mhz": 156.625,
+        "uso": "Canal operativo usado por varias estaciones de Prefectura en la zona del Delta, Zárate y Río de la Plata."
+      },
+      {
+        "canal": 71,
+        "frecuencia_mhz": 156.575,
+        "uso": "Uso exclusivo de clubes náuticos y guarderías. Para comunicaciones internas de marinas."
+      },
+      {
+        "canal": "6_y_8",
+        "uso": "Comunicaciones entre embarcaciones (barco a barco). No usar para llamar a Prefectura."
+      }
+    ],
+    "canales_correspondencia_publica": [
+      {
+        "operador": "SES",
+        "canales": [
+          "01",
+          62,
+          65
+        ],
+        "uso": "Correspondencia pública — llamadas telefónicas desde la radio."
+      },
+      {
+        "operador": "STARTEL",
+        "canales": "23 al 28",
+        "uso": "Correspondencia pública STARTEL."
+      }
+    ],
+    "resumen_para_el_guia": {
+      "que_decirle_al_pescador": [
+        "Antes de salir al agua, sintonizá el canal 16 y dejalo de escucha siempre.",
+        "Para llamar a Prefectura en el Paraná usá el canal 12 en la mayoría de las zonas.",
+        "El canal 16 es solo para emergencias — no lo uses para charlar con otros pescadores.",
+        "Si tu radio tiene DSC, el canal 70 manda una alerta automática de emergencia con tu posición GPS.",
+        "Para hablar con otro barco usá el canal 6 u 8, no el 16."
+      ]
+    },
+    "qa_canales": [
+      {
+        "pregunta": "¿En qué canal llamo a Prefectura?",
+        "respuesta": "En el Paraná llamá por el canal 12, que es el canal de trabajo de la Prefectura. Si no te responden, probá el 16 que siempre está escuchado."
+      },
+      {
+        "pregunta": "¿Para qué es el canal 16?",
+        "respuesta": "El 16 es el canal de socorro internacional, chamigo. Solo se usa para emergencias y para hacer la llamada inicial. Una vez que te contactan te pasan a otro canal para hablar."
+      },
+      {
+        "pregunta": "¿Qué es el canal 70?",
+        "respuesta": "El 70 es para Llamada Selectiva Digital, que es una alerta automática de emergencia que mandan las radios modernas con DSC. No se usa para hablar por voz, es solo para el sistema automático."
+      },
+      {
+        "pregunta": "¿Puedo usar el canal 16 para hablar con otro pescador?",
+        "respuesta": "No, patrón. El 16 es sagrado, solo para socorro. Para hablar con otro pescador usá el canal 6 o el 8, que son los canales de barco a barco."
+      },
+      {
+        "pregunta": "¿Cuál es la frecuencia del canal 16?",
+        "respuesta": "El canal 16 trabaja en 156.800 MHz, que es la frecuencia internacional de emergencia. Todos los barcos del mundo la escuchan."
+      }
+    ]
+  },
+  "respuestas_puente": [
+    "Canales VHF marinos utilizados en Argentina",
+    "Cada canal tiene una frecuencia fija asignada internacionalmente",
+    "El pescador debe conocer al menos el 16 y el 12 antes de salir al agua",
+    "Canal oficial de trabajo y operaciones",
+    "Enlace directo con las dependencias de la Prefectura Naval Argentina"
+  ]
+}

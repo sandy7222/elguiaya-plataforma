@@ -1,0 +1,17 @@
+{
+  "intent": "notificaciones",
+  "respuestas": [
+    "Tocá la campanita arriba a la derecha.\nAhí aparecen todos los avisos: cotizaciones que llegaron, confirmaciones de pago, inicio y fin de viaje, y recordatorios para calificar.",
+    "Las notificaciones están en la campanita arriba a la derecha de la pantalla principal.\nSi tenés un número rojo encima, es que llegaron avisos nuevos.\nTocala para verlos y tocar cualquier aviso te lleva directo a la pantalla correspondiente.",
+    "La campanita arriba a la derecha es tu centro de avisos.\nCotizaciones, estados del viaje, pagos y calificaciones todo llega ahí.",
+    "¿Ves un numerito rojo en la campanita? Eso es que tenés avisos sin leer.\nTocala y vas a ver qué pasó. Cada aviso te lleva directo a lo que corresponde."
+  ],
+  "seguimiento": "¿Ves la campanita arriba a la derecha? ¿Llegó el aviso que esperabas?",
+  "respuestas_puente": [
+    "Tocá la campanita arriba a la derecha",
+    "Ahí aparecen todos los avisos: cotizaciones que llegaron, confirmaciones de pago, inicio y fin de viaje, y recordatorios para calificar",
+    "Las notificaciones están en la campanita arriba a la derecha de la pantalla principal",
+    "Si tenés un número rojo encima, es que llegaron avisos nuevos",
+    "Tocala para verlos y tocar cualquier aviso te lleva directo a la pantalla correspondiente"
+  ]
+}

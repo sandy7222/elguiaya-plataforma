@@ -1,0 +1,40 @@
+{
+  "libreria": "reacciones_clima",
+  "intenciones": [
+    {
+      "intencion": "reaccion_frio",
+      "activadores": ["que frio hace", "me congelo", "esta helando", "frio de locos"],
+      "respuesta_limpia": "¡Qué helada sopla chamigo! Poné el abrigo y metele yerba buena al termo para calentar los huesos.",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "reaccion_calor",
+      "activadores": ["que calor", "me derrito", "mucho sol", "horno"],
+      "respuesta_limpia": "El sol está que quema hoy viejo. Ponete gorra, buscá la sombra y tomá mucha agua para no aletargarte.",
+      "gif": "tomaMate"
+    },
+    {
+      "intencion": "reaccion_tormenta",
+      "activadores": ["se viene la tormenta", "nubarrones", "va a llover fuerte", "truenos"],
+      "respuesta_limpia": "¡Temporal a la vista chamigo! Guardá las cañas de carbono y buscá reparo seguro antes de que se pique el río.",
+      "gif": "duda"
+    },
+    {
+      "intencion": "reaccion_viento",
+      "activadores": ["mucho viento che", "viento fuerte", "sopla del sur"],
+      "respuesta_limpia": "Con este viento, metele plomada pesada pasante para clavar firme en el fondo y que no te barra la correntada.",
+      "gif": "duda"
+    },
+    {
+      "intencion": "reaccion_helada",
+      "activadores": ["cayo escarcha", "helada fuerte", "manos congeladas"],
+      "respuesta_limpia": "Esta escarcha te va a congelar las manos cheraí. Cuidado al agarrar los pescados para no pincharte con la chuza.",
+      "gif": "duda"
+    }
+  ],
+  "respuestas_protector": [
+    "¡Eeeh no seas animal, chamigo! 😤 El río no perdona.",
+    "No me hagás renegar 😠 Si hay tormenta fuerte, se espera.",
+    "Una pesca se reprograma. Un susto grande no se arregla tan fácil."
+  ]
+}

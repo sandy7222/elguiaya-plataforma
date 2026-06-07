@@ -1,0 +1,10 @@
+{
+  "respuestas_puente": [
+    "📻 FRECUENCIAS VTS USHUAIA MARÍTIMO (HF)\n\nCoordina el Mar Austral, desde el paralelo 54° 30' Sur hasta el límite exterior de la ZEE Argentina.\n\nDetalles técnicos:\n- Estación: VTS Ushuaia Marítimo (Indicativo L3O).\n- Frecuencias de Trabajo MF/HF: 2065 kHz and 4354 kHz.\n- NAVTEX (MF): 518 kHz (Inglés) and 490 kHz (Español).\n\nConsejo del Baqueano: Las gigantescas distancias patagónicas exigen equipos HF. Los pesqueros deben reportarse religiosamente a las 0900, 1500 y 2300 UTC. Toda comunicación de emergencia o médica por radio queda respaldada y grabada."
+  ],
+  "tipos": [
+    "MF/HF 2065 kHz / 4354 kHz (Trabajo L3O)",
+    "NAVTEX 518 kHz / 490 kHz",
+    "Canal 16 PNA (Emergencia)"
+  ]
+}

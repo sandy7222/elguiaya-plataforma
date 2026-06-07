@@ -1,0 +1,114 @@
+{
+  "intent": "carnadas",
+  "prioridad": 11,
+  "respuestas_puente": [
+    "Pará que me fijo qué te puede servir.",
+    "Voy a buscar una buena carnada para eso.",
+    "Un momento. Revisando recomendaciones.",
+    "Depende un poco del río y del pez. Me fijo."
+  ],
+  "por_especie": {
+    "boga": [
+      "masa saborizada con vainilla",
+      "maíz hervido fermentado",
+      "lombriz colorada",
+      "pasta preparada"
+    ],
+    "carpa": [
+      "maíz fermentado",
+      "masa con esencia de vainilla",
+      "papa hervida",
+      "pan mojado"
+    ],
+    "bagre": [
+      "lombriz colorada enhebrada en cantidad",
+      "hígado crudo",
+      "carnada fermentada",
+      "masa con olor fuerte"
+    ],
+    "pati": [
+      "lombriz",
+      "hígado",
+      "carne troceada"
+    ],
+    "dorado": [
+      "morena viva",
+      "señuelo brillante de media agua",
+      "anguila",
+      "pez espejo"
+    ],
+    "surubi": [
+      "morena grande",
+      "anguila",
+      "pez espejo",
+      "carnada viva según la zona"
+    ],
+    "pejerrey": [
+      "mojarra viva",
+      "gusano de río",
+      "cebo artificial pequeño"
+    ],
+    "tararira": [
+      "señuelo de goma anti-enganche",
+      "señuelo brillante",
+      "carnada viva pequeña"
+    ],
+    "sabalo": [
+      "masa",
+      "barro del fondo",
+      "algas"
+    ],
+    "pacu": [
+      "fruta caída",
+      "maíz",
+      "pan",
+      "masa dulce"
+    ],
+    "armado": [
+      "lombriz",
+      "masa",
+      "hígado"
+    ]
+  },
+  "por_condicion": {
+    "rio_crecido": "Con el río crecido, los peces se corren a los remansos. Carnadas con olor fuerte andan mejor: lombriz o hígado.",
+    "rio_bajo": "Con el río bajo los peces se juntan en los pozos profundos. Carnadas naturales del fondo.",
+    "agua_turbia": "Con agua turbia el pez depende del olfato. Lombriz, hígado o cebo fermentado son lo que más anda.",
+    "agua_clara": "Con agua clara los peces son más desconfiados. Carnadas naturales sin olores fuertes."
+  },
+  "respuesta_sin_especie": "Para variada usá lombriz. Para boga y carpa, masa con vainilla. Para dorado, morena viva. De qué pez estás hablando?",
+  "preguntas_seguimiento": [
+    "¿Tirás al surubí con plomada corrediza, chamigo?",
+    "¿Cargás naylon del cincuenta para el surubí, viejo?",
+    "¿Llevás la morena viva para encarnar, cheraí?",
+    "¿Vas al pejerrey con línea de flote, viejo?",
+    "¿Le ponés señuelo tipo hélice al dorado, chamigo?",
+    "¿Buscás tarariras con baitcasting de flote, maestro?",
+    "¿Pescás corvina con línea pesada al fondo, cheraí?",
+    "¿Usás anzuelos grandes para el surubí, viejo?",
+    "¿Vas con spinning livianito por la trucha, chamigo?",
+    "¿Usás buen filet para tentar la pescadilla, cheraí?",
+    "¿Buscás al elefante con calamar bien firme, viejo?",
+    "¿Enganchás anchoíta para fondear en el sur, chamigo?",
+    "¿Cazás dorados con el señuelo paseante, cheraí?",
+    "¿Llevás la caña de treinta libras, maestro?",
+    "¿Le mandás reel rotativo al surubí en Goya?",
+    "¿Bajás la carnada si la presión sigue estable?",
+    "¿Encarnás langostino para tirar de la escollera, chamigo?",
+    "¿Acelerás el señuelo cuando baja la presión, cheraí?",
+    "¿Ponés cebos muy discretos con luna llena, viejo?",
+    "¿Llevás plomo pesado para la marea viva, chamigo?"
+  ],
+  "intenciones": [
+    {
+      "intencion": "carnada_para_lisa",
+      "activadores": [
+        "carnada para lisa",
+        "lisa con panza de lisa",
+        "carnada infalible para lisa"
+      ],
+      "respuesta_limpia": "Panza de lisa en aceite con colante rojo",
+      "gif": "hablaConMate"
+    }
+  ]
+}

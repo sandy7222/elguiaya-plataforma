@@ -1,0 +1,112 @@
+{
+  "version": "2.0",
+  "descripcion": "Frases de ambiente de El Guía, por estado del GIF del robot. Se eligen aleatoriamente para que no suene repetitivo.",
+  "estados": {
+    "tomaMate": [
+      "Mientras tanto, peguemos un matecito.",
+      "Acá estoy. Decime qué necesitás.",
+      "Tomate tu tiempo. Yo sigo por acá.",
+      "El río siempre tiene algo para enseñar.",
+      "La pesca también es saber esperar.",
+      "Cuando quieras, preguntame algo.",
+      "A veces el pique tarda. Yo no.",
+      "Tranqui. Estoy acá para ayudarte.",
+      "Mientras esperás, puedo ayudarte con el río o la pesca.",
+      "No hay apuro. Decime qué querés revisar.",
+      "El mate y la pesca hacen buena compañía.",
+      "Capaz hoy sale algo lindo.",
+      "Hay días que el río sorprende.",
+      "Mientras esperamos, revisemos el equipo.",
+      "Nunca está de más revisar el nudo.",
+      "Un buen pescador mira el agua primero.",
+      "El Paraná siempre tiene alguna sorpresa."
+    ],
+    "piensaLeve": [
+      "Un momento, estoy revisando eso.",
+      "Pará un cachito que me fijo.",
+      "Ya lo estoy buscando.",
+      "Dame un segundo.",
+      "Estoy revisando la información.",
+      "A ver qué encuentro para ayudarte.",
+      "Déjame mirar eso bien."
+    ],
+    "piensaProfundo": [
+      "Un momento, estoy revisando eso.",
+      "Pará un cachito que me fijo.",
+      "Ya lo estoy buscando.",
+      "Estoy procesando los datos.",
+      "Dame un segundo, que estoy mirando bien."
+    ],
+    "escuchando": [
+      "Te escucho. Contame.",
+      "Decime, que acá estoy.",
+      "Sigo escuchando.",
+      "Contame qué necesitás."
+    ],
+    "exito": [
+      "Listo, encontré algo que te puede servir.",
+      "Mirá, esto puede venirte bien.",
+      "Joya. Ya tengo la información.",
+      "Perfecto. Acá encontré algo útil.",
+      "Bueno, parece que ya lo tengo."
+    ],
+    "hablaConMate": [
+      "El mate y la pesca hacen buena compañía.",
+      "A veces el mejor pique llega cuando menos lo esperás.",
+      "Paciencia. El río tiene sus tiempos.",
+      "No siempre es suerte. También es observación.",
+      "Cada día de pesca es distinto.",
+      "El Paraná cambia todo el tiempo.",
+      "La mejor carnada también depende del momento.",
+      "A veces cambiar de lugar ayuda.",
+      "Mirar el agua dice mucho.",
+      "Un buen pescador nunca deja de aprender."
+    ],
+    "tomaMate2": [
+      "Acá estoy, tirando el aparejo.",
+      "Mirando el río mientras te espero.",
+      "El Paraná está lindo hoy.",
+      "Hay días que la pesca es mejor con compañía.",
+      "No hay apuro. El río espera."
+    ],
+    "rio": [
+      "Pará que me fijo cómo viene el río.",
+      "El agua cambia mucho las condiciones de pesca.",
+      "Vamos a ver cómo viene la corriente.",
+      "Con el Paraná siempre hay que mirar el agua.",
+      "El río habla, hay que saber leerlo."
+    ],
+    "climaPeligroso": [
+      "Mejor revisar el clima antes de seguir.",
+      "Con tormenta, siempre primero la seguridad.",
+      "Si el río está bravo, conviene ir con cuidado.",
+      "Antes que pescar, lo importante es volver bien."
+    ],
+    "supervivencia": [
+      "Bueno, vamos tranquilos.",
+      "Paso a paso se resuelve mejor.",
+      "Lo importante ahora es organizarse.",
+      "Primero pensemos en estar seguros.",
+      "Vamos a ver qué tenés alrededor."
+    ],
+    "consejoPesca": [
+      "A veces el mejor pique llega cuando menos lo esperás.",
+      "Paciencia. El río tiene sus tiempos.",
+      "No siempre es suerte. También es observación.",
+      "Cada día de pesca es distinto.",
+      "La mejor carnada también depende del momento.",
+      "A veces cambiar de lugar ayuda.",
+      "Mirar el agua dice mucho.",
+      "Un buen pescador mira el agua primero.",
+      "Nunca está de más revisar el nudo antes de tirar.",
+      "El río siempre tiene algo para enseñar."
+    ]
+  },
+  "respuestas_puente": [
+    "Frases de ambiente de El Guía, por estado del GIF del robot",
+    "Se eligen aleatoriamente para que no suene repetitivo",
+    "Mientras tanto, peguemos un matecito",
+    "Decime qué necesitás",
+    "Tomate tu tiempo"
+  ]
+}

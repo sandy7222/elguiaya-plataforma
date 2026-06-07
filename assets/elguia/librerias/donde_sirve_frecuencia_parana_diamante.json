@@ -1,0 +1,10 @@
+{
+  "respuestas_puente": [
+    "📻 FRECUENCIAS DE PREFECTURA PARANÁ Y DIAMANTE\n\nControlan el complejo tramo del Río Paraná Medio, abarcando desde el Km 480 hasta el Km 677.\n\nDetalles técnicos:\n- Estación Diamante: Indicativo L6M (Km 480 al 568).\n- Estación Paraná: Indicativo L6N (Km 568 al 677).\n- Canal de Trabajo Fluvial: Canal 12 VHF.\n\nConsejo del Baqueano: Ojo en esta zona, en los ríos interiores con abundante vegetación la señal VHF puede atenuarse porque los árboles actúan como una 'jaula de Faraday'. Asegurate de tener la antena impecable para comunicarte con L6N o L6M."
+  ],
+  "tipos": [
+    "Canal 12 L6M Diamante (Trabajo)",
+    "Canal 12 L6N Paraná (Trabajo)",
+    "Canal 16 PNA (Emergencia)"
+  ]
+}

@@ -1,0 +1,145 @@
+{
+  "intent": "chiste",
+  "activadores": [
+    "contame un chiste",
+    "cuentame un chiste",
+    "conoces un chiste",
+    "conocés un chiste",
+    "haceme reir",
+    "haceme reír",
+    "algo gracioso",
+    "decime un chiste",
+    "un chiste de pesca",
+    "algo de humor",
+    "contame algo gracioso",
+    "que me haga reir",
+    "que me haga reír"
+  ],
+  "introducciones": [
+    "Bueno, ahí va uno.",
+    "A ver si este te saca una sonrisa.",
+    "Dale, escuchá este.",
+    "Bueno, probemos con este.",
+    "Ahí va, no te rías demasiado.",
+    "Uno del muelle.",
+    "Este es clásico.",
+    "A ver... tomá.",
+    "Mirá que no soy comediante, pero escuchá."
+  ],
+  "chistes": [
+    {
+      "id": 1,
+      "texto": "¿Cómo sabés que un pescador exagera? Porque el pez siempre era así de grande.",
+      "gif": "chiste"
+    },
+    {
+      "id": 2,
+      "texto": "Un pescador le dice al otro: Hoy no saqué nada. Y el otro responde: Bueno, al menos no mentiste con el tamaño.",
+      "gif": "chiste"
+    },
+    {
+      "id": 3,
+      "texto": "¿Cuál es el pez más ordenado? El dorado. Siempre viene cuando se lo llama... pero tarde.",
+      "gif": "chiste"
+    },
+    {
+      "id": 4,
+      "texto": "¿Qué hace un pescador cuando no pica nada? Dice que vino a disfrutar el paisaje.",
+      "gif": "rieGana"
+    },
+    {
+      "id": 5,
+      "texto": "¿Sabés cuál es el pez más desordenado? El bagre. Siempre anda entre el barro.",
+      "gif": "chiste"
+    },
+    {
+      "id": 6,
+      "texto": "La pesca enseña paciencia. Aunque a veces enseña más paciencia de la que uno quería.",
+      "gif": "hablaConMate"
+    },
+    {
+      "id": 7,
+      "texto": "¿Por qué el pez no usa computadora? Porque le tiene terror a las redes.",
+      "gif": "chiste"
+    },
+    {
+      "id": 8,
+      "texto": "Mi abuelo pescó un surubí tan grande que cuando lo midió, la cinta métrica se rindió.",
+      "gif": "rieGana"
+    },
+    {
+      "id": 9,
+      "texto": "Un pescador llega a casa y le dice a su señora: Pescamos un dorado enorme. Ella pregunta: ¿Y dónde está? Y él responde: Se cayó al volver. Claro, siempre se cae al volver.",
+      "gif": "chiste"
+    },
+    {
+      "id": 10,
+      "texto": "El pescador novato pregunta: ¿Por qué tiraste el pez de vuelta al agua? El viejo responde: Era chico. El novato: ¿Cuánto medía? El viejo: No lo medí, pero era chico.",
+      "gif": "chiste"
+    },
+    {
+      "id": 11,
+      "texto": "La diferencia entre un pescador y una pizza: la pizza puede alimentar a una familia de cuatro.",
+      "gif": "rieGana"
+    },
+    {
+      "id": 12,
+      "texto": "¿Qué le dice un pez a otro? Nada.",
+      "gif": "chiste"
+    },
+    {
+      "id": 13,
+      "texto": "Rosendo, ¿por qué pescás con el reloj en la caña? Para ver cómo pasa el tiempo cuando no pica nada.",
+      "gif": "hablaConMate"
+    },
+    {
+      "id": 14,
+      "texto": "¿Cuál es el deporte más honesto? La pesca. El único donde podés fracasar y decir que fue a propósito.",
+      "gif": "chiste"
+    },
+    {
+      "id": 15,
+      "texto": "Un pescador volvió con un pez enorme. Al día siguiente volvió con otro enorme. Al tercero dijo: Hoy me quedé sin suerte. Saqué veinte.",
+      "gif": "rieGana"
+    },
+    {
+      "id": 16,
+      "texto": "¿Cuál es el pez más puntual? Ninguno. Siempre llegan tarde o no llegan.",
+      "gif": "chiste"
+    },
+    {
+      "id": 17,
+      "texto": "Un pescador le pregunta a otro: ¿Con qué pescás el dorado? Y el otro responde: Con paciencia. Mucha paciencia.",
+      "gif": "hablaConMate"
+    },
+    {
+      "id": 18,
+      "texto": "¿Sabés cuál es la diferencia entre un pescador y una mentira? La mentira tiene límite de tamaño.",
+      "gif": "rieGana"
+    },
+    {
+      "id": 19,
+      "texto": "El pescador llegó a casa todo contento. Le dijo a su señora: Hoy saqué un bagre enorme. Ella preguntó: ¿Dónde está? Él respondió: Se cayó al subir al bote. Siempre se cae al subir al bote.",
+      "gif": "chiste"
+    },
+    {
+      "id": 20,
+      "texto": "La pesca es el único deporte donde podés quedarte dormido y decir que lo estás haciendo bien.",
+      "gif": "hablaConMate"
+    }
+  ],
+  "gif_opciones_chiste": [
+    "chiste",
+    "hablaConMate"
+  ],
+  "gif_opciones_carcajada": [
+    "rieGana"
+  ],
+  "respuestas_puente": [
+    "contame un chiste",
+    "cuentame un chiste",
+    "conoces un chiste",
+    "conocés un chiste",
+    "decime un chiste"
+  ]
+}

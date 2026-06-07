@@ -1,0 +1,62 @@
+{
+  "pantalla": "reservas",
+  "activadores": [
+    "mis viajes", "ver mis viajes", "donde veo mis viajes",
+    "mis reservas", "viaje activo", "viaje pendiente",
+    "en que estado esta mi viaje", "estado del viaje",
+    "como cancelo un viaje", "ver historial de viajes",
+    "viajes pasados", "historial de viajes", "mis salidas",
+    "viaje pagado", "viaje en curso", "viaje cerrado"
+  ],
+  "respuesta_corta": "En 'Mis Viajes' vas a ver todos tus viajes activos e históricos. Tocá cualquiera para ver el detalle y el estado actual.",
+  "pasos": [
+    "Tocá la pestaña 'Mis Viajes' en la barra de navegación de abajo.",
+    "Vas a ver la lista de todos tus viajes: activos y pasados.",
+    "Cada viaje muestra su estado: Pendiente, Pagado, En Curso, Listo para Confirmar o Cerrado.",
+    "Tocá cualquier viaje para ver el detalle completo.",
+    "Desde el detalle del viaje podés ver cotizaciones, pagar, confirmar arribo o calificar."
+  ],
+  "sub_funciones": {
+    "estado_pendiente": {
+      "pasos": [
+        "'Pendiente' significa que tu pedido fue enviado y estás esperando que los capitanes te manden cotizaciones.",
+        "Cuando lleguen propuestas, van a aparecer dentro del viaje para que elijas.",
+        "Si no llegan cotizaciones en unas horas, podés modificar la fecha o zona."
+      ]
+    },
+    "estado_pagado": {
+      "pasos": [
+        "'Pagado' significa que elegiste un capitán y ya pagaste la reserva.",
+        "El viaje está confirmado. Solo falta que llegue el día.",
+        "El capitán va a iniciarlo cuando comiencen la salida."
+      ]
+    },
+    "estado_en_curso": {
+      "pasos": [
+        "'En Curso' significa que el capitán ya inició oficialmente la salida.",
+        "El viaje está activo. Disfrutalo.",
+        "Cuando terminen, el capitán va a marcar el fin y te va a llegar una notificación."
+      ]
+    },
+    "estado_listo_confirmar": {
+      "pasos": [
+        "'Listo para Confirmar' significa que el capitán finalizó el viaje.",
+        "Tocá el viaje y presioná 'Confirmar Arribo' para cerrar el viaje.",
+        "Después se abre la pantalla de calificación."
+      ]
+    },
+    "estado_cerrado": {
+      "pasos": [
+        "'Cerrado' significa que el viaje terminó correctamente y ambos se calificaron.",
+        "Podés ver el resumen completo en el historial."
+      ]
+    }
+  },
+  "si_no_encuentra": "Si no ves la pestaña 'Mis Viajes', fijate en la barra de abajo. Es la primera pestaña de la izquierda.",
+  "problemas_comunes": {
+    "sin_viajes": "Si no ves ningún viaje, puede que todavía no hayas creado ninguno. Tocá 'Crear Nuevo Pedido' para empezar.",
+    "viaje_trabado": "Si el viaje está hace mucho en 'Pendiente' sin cotizaciones, probá modificando la fecha o zona del pedido.",
+    "no_puedo_cancelar": "La cancelación de un viaje depende del estado en que esté. Contactate con el soporte si necesitás cancelar un viaje ya pagado."
+  },
+  "descripcion": "Panel principal de viajes del pescador. Muestra todos los viajes con su estado actual en el ciclo: pendiente → pagado → en_curso → listo_para_confirmar → cerrado."
+}

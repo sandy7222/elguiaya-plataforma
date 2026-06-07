@@ -1,0 +1,10 @@
+{
+  "respuestas_puente": [
+    "📻 FRECUENCIAS VTS MAR DEL PLATA MARÍTIMO (HF)\n\nCubre el Mar Argentino desde el paralelo 35° 50' Sur hasta el 42° 00' Sur, y hasta las 200 millas náuticas (ZEE).\n\nDetalles técnicos:\n- Estación: VTS Mar del Plata Marítimo (Indicativo L2T).\n- Frecuencias de Trabajo HF: 4354 kHz and 8713 kHz.\n- Frecuencias Médicas: 4354 kHz, 8713 kHz and 5630 kHz (aeroevacuaciones).\n\nConsejo del Baqueano: Ideal para altamar donde el VHF no llega. Los pesqueros deben reportarse a las 0000, 0800 y 1600. Podés recibir alertas NAVTEX en 518 kHz (Inglés) y 490 kHz (Español)."
+  ],
+  "tipos": [
+    "HF 4354 kHz / 8713 kHz (Trabajo L2T)",
+    "HF 2065 kHz / 4149 kHz / 8294 kHz (Seguridad)",
+    "NAVTEX 518 kHz / 490 kHz"
+  ]
+}

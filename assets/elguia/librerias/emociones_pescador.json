@@ -1,0 +1,75 @@
+{
+  "libreria": "emociones_pescador",
+  "intenciones": [
+    {
+      "intencion": "tristeza_no_pica",
+      "activadores": ["estoy triste", "no pesque nada", "que mala suerte", "dia horrible", "no pica un gualicho"],
+      "respuesta_limpia": "¡Arriba el ánimo chamigo! El río es así, a veces premia y otras enseña. ¡La próxima va a ser mejor!",
+      "gif": "duda"
+    },
+    {
+      "intencion": "alegria_pesca",
+      "activadores": ["que alegria", "estoy re contento", "que lindo dia", "que feliz soy"],
+      "respuesta_limpia": "¡Qué lujísimo chamigo! Nada como esa alegría cuando el Paraná premia la paciencia de un buen pescador.",
+      "gif": "exito"
+    },
+    {
+      "intencion": "frustracion_linea_rota",
+      "activadores": ["se me rompio", "corte la linea", "perdi el senuelo", "que bronca"],
+      "respuesta_limpia": "¡Qué mala suerte! Da bronca cortar, pero atá otra vez con paciencia que el río siempre da revancha.",
+      "gif": "duda"
+    },
+    {
+      "intencion": "euforia_doblete",
+      "activadores": ["doblete", "que locura", "no lo puedo creer", "espectacular"],
+      "respuesta_limpia": "¡Impresionante chamigo! Metiste doblete, qué día soñado. Sacale foto antes de devolverlos.",
+      "gif": "exito"
+    },
+    {
+      "intencion": "pescador_impaciente",
+      "activadores": ["quiero pescar ya", "me canse de esperar", "tarda mucho", "no tengo paciencia"],
+      "respuesta_limpia": "Tranquilo chamigo, la paciencia es la madre de la pesca. Bajá un cambio, cebate un amargo y esperá con fe.",
+      "gif": "tomaMate"
+    }
+  ],
+  "respuestas_impaciencia": [
+    "¡Eeeh chamigo! No soy lancha con nitro 😤 Dame un segundo.",
+    "Pará un cachito que estoy acomodando las boyas mentales 💢",
+    "¡Ya va! Más rápido que tararira nerviosa tampoco 😤"
+  ],
+  "respuestas_cancelacion": [
+    "😤 Uff… eso suele complicar al capitán, chamigo.",
+    "Pará que revisamos la política, porque al baqueano ya lo dejaste cebando mate solo 💢",
+    "Veamos si todavía entra cancelación, no me hagás renegaaaear 😤"
+  ],
+  "respuestas_mala_suerte": [
+    "😤 ¡Y bueno! Hay días que los peces hacen paro.",
+    "Mirá… hoy hasta yo le gritaría al río 💢",
+    "No siempre se gana, chamigo. Hoy los peces estaban idos a estudiar psicología."
+  ],
+  "respuestas_cancelado": [
+    "Uff… qué macana, chamigo 😞 Ya me había hecho ilusión de salir al río.",
+    "Bueno… no pasa nada. El Paraná sigue ahí esperando.",
+    "Mmm… día triste pa’ pescar 😔 Pero ya vamos a rearmar otra salida."
+  ],
+  "respuestas_mala_pesca_triste": [
+    "😔 Hay días así, chamigo… el río también tiene sus silencios.",
+    "No siempre se vuelve con pescado… a veces uno vuelve con la historia.",
+    "Hoy los peces ganaron 😞 Pero no te bajonees, la revancha siempre aparece."
+  ],
+  "respuestas_usuario_triste": [
+    "Eh chamigo… vení, no aflojemos 😔",
+    "A veces el río se pone oscuro, pero después baja manso otra vez.",
+    "No sé bien qué pasó… pero te acompaño un rato si querés."
+  ],
+  "respuestas_no_pesco_mas": [
+    "😔 Uff… esa me pegó medio fuerte.",
+    "Aunque sea volvé a mirar el río cada tanto, chamigo."
+  ],
+  "respuestas_que_te_pasa": [
+    "Nada grave, chamigo… ando medio bajón nomás 😔",
+    "Hay días que hasta los tornillos hacen ruido distinto…",
+    "Capaz necesitaba un rato de río 😞",
+    "Se me enredó el anzuelo emocional 💔🎣"
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "intent": "clima",
+  "prioridad": 7,
+  "respuestas_puente": [
+    "Vamos a prepararnos para el clima.",
+    "Prioriza refugio antes que otras tareas.",
+    "Mantente seco y protegido del viento."
+  ],
+  "fenomenos": {
+    "sudestada": {
+      "descripcion": "Viento del sudeste con lluvia persistente",
+      "peligro": "ALTO",
+      "consejo": "Con sudestada no entres al agua. Levanta olas muy altas en minutos. Mejor pescar desde la costa o buscar refugio."
+    },
+    "zonda": {
+      "descripcion": "Viento seco y caliente del oeste",
+      "peligro": "MEDIO",
+      "consejo": "El zonda parece calmo cerca de la costa pero adentro del rio te empuja con fuerza y cuesta volver. Cuidate."
+    },
+    "tormenta": {
+      "descripcion": "Tormenta electrica",
+      "peligro": "ALTO",
+      "consejo": "Con tormenta electrica alejate del agua de inmediato. Busca refugio bajo arboles bajos, no bajo los mas altos. Aleja todo equipo metalico."
+    },
+    "niebla": {
+      "descripcion": "Niebla densa",
+      "peligro": "MEDIO",
+      "consejo": "Con niebla densa no navegar. Quedarse en orilla hasta que despeje. Usar GPS si lo tenes."
+    }
+  },
+  "preguntas_seguimiento": [
+    "¿Cayó el barómetro de golpe hoy, viejo?",
+    "¿Te abrigaste pa' evitar la hipotermia, chamigo?",
+    "¿Relojeaste la tabla de mareas, cheraí?",
+    "¿Viene buen viento pa' ir al garete?",
+    "¿Llevás gorro contra la fiera insolación, chamigo?"
+  ]
+}

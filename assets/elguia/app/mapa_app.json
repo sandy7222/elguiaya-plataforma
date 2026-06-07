@@ -1,0 +1,35 @@
+{
+  "pantalla": "mapa",
+  "descripcion": "Muestra la ubicación del usuario en tiempo real con cartas náuticas del Paraná y el delta.",
+  "activadores": [
+    "gps", "mapa", "el mapa", "el gps",
+    "como usar el gps", "cómo usar el gps", "abrir mapa", "ver mapa",
+    "no veo mi ubicacion", "no veo mi ubicación", "no aparece el mapa",
+    "como abrir el mapa", "cómo abrir el mapa", "donde esta el mapa",
+    "dónde está el mapa", "no encuentro el mapa", "mapa no funciona",
+    "el gps no anda", "gps no funciona", "sin ubicacion", "sin ubicación",
+    "como abrir el gps", "cómo abrir el gps", "como funciona el mapa",
+    "cómo funciona el mapa", "para que sirve el mapa", "para qué sirve el mapa",
+    "para que sirve el gps", "para qué sirve el gps",
+    "donde estoy", "dónde estoy", "mi ubicacion", "mi ubicación"
+  ],
+  "respuesta_corta": "Vamos juntos. Tocá el botón GPS o Mapa en la pantalla principal. Ahí vas a ver tu ubicación actual.",
+  "pasos": [
+    "En la pantalla principal buscá el botón con el ícono de mapa o GPS.",
+    "Tocalo y va a abrir la pantalla del mapa náutico.",
+    "Tu posición aparece como un punto sobre el mapa.",
+    "Podés hacer zoom con los dedos para acercarte o alejarte.",
+    "El mapa funciona aunque no tengas internet, si cargaste las cartas antes de salir."
+  ],
+  "si_no_funciona": [
+    "Puede que le falte permiso de ubicación. Te cuento cómo activarlo.",
+    "¿La app tiene acceso al GPS del teléfono? Si no, hay que habilitarlo en Configuración del celular."
+  ],
+  "problemas_comunes": {
+    "sin_permiso": "Andá a Configuración del teléfono → Aplicaciones → Capitan-YA → Permisos → Ubicación → Siempre o Cuando uso la app.",
+    "sin_senal": "El GPS tarda unos segundos en arrancar. Salí a un lugar abierto y esperá que el punto de ubicación aparezca.",
+    "mapa_en_blanco": "Si el mapa aparece en blanco, puede que no hayas cargado las cartas con internet antes. Conectate y volvé a abrir el mapa.",
+    "no_sigue": "Si tu punto no se mueve, fijate que el GPS del teléfono esté activado desde el panel de notificaciones."
+  },
+  "si_no_encuentra": "No pasa nada. ¿Estás en la pantalla principal? El botón del mapa está ahí arriba. También podés buscarlo en el menú."
+}

@@ -1,0 +1,20 @@
+{
+  "pantalla": "carnadas",
+  "activadores": [
+    "donde estan las carnadas", "dónde están las carnadas",
+    "como ver carnadas en la app", "cómo ver carnadas en la app",
+    "donde encuentro carnadas", "dónde encuentro carnadas",
+    "guia de carnadas", "guía de carnadas", "ver especies en la app",
+    "carnadas de la app", "seccion carnadas", "sección carnadas",
+    "no encuentro carnadas", "carnadas por especie"
+  ],
+  "respuesta_corta": "En el menú principal buscá Carnadas. Ahí podés ver recomendaciones por especie y condición del río.",
+  "pasos": [
+    "En la pantalla principal buscá el acceso a Carnadas.",
+    "Podés elegir la especie que querés pescar.",
+    "La app te va a mostrar las carnadas más recomendadas para esa especie.",
+    "También podés filtrar según cómo viene el río: crecido, bajo, turbio o claro."
+  ],
+  "si_no_encuentra": "No pasa nada. La sección Carnadas puede estar dentro del menú de pesca o en los accesos rápidos. También podés pedirme directamente qué carnada usar y te respondo ahora mismo.",
+  "consejo": "Si no encontrás la sección, recordá que yo también puedo ayudarte con carnadas directamente. Solo preguntame y te digo qué usar."
+}
