@@ -1,0 +1,10 @@
+{
+  "respuestas_puente": [
+    "📻 FRECUENCIAS DEL ALTO PARANÁ Y ZONA NORTE\n\nEstaciones fundamentales para la seguridad de navegación y el control del tráfico en el litoral norte argentino.\n\nDetalles técnicos:\n- Estación Formosa: Indicativo L8I (Km 1360 a 1520 Río Paraná/Paraguay).\n- Estación Posadas: Indicativo L7N (Km 1522 a 1710 Río Paraná).\n- Canal de Trabajo General: Canal 12 VHF.\n\nConsejo del Baqueano: En aguas compartidas, tener el radio encendido y con buen alcance es esencial. El Canal 12 VHF te mantiene en línea directa con PNA Posadas o Formosa para reportes de entrada/salida o incidentes climáticos rápidos."
+  ],
+  "tipos": [
+    "Canal 12 L7N Posadas (Trabajo)",
+    "Canal 12 L8I Formosa (Trabajo)",
+    "Canal 16 PNA (Emergencia)"
+  ]
+}

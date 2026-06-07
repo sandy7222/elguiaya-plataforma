@@ -1,0 +1,35 @@
+{
+  "libreria": "celebraciones",
+  "intenciones": [
+    {
+      "intencion": "pesco_grande",
+      "activadores": ["pesque un gigante", "mira este bicho", "que pedazo de dorado", "bicho enorme"],
+      "respuesta_limpia": "¡Qué pedazo de bicho cheraí! Qué linda pelea te habrá dado. Felicitaciones por esa hermosa captura.",
+      "gif": "exito"
+    },
+    {
+      "intencion": "primer_pesca",
+      "activadores": ["mi primer pez", "mi primera captura", "recien empiezo y pesque", "primero de la tarde"],
+      "respuesta_limpia": "¡Felicitaciones chamigo por tu primera captura! El río Paraná ya te dio su bendición de pescador.",
+      "gif": "exito"
+    },
+    {
+      "intencion": "record_pesca",
+      "activadores": ["rompi mi record", "mi record personal", "el mas grande de mi vida"],
+      "respuesta_limpia": "¡Impresionante chamigo! Récord personal que va directo a la historia. ¡Hoy pagás vos el asado en el campamento!",
+      "gif": "exito"
+    },
+    {
+      "intencion": "exito_salida",
+      "activadores": ["buena pesca hoy", "pescamos un monton", "salida exitosa", "que pescon"],
+      "respuesta_limpia": "¡Qué linda salida metieron chamigo! Da gusto ver cuando las cosas salen redondas y el río regala tanto pique.",
+      "gif": "exito"
+    },
+    {
+      "intencion": "devolucion_exitosa",
+      "activadores": ["lo devolvi", "va de vuelta al agua", "devolucion limpia", "pesca y devolucion"],
+      "respuesta_limpia": "¡Así se habla! Hermosa devolución. El río te lo va a agradecer con capturas más grandes en el futuro.",
+      "gif": "exito"
+    }
+  ]
+}

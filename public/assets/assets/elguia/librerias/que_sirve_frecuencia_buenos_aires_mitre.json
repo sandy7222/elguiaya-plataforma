@@ -1,0 +1,10 @@
+{
+  "respuestas_puente": [
+    "📻 FRECUENCIAS BUENOS AIRES Y CANAL EMILIO MITRE\n\nZona de bifurcación neurálgica que abarca accesos al Canal Costanero, Canal Emilio Mitre y rutas de navegación al Delta y Río Honda.\n\nDetalles técnicos:\n- Estación Buenos Aires: Indicativo L2A (Canal 14 VHF).\n- Estación Dto. Braga: Indicativo L5L (Canal 16 y 72 VHF, cubre Canal Emilio Mitre).\n- Estación Martín García: Indicativo L5P (Canal 16 y 72 VHF).\n\nConsejo del Baqueano: Hay mucha convivencia entre buques mercantes y nautas deportivos. L2A emite reportes valiosos por Canal 14, pero si navegás por el Canal Emilio Mitre debés comunicarte en el 72 con la costera Braga L5L."
+  ],
+  "tipos": [
+    "Canal 14 L2A Buenos Aires (Seguridad/Rutas)",
+    "Canal 72 L5L Braga (Trabajo Canal E. Mitre)",
+    "Canal 16 PNA (Emergencia)"
+  ]
+}

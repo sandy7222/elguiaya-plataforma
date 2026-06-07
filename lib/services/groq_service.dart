@@ -11,6 +11,8 @@ import 'el_guia_context.dart';
 import 'guia_rol_service.dart';
 import 'connectivity_bridge.dart';
 import 'supabase_service.dart';
+import 'guia_memoria_service.dart';
+
 
 class GroqService {
   static const String _baseUrl = 'https://api.groq.com/openai/v1/chat/completions';

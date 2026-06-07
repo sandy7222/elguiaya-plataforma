@@ -1,0 +1,43 @@
+{
+  "pantalla": "cotizaciones_pescador",
+  "activadores": [
+    "ver cotizaciones", "ver ofertas", "capitanes disponibles", "propuestas",
+    "no me llego ninguna cotizacion", "cuantos capitanes me mandaron",
+    "como veo las propuestas", "como elijo un capitan", "quiero ver las ofertas",
+    "comparar capitanes", "ver precios de capitanes", "eligio alguno",
+    "cuantos me respondieron", "llegaron cotizaciones", "llegaron propuestas",
+    "no me mandan cotizacion", "nadie me cotizo", "me llegaron propuestas"
+  ],
+  "respuesta_corta": "Las cotizaciones aparecen dentro del viaje que creaste. Tocá ese viaje en 'Mis Viajes' y vas a ver las propuestas de los capitanes.",
+  "pasos": [
+    "Entrá a la pestaña 'Mis Viajes'.",
+    "Tocá el viaje que creaste. Va a estar en estado 'Pendiente'.",
+    "Dentro del viaje vas a ver la lista de capitanes que mandaron propuesta.",
+    "Podés ver el precio, las calificaciones y los comentarios de cada capitán.",
+    "Cuando elijas uno, tocá 'Aceptar' en esa propuesta.",
+    "Después se abre el pago con Mercado Pago."
+  ],
+  "sub_funciones": {
+    "comparar_capitanes": {
+      "pasos": [
+        "Dentro del viaje, las propuestas se muestran una por una.",
+        "Cada propuesta muestra: precio, calificación del capitán (anclas) y comentarios.",
+        "Deslizá entre las propuestas para compararlas.",
+        "Elegí la que más te convenga y tocá 'Aceptar'."
+      ]
+    },
+    "ver_perfil_capitan": {
+      "pasos": [
+        "En la propuesta del capitán, tocá su nombre o foto.",
+        "Se abre su perfil con su historial, calificaciones y reseñas de otros pescadores."
+      ]
+    }
+  },
+  "si_no_encuentra": "Si no ves las cotizaciones, fijate que el viaje esté en estado 'Pendiente'. Si está en otro estado, el capitán ya fue elegido. Si todavía no llegó ninguna propuesta, esperá un poco más.",
+  "problemas_comunes": {
+    "sin_cotizaciones": "Si no llegó ninguna cotización puede ser que sea muy pronto o que no haya capitanes disponibles en esa fecha y zona. Esperá unas horas o modificá el pedido.",
+    "capitan_no_aparece": "Si el capitán no aparece en la lista, puede que haya rechazado el pedido en silencio. Solo ves los que sí aceptaron cotizar, es normal.",
+    "no_puedo_aceptar": "Para aceptar una cotización necesitás tener tu perfil completo y el pedido en estado 'Pendiente'. Si ya aceptaste una antes, no podés aceptar otra."
+  },
+  "descripcion": "Módulo para ver, comparar y aceptar cotizaciones de capitanes."
+}

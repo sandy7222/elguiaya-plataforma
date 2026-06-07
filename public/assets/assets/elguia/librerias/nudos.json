@@ -1,0 +1,64 @@
+{
+  "intent": "nudos",
+  "prioridad": 12,
+  "respuestas_puente": [
+    "Dale. Vamos viendo ese nudo.",
+    "Un momento. Te explico cómo hacerlo.",
+    "Ya busco los pasos."
+  ],
+  "nudos": {
+    "palomar": {
+      "uso": "Atar anzuelos y señuelos a la línea principal",
+      "resistencia": "ALTA",
+      "dificultad": "BAJA",
+      "pasos": [
+        "Pasá la línea doble por el ojo del anzuelo.",
+        "Hacé un nudo simple con el lazo formado.",
+        "Pasá el anzuelo por el lazo doble.",
+        "Mojá y ajustá tirando de ambos extremos."
+      ]
+    },
+    "clinch_mejorado": {
+      "uso": "Atar anzuelos con línea delgada",
+      "resistencia": "ALTA",
+      "dificultad": "BAJA",
+      "pasos": [
+        "Pasá la línea por el ojo del anzuelo.",
+        "Dale 5 a 7 vueltas sobre sí misma.",
+        "Pasá el extremo por el lazo junto al ojo.",
+        "Pasá por el lazo grande formado.",
+        "Mojá y ajustá firmemente."
+      ]
+    },
+    "albright": {
+      "uso": "Unir dos líneas de distintos diámetros o materiales",
+      "resistencia": "ALTA",
+      "dificultad": "MEDIA",
+      "pasos": [
+        "Hacé un bucle con la línea más gruesa.",
+        "Pasá la línea delgada por el bucle.",
+        "Enrollá la línea delgada sobre sí misma y el bucle 10 veces.",
+        "Pasá el extremo por donde entró originalmente.",
+        "Mojá y ajustá con cuidado."
+      ]
+    },
+    "uni": {
+      "uso": "Unir dos líneas del mismo o similar diámetro",
+      "resistencia": "ALTA",
+      "dificultad": "MEDIA",
+      "pasos": [
+        "Superponé los dos extremos de línea unos 15 cm.",
+        "Con una línea hacé un lazo sobre la otra y enrólala 6 veces.",
+        "Repetí con la otra línea.",
+        "Mojá ambos nudos y correélos juntos."
+      ]
+    }
+  },
+  "preguntas_seguimiento": [
+    "¿Nylon del 40 o le metés multifilamento?",
+    "¿Es para unir dos tanzas o empatillar anzuelo?",
+    "¿Vas a armar chicote con líder de acero?",
+    "¿Querés un nudo corredizo para el rotor?",
+    "¿Es para fijar plomada corrediza al fondo?"
+  ]
+}

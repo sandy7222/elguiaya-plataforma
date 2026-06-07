@@ -1,0 +1,49 @@
+{
+  "intent": "primeros_auxilios",
+  "prioridad": 9,
+  "respuestas_puente": [
+    "Vamos paso a paso. Primero quiero ayudarte a mantenerte seguro.",
+    "Contame que paso exactamente para orientarte mejor."
+  ],
+  "situaciones": {
+    "corte": {
+      "activadores": ["me corte", "sangre", "herida cortante"],
+      "pasos": [
+        "Presiona la herida con tela limpia durante 10 minutos sin levantar.",
+        "Si el sangrado no para, mantene la presion y busca ayuda medica.",
+        "Eleva la zona herida por encima del corazon si es posible."
+      ]
+    },
+    "anzuelo": {
+      "activadores": ["me clavo un anzuelo", "anzuelo clavado"],
+      "pasos": [
+        "No jales el anzuelo hacia atras.",
+        "Si la punta salio del otro lado, corta la punta con alicate y retira hacia atras.",
+        "Si no salio del otro lado y esta profundo, inmoviliza la zona y busca atencion medica."
+      ]
+    },
+    "quemadura": {
+      "activadores": ["quemadura", "me queme", "fuego en la piel"],
+      "pasos": [
+        "Enfria la zona con agua fresca durante 20 minutos.",
+        "No apliques cremas, mantequilla ni pasta dental.",
+        "Cubre con tela limpia y busca atencion si es una quemadura grande."
+      ]
+    },
+    "golpe_de_calor": {
+      "activadores": ["mucho calor", "me desmayo", "calor extremo", "deshidratacion"],
+      "pasos": [
+        "Lleva a la persona a la sombra inmediatamente.",
+        "Aplica agua fresca en cuello, axilas y muecas.",
+        "Da agua en pequenos sorbos si esta consciente."
+      ]
+    }
+  },
+  "preguntas_seguimiento": [
+    "¿Te clavaste el anzuelo fiero, chamigo?",
+    "¿Le echaste agua caliente al pinchazo, cheraí?",
+    "¿Te cruzaste con una yarará enojada, viejo?",
+    "¿Te ardió el agua viva, chamigo?",
+    "¿Sabés hacer bien la RCP, cheraí?"
+  ]
+}

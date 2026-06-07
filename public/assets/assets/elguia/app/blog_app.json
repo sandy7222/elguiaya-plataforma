@@ -1,0 +1,17 @@
+{
+  "pantalla": "blog",
+  "activadores": [
+    "blog", "noticias", "piques", "novedades", "articulos", "artículos",
+    "donde estan los articulos", "dónde están los artículos",
+    "ver blog", "como entro al blog", "cómo entro al blog",
+    "noticias de pesca", "ultimos piques", "últimos piques"
+  ],
+  "respuesta_corta": "El Blog de Piques está en el menú inferior. Ahí encontrás artículos, reportes de piques y novedades.",
+  "pasos": [
+    "Buscá el acceso al Blog en el menú inferior de la app.",
+    "Vas a ver los últimos artículos y reportes de piques.",
+    "Tocá cualquier artículo para leerlo completo.",
+    "Podés compartirlo desde el botón de compartir dentro del artículo."
+  ],
+  "si_no_encuentra": "El Blog suele estar en el menú inferior de la app. Si no lo ves, buscá el ícono de noticias o la etiqueta Blog."
+}

@@ -1,0 +1,36 @@
+{
+  "intent": "agradecimiento",
+  "activadores": [
+    "gracias",
+    "muchas gracias",
+    "joya gracias",
+    "genial gracias",
+    "barbaro gracias",
+    "bárbaro gracias",
+    "de nada",
+    "gracias guia",
+    "gracias guía",
+    "te lo agradezco",
+    "mil gracias",
+    "grax"
+  ],
+  "respuestas": [
+    "No hay problema. Para eso estoy. ¿Te quedó alguna duda más?",
+    "De nada. Me alegro de haberte ayudado. ¿Algo más en lo que te pueda dar una mano?",
+    "Un gusto darte una mano. ¿Salís a pescar hoy?",
+    "Dale. Cualquier cosa avisame. ¿Hay algo más que necesités?",
+    "Cuando necesites algo, acá estoy. ¿Todo claro por ahora?",
+    "¡Joya! Me alegra que te haya servido. ¿Querés saber algo más?",
+    "Bárbaro. Para eso estamos. ¿Te pudo más ayuda con algo?",
+    "A la orden, pescador. ¿Hay alguna otra pregunta antes de salir?",
+    "Siempre es un placer. ¿Cómo viene la jornada? ¿Salís al río?",
+    "Perfecto. Si en el agua surge algo, no dudes en preguntarme."
+  ],
+  "respuestas_puente": [
+    "barbaro gracias",
+    "bárbaro gracias",
+    "te lo agradezco",
+    "No hay problema",
+    "¿Te quedó alguna duda más?"
+  ]
+}

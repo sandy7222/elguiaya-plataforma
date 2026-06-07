@@ -1,0 +1,17 @@
+{
+  "intent": "ayuda_general",
+  "respuestas": [
+    "No pasa nada. Decime qué querés hacer y te oriento.\n¿Buscar un capitán, ver tu viaje, pagar, ir al mapa o algo de la tienda?",
+    "Claro, te ayudo. ¿Por dónde empezamos?\n¿Querés salir a pescar, revisar tu viaje, comprar algo en la tienda o tenés otra duda?",
+    "Dale. Contame qué necesitás y lo vemos juntos.\n¿Es algo de un viaje, de la tienda, del mapa o de tu perfil?",
+    "Vamos despacito. Decime qué querés hacer y lo resolvemos paso a paso.\n¿Viaje, tienda, mapa o perfil?"
+  ],
+  "seguimiento": "¿Pudiste encontrar lo que buscabas?",
+  "respuestas_puente": [
+    "Decime qué querés hacer y te oriento",
+    "¿Buscar un capitán, ver tu viaje, pagar, ir al mapa o algo de la tienda?",
+    "Claro, te ayudo",
+    "¿Por dónde empezamos? ¿Querés salir a pescar, revisar tu viaje, comprar algo en la tienda o tenés otra duda?",
+    "Contame qué necesitás y lo vemos juntos"
+  ]
+}

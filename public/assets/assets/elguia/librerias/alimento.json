@@ -1,0 +1,25 @@
+{
+  "intent": "alimento",
+  "prioridad": 6,
+  "respuestas_puente": [
+    "Vamos a revisar opciones de alimento.",
+    "Primero dime que tenes alrededor.",
+    "Estas cerca de agua, arboles o zona abierta?"
+  ],
+  "fuentes": {
+    "pesca": {
+      "descripcion": "Pescar para comer",
+      "consejo": "Si estas cerca del rio, la pesca es la fuente mas confiable. Un anzuelo improvisado con un pin o espina y una linea te puede dar resultado."
+    },
+    "plantas": {
+      "descripcion": "Plantas comestibles del delta",
+      "consejo": "Las totoras tienen raices comestibles. El choclo silvestre y algunas frutas del monte son opciones. Nunca comas plantas desconocidas sin estar seguro.",
+      "advertencia": "Evita plantas con leche blanca o olor muy fuerte. Pueden ser toxicas."
+    },
+    "animales_pequenos": {
+      "descripcion": "Animales pequenos",
+      "consejo": "Renacuajos, ranas y caracoles de agua dulce son comestibles si se cocinan bien. Evita los de colores brillantes."
+    }
+  },
+  "advertencia": "El cuerpo humano puede sobrevivir semanas sin comida pero solo dias sin agua. Prioriza el agua primero."
+}

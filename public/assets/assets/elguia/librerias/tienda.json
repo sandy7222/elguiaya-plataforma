@@ -1,0 +1,16 @@
+{
+  "intent": "tienda",
+  "ruta_navegacion": "/tienda",
+  "prioridad": 17,
+  "respuestas_puente": [
+    "No hay problema chamigo yo te llevo.",
+    "Dale. Te abro la tienda.",
+    "Ya te llevo a la parte de compras.",
+    "Un momento. Estoy abriendo la tienda."
+  ],
+  "accion": "navegar_tienda",
+  "mensajes_sin_conexion": [
+    "La tienda necesita conexión para mostrar el stock actualizado. Cuando tengas señal te muestro todo.",
+    "Sin señal no puedo verificar el stock en tiempo real. Cuando volvás a zona te abro el catálogo completo."
+  ]
+}

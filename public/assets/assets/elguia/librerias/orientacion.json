@@ -1,0 +1,16 @@
+{
+  "intent": "orientacion",
+  "prioridad": 8,
+  "respuestas_puente": [
+    "Voy a ayudarte a orientarte.",
+    "Primero dime si tenes senal GPS.",
+    "Podes ver el rio, el sol o puntos de referencia?"
+  ],
+  "metodos": {
+    "sol": "El sol sale por el este y se pone por el oeste. Al mediodia esta en el norte en el hemisferio sur.",
+    "estrellas": "La Cruz del Sur senala el sur. Es la constelacion mas util para orientarse en el hemisferio sur.",
+    "rio": "El Parana generalmente corre de norte a sur. Si encontras el rio, podes orientarte siguiendolo hacia zonas habitadas.",
+    "gps": "Si la app tiene GPS, activa la pantalla de mapa para ver tu posicion exacta incluso sin internet."
+  },
+  "consejo": "Si estas perdido en el delta, busca el curso de agua mas grande y siguelo hacia el sur. Siempre lleva a zonas mas pobladas."
+}

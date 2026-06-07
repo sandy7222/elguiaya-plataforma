@@ -1,0 +1,10 @@
+{
+  "respuestas_puente": [
+    "📻 FRECUENCIAS VTS RÍO DE LA PLATA - SECTOR 1\n\nCubre la crítica zona de ingreso y egreso por el Estacionario de Prácticos Recalada (Km 239,1) y el Canal Paso Banco Chico.\n\nDetalles técnicos:\n- Estación: VTS Río de la Plata (Indicativo L2G) / Estacionario Prácticos (L3Z).\n- Canal de Trabajo VTS: Canal 12 VHF (156.600 MHz).\n\nConsejo del Baqueano: Toda embarcación debe reportarse a L2G al pasar los puntos de control. Si vas a requerir zona de fondeo cerca de Recalada, comunicate con el estacionario L3Z en el Canal 12. La escucha en el Canal 16 es obligatoria."
+  ],
+  "tipos": [
+    "Canal 12 L2G / L3Z (Trabajo y Fondeo)",
+    "Canal 15 PNA (Seguridad)",
+    "Canal 16 PNA (Emergencia)"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "respuestas_puente": [
+    "📻 FRECUENCIAS VTS ROSARIO (RÍO PARANÁ)\n\nCubre el vital corredor comercial del Río Paraná desde el Km 480 hasta el Km 376, operando las 24 horas.\n\nDetalles técnicos:\n- Estación: VTS Rosario (Indicativo L6I).\n- Canal de Trabajo: Canal 14 VHF (156.700 MHz).\n- Canal de Seguridad: Canal 15 VHF (156.750 MHz).\n\nConsejo del Baqueano: El practicaje es obligatorio en toda esta zona. Sintonizá el Canal 15 en horarios específicos (0310, 0710, etc.) para alertas de navegación. Las urgencias médicas también se cursan por el Canal 14 directamente a la estación L6I."
+  ],
+  "tipos": [
+    "Canal 14 VTS Rosario L6I (Trabajo/Médico)",
+    "Canal 15 PNA (Seguridad)",
+    "Canal 16 PNA (Emergencia)"
+  ]
+}

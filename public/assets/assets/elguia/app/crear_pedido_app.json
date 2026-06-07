@@ -1,0 +1,50 @@
+{
+  "pantalla": "crear_pedido",
+  "activadores": [
+    "quiero pescar", "quiero un capitan", "buscar capitan", "como contrato",
+    "hacer reserva", "crear viaje", "pedir capitan", "nuevo pedido",
+    "crear pedido", "como hago para pescar", "quiero salir a pescar",
+    "como busco un guia", "quiero contratar un capitan", "como pido una salida",
+    "quiero hacer una salida", "busco guia de pesca", "contratar guia",
+    "como arranco", "por donde empiezo", "primer paso"
+  ],
+  "respuesta_corta": "Dale, vamos a buscar un capitán. Tocá la pestaña 'Mis Viajes' abajo a la izquierda y presioná 'Crear Nuevo Pedido'.",
+  "pasos": [
+    "Tocá la pestaña 'Mis Viajes' en la barra de navegación de abajo.",
+    "Presioná el botón 'Crear Nuevo Pedido' o 'Buscar Capitán'.",
+    "Elegí la zona o destino de pesca donde querés ir.",
+    "Seleccioná la fecha en el calendario.",
+    "Indicá cuántos pescadores van en el grupo.",
+    "Marcá si llevás equipo propio o necesitás que el capitán lo provea.",
+    "Tocá 'Enviar Pedido'. Los capitanes habilitados de la zona van a recibirlo."
+  ],
+  "sub_funciones": {
+    "destino": {
+      "pasos": [
+        "En el formulario del pedido vas a ver un campo 'Zona o destino'.",
+        "Podés escribir el nombre del lugar o elegirlo en el mapa que se abre.",
+        "Elegí la zona más cercana a donde querés pescar."
+      ]
+    },
+    "fecha": {
+      "pasos": [
+        "Tocá el campo de fecha en el formulario.",
+        "Se abre un calendario. Elegí el día que querés salir.",
+        "Podés ver qué días tienen capitanes disponibles."
+      ]
+    },
+    "pasajeros": {
+      "pasos": [
+        "Indicá cuántas personas van incluyéndote a vos.",
+        "El capitán lo tiene en cuenta para el tamaño de la embarcación."
+      ]
+    }
+  },
+  "si_no_encuentra": "Fijate que estés en la pestaña 'Mis Viajes' abajo. Si no ves el botón de crear pedido, deslizá un poco hacia arriba en esa pantalla.",
+  "problemas_comunes": {
+    "no_carga": "Si el formulario no carga, verificá que tengas conexión a internet. Los pedidos necesitan conexión para enviarse.",
+    "sin_capitanes": "Si nadie te manda cotización, puede ser que la fecha esté muy próxima o que no haya capitanes disponibles en esa zona. Probá con otra fecha o zona.",
+    "error_al_enviar": "Si te da error al enviar el pedido, fijate que hayas completado todos los campos. La fecha, la zona y los pasajeros son obligatorios."
+  },
+  "descripcion": "Módulo para crear un nuevo pedido de salida de pesca y recibir cotizaciones de capitanes."
+}

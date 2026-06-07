@@ -1,0 +1,19 @@
+{
+  "intent": "ver_cotizaciones",
+  "respuestas": [
+    "Las cotizaciones aparecen dentro del viaje que creaste.\nEntrá en \"Mis Viajes\" y tocá el viaje pendiente.\nAhí vas a ver las propuestas de cada capitán con precio y calificación.",
+    "Tocá el viaje pendiente en \"Mis Viajes\".\nDentro vas a ver todas las propuestas que llegaron.\nPodés comparar precios y calificaciones antes de elegir.",
+    "Abrí \"Mis Viajes\" y tocá el pedido que hiciste.\nVas a ver cada cotización con el precio, las anclas del capitán y sus reseñas.\nElegí la que más te convenza."
+  ],
+  "sin_cotizaciones": "Si todavía no llegó ninguna cotización, puede ser que la fecha esté muy próxima o no haya capitanes disponibles en esa zona.\nEsperá unas horas o probá con otra fecha o zona.",
+  "comparar": "Para comparar capitanes, tocá el viaje pendiente en \"Mis Viajes\".\nVas a ver cada propuesta con el precio, la calificación del capitán y las reseñas de otros pescadores.\nElegí la que más te convenza y tocá \"Aceptar\".",
+  "rechazo": "Sí, un capitán puede no cotizar tu pedido. Tranquilo, no te enterás quiénes rechazaron.\nSolo ves los que SÍ aceptaron mandarte propuesta. Es normal.",
+  "seguimiento": "¿Llegaron propuestas o todavía estás esperando?",
+  "respuestas_puente": [
+    "ver_cotizaciones",
+    "Las cotizaciones aparecen dentro del viaje que creaste",
+    "Entrá en \"Mis Viajes\" y tocá el viaje pendiente",
+    "Ahí vas a ver las propuestas de cada capitán con precio y calificación",
+    "Tocá el viaje pendiente en \"Mis Viajes\""
+  ]
+}

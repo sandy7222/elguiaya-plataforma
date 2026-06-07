@@ -1,0 +1,44 @@
+{
+  "pantalla": "calificacion",
+  "activadores": [
+    "calificar", "calificacion", "anclas", "puntaje", "como califico",
+    "dar estrellas", "puntuar", "como puntuo", "sistema de calificacion",
+    "que son las anclas", "cuantas anclas", "dejar resena",
+    "dejar comentario", "evaluar capitan", "valorar capitan",
+    "no me salio la calificacion", "donde califico", "como dejo la nota"
+  ],
+  "respuesta_corta": "Después de confirmar el arribo se abre automáticamente la pantalla de calificación. Usamos anclas en vez de estrellas: de 1 a 5 anclas.",
+  "pasos": [
+    "Después de tocar 'Confirmar Arribo' se abre la pantalla de calificación.",
+    "Elegí de 1 a 5 anclas según cómo estuvo la experiencia.",
+    "Podés elegir etiquetas rápidas como 'Buena onda', 'Sabe dónde pescar' o 'Embarcación en buen estado'.",
+    "Si querés, escribí un comentario para otros pescadores.",
+    "Tocá 'Enviar Calificación'.",
+    "El capitán también te califica a vos. Cuando los dos califican, el viaje queda 'Cerrado'."
+  ],
+  "sub_funciones": {
+    "anclas": {
+      "pasos": [
+        "1 ancla: Experiencia muy por debajo de lo esperado.",
+        "2 anclas: Regular, algo estuvo mal.",
+        "3 anclas: Bien, cumplió con lo prometido.",
+        "4 anclas: Muy bien, superó lo esperado.",
+        "5 anclas: Excelente, lo recomendarías sin dudar."
+      ]
+    },
+    "etiquetas": {
+      "pasos": [
+        "Las etiquetas son opcionales pero muy útiles para otros pescadores.",
+        "Podés elegir varias: 'Buena onda', 'Sabe dónde pescar', 'Embarcación en buen estado', 'Puntual', 'Muy profesional'.",
+        "Tocá las que apliquen y después enviá."
+      ]
+    }
+  },
+  "si_no_encuentra": "La calificación se abre sola después de confirmar el arribo. Si no te apareció, entrá a 'Mis Viajes', tocá el viaje en estado 'Listo para confirmar' y buscá el botón de calificar.",
+  "problemas_comunes": {
+    "no_se_abrio": "Si la pantalla de calificación no se abrió sola, entrá al viaje en 'Mis Viajes' y tocá el botón 'Calificar' que aparece cuando el viaje está listo para confirmar.",
+    "ya_califique": "Si ya calificaste, no se puede modificar la calificación enviada.",
+    "capitan_no_califico": "El viaje no se cierra hasta que los dos caliifiquen. Si el viaje sigue en 'Listo para confirmar' puede que el capitán todavía no te haya calificado."
+  },
+  "descripcion": "Módulo de calificación del viaje con sistema de anclas del 1 al 5 y etiquetas."
+}

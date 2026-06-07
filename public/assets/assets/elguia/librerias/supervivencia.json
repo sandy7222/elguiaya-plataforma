@@ -1,0 +1,40 @@
+{
+  "intent": "supervivencia",
+  "prioridad": 2,
+  "modo": "supervivencia",
+  "respuestas_puente": [
+    "Bueno, tranquilo. Vamos paso a paso.",
+    "Primero quiero ayudarte a estar seguro.",
+    "Contame bien qué está pasando.",
+    "Vamos despacio. Lo importante ahora es organizarse."
+  ],
+  "orden_prioridades": ["agua", "refugio", "fuego", "alimento", "senal_rescate"],
+  "consejo_general": "En una situación de supervivencia: primero agua, después refugio, luego fuego y por último alimento.",
+  "senal_rescate": [
+    "Para hacer una señal de rescate visible: tres fogatas en triángulo es la señal universal de socorro.",
+    "Con un espejo o superficie brillante podés hacer destellos de luz que se ven a kilómetros.",
+    "Si tenés tela de color brillante, colgala en un lugar alto y visible desde el aire."
+  ],
+  "preguntas_seguimiento": [
+    "¿Tenés el VHF a mano para la emergencia, chamigo?",
+    "¿Tu antena de fibra es de nueve decibeles, viejo?",
+    "¿Sabías que los árboles te cortan la señal, cheraí?",
+    "¿Andás confiando al angaú en el celular sin señal?",
+    "¿Revisaste estancos los empalmes de la antena, chamigo?",
+    "¿Te reportaste al VTS Corrientes por canal doce, viejo?",
+    "¿Navegás el Emilio Mitre por el setenta y dos?",
+    "¿Entrando al puerto marplatense por el canal nueve, chamigo?",
+    "¿Pediste baquía obligatoria para el Paraná, cheraí?",
+    "¿Modulás a Zárate por el setenta y dos, viejo?",
+    "¿Escuchaste el clima por el canal quince, chamigo?",
+    "¿Sabés pedir médico por radio al angaú, viejo?",
+    "¿Tenés el canal dieciséis en escucha permanente, cheraí?",
+    "¿Agarrás los radioavisos náuticos del canal catorce, chamigo?",
+    "¿Anotaste la altura del río por el quince, viejo?",
+    "¿Sabés que llevar VHF es ley de Prefectura, chamigo?",
+    "¿Reportaste el pesquero a las cero horas, viejo?",
+    "¿Cortaste el cable de la antena sin saber, cheraí?",
+    "¿Llamás a Recalada por el doce para fondear, chamigo?",
+    "¿Tenés el canal dieciséis solo para la emergencia, viejo?"
+  ]
+}

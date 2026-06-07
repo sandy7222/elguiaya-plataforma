@@ -1,0 +1,18 @@
+{
+  "intent": "pagar_viaje",
+  "respuestas": [
+    "Cuando aceptás una cotización aparece el botón \"Pagar con Mercado Pago\".\nTocalo, elegís el método (tarjeta, cuenta MP) y confirmás.\nDespués del pago, el viaje pasa a estado \"Pagado\" y el capitán recibe la confirmación.",
+    "El pago se hace con Mercado Pago directo desde la app.\nAceptás la propuesta del capitán y tocás \"Pagar con Mercado Pago\".\nPodés pagar con tarjeta de crédito, débito o saldo de tu cuenta de MP.",
+    "Aceptá la cotización del capitán y tocá \"Pagar con Mercado Pago\".\nElegís el método: tarjeta, débito o saldo MP.\nCuando se procesa, el viaje queda confirmado automáticamente."
+  ],
+  "pago_fallido": "Si el pago falló, revisá que tu tarjeta tenga fondos y los datos estén bien.\nTambién podés probar con otro método: saldo de Mercado Pago, débito o crédito.\nSi te descontaron pero el viaje no se confirmó, MP devuelve el dinero en 72 horas hábiles.",
+  "pago_pendiente": "Si el pago quedó pendiente, esperá unos minutos. Mercado Pago a veces tarda en procesar.\nSi en 10 minutos no se actualizó el estado del viaje, contactate con soporte.",
+  "seguimiento": "¿Tuviste algún problema con el pago o se procesó bien?",
+  "respuestas_puente": [
+    "Cuando aceptás una cotización aparece el botón \"Pagar con Mercado Pago\"",
+    "Tocalo, elegís el método (tarjeta, cuenta MP) y confirmás",
+    "Después del pago, el viaje pasa a estado \"Pagado\" y el capitán recibe la confirmación",
+    "El pago se hace con Mercado Pago directo desde la app",
+    "Aceptás la propuesta del capitán y tocás \"Pagar con Mercado Pago\""
+  ]
+}

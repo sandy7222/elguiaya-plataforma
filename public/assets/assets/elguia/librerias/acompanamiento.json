@@ -1,0 +1,35 @@
+{
+  "libreria": "acompanamiento",
+  "intenciones": [
+    {
+      "intencion": "pescador_solo",
+      "activadores": ["estoy solo", "pesco solo", "no tengo compania", "pescador solitario"],
+      "respuesta_limpia": "No estás solo chamigo. El río Paraná te acompaña y yo estoy firme acá para cebarte unos mates virtuales.",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "pescador_aburrido",
+      "activadores": ["me aburro aca", "no pasa nada", "que aburrimiento che"],
+      "respuesta_limpia": "Si el pique está lento aprovechemos para pulir nudos o revisar anzuelos. ¡La constancia siempre gana cheraí!",
+      "gif": "tomaMate"
+    },
+    {
+      "intencion": "pescador_esperando",
+      "activadores": ["estoy esperando", "hace horas espero", "tarda el pique"],
+      "respuesta_limpia": "La espera es parte del arte. Disfrutá de la paz de la isla y no le quites el ojo a la boya chamigo.",
+      "gif": "tomaMate"
+    },
+    {
+      "intencion": "pescador_compania",
+      "activadores": ["hablemos", "charlamos un rato", "decime algo mas"],
+      "respuesta_limpia": "¡Dale hablemos de río! Contame qué especie tenés ganas de buscar hoy en la corredera.",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "pescador_charlando",
+      "activadores": ["contame historias", "anecdotas de pesca", "leyendas del rio"],
+      "respuesta_limpia": "Los isleños dicen que el gran yacaré negro cuida el pozo hondo de la boga grande... Leyendas del Paraná cheraí.",
+      "gif": "hablaConMate"
+    }
+  ]
+}

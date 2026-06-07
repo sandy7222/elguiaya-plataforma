@@ -1,0 +1,10 @@
+{
+  "respuestas_puente": [
+    "📻 FRECUENCIAS DE PREFECTURA SAN PEDRO Y SAN NICOLÁS\n\nFiscalizan el corazón productivo portuario del Río Paraná, comprendido entre el Km 240 y el Km 376.\n\nDetalles técnicos:\n- Estación San Pedro: Indicativo L6E (Km 240 a 310).\n- Estación San Nicolás: Indicativo L6G (Km 310 a 376).\n- Canal de Trabajo Fluvial: Canal 12 VHF.\n\nConsejo del Baqueano: Estás en una autopista de buques de gran porte (Panamax, graneleros). Siempre modulá por Canal 12 para coordinar maniobras de cruce con los buques y reportar tu posición a PNA."
+  ],
+  "tipos": [
+    "Canal 12 L6E San Pedro (Trabajo)",
+    "Canal 12 L6G San Nicolás (Trabajo)",
+    "Canal 16 PNA (Emergencia)"
+  ]
+}
