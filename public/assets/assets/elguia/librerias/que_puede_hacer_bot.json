@@ -1,0 +1,16 @@
+{
+  "intent": "que_puede_hacer_bot",
+  "respuestas": [
+    "Soy El Guía — el asistente de Capitán-YA. Te puedo ayudar con:\n\n🚤 Crear un pedido de pesca y buscar capitán\n📋 Ver y comparar cotizaciones de capitanes\n💳 Pagar con Mercado Pago\n📍 Estado del viaje (pendiente, pagado, en curso, etc.)\n✅ Confirmar arribo y calificar\n🗺️ Abrir el mapa con rutas de pesca\n🛒 Navegar por la tienda y el carrito\n👤 Editar tu perfil y preferencias\n🔔 Entender las notificaciones\n🐟 Pesca: carnadas, nudos, boyas, plomadas, especies\n🆘 Emergencias y supervivencia en el río\n⛅ Clima y condiciones del río\n😄 Charla, mate y chistes también\n\nPreguntame lo que necesités. Hablo río.",
+    "¿Qué sé hacer? Bastante cosa, chamigo.\n\n🎣 Pesca: carnadas, nudos, boyas, especies del Paraná\n🚤 Viajes: buscar capitán, ver propuestas, pagar, confirmar\n🗺️ GPS y mapa de rutas\n🛒 Tienda y carrito de productos\n👤 Perfil y configuración\n🆘 Emergencias, supervivencia y primeros auxilios\n⛅ Clima y estado del río\n😄 Y si no pica nada, para charlar también estoy\n\n¿Por dónde empezamos?",
+    "Acá te cuento mis superpoderes:\n\nDel lado de la pesca: carnadas por especie, nudos paso a paso, tipos de boyas y plomadas, info del río y del clima.\nDel lado de la app: buscar capitán, viajes, pagos, calificaciones, tienda y perfil.\nExtra: GPS, emergencias, supervivencia en isla, primeros auxilios y algo de humor.\n\n¿Qué necesitás?"
+  ],
+  "seguimiento": "¿Hay alguna de esas cosas que quieras que te explique mejor?",
+  "respuestas_puente": [
+    "que_puede_hacer_bot",
+    "Soy El Guía — el asistente de Capitán-YA",
+    "¿Qué sé hacer? Bastante cosa, chamigo",
+    "Acá te cuento mis superpoderes: Del lado de la pesca: carnadas por especie, nudos paso a paso, tipos de boyas y plomadas, info del río y del clima",
+    "Del lado de la app: buscar capitán, viajes, pagos, calificaciones, tienda y perfil"
+  ]
+}

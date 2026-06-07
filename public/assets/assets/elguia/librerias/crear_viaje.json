@@ -1,0 +1,18 @@
+{
+  "intent": "crear_viaje",
+  "respuestas": [
+    "Dale, vamos a buscar un capitán.\nTocá la pestaña \"Mis Viajes\" abajo a la izquierda y presioná \"Crear Nuevo Pedido\".\nElegí zona, fecha y cuántos van. Los capitanes de la zona te mandan cotizaciones.",
+    "Buenísimo. Así se hace.\nEntrá en \"Mis Viajes\" y tocá \"Crear Nuevo Pedido\".\nCompletás destino, fecha y pasajeros, y mandás el pedido. Los capitanes de la zona lo reciben.",
+    "Fácil. Tocá \"Mis Viajes\" abajo y después \"Crear Nuevo Pedido\".\nElegís dónde querés ir, la fecha y cuántos pescadores van.\nLos capitanes habilitados en la zona te mandan sus cotizaciones.",
+    "Vamos. En la barra de abajo tocá \"Mis Viajes\".\nDespués presioná \"Crear Nuevo Pedido\" o \"Buscar Capitán\".\nCompletás el destino, la fecha y los pasajeros, y listo. Los capitanes te contactan.",
+    "¡A pescar! Tocá \"Mis Viajes\" abajo.\nPresioná \"Crear Nuevo Pedido\", elegí la zona y la fecha.\nEn pocas horas los capitanes del área te mandan sus propuestas."
+  ],
+  "seguimiento": "¿Tenés alguna duda sobre cómo completar el pedido?",
+  "respuestas_puente": [
+    "Dale, vamos a buscar un capitán",
+    "Tocá la pestaña \"Mis Viajes\" abajo a la izquierda y presioná \"Crear Nuevo Pedido\"",
+    "Elegí zona, fecha y cuántos van",
+    "Los capitanes de la zona te mandan cotizaciones",
+    "Entrá en \"Mis Viajes\" y tocá \"Crear Nuevo Pedido\""
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "pantalla": "perfil",
+  "activadores": [
+    "mi cuenta", "mi perfil", "perfil", "datos personales",
+    "cambiar nombre", "cambiar foto", "editar perfil", "donde esta mi perfil",
+    "dónde está mi perfil", "como cambio mis datos", "cómo cambio mis datos",
+    "no encuentro el perfil", "cambiar email", "cambiar contraseña",
+    "mi informacion", "mi información", "historial de compras"
+  ],
+  "respuesta_corta": "Tu perfil está en la parte superior del menú. Desde ahí podés cambiar tus datos y revisar información de tu cuenta.",
+  "pasos": [
+    "Buscá el ícono de usuario o tu nombre en la esquina superior de la app.",
+    "También podés entrar desde el menú inferior tocando Perfil.",
+    "Ahí vas a ver tus datos: nombre, email y foto.",
+    "Para editar, tocá el botón Editar perfil o el lápiz.",
+    "Cambiá lo que necesités y guardá los cambios."
+  ],
+  "sub_funciones": {
+    "cambiar_foto": {
+      "pasos": [
+        "Entrá a tu Perfil.",
+        "Tocá la foto de perfil actual.",
+        "Elegí Cambiar foto y seleccioná desde la galería o sacate una foto nueva."
+      ]
+    },
+    "cambiar_password": {
+      "pasos": [
+        "Entrá a tu Perfil.",
+        "Buscá la opción Seguridad o Cambiar contraseña.",
+        "Ingresá tu contraseña actual y la nueva.",
+        "Confirmá y guardá."
+      ]
+    },
+    "historial": {
+      "pasos": [
+        "Entrá a tu Perfil.",
+        "Buscá Historial de compras o Mis pedidos.",
+        "Ahí vas a ver todas tus compras anteriores."
+      ]
+    }
+  },
+  "si_no_encuentra": "No pasa nada. El perfil generalmente está en el ícono de persona arriba a la derecha, o en el menú inferior. Si no lo encontrás, decime y te guío."
+}

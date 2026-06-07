@@ -1,0 +1,123 @@
+{
+  "version": "1.0",
+  "descripcion": "Humor contextual dosificado. Se activa con 10% de probabilidad en situaciones casuales. Nunca en emergencias.",
+  "reglas": [
+    "NUNCA usar en emergencia, primeros auxilios, perdido, sin agua, accidente",
+    "SOLO usar en charla casual, espera, frustración leve, tiempo muerto",
+    "Mantener tono de compañero de muelle, no de payaso",
+    "Risa tranquila, no carcajada exagerada"
+  ],
+  "por_situacion": {
+    "no_pica": [
+      {
+        "texto": "Y... parece que hoy los peces pidieron el día libre.",
+        "gif": "hablaConMate"
+      },
+      {
+        "texto": "Capaz el pez todavía está desayunando.",
+        "gif": "tomaMate"
+      },
+      {
+        "texto": "El río no firma horarios. Hay que tener paciencia.",
+        "gif": "hablaConMate"
+      },
+      {
+        "texto": "Hoy parece que los peces están negociando entre ellos.",
+        "gif": "chiste"
+      },
+      {
+        "texto": "Algunos días el río da, otros días el río cobra.",
+        "gif": "hablaConMate"
+      }
+    ],
+    "perdio_anzuelo": [
+      {
+        "texto": "Bueno... el río también se cobra peaje a veces.",
+        "gif": "chiste"
+      },
+      {
+        "texto": "Los anzuelos son la moneda del río. Siempre te saca algo.",
+        "gif": "hablaConMate"
+      },
+      {
+        "texto": "Je. Ese anzuelo fue donación involuntaria al Paraná.",
+        "gif": "chiste"
+      }
+    ],
+    "espera_larga": [
+      {
+        "texto": "Mirá el lado bueno: ya entrenaste paciencia para toda la semana.",
+        "gif": "hablaConMate"
+      },
+      {
+        "texto": "A esto se le llama meditación de río. Sin costo extra.",
+        "gif": "tomaMate"
+      },
+      {
+        "texto": "El que espera, desespera... pero también pesca.",
+        "gif": "hablaConMate"
+      }
+    ],
+    "linea_enredada": [
+      {
+        "texto": "Je... el nudo de la paciencia. Ese también hay que saber hacerlo.",
+        "gif": "chiste"
+      },
+      {
+        "texto": "Los enredos forman parte del oficio. A desatar despacio.",
+        "gif": "hablaConMate"
+      }
+    ],
+    "cansancio_leve": [
+      {
+        "texto": "El cansancio de pescar no cuenta. Es cansancio de buena calidad.",
+        "gif": "hablaConMate"
+      },
+      {
+        "texto": "Descansá un poco. El río sigue ahí. Siempre está.",
+        "gif": "tomaMate"
+      }
+    ],
+    "aburrimiento": [
+      {
+        "texto": "Un buen pescador nunca se aburre. Siempre hay algo para mirar en el río.",
+        "gif": "hablaConMate"
+      },
+      {
+        "texto": "Si te aburrís, revisá el nudo. Un nudo flojo es un pez perdido.",
+        "gif": "explica"
+      }
+    ],
+    "perdio_pez": [
+      {
+        "texto": "Ja. Ese pez te ganó la pulseada hoy.",
+        "gif": "chiste"
+      },
+      {
+        "texto": "No te preocupes. Mañana le cobrás la revancha.",
+        "gif": "hablaConMate"
+      },
+      {
+        "texto": "El que se escapa siempre parece el más grande. Es la ley del río.",
+        "gif": "chiste"
+      }
+    ]
+  },
+  "frases_mate_idle": [
+    "A veces el pique tarda... pero el mate nunca falla.",
+    "Capaz el pez todavía está desayunando.",
+    "Paciencia. El río no firma horarios.",
+    "Hoy parece que los peces están negociando.",
+    "No todo es pique. A veces es paisaje.",
+    "El río siempre tiene algo para decirte. Hay que escucharlo.",
+    "Con mate y paciencia, el río habla solo.",
+    "Hay días de pique y días de contemplación. Los dos valen."
+  ],
+  "respuestas_puente": [
+    "Humor contextual dosificado",
+    "Se activa con 10% de probabilidad en situaciones casuales",
+    "Nunca en emergencias",
+    "NUNCA usar en emergencia, primeros auxilios, perdido, sin agua, accidente",
+    "SOLO usar en charla casual, espera, frustración leve, tiempo muerto"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "intent": "fuego",
+  "prioridad": 5,
+  "respuestas_puente": [
+    "Voy a ayudarte a hacer fuego de forma segura.",
+    "Primero necesito saber que materiales tenes cerca.",
+    "Revisando opciones para encender fuego."
+  ],
+  "pregunta_automatica": "Tenes encendedor, fosforos, bateria, lentes o solo materiales naturales?",
+  "metodos": {
+    "encendedor_o_fosforos": [
+      "Busca ramas secas finas, hojas secas y madera pequena. Empieza con material facil de encender.",
+      "Arma una estructura en forma de cuenco con ramitas finas y hojas secas. Enciende desde abajo."
+    ],
+    "bateria": [
+      "Con una bateria de 9V y algodon o pasto seco podes generar chispa. Toca los dos contactos con un material conductivo fino."
+    ],
+    "friccion": [
+      "Metodo de arco y husillo: necesitas un palo seco recto, una tabla de madera blanda y corteza para hacer el arco. Es el metodo mas dificil pero funciona.",
+      "Busca madera muy seca, blanda y sin resina. La madera humeda no prende por friccion."
+    ],
+    "lentes": [
+      "Con lentes o una botella de agua llena podes concentrar la luz solar en material seco para generar combustion. Solo funciona con sol directo."
+    ]
+  },
+  "consejo": "Siempre tene listo el material antes de intentar encender. Empieza con lo mas fino y seco disponible."
+}

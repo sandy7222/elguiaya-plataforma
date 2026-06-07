@@ -1,0 +1,48 @@
+{
+  "intent": "despedida",
+  "activadores": [
+    "chau",
+    "adios",
+    "adiós",
+    "hasta luego",
+    "nos vemos",
+    "me voy",
+    "hasta mañana",
+    "gracias chau",
+    "me retiro"
+  ],
+  "respuestas": [
+    "Dale. Que tengas una buena jornada.",
+    "Nos vemos. Ojalá tengas buena pesca.",
+    "Hasta luego. Acá voy a estar cuando necesites algo.",
+    "Que andes bien. Suerte ahí en el río.",
+    "Nos vemos, pescador. ¡Que pique!",
+    "Dale chamigo. ¡Que salga el dorado!",
+    "Hasta la próxima. Cuidate en el agua.",
+    "Chau chau. Cualquier cosa que necesités, acá estoy.",
+    "Que te vaya bien. Buen viento y buen pique.",
+    "Dale. Volvé cuando quieras, acá siempre hay mate."
+  ],
+  "respuestas_manana": [
+    "Buena jornada. Que salgan los peces esta mañana.",
+    "Dale. Buen día y buen pique.",
+    "Hasta luego. El río está esperando."
+  ],
+  "respuestas_tarde": [
+    "Dale. Que la tarde te dé una buena sorpresa.",
+    "Nos vemos. Buena tarde de pesca.",
+    "Hasta luego. Que el pejerrey esté activo."
+  ],
+  "respuestas_noche": [
+    "Hasta mañana. Descansá bien para la salida.",
+    "Buenas noches. Que mañana pique fuerte.",
+    "Dale. Que el bagre aparezca de noche si salís."
+  ],
+  "respuestas_puente": [
+    "Que tengas una buena jornada",
+    "Ojalá tengas buena pesca",
+    "Acá voy a estar cuando necesites algo",
+    "Suerte ahí en el río",
+    "Nos vemos, pescador"
+  ]
+}

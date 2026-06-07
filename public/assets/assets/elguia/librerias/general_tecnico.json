@@ -1,0 +1,193 @@
+{
+  "libreria": "general_tecnico",
+  "intenciones": [
+    {
+      "intencion": "descripcion_de_la_aplicacion",
+      "activadores": [
+        "funcion_de_la_aplicacion",
+        "intermediario_entre_pescadores_y_guías"
+      ],
+      "respuesta_limpia": "Unir pescadores con guías de pesca",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "proteccion_manguruyu",
+      "activadores": [
+        "manguruyú protegido",
+        "devolucion obligatoria",
+        "especie protegida"
+      ],
+      "respuesta_limpia": "El manguruyú es una especie protegida, su devolución es obligatoria",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "como_pescar_lisa",
+      "activadores": [
+        "pescar lisa",
+        "tecnica para lisa",
+        "carnada para lisa"
+      ],
+      "respuesta_limpia": "La lisa se pesca con masa o lombriz.",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "como_pescar_manguryu",
+      "activadores": [
+        "cómo pescar manguruyú",
+        "manguruyú carnada",
+        "pescar manguruyú en Paraná"
+      ],
+      "respuesta_limpia": "Manguruyú: usa carnadas para surubí",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "funcion_principal_aplicacion",
+      "activadores": [
+        "funcion de la aplicacion",
+        "que hace la aplicacion"
+      ],
+      "respuesta_limpia": "Conectar pescadores con guias de pesca",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "reconocer_creador",
+      "activadores": [
+        "Seba Borrego",
+        "clave maestra"
+      ],
+      "respuesta_limpia": "Pedir clave maestra",
+      "gif": "saludo"
+    },
+    {
+      "intencion": "donde_encontrar_anguilas",
+      "activadores": [
+        "dónde encontrar anguilas",
+        "anguilas en el río",
+        "pesca de anguilas"
+      ],
+      "respuesta_limpia": "Anguilas en Río de la Plata y Paraná",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "hablar_de_pesca",
+      "activadores": [
+        "pesca",
+        "capitan",
+        "zona de pesca",
+        "costa",
+        "isla"
+      ],
+      "respuesta_limpia": "La pesca es una aventura emocionante",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "receta_chupin_pescado",
+      "activadores": [
+        "chupin de pescado",
+        "guiso litoraleño",
+        "receta pescado"
+      ],
+      "respuesta_limpia": "Chupín de pescado: pescado, papas, cebollas, morrón, zanahorias, ajo, puré de tomate, vino blanco.",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "informacion_carpa",
+      "activadores": [
+        "carpa",
+        "pez carpa",
+        "carpa común"
+      ],
+      "respuesta_limpia": "Carpa común, pez de agua dulce originario de Asia y Europa.",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "salmón_del_parana",
+      "activadores": [
+        "salmón del Paraná",
+        "Pirá Pytá",
+        "pez de escama del Paraná"
+      ],
+      "respuesta_limpia": "Pirá Pytá, pez de escama con carne rosada",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "diferencia_entre_mochita_y_mocha",
+      "activadores": [
+        "mochita",
+        "mocha",
+        "tamaño"
+      ],
+      "respuesta_limpia": "Mochita pequeña, mocha grande",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "caracteristicas_manguruyu",
+      "activadores": [
+        "manguruyú",
+        "características manguruyú",
+        "pez gigante río"
+      ],
+      "respuesta_limpia": "Manguruyú: pez de río más grande, hasta 1,5m y 100kg, cabeza enorme, piel lisa, ojos pequeños.",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "presentacion_baqueano",
+      "activadores": [
+        "baqueano",
+        "pesca",
+        "acompañar"
+      ],
+      "respuesta_limpia": "Soy un baqueano, aquí para ayudar",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "recordar_creador",
+      "activadores": [
+        "Seba Borrego",
+        "creador"
+      ],
+      "respuesta_limpia": "Seba Borrego es mi creador",
+      "gif": "saludo"
+    },
+    {
+      "intencion": "caracteristicas_de_mochita",
+      "activadores": [
+        "mochita",
+        "resistencia",
+        "carnada"
+      ],
+      "respuesta_limpia": "Mochita resistente y duradera como carnada",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "pescar_bagre",
+      "activadores": [
+        "pescar bagre",
+        "bagre peleador",
+        "trucos para pescar bagre"
+      ],
+      "respuesta_limpia": "Usá carnada viva o señuelos grandes para pescar bagre.",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "como_pescar_salmone",
+      "activadores": [
+        "cómo pescar salmón",
+        "pescar salmón en ríos",
+        "técnicas de pesca de salmón"
+      ],
+      "respuesta_limpia": "Pescar salmón: elige el momento y lugar adecuados, usa moscas o spoons y busca estructuras como rocas",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "como_pescar_en_condiciones_ideales",
+      "activadores": [
+        "pesca en condiciones ideales",
+        "dia ideal para pescar",
+        "como pescar con buen tiempo"
+      ],
+      "respuesta_limpia": "Pescar con río despejado, temp 13.8°C y viento suave",
+      "gif": "hablaConMate"
+    }
+  ]
+}

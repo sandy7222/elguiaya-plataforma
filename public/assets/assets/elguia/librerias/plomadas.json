@@ -1,0 +1,41 @@
+{
+  "intent": "plomadas",
+  "prioridad": 14,
+  "respuestas_puente": [
+    "Pará que me fijo qué conviene para eso.",
+    "Voy a revisar las plomadas recomendadas.",
+    "Ya te digo qué puede servir mejor."
+  ],
+  "tipos": {
+    "satelite": {
+      "descripcion": "Plomada con brazos que se clavan en el fondo",
+      "uso": "Corrientes fuertes como el Paraná",
+      "peso_recomendado": "60g a 120g según la fuerza de la corriente"
+    },
+    "pera": {
+      "descripcion": "Plomada con forma de pera o gota",
+      "uso": "Fondo liso en ríos de corriente media",
+      "peso_recomendado": "30g a 80g"
+    },
+    "torpedo": {
+      "descripcion": "Plomada cilíndrica alargada",
+      "uso": "Ríos de corriente media a fuerte",
+      "peso_recomendado": "40g a 100g"
+    },
+    "pasante": {
+      "descripcion": "Plomada con agujero central por donde pasa la línea",
+      "uso": "El pez no siente resistencia al picar. Lagunas y ríos calmos.",
+      "peso_recomendado": "10g a 30g"
+    },
+    "redonda": {
+      "descripcion": "Plomada esférica clásica",
+      "uso": "Pesca en laguna sin corriente",
+      "peso_recomendado": "5g a 20g"
+    }
+  },
+  "por_condicion": {
+    "corriente_fuerte": "Usá plomada satélite o torpedo de mayor peso para que no te arrastre el aparejo.",
+    "laguna": "Plomada pasante o redonda liviana para no asustar al pez.",
+    "rio_calmo": "Torpedo o pera de peso medio."
+  }
+}

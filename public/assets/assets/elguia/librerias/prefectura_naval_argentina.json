@@ -1,0 +1,572 @@
+{
+  "prefectura_naval_argentina": {
+    "descripcion": "La Prefectura Naval Argentina (PNA) es la autoridad marítima y fluvial de Argentina. En caso de emergencia en el agua, es el primer llamado. El canal 16 VHF es el canal internacional de socorro y escucha permanente.",
+    "numero_emergencia_nacional": "0800-999-7622",
+    "canal_universal_emergencia": {
+      "canal": 16,
+      "banda": "VHF",
+      "uso": "Canal internacional de socorro. Toda embarcación con VHF debe monitorearlo siempre. Usalo para llamadas de emergencia si no conocés el canal local."
+    },
+    "uso_de_canales": {
+      "entre_barcos": [
+        6,
+        8
+      ],
+      "prefectura_naval": [
+        9,
+        12,
+        14,
+        70,
+        72,
+        77
+      ],
+      "correspondencia_publica_SES": [
+        "01",
+        62,
+        65
+      ],
+      "correspondencia_publica_STARTEL": "23 al 28",
+      "clubes_y_guarderias": 71
+    },
+    "como_llamar_por_radio": [
+      "Sintonizá el canal 16 o el canal local de tu zona (ver tabla).",
+      "Presioná el botón de transmisión (PTT) y decí 3 veces: 'Prefectura, Prefectura, Prefectura'.",
+      "Soltá el botón y esperá respuesta.",
+      "Cuando respondan, informá: tu posición (km del río o referencia cercana), cantidad de personas, tipo de emergencia.",
+      "Si no hay respuesta en canal local, siempre probá el canal 16."
+    ],
+    "estaciones": [
+      {
+        "indicativo": "L5M",
+        "localidad": "Tigre",
+        "canales": [
+          16,
+          9,
+          12,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L5P",
+        "localidad": "Martín García",
+        "canales": [
+          16,
+          9,
+          12,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L5S",
+        "localidad": "Campana",
+        "canales": [
+          16,
+          9,
+          12,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L5L",
+        "localidad": "Braga",
+        "canales": [
+          16,
+          72,
+          12,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L5T",
+        "localidad": "Zárate",
+        "canales": [
+          16,
+          9,
+          72,
+          12,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L5U",
+        "localidad": "Guazú-Guazucito",
+        "canales": [
+          16,
+          14,
+          12,
+          9,
+          15
+        ]
+      },
+      {
+        "indicativo": "L5Z",
+        "localidad": "Paranacito",
+        "canales": [
+          16,
+          9,
+          12,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L6D",
+        "localidad": "Ibicuy",
+        "canales": [
+          16,
+          12,
+          9,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L6E",
+        "localidad": "San Pedro",
+        "canales": [
+          16,
+          9,
+          12,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L6F",
+        "localidad": "Ramallo",
+        "canales": [
+          15,
+          9,
+          12,
+          14
+        ]
+      },
+      {
+        "indicativo": "L6G",
+        "localidad": "San Nicolás",
+        "canales": [
+          16,
+          9,
+          12,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L6H",
+        "localidad": "Villa Constitución",
+        "canales": [
+          16,
+          9,
+          12,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L6I",
+        "localidad": "Rosario",
+        "canales": [
+          16,
+          9,
+          12,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L6K",
+        "localidad": "San Lorenzo",
+        "canales": [
+          16,
+          9,
+          12,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L6L",
+        "localidad": "Victoria",
+        "canales": [
+          16,
+          9,
+          12,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L6M",
+        "localidad": "Diamante",
+        "canales": [
+          16,
+          12,
+          14,
+          15,
+          9
+        ]
+      },
+      {
+        "indicativo": "L6N",
+        "localidad": "Paraná",
+        "canales": [
+          16,
+          9,
+          12,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L6O",
+        "localidad": "Santa Fe",
+        "canales": [
+          16,
+          12,
+          9,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L6S",
+        "localidad": "La Paz",
+        "canales": [
+          16,
+          12,
+          9,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L6U",
+        "localidad": "Reconquista",
+        "canales": [
+          16,
+          9,
+          12,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L6V",
+        "localidad": "Goya",
+        "canales": [
+          16,
+          12,
+          14,
+          15,
+          9
+        ]
+      },
+      {
+        "indicativo": "L6Y",
+        "localidad": "Corrientes",
+        "canales": [
+          16,
+          12,
+          14,
+          15,
+          9
+        ]
+      },
+      {
+        "indicativo": "L6Z",
+        "localidad": "Barranqueras",
+        "canales": [
+          16,
+          9,
+          12,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L7A",
+        "localidad": "Paso de la Patria",
+        "canales": [
+          16,
+          9,
+          12,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L7D",
+        "localidad": "Itatí",
+        "canales": [
+          16,
+          12,
+          14,
+          9,
+          15
+        ]
+      },
+      {
+        "indicativo": "L7G",
+        "localidad": "Itá Ibaté",
+        "canales": [
+          16,
+          12,
+          14,
+          15,
+          9
+        ]
+      },
+      {
+        "indicativo": "L7J",
+        "localidad": "Ituzaingó",
+        "canales": [
+          16,
+          12,
+          14,
+          9,
+          15
+        ]
+      },
+      {
+        "indicativo": "L7N",
+        "localidad": "Posadas",
+        "canales": [
+          16,
+          12,
+          9,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L7U",
+        "localidad": "Lib. Gral. San Martín",
+        "canales": [
+          16,
+          12,
+          9,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L7Z",
+        "localidad": "Eldorado",
+        "canales": [
+          16,
+          12,
+          9,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L8C",
+        "localidad": "Iguazú",
+        "canales": [
+          16,
+          12,
+          14,
+          15,
+          9
+        ]
+      },
+      {
+        "indicativo": "L8F",
+        "localidad": "Bermejo",
+        "canales": [
+          16,
+          12,
+          9,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L8I",
+        "localidad": "Formosa",
+        "canales": [
+          16,
+          12,
+          9,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L8L",
+        "localidad": "Pilcomayo",
+        "canales": [
+          16,
+          12,
+          14,
+          9,
+          15
+        ]
+      },
+      {
+        "indicativo": "L8O",
+        "localidad": "Gualeguaychú",
+        "canales": [
+          16,
+          9,
+          12,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L8T",
+        "localidad": "Concepción del Uruguay",
+        "canales": [
+          16,
+          9,
+          12,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L8Y",
+        "localidad": "Colón",
+        "canales": [
+          16,
+          9,
+          12,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L9G",
+        "localidad": "Concordia",
+        "canales": [
+          16,
+          9,
+          12,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L9D",
+        "localidad": "Salto Grande",
+        "canales": [
+          16,
+          9,
+          12,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L9E",
+        "localidad": "Federación",
+        "canales": [
+          16,
+          9,
+          12,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L9O",
+        "localidad": "Delta",
+        "canales": [
+          16,
+          9,
+          12,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L9P",
+        "localidad": "Puerto Blest",
+        "canales": [
+          16,
+          9,
+          12,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L9Q",
+        "localidad": "Puerto Paruelo",
+        "canales": [
+          16,
+          9,
+          12,
+          14,
+          15
+        ]
+      },
+      {
+        "indicativo": "L9R",
+        "localidad": "Lago Pellegrini",
+        "canales": [
+          16
+        ]
+      }
+    ],
+    "guia_rapida_por_zona": [
+      {
+        "pregunta": "Estoy en el Delta, ¿a qué prefectura llamo?",
+        "respuesta": "En el Delta tenés varias opciones: Tigre L5M canal 16, o Delta L9O canal 16. Probá el 16 primero que es el de socorro universal."
+      },
+      {
+        "pregunta": "Estoy en Rosario pescando en el Paraná",
+        "respuesta": "Te cubre Prefectura Rosario, indicativo L6I, canales 16, 9, 12 y 14. Entrá por el 16 primero."
+      },
+      {
+        "pregunta": "Estoy en Corrientes capital",
+        "respuesta": "Prefectura Corrientes, indicativo L6Y, canales 16, 12, 14 y 15. Canal 16 siempre disponible."
+      },
+      {
+        "pregunta": "Estoy en el río Uruguay cerca de Colón",
+        "respuesta": "Te cubre Prefectura Colón, indicativo L8Y, canales 16, 9, 12, 14 y 15."
+      },
+      {
+        "pregunta": "Estoy en la Patagonia en el lago Pellegrini",
+        "respuesta": "En Lago Pellegrini está la estación L9R, canal 16 únicamente. Ese es tu canal de llamada."
+      },
+      {
+        "pregunta": "Estoy en Misiones cerca de Iguazú",
+        "respuesta": "Prefectura Iguazú, indicativo L8C, canales 16, 12, 14, 15 y 9."
+      },
+      {
+        "pregunta": "Estoy en Formosa",
+        "respuesta": "Prefectura Formosa, indicativo L8I, canales 16, 12, 9, 14 y 15."
+      }
+    ],
+    "numeros_emergencia_complementarios": {
+      "SAME": "107",
+      "Bomberos": "100",
+      "Policia": "911",
+      "PNA_nacional": "0800-999-7622",
+      "nota": "En islas y zonas rurales el único contacto posible puede ser la radio VHF. Siempre llevar equipo a bordo."
+    },
+    "recomendaciones_equipo_radio": [
+      "Llevar radio VHF portátil waterproof, mínimo 5W de potencia.",
+      "Cargar la batería antes de cada salida y llevar repuesto o power bank.",
+      "Registrar la embarcación en Prefectura facilita y acelera el rescate.",
+      "Avisar siempre a alguien en tierra el destino y la hora estimada de regreso.",
+      "El canal 16 es de escucha permanente — nunca usarlo para charla, solo para emergencia y llamada inicial."
+    ]
+  },
+  "respuestas_puente": [
+    "La Prefectura Naval Argentina (PNA) es la autoridad marítima y fluvial de Argentina",
+    "En caso de emergencia en el agua, es el primer llamado",
+    "El canal 16 VHF es el canal internacional de socorro y escucha permanente",
+    "Canal internacional de socorro",
+    "Toda embarcación con VHF debe monitorearlo siempre"
+  ]
+}

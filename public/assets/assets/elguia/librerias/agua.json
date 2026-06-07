@@ -1,0 +1,29 @@
+{
+  "intent": "agua",
+  "prioridad": 3,
+  "respuestas_puente": [
+    "Vamos a buscar agua segura.",
+    "Conseguir agua es prioridad. Primero necesito saber donde estas.",
+    "Entendido. El agua es lo primero. Te guio."
+  ],
+  "fuentes": {
+    "rio": {
+      "descripcion": "Agua del rio Parana",
+      "consejo": "El agua del rio puede contener bacterias y parasitos. Hervirla es el metodo mas seguro.",
+      "metodo_purificacion": "Hervir 5 minutos minimo. Si no tenes como hervir, usala solo en ultimo caso."
+    },
+    "lluvia": {
+      "descripcion": "Agua de lluvia",
+      "consejo": "El agua de lluvia es generalmente segura si la recolectas directo, sin pasar por hojas u otras superficies."
+    },
+    "rocio": {
+      "descripcion": "Rocio matutino",
+      "consejo": "Antes del amanecer, las hojas grandes acumulan rocio. Podes absorberlo con una tela y exprimirla."
+    },
+    "vegetacion": {
+      "descripcion": "Agua de plantas",
+      "consejo": "Algunas plantas acumulan agua en su interior. Bambu, bromelias y ciertas canas del delta pueden tener agua."
+    }
+  },
+  "advertencia": "Evita beber agua sin evaluar si es segura. No bebas agua de charcos o zonas con mucho verdor oscuro."
+}

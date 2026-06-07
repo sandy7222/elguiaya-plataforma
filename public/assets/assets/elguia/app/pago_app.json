@@ -1,0 +1,44 @@
+{
+  "pantalla": "pago",
+  "activadores": [
+    "como pago", "pagar", "mercado pago", "el pago", "pagar el viaje",
+    "donde pago", "como hago el pago", "no me salio el pago",
+    "me dio error el pago", "el pago no funciono", "pago fallido",
+    "no me cobro", "no se proceso el pago", "como se paga",
+    "pago con tarjeta", "pago en efectivo", "metodo de pago",
+    "no pude pagar", "el pago quedo pendiente"
+  ],
+  "respuesta_corta": "El pago se hace con Mercado Pago. Cuando aceptás una cotización, aparece el botón 'Pagar con Mercado Pago' y te lleva directo al proceso de pago.",
+  "pasos": [
+    "Aceptá la cotización del capitán que elegiste.",
+    "Tocá el botón 'Pagar con Mercado Pago' que aparece en la pantalla del viaje.",
+    "Se abre la pasarela de Mercado Pago.",
+    "Elegí el método de pago: tarjeta de crédito, débito o cuenta de Mercado Pago.",
+    "Confirmá el pago.",
+    "Vas a recibir una confirmación y el viaje pasa a estado 'Pagado'."
+  ],
+  "sub_funciones": {
+    "tarjeta_credito": {
+      "pasos": [
+        "Elegí 'Tarjeta de crédito' en Mercado Pago.",
+        "Ingresá los datos de tu tarjeta.",
+        "Podés pagar en cuotas según lo que ofrezca tu banco."
+      ]
+    },
+    "cuenta_mp": {
+      "pasos": [
+        "Si tenés saldo en tu cuenta de Mercado Pago, podés usarlo.",
+        "Elegí 'Cuenta de Mercado Pago' como método de pago.",
+        "Confirmá con tu contraseña o huella digital."
+      ]
+    }
+  },
+  "si_no_encuentra": "El botón de pago aparece después de aceptar una cotización. Si no lo ves, fijate que el viaje esté en estado 'Aceptado'. Si sigue sin aparecer, salí y volvé a entrar al viaje.",
+  "problemas_comunes": {
+    "pago_fallido": "Si el pago falló, verificá que tu tarjeta tenga fondos y que los datos estén bien escritos. También podés intentar con otro método de pago.",
+    "pago_pendiente": "Si el pago quedó pendiente, esperá unos minutos. A veces Mercado Pago tarda en procesar. Si en 10 minutos no se actualizó, contactate con soporte.",
+    "no_se_proceso": "Si no se procesó el pago pero te descontaron el dinero, no te preocupes. Mercado Pago devuelve el importe automáticamente en 72 horas hábiles.",
+    "sin_internet": "Para pagar necesitás conexión a internet. Verificá tu señal y volvé a intentarlo."
+  },
+  "descripcion": "Módulo de pago del viaje mediante Mercado Pago."
+}

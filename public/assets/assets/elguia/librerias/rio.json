@@ -1,0 +1,65 @@
+{
+  "intent": "rio",
+  "prioridad": 16,
+  "respuestas_puente": [
+    "Pará que reviso cómo viene el río.",
+    "Un momento. Me fijo las condiciones.",
+    "Voy a ver cómo está el agua."
+  ],
+  "estados": {
+    "crecido": {
+      "descripcion": "Río en crecida",
+      "efecto_pesca": "Con el río crecido los peces se mueven a los remansos y las orillas con vegetación. Los peces de fondo salen a zonas más altas.",
+      "carnada_recomendada": "Carnadas con olor fuerte: lombriz, hígado, masa fermentada.",
+      "zona_pesca": "Buscá remansos detrás de las islas o en orillas con vegetación."
+    },
+    "bajo": {
+      "descripcion": "Río en bajante",
+      "efecto_pesca": "Con el río bajo los peces se juntan en los pozos más profundos. Conviene pesca de fondo.",
+      "carnada_recomendada": "Carnadas naturales del fondo.",
+      "zona_pesca": "Buscá los canales principales y pozos profundos."
+    },
+    "turbio": {
+      "descripcion": "Agua turbia o barrosa",
+      "efecto_pesca": "Con agua turbia el pez depende más del olfato que la vista para comer.",
+      "carnada_recomendada": "Carnadas con olor intenso: lombriz, hígado crudo, masa con esencia fuerte."
+    },
+    "claro": {
+      "descripcion": "Agua limpia y transparente",
+      "efecto_pesca": "Con agua clara los peces son más desconfiados y selectivos.",
+      "carnada_recomendada": "Carnadas naturales sin olores artificiales. Equipos de línea delgada."
+    }
+  },
+  "pregunta_estado": "Cómo está el río hoy? Crecido, bajo, turbio o claro? Eso me ayuda a darte el consejo correcto.",
+  "seguridad": {
+    "crecida": "Con el río crecido extremá los cuidados en la embarcación. Las corrientes son más fuertes e impredecibles.",
+    "mareas": "En el Paraná las variaciones de nivel pueden ser rápidas. Asegurate bien la embarcación."
+  },
+  "preguntas_seguimiento": [
+    "¿Revisaste el período mayor en la tabla, viejo?",
+    "¿El pique explota cuando baja la presión, chamigo?",
+    "¿Pescás en el cenit de la luna, cheraí?",
+    "¿El cielo está despejado y la presión alta?",
+    "¿Aprovechás el sereno del atardecer para pescar, viejo?",
+    "¿La marea viva te revuelve el fondo, chamigo?",
+    "¿Pescás mejor con marea viva o muerta, maestro?",
+    "¿Sabías que el viento suave te ayuda, viejo?",
+    "¿La baja humedad aviva al bicho, cheraí?",
+    "¿Pescás con el orto lunar de fondo, chamigo?",
+    "¿Vas de noche oscura con luna nueva, viejo?",
+    "¿La luna llena aletarga al bicho de día?",
+    "¿Mirás la caída de presión en el barómetro?",
+    "¿El bicho come manso con presión estable, cheraí?",
+    "¿Tirás cuando la luna está bien arriba, viejo?",
+    "¿La marea viva activa a la corvina, chamigo?",
+    "¿Aprovechás las horas de penumbra al alba, maestro?",
+    "¿El pique baja con presión alta, viejo?",
+    "¿Usás cebos lentos si la presión sube, cheraí?",
+    "¿El pez recela menos en luna nueva, chamigo?",
+    "¿Cayó el barómetro de golpe hoy, viejo?",
+    "¿Te abrigaste pa' evitar la hipotermia, chamigo?",
+    "¿Relojeaste la tabla de mareas, cheraí?",
+    "¿Viene buen viento pa' ir al garete?",
+    "¿Llevás gorro contra la fiera insolación, chamigo?"
+  ]
+}

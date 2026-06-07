@@ -1,0 +1,18 @@
+{
+  "intent": "calificar",
+  "respuestas": [
+    "Después de confirmar el arribo se abre automáticamente la pantalla de calificación.\nUsamos anclas en vez de estrellas: de 1 a 5.\nPodés elegir etiquetas rápidas y dejar un comentario si querés.",
+    "La calificación se abre sola después de confirmar.\nPonés de 1 a 5 anclas al capitán, elegís etiquetas como \"Buena onda\" o \"Sabe dónde pescar\", y podés escribir un comentario.\nEl capitán también te califica a vos. Cuando los dos califican, el viaje queda cerrado.",
+    "Confirmado el arribo, aparece la pantalla de calificación.\nElegís anclas del 1 al 5 y podés sumar etiquetas y comentario.\nEs importante calificar con honestidad, ayuda a otros pescadores a elegir bien."
+  ],
+  "anclas": "El sistema usa anclas en vez de estrellas, de 1 a 5:\n\n⚓ 1 ancla — Muy por debajo de lo esperado\n⚓⚓ 2 anclas — Regular, algo estuvo mal\n⚓⚓⚓ 3 anclas — Bien, cumplió con lo prometido\n⚓⚓⚓⚓ 4 anclas — Muy bien, superó lo esperado\n⚓⚓⚓⚓⚓ 5 anclas — Excelente, lo recomendarías sin dudar",
+  "etiquetas": "Las etiquetas son opcionales pero muy útiles.\nPodés elegir varias: \"Buena onda\", \"Sabe dónde pescar\", \"Embarcación en buen estado\", \"Puntual\", \"Muy profesional\".\nTocás las que apliquen y enviás.",
+  "seguimiento": "¿Pudiste calificar al capitán o tuviste algún problema?",
+  "respuestas_puente": [
+    "Después de confirmar el arribo se abre automáticamente la pantalla de calificación",
+    "Usamos anclas en vez de estrellas: de 1 a 5",
+    "Podés elegir etiquetas rápidas y dejar un comentario si querés",
+    "La calificación se abre sola después de confirmar",
+    "Ponés de 1 a 5 anclas al capitán, elegís etiquetas como \"Buena onda\" o \"Sabe dónde pescar\", y podés escribir un comentario"
+  ]
+}

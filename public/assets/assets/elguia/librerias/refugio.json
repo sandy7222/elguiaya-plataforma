@@ -1,0 +1,20 @@
+{
+  "intent": "refugio",
+  "prioridad": 4,
+  "respuestas_puente": [
+    "Vamos a buscar un lugar seguro para refugiarte.",
+    "Prioriza una zona elevada y protegida del viento.",
+    "Entendido. Te ayudo a armar un refugio."
+  ],
+  "reglas": [
+    "Busca zonas elevadas para evitar inundaciones.",
+    "Evita zonas demasiado cercanas al agua, pueden llenarse rapido.",
+    "El refugio debe protegerte del viento y la lluvia.",
+    "Empieza a construirlo antes de que anochezca."
+  ],
+  "tipos": {
+    "natural": "Usa arboles caidos, ramas grandes y hojas para armar un techo inclinado. Apoya ramas contra un arbol o estructura firme.",
+    "delta": "En las islas del Parana hay totoras, juncos y plantas grandes que sirven como material de refugio. Las totoras son excelentes aislantes.",
+    "emergencia": "Si no tenes tiempo, busca el costado de un arbol grueso o una depresion del terreno protegida del viento como refugio provisorio."
+  }
+}

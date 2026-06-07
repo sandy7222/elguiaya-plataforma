@@ -1,0 +1,60 @@
+{
+  "intent": "emergencia",
+  "prioridad": 1,
+  "modo": "emergencia",
+  "respuestas_puente": [
+    "Pará. Vamos paso a paso. Primero quiero ayudarte a estar seguro.",
+    "Estoy acá con vos. Contame exactamente qué está pasando.",
+    "Mantené la calma. Voy a orientarte."
+  ],
+  "subintenciones": {
+    "herida": {
+      "activadores": ["me corte", "me corté", "sangre", "herida", "me lastime", "me lastimé"],
+      "respuestas": [
+        "Primero: presioná la herida con tela limpia para cortar el sangrado. Mantené la presión constante durante 10 minutos.",
+        "Para cortar el sangrado, presioná firmemente la herida con lo que tengas limpio. No soltés la presión."
+      ]
+    },
+    "anzuelo": {
+      "activadores": ["me clavo un anzuelo", "me clavé un anzuelo", "anzuelo en la piel", "anzuelo clavado"],
+      "respuestas": [
+        "No intentes sacar el anzuelo jalando. Si está muy adentro, cubrí la zona y buscá atención médica. Si es superficial, empujá hacia adelante y cortá la punta con alicate antes de retirarlo."
+      ]
+    },
+    "mordedura": {
+      "activadores": ["mordedura", "me mordio", "me mordió", "picadura de vibora", "serpiente", "víbora"],
+      "respuestas": [
+        "Mantené la zona afectada por debajo del nivel del corazón. No hagas torniquetes. Inmovilizate y buscá ayuda médica urgente."
+      ]
+    },
+    "rescate": {
+      "activadores": ["auxilio", "socorro", "no puedo volver", "estoy atrapado"],
+      "respuestas": [
+        "Prefectura Naval Argentina: canal VHF 16. Línea de emergencia: 106. Si tenés señal, llamá al 911.",
+        "Emergencia náutica: VHF canal 16. Línea 106 de Prefectura Naval. Si podés hacer fuego visible, es una buena señal para rescate aéreo."
+      ]
+    }
+  },
+  "preguntas_seguimiento": [
+    "¿Tenés el VHF a mano para la emergencia, chamigo?",
+    "¿Tu antena de fibra es de nueve decibeles, viejo?",
+    "¿Sabías que los árboles te cortan la señal, cheraí?",
+    "¿Andás confiando al angaú en el celular sin señal?",
+    "¿Revisaste estancos los empalmes de la antena, chamigo?",
+    "¿Te reportaste al VTS Corrientes por canal doce, viejo?",
+    "¿Navegás el Emilio Mitre por el setenta y dos?",
+    "¿Entrando al puerto marplatense por el canal nueve, chamigo?",
+    "¿Pediste baquía obligatoria para el Paraná, cheraí?",
+    "¿Modulás a Zárate por el setenta y dos, viejo?",
+    "¿Escuchaste el clima por el canal quince, chamigo?",
+    "¿Sabés pedir médico por radio al angaú, viejo?",
+    "¿Tenés el canal dieciséis en escucha permanente, cheraí?",
+    "¿Agarrás los radioavisos náuticos del canal catorce, chamigo?",
+    "¿Anotaste la altura del río por el quince, viejo?",
+    "¿Sabés que llevar VHF es ley de Prefectura, chamigo?",
+    "¿Reportaste el pesquero a las cero horas, viejo?",
+    "¿Cortaste el cable de la antena sin saber, cheraí?",
+    "¿Llamás a Recalada por el doce para fondear, chamigo?",
+    "¿Tenés el canal dieciséis solo para la emergencia, viejo?"
+  ]
+}

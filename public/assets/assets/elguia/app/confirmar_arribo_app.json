@@ -1,0 +1,35 @@
+{
+  "pantalla": "confirmar_arribo",
+  "activadores": [
+    "confirmar arribo", "confirmar llegada", "termino el viaje",
+    "llegamos", "volvimos", "finalizar viaje", "el capitan termino",
+    "el capitan marco el fin", "arribo", "confirmar que termino",
+    "el viaje termino", "como confirmo el arribo", "listo para confirmar",
+    "el capitan finalizo", "ya volvimos", "ya terminamos"
+  ],
+  "respuesta_corta": "Cuando el capitán marca el viaje como finalizado, te aparece el botón 'Confirmar Arribo' en la pantalla del viaje. Tocalo para cerrar el viaje.",
+  "pasos": [
+    "El capitán marca el viaje como 'Finalizado' desde su app.",
+    "Te llega una notificación avisando que el viaje terminó.",
+    "Entrá a 'Mis Viajes' y tocá el viaje que está en estado 'Listo para Confirmar'.",
+    "Tocá el botón 'Confirmar Arribo'.",
+    "Se abre automáticamente la pantalla para calificar al capitán.",
+    "Calificá con anclas y dejá un comentario si querés.",
+    "¡Listo! El viaje queda en estado 'Cerrado'."
+  ],
+  "sub_funciones": {
+    "no_aparece_boton": {
+      "pasos": [
+        "El botón 'Confirmar Arribo' solo aparece cuando el capitán marcó el fin del viaje.",
+        "Si no ves el botón, puede que el capitán todavía no lo haya marcado.",
+        "Esperá y revisá las notificaciones. Cuando él finalice, te avisa la campanita."
+      ]
+    }
+  },
+  "si_no_encuentra": "Si el viaje está en 'En Curso' todavía, significa que el capitán no marcó el fin. Una vez que él lo haga, te llega notificación y aparece el botón de confirmar.",
+  "problemas_comunes": {
+    "sin_boton": "Si el viaje ya debería haber terminado pero no aparece el botón, puede que el capitán no haya finalizado el viaje en su app todavía. Contactate con él.",
+    "error_confirmar": "Si te da error al confirmar, salí y volvé a entrar. Si sigue fallando, revisá tu conexión a internet."
+  },
+  "descripcion": "Módulo para confirmar el arribo del viaje cuando el capitán lo finalizó."
+}

@@ -1,0 +1,55 @@
+{
+  "pantalla": "mis_pesca",
+  "activadores": [
+    "mis pesca", "mis pescas", "mis capturas", "historial de pesca",
+    "donde guardo mis peces", "dónde guardo mis peces",
+    "registrar captura", "como registro un pez", "cómo registro un pez",
+    "ver mis capturas", "mis peces", "cuanto pesqué", "cuánto pesqué",
+    "historial de capturas", "mis datos de pesca", "donde anoto lo que pesqué",
+    "dónde anoto lo que pesqué", "como entro a mis pesca", "cómo entro a mis pesca",
+    "no encuentro mis capturas", "donde esta mis pesca", "dónde está mis pesca"
+  ],
+  "respuesta_corta": "Tus registros de pesca están en la sección Mis Pesca. Ahí podés ver y cargar todo lo que pescaste.",
+  "pasos": [
+    "En la pantalla principal buscá la sección Mis Pesca.",
+    "Ahí vas a ver el historial de todo lo que registraste.",
+    "Para agregar una nueva captura, tocá el botón Registrar captura o el más (+).",
+    "Completá los datos: especie, peso, medida, fecha y lugar.",
+    "Podés agregar una foto de la captura desde la galería o la cámara.",
+    "Guardá y listo. La captura queda registrada en tu historial."
+  ],
+  "sub_funciones": {
+    "registrar_captura": {
+      "pasos": [
+        "Entrá a Mis Pesca.",
+        "Tocá el botón Registrar captura o el ícono +.",
+        "Elegí la especie del pez.",
+        "Ingresá peso, medida y lugar de captura.",
+        "Opcionalmente agregá una foto.",
+        "Tocá Guardar."
+      ]
+    },
+    "ver_historial": {
+      "pasos": [
+        "Entrá a Mis Pesca desde el menú principal.",
+        "Vas a ver una lista de todas tus capturas anteriores.",
+        "Podés filtrar por fecha o por especie.",
+        "Tocá cualquier registro para ver los detalles."
+      ]
+    },
+    "editar_captura": {
+      "pasos": [
+        "Entrá a Mis Pesca y buscá la captura que querés editar.",
+        "Tocala para abrir los detalles.",
+        "Buscá el botón Editar o el lápiz.",
+        "Modificá lo que necesités y guardá."
+      ]
+    }
+  },
+  "problemas_comunes": {
+    "no_aparece": "Si no ves la sección Mis Pesca, puede que esté en el menú inferior o en el menú de perfil. Revisá las dos opciones.",
+    "no_guarda": "Si no guarda la captura, fijate que hayas completado al menos la especie y la fecha. Son los datos obligatorios.",
+    "foto_no_sube": "Si la foto no se sube, verificá que la app tenga permiso para acceder a la cámara y galería del celular."
+  },
+  "si_no_encuentra": "No pasa nada. Mis Pesca suele estar en el menú inferior o en el menú principal con un ícono de pez. Si no lo ves, decime desde qué pantalla estás mirando y te guío."
+}

@@ -1,0 +1,23 @@
+{
+  "pantalla": "configuracion",
+  "activadores": [
+    "configuracion", "configuración", "ajustes", "opciones de la app",
+    "como cambio la configuracion", "cómo cambio la configuración",
+    "cerrar sesion", "cerrar sesión", "salir de la app",
+    "cambiar idioma", "privacidad", "datos de la app",
+    "donde esta la configuracion", "dónde está la configuración"
+  ],
+  "respuesta_corta": "La Configuración está en tu Perfil o en el menú lateral. Desde ahí podés ajustar notificaciones, privacidad y más.",
+  "pasos": [
+    "Entrá a tu Perfil desde el ícono de usuario.",
+    "Buscá la opción Configuración o Ajustes.",
+    "Ahí podés cambiar notificaciones, privacidad y preferencias.",
+    "Para cerrar sesión, buscá la opción Cerrar sesión al final de la lista."
+  ],
+  "opciones": {
+    "notificaciones": "Activá o desactivá los diferentes tipos de avisos.",
+    "privacidad": "Controlá quién puede ver tu perfil y tus datos.",
+    "cerrar_sesion": "Para cerrar sesión, bajá hasta el final de Configuración y tocá Cerrar sesión."
+  },
+  "si_no_encuentra": "La configuración generalmente está en Perfil → Ajustes. Si no la encontrás, buscá el ícono de engranaje en alguna parte de la pantalla."
+}

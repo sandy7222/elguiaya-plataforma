@@ -1,0 +1,64 @@
+{
+  "respuestas_puente": [
+    "Dale, te cuento cómo funciona el sistema de viajes.",
+    "Vamos a ver qué está pasando con tu viaje.",
+    "Claro, te explico el ciclo de un viaje en Capitán-YA.",
+    "Sin drama. Te cuento el estado del viaje y qué sigue."
+  ],
+  "estados": {
+    "pendiente": {
+      "descripcion": "Tu pedido fue enviado. Los capitanes de la zona lo están viendo y pueden mandarte una cotización.",
+      "que_sigue": "Esperá que los capitanes te manden sus propuestas. Cuando lleguen, entrá al viaje y elegí la que más te guste.",
+      "consejo": "Si en unas horas no llegó ninguna propuesta, probá con otra fecha o zona."
+    },
+    "aceptado": {
+      "descripcion": "Aceptaste la cotización de un capitán. Ahora falta confirmar el viaje pagando.",
+      "que_sigue": "Tocá el botón 'Pagar con Mercado Pago' para confirmar la reserva.",
+      "consejo": "Pagá lo antes posible para no perder el lugar con ese capitán."
+    },
+    "pagado": {
+      "descripcion": "El pago se procesó y el viaje está confirmado. El capitán ya sabe que vas.",
+      "que_sigue": "El día del viaje, el capitán va a marcar el inicio y te llega una notificación.",
+      "consejo": "Revisá la campanita el día del viaje para saber cuando arrancó oficialmente."
+    },
+    "en_curso": {
+      "descripcion": "El capitán inició la salida. El viaje está en curso.",
+      "que_sigue": "Disfrutá la pesca. Cuando terminen, el capitán va a marcar el fin.",
+      "consejo": "Cuando el capitán finalice el viaje, te llega una notificación para que confirmes el arribo."
+    },
+    "listo_para_confirmar": {
+      "descripcion": "El capitán finalizó el viaje. Ahora necesitás confirmar el arribo.",
+      "que_sigue": "Tocá 'Confirmar Arribo' en el detalle del viaje. Después podés calificar al capitán.",
+      "consejo": "Calificá con honestidad, eso ayuda a otros pescadores a elegir un buen capitán."
+    },
+    "cerrado": {
+      "descripcion": "El viaje está cerrado. Ambos se calificaron y el ciclo terminó.",
+      "que_sigue": "Podés ver el resumen en el historial de viajes.",
+      "consejo": "Si fue una buena experiencia, recomendá el capitán a otros pescadores."
+    }
+  },
+  "respuesta_sin_estado": "Para ver el estado de tu viaje, entrá a 'Mis Viajes' y tocá el viaje que querés consultar.",
+  "descripcion": "Librería de estados del ciclo de vida de un viaje en Capitán-YA.",
+  "preguntas_seguimiento": [
+    "¿Te vas pa' Goya buscando surubí, viejo?",
+    "¿Tirás al rey pejerrey en la laguna bonaerense?",
+    "¿Pescás tarariras entre los camalotes en verano, chamigo?",
+    "¿Rumbéas pa' Bahía San Blas por la corvina?",
+    "¿Ya sacaste tu licencia de pesca obligatoria, cheraí?",
+    "¿Pescás flechas de plata en el embalse cordobés?",
+    "¿Te vas al Paraná Medio en octubre, chamigo?",
+    "¿Respetás la veda del surubí en enero, cheraí?",
+    "¿Buscás buena pescadilla en verano atlántico, maestro?",
+    "¿Tirás la mosca en el sur neuquino, viejo?",
+    "¿Lo cazás al dorado en el río Uruguay?",
+    "¿Buscás gatusos en Claromecó durante la primavera, chamigo?",
+    "¿Lo buscás al surubí en arroyos de noche?",
+    "¿Vas a escolleras marplatenses por unas brótolas, cheraí?",
+    "¿Dejás a los cachorros tranquilos en el carrizal?",
+    "¿Mirás bien los límites de extracción, viejo?",
+    "¿Vas a pescar de noche y reparado, chamigo?",
+    "¿Empezás a buscar pejerreyes en pleno mayo, cheraí?",
+    "¿Buscás corvinas con la marea en repunte, maestro?",
+    "¿Vas a tirar cerca del puerto de Reconquista?"
+  ]
+}

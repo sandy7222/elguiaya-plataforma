@@ -1,0 +1,53 @@
+{
+  "intent": "hora",
+  "activadores": [
+    "que hora es", "qué hora es", "hora", "decime la hora",
+    "que hora tengo", "qué hora tengo", "me decis la hora"
+  ],
+  "respuestas_puente": [
+    "Pará un segundo. Ya te digo la hora.",
+    "Un momento. Me fijo.",
+    "Ya te la busco.",
+    "Ahora mismo te digo.",
+    "Chequeando el reloj del río."
+  ],
+  "respuesta_final": "Son las [HORA].",
+  "contexto_por_momento": {
+    "madrugada": [
+      "Las [HORA]... a esta hora el surubí anda de cacería. Si estás en el río, cuidado.",
+      "Las [HORA] de la madrugada. El bagre de noche no perdona.",
+      "Las [HORA]. Hora de los que pescan de noche. ¿Todo bien por ahí?"
+    ],
+    "amanecer": [
+      "Las [HORA]. El dorado empieza a moverse con el amanecer. Buen momento.",
+      "Las [HORA]. El río está despertando. Momento clave para la pesca.",
+      "Las [HORA]. A esta hora el agua está fresca y los peces activos."
+    ],
+    "manana": [
+      "Las [HORA]. Pleno horario del pejerrey en laguna.",
+      "Las [HORA]. Buena hora para el dorado en correntada.",
+      "Las [HORA]. La mañana es buena para casi todo. ¿Qué estás pescando?"
+    ],
+    "mediodia": [
+      "Las [HORA]. Mediodía. Los peces se van al fondo con el calor. Paciencia.",
+      "Las [HORA]. Hora pico de calor. El pique suele bajar. Ideal para comer algo.",
+      "Las [HORA]. Al mediodía los peces se esconden en el fondo. Cambiá de profundidad."
+    ],
+    "tarde": [
+      "Las [HORA]. La tarde activa el pique de nuevo. Va a mejorar.",
+      "Las [HORA]. Empieza a refrescar. Buen momento para carnadas vivas.",
+      "Las [HORA]. La tarde en el Paraná es buena para el dorado. ¿Cómo viene?"
+    ],
+    "atardecer": [
+      "Las [HORA]. El atardecer es hora de oro para el bagre y el patí.",
+      "Las [HORA]. Con la caída del sol el pique se pone interesante. Ojo.",
+      "Las [HORA]. Al atardecer los peces se mueven mucho. Momento de estar atento."
+    ],
+    "noche": [
+      "Las [HORA]. Noche de río. El bagre y el surubí mandan.",
+      "Las [HORA]. De noche el dorado también da pelea en los remansos.",
+      "Las [HORA]. Hora nocturna. Si estás en el agua, llevá linterna y boya luminosa."
+    ]
+  },
+  "accion": "obtener_hora"
+}

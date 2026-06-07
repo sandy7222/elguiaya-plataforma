@@ -1,0 +1,23 @@
+{
+  "pantalla": "notificaciones",
+  "activadores": [
+    "notificaciones", "avisos", "alertas", "mis mensajes",
+    "no recibo notificaciones", "activar notificaciones",
+    "desactivar notificaciones", "donde estan las notificaciones",
+    "dónde están las notificaciones", "no me llegan avisos",
+    "no me llegan notificaciones", "como activo las notificaciones",
+    "cómo activo las notificaciones"
+  ],
+  "respuesta_corta": "Las notificaciones están en el ícono de campana arriba a la derecha o en el menú inferior.",
+  "pasos": [
+    "Las notificaciones están accesibles desde el ícono de campana.",
+    "Tocalo para ver todos los avisos: reservas, pedidos y alertas.",
+    "Podés marcar como leídas o eliminar las que ya no necesitás."
+  ],
+  "si_no_llegan": [
+    "Si no te llegan notificaciones, fijate que las tengas activadas.",
+    "Andá a Configuración del celular → Aplicaciones → Capitan-YA → Notificaciones → Activar.",
+    "También podés revisar dentro de la app en Configuración si tenés las notificaciones de la app activadas."
+  ],
+  "si_no_encuentra": "No pasa nada. El ícono de notificaciones suele ser una campana en la parte superior de la pantalla."
+}

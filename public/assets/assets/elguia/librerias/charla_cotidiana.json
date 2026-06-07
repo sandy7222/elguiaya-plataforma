@@ -1,0 +1,207 @@
+{
+  "intent": "charla_cotidiana",
+  "activadores": [
+    "no pica nada",
+    "no pica",
+    "nada de pique",
+    "no hay pique",
+    "tengo hambre",
+    "me muero de hambre",
+    "estoy cansado",
+    "estoy agotado",
+    "me canse",
+    "que aburrido",
+    "qué aburrido",
+    "me aburro",
+    "me quiero ir",
+    "quiero irme",
+    "mucho viento",
+    "se pico el viento",
+    "se picó el viento",
+    "marejada",
+    "marejada fuerte",
+    "mucho calor",
+    "pesado el aire",
+    "sol de frente",
+    "planchado",
+    "agua planchada",
+    "rio planchado",
+    "río planchado",
+    "espejo",
+    "agua turbia",
+    "muy turbia",
+    "color chocolate",
+    "invierno",
+    "mucho frio",
+    "mucho frío",
+    "helada",
+    "escarcha",
+    "primavera",
+    "solcito",
+    "agua templada",
+    "verano",
+    "calor intenso",
+    "otono",
+    "otoño",
+    "barometro",
+    "barómetro",
+    "tormenta electrica",
+    "tormenta eléctrica"
+  ],
+  "por_situacion": {
+    "no_pica": [
+      "Y bueno, hay días así también.",
+      "A veces hay que tener un poco de paciencia.",
+      "Capaz más tarde cambia el pique.",
+      "El río tiene sus tiempos. Paciencia."
+    ],
+    "hambre": [
+      "Capaz es momento de meter algo al estómago.",
+      "Un poco de comida nunca viene mal en la orilla.",
+      "Che, hay que reponer energías también."
+    ],
+    "cansado": [
+      "Y... capaz te viene bien pegar una pausa.",
+      "Un rato de descanso nunca viene mal.",
+      "Descansá un poco. El río sigue ahí."
+    ],
+    "aburrido": [
+      "Si no pica, a veces conviene cambiar de lugar.",
+      "Podemos revisar el equipo mientras tanto.",
+      "Un buen pescador también sabe esperar."
+    ],
+    "viento": [
+      "¡Se picó el viento, chamigo! Buscate un reparo entre juncos.",
+      "Con este viento, metele plomada pesada al fondo, viejo.",
+      "Usá boya con palitos iguales para mejor tenida, cheraí.",
+      "El viento te pasea la línea; buscale el remanso.",
+      "Gareteá hacia el sol con boyas negras mate, pescador."
+    ],
+    "calor": [
+      "¡Uff, qué pesado el aire! El bicho busca el fresco abajo.",
+      "Con este calor, el surubí pica mejor de noche, chamigo.",
+      "Sol de frente... ponete boyas naranja o negras mate, viejo.",
+      "Buscá el pique al amanecer, el sol arriba los aletarga.",
+      "Metele anteojos polarizados para clavar justo sin reflejo, cheraí."
+    ],
+    "planchado": [
+      "Un espejo quedó el río... el pejerrey te ve los hilos.",
+      "Agua planchada... usá boyas plásticas bien livianitas, viejo.",
+      "Está sutil el pique hoy; pescá con el dedo, chamigo.",
+      "Río planchado no ayuda, falta el estímulo de la corriente.",
+      "Mové suave la caña para darle vida a la carnada."
+    ],
+    "turbia": [
+      "Agua color chocolate... el pescado no ve un gualicho.",
+      "Buscá el pique por olor con sábalo podrido, chamigo.",
+      "Con agua turbia, metele una cuchara que haga ruido, viejo.",
+      "El bicho caza a ciegas; arrimale bien la carnada, cheraí.",
+      "Buscá el agua limpia metiéndote en los riachos internos."
+    ],
+    "frio_invierno": [
+      "¡Qué escarcha, chamigo! Lindo día para buscar pejerrey.",
+      "Con este frío, el surubí está aletargado abajo.",
+      "¡Arrimate al fuego, viejo! Se viene helada la noche.",
+      "Masa compacta y línea paternóster para el frío, cheraí.",
+      "El frío cala hondo... metele un amargo al termo."
+    ],
+    "sol_primavera": [
+      "¡Hermosa primavera, chamigo! El dorado empieza a despertar.",
+      "Lindo solcito... cuidame de no pisar el desove.",
+      "Pleno sol, cheraí... buscá los bichos cerca de juncos.",
+      "Día limpio... metele una lacada brillante a la boya.",
+      "La costa está hermosa; el agua templada activa todo."
+    ],
+    "calor_verano": [
+      "¡Qué horno el verano! El pique busca la penumbra.",
+      "Mucha temperatura... el bicho se va al pozo fresco.",
+      "Metele cascarudo vivo; el dorado caza de noche ahora.",
+      "Con este calor intenso, el surubí se vuelve loco.",
+      "Evitá el rayo del sol; buscá el remanso sombreado."
+    ],
+    "tormenta_otono": [
+      "Se viene la tormenta... la presión barométrica va picando.",
+      "Lluvia de otoño; el agua del cielo revuelve todo.",
+      "Ojo el barómetro: la caída brusca frena el pique.",
+      "¡Se largó nomás! Cuidame los equipos en el rancho.",
+      "Tormenta eléctrica... ¡cañas abajo y a buscar reparo, viejo!"
+    ],
+    "lluvia": [
+      "¡Se largó nomás! Tapame bien los equipos y la lancha, chamigo. Ojo que el agua del cielo a veces revuelve el pique.",
+      "Tradición de la costa: si se viene el agua, se arman los mates y salen los kreppels en el rancho."
+    ]
+  },
+  "preguntas_seguimiento": [
+    "¿Probaste cambiar el lugar, chamigo?",
+    "¿Qué carnada estás usando?",
+    "¿Hace cuánto estás esperando, cheraí?",
+    "¿Querés probar de flote o te vas a quedar aletargado en el fondo?"
+  ],
+  "respuestas_puente": [
+    "charla_cotidiana",
+    "me muero de hambre",
+    "se pico el viento",
+    "se picó el viento",
+    "marejada fuerte"
+  ],
+  "intenciones": [
+    {
+      "intencion": "saludo_amigable",
+      "activadores": [
+        "hola como va",
+        "buenas che",
+        "todo bien por aca"
+      ],
+      "respuesta_limpia": "¡Hola chamigo! Por acá todo bien, disfrutando del río Paraná. ¿En qué te puedo ayudar hoy?",
+      "gif": "saludo"
+    },
+    {
+      "intencion": "despedida_pescador",
+      "activadores": [
+        "bueno me voy",
+        "chau me retiro",
+        "nos vemos despues"
+      ],
+      "respuesta_limpia": "¡Dale, nos vemos! Cuidate en la navegación, buena vuelta a la costa y que sigan los éxitos.",
+      "gif": "saludo"
+    },
+    {
+      "intencion": "charla_rio_anecdota",
+      "activadores": [
+        "contame una anecdota del rio",
+        "anecdota del parana",
+        "que paso en el rio"
+      ],
+      "respuesta_limpia": "Una vez clavé un dorado gigante cerca del remanso que casi me dobla la caña entera. ¡Tardé media hora en sacarlo!",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "saludo_mautina",
+      "activadores": [
+        "buen dia guia",
+        "buenos dias el guia"
+      ],
+      "respuesta_limpia": "¡Buen día chamigo! Lindo amanecer para tirar unas líneas. El pique promete hoy.",
+      "gif": "saludo"
+    },
+    {
+      "intencion": "despedida_noche",
+      "activadores": [
+        "buenas noches guia",
+        "me voy a dormir"
+      ],
+      "respuesta_limpia": "Buenas noches, que descanses. Ojo con la bajante si dejás la lancha amarrada.",
+      "gif": "saludo"
+    },
+    {
+      "intencion": "charla_inicial",
+      "activadores": [
+        "charla inicial",
+        "presentacion",
+        "baqueano"
+      ],
+      "respuesta_limpia": "Charla inicial con Seba Borrego",
+      "gif": "hablaConMate"
+    }
+  ]
+}

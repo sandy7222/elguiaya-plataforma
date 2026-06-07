@@ -1,0 +1,10 @@
+{
+  "respuestas_puente": [
+    "📻 FRECUENCIAS VTS USHUAIA PORTUARIO (CANAL BEAGLE)\n\nAbarca el estratégico Canal Beagle en aguas argentinas, operando los cruces del Límite Internacional con Chile.\n\nDetalles técnicos:\n- Estación: VTS Ushuaia Portuario (Indicativo L3P).\n- Canal de Trabajo Principal: Canal 12 VHF (156.600 MHz).\n- Estaciones Secundarias: L4A (Lapataia), L4B (Almanza), L4C (Benítez), L4D (López).\n\nConsejo del Baqueano: Escucha simultánea en Canal 12 y 16 es mandatoria. Cada vez que cruces un punto de control (como el Paso Picton o el Canal Murray), debés reportarte a la estación secundaria correspondiente."
+  ],
+  "tipos": [
+    "Canal 12 L3P / L4A / L4B / L4C / L4D (Trabajo)",
+    "Canal 15 PNA (Seguridad/Clima)",
+    "Canal 16 PNA (Emergencia)"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "pantalla": "inicio",
+  "activadores": [
+    "pantalla principal", "pantalla de inicio", "home", "inicio",
+    "que tiene la app", "qué tiene la app", "como funciona la app", "cómo funciona la app",
+    "para que sirve", "para qué sirve", "que puedo hacer", "qué puedo hacer",
+    "que tiene", "que hay", "qué hay", "botones de inicio"
+  ],
+  "respuesta_corta": "Dale, te cuento. La pantalla principal tiene acceso a GPS, Reservas, Tienda, Carnadas, Blog y tu Perfil. Todo está ahí.",
+  "pasos": [
+    "Cuando abrís la app, lo primero que ves es la pantalla principal.",
+    "Arriba vas a encontrar el botón de mapa y GPS.",
+    "En el centro están las secciones principales: Reservas, Tienda y Carnadas.",
+    "Abajo está el menú para ir a tu Perfil, Notificaciones y Blog.",
+    "El botón del Guía soy yo. Aparezco en la esquina de la pantalla."
+  ],
+  "si_no_encuentra": "No pasa nada. Decime en qué pantalla estás y te ayudo a encontrar lo que buscás.",
+  "elementos": {
+    "gps": "El botón del mapa o GPS está en la parte superior de la pantalla principal.",
+    "reservas": "El botón de Reservas está en la sección central de la pantalla.",
+    "tienda": "La Tienda está en el menú central, al lado de Reservas.",
+    "carnadas": "Carnadas está en la sección principal, junto a los accesos rápidos.",
+    "perfil": "Tu perfil está en el menú inferior o en el ícono de usuario arriba.",
+    "blog": "El Blog de Piques está en el menú inferior."
+  }
+}

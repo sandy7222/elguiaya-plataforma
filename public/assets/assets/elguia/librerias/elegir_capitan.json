@@ -1,0 +1,17 @@
+{
+  "intent": "elegir_capitan",
+  "respuestas": [
+    "Para elegir el capitán perfecto, tocá el viaje pendiente en \"Mis Viajes\".\nVas a ver las propuestas con precio, calificación en anclas y reseñas de otros pescadores.\nElegí la que más te convenza y tocá \"Aceptar\".",
+    "En el viaje pendiente vas a ver todas las propuestas.\nPodés ver el perfil del capitán tocando su nombre: anclas, cantidad de viajes y comentarios de otros pescadores.\nNo solo mirés el precio — las calificaciones dicen mucho.",
+    "Comparar capitanes es fácil. Abrí el viaje en \"Mis Viajes\" y deslizá entre las propuestas.\nCada una muestra precio y la calificación del capitán. Si querés más info, tocá el nombre del capitán para ver su perfil completo.",
+    "Abrí el viaje pendiente y fijate en las anclas de cada capitán, no solo en el precio.\nUn capitán con 5 anclas y muchos viajes vale el peso. Tocá su nombre para ver las reseñas reales."
+  ],
+  "seguimiento": "¿Llegaron varias propuestas o querés saber cómo leer el perfil de un capitán?",
+  "respuestas_puente": [
+    "Para elegir el capitán perfecto, tocá el viaje pendiente en \"Mis Viajes\"",
+    "Vas a ver las propuestas con precio, calificación en anclas y reseñas de otros pescadores",
+    "Elegí la que más te convenza y tocá \"Aceptar\"",
+    "En el viaje pendiente vas a ver todas las propuestas",
+    "Podés ver el perfil del capitán tocando su nombre: anclas, cantidad de viajes y comentarios de otros pescadores"
+  ]
+}

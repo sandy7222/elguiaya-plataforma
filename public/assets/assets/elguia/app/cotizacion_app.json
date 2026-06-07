@@ -1,0 +1,48 @@
+{
+  "pantalla": "cotizacion",
+  "activadores": [
+    "cotizacion", "cotización", "coyizacion", "coyización", "cotisacion", "cotisación",
+    "catalogo de cotizacion", "catálogo de cotización", "catalogo de precios",
+    "como cotizo", "cómo cotizo", "como hago una cotizacion", "cómo hago una cotización",
+    "como pido precio", "cómo pido precio", "quiero saber el precio",
+    "cuanto sale", "cuánto sale", "cuanto cuesta", "cuánto cuesta",
+    "ver precios", "ver presupuesto", "hacer presupuesto",
+    "presupuesto", "precio", "precios",
+    "donde esta cotizacion", "dónde está cotización",
+    "no encuentro cotizacion", "no encuentro cotización",
+    "para que sirve cotizacion", "para qué sirve cotización",
+    "como funciona cotizacion", "cómo funciona cotización"
+  ],
+  "respuesta_corta": "Dale, te explico. Entrá al menú principal y buscá Cotización. Ahí podés consultar precios o armar una consulta según lo que necesités.",
+  "pasos": [
+    "Entrá al menú principal de la app.",
+    "Buscá la sección Cotización o Catálogo.",
+    "Tocala para ver los productos o servicios disponibles.",
+    "Elegí el que te interesa y vas a ver el precio o podés hacer una consulta.",
+    "Si querés pedir presupuesto, buscá el botón Consultar o Solicitar cotización."
+  ],
+  "sub_funciones": {
+    "ver_precio": {
+      "pasos": [
+        "Entrá a Cotización desde el menú principal.",
+        "Buscá el producto o servicio que te interesa.",
+        "Tocalo para ver el precio o la referencia de valor."
+      ]
+    },
+    "pedir_presupuesto": {
+      "pasos": [
+        "Entrá a Cotización.",
+        "Elegí el producto o servicio.",
+        "Buscá el botón Consultar o Solicitar presupuesto.",
+        "Completá los datos y enviá la consulta."
+      ]
+    }
+  },
+  "si_no_encuentra": "No pasa nada. ¿Estás en la pantalla principal o dentro de otro menú? La Cotización suele estar en el menú principal con ese nombre o como Catálogo.",
+  "problemas_comunes": {
+    "no_carga": "Si Cotización no carga, verificá que tengas conexión a internet. Los precios se actualizan en línea.",
+    "precio_no_aparece": "Si no ves el precio de un producto, puede estar pendiente de actualización. Intentá refrescar la sección o volvé más tarde.",
+    "no_puedo_enviar": "Si no podés enviar la consulta, fijate que hayas completado todos los campos obligatorios."
+  },
+  "descripcion": "Sección donde el usuario puede ver precios, referencias de productos y solicitar presupuestos."
+}
