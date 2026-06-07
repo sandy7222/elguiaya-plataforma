@@ -1,0 +1,205 @@
+{
+  "intent": "peces",
+  "prioridad": 10,
+  "respuestas_puente": [
+    "Pará que busco información de ese pez.",
+    "Ya me fijo qué tengo sobre esa especie.",
+    "Un momento. Estoy revisando la guía del Paraná."
+  ],
+  "especies": {
+    "dorado": {
+      "nombre_cientifico": "Salminus brasiliensis",
+      "descripcion": "El dorado es el rey del Paraná. Depredador de color dorado brillante, conocido por su fuerza y agresividad.",
+      "habitat": "Correderas y zonas con corriente fuerte",
+      "carnada": [
+        "morena viva",
+        "señuelo brillante",
+        "anguila"
+      ],
+      "equipo": "Caña media-pesada con líder de acero, obligatorio por sus dientes cortantes.",
+      "temporada": "Mejor entre octubre y marzo"
+    },
+    "surubi": {
+      "nombre_cientifico": "Pseudoplatystoma corruscans",
+      "descripcion": "El surubí o punto negro es uno de los bagres más grandes del Paraná. Puede superar los 80 kilos.",
+      "habitat": "Pozos profundos y zonas oscuras",
+      "carnada": [
+        "morena grande",
+        "anguila",
+        "carnada viva"
+      ],
+      "equipo": "Caña pesada, reel robusto con mucha línea.",
+      "temporada": "Pesca nocturna todo el año, mejor en verano"
+    },
+    "boga": {
+      "nombre_cientifico": "Leporinus obtusidens",
+      "descripcion": "La boga es uno de los peces más comunes del Paraná. Omnívora y fácil de pescar.",
+      "habitat": "Orillas con vegetación, zonas de corriente media",
+      "carnada": [
+        "masa saborizada",
+        "maíz fermentado",
+        "lombriz"
+      ],
+      "equipo": "Caña liviana a media, plomada pasante.",
+      "temporada": "Todo el año"
+    },
+    "bagre": {
+      "nombre_cientifico": "Rhamdia quelen",
+      "descripcion": "El bagre amarillo es muy común en el Paraná y sus afluentes. Pesca de noche preferentemente.",
+      "habitat": "Zonas de fondo con cobertura",
+      "carnada": [
+        "lombriz",
+        "hígado crudo",
+        "masa con olor fuerte"
+      ],
+      "equipo": "Caña media, pesca nocturna.",
+      "temporada": "Todo el año, mejor de noche"
+    },
+    "pati": {
+      "nombre_cientifico": "Luciopimelodus pati",
+      "descripcion": "El patí es un bagre alargado muy apreciado por su carne. Muy agresivo al picar.",
+      "habitat": "Zonas de corriente fuerte y fondo rocoso",
+      "carnada": [
+        "lombriz",
+        "hígado",
+        "carne troceada"
+      ],
+      "equipo": "Caña media, línea resistente.",
+      "temporada": "Primavera y verano"
+    },
+    "tararira": {
+      "nombre_cientifico": "Hoplias malabaricus",
+      "descripcion": "La tararira o tarucha es un depredador de emboscada. Dientes filosos y muy agresiva.",
+      "habitat": "Juncos, totoras y zonas con mucha vegetación",
+      "carnada": [
+        "señuelo anti-enganche",
+        "rana",
+        "anguila pequeña"
+      ],
+      "equipo": "Caña media con líder para soportar sus dientes.",
+      "temporada": "Todo el año"
+    },
+    "pejerrey": {
+      "nombre_cientifico": "Odontesthes bonariensis",
+      "descripcion": "El pejerrey es uno de los peces de agua dulce más apreciados de Argentina. Carne fina y delicada.",
+      "habitat": "Lagunas, embalses y ríos tranquilos",
+      "carnada": [
+        "mojarra viva",
+        "gusano de río",
+        "cebo artificial pequeño"
+      ],
+      "equipo": "Línea de flote con múltiples boyas, línea delgada.",
+      "temporada": "Otoño e invierno"
+    },
+    "sabalo": {
+      "nombre_cientifico": "Prochilodus lineatus",
+      "descripcion": "El sábalo es el pez más abundante del Paraná. Filtrador de fondo, clave en el ecosistema.",
+      "habitat": "Todo el río, principalmente en el fondo",
+      "carnada": [
+        "masa",
+        "barro del fondo",
+        "algas"
+      ],
+      "equipo": "Cualquier caña media.",
+      "temporada": "Todo el año"
+    },
+    "pacu": {
+      "nombre_cientifico": "Piaractus mesopotamicus",
+      "descripcion": "El pacú es pariente del piraña pero herbívoro. Muy codiciado por su tamaño y carne.",
+      "habitat": "Zonas de frutales y vegetación colgante sobre el agua",
+      "carnada": [
+        "fruta caída",
+        "maíz",
+        "pan",
+        "masa dulce"
+      ],
+      "equipo": "Caña media-pesada.",
+      "temporada": "Verano, cuando hay frutas en el monte"
+    },
+    "armado": {
+      "nombre_cientifico": "Pterodoras granulosus",
+      "descripcion": "El armado tiene una armadura de huesos en los costados. Muy resistente al picar. Cuidado con las espinas.",
+      "habitat": "Fondo del río, zonas profundas",
+      "carnada": [
+        "lombriz",
+        "masa",
+        "hígado"
+      ],
+      "equipo": "Caña pesada. Cuidado al agarrarlo por las espinas.",
+      "temporada": "Todo el año"
+    },
+    "bagre de mar": {
+      "nombre_cientifico": "Genidens barbus",
+      "descripcion": "El bagre de mar, mimoso o moncholo es un pez anádromo de cuero, muy valorado por su carne sin espinas.",
+      "habitat": "Veriles y pozones profundos con fondo de barro",
+      "carnada": [
+        "anchoa fresca",
+        "calamar",
+        "sardina fresca"
+      ],
+      "equipo": "Caña pesada, plomada muy pesada corrediza y anzuelo corvinero.",
+      "temporada": "Primavera y principio de verano (octubre a diciembre)"
+    },
+    "mimoso": {
+      "nombre_cientifico": "Genidens barbus",
+      "descripcion": "El mimoso o bagre de mar es un pez de cuero. Ingresa al río en primavera.",
+      "habitat": "Veriles y pozones profundos con fondo de barro",
+      "carnada": [
+        "anchoa fresca",
+        "calamar",
+        "sardina fresca"
+      ],
+      "equipo": "Caña pesada, plomada muy pesada corrediza y anzuelo corvinero.",
+      "temporada": "Primavera y principio de verano"
+    }
+  },
+  "preguntas_seguimiento": [
+    "¿Buscás al surubí atigrado o pintado, cheraí?",
+    "¿Vas por el surubí pintado al fondo, chamigo?",
+    "¿Sabías que el dorado caza en la corriente?",
+    "¿Le tirás a la tararira a media agua?",
+    "¿El surubí embosca a su presa, viejo?",
+    "¿Buscás al pez elefante al fondo, chamigo?",
+    "¿La trucha patagónica va con mosca, cheraí?",
+    "¿Sabés que la corvina come en marea viva?",
+    "¿El bicho aletarga si hace mucho frío, viejo?",
+    "¿Al gatuso lo devolvés al agua, chamigo?",
+    "¿Pescás pescadilla al fondo con filet, maestro?",
+    "¿La brótola come pescado fresco en el fondo?",
+    "¿El surubí odia las aguas muertas, viejo?",
+    "¿Le tirás a la corvina con langostino, cheraí?",
+    "¿Buscás pejerrey con carnada viva en invierno?",
+    "¿La tararira muerde arriba en verano, chamigo?",
+    "¿Sabías que el dorado es de devolución obligatoria?",
+    "¿El cachorro engorda en los camalotales, viejo?",
+    "¿La dorada come más con marea subiendo?",
+    "¿El bicho está inactivo con agua fría, cheraí?",
+    "¿Buscás la carpa bien al fondo, viejo?",
+    "¿Agarrás al bagre por las chuzas, chamigo?",
+    "¿Vas por lobinotas en agua helada, cheraí?",
+    "¿Al chucho lo pisás pa' desengancharlo, viejo?",
+    "¿Viste al bagre amarillo boca ancha, chamigo?"
+  ],
+  "intenciones": [
+    {
+      "intencion": "pesca_de_surubi",
+      "activadores": [
+        "surubí",
+        "pez de fondo",
+        "nocturno"
+      ],
+      "respuesta_limpia": "Surubí: pez de fondo, nocturno",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "caracteristicas_peces_cascarudo",
+      "activadores": [
+        "peces cascarudo",
+        "cascarudo como carnada",
+        "caracteristicas pez cascarudo"
+      ],
+      "respuesta_limpia": "Pez cascarudo: carnada viva, resistente, respira oxígeno fuera del agua.",
+      "gif": "hablaConMate"
+    }
+  ]
+}

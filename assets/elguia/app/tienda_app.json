@@ -1,0 +1,49 @@
+{
+  "pantalla": "tienda",
+  "activadores": [
+    "como comprar", "cómo comprar", "como entro a la tienda", "cómo entro a la tienda",
+    "no encuentro la tienda", "donde esta la tienda", "dónde está la tienda",
+    "como pago", "cómo pago", "quiero comprar algo", "ver productos",
+    "agregar al carrito", "mi carrito", "mis pedidos", "donde estan mis pedidos",
+    "dónde están mis pedidos", "como veo mis compras", "cómo veo mis compras",
+    "seguimiento de pedido", "donde esta mi pedido", "dónde está mi pedido"
+  ],
+  "respuesta_corta": "Es fácil. Tocá Tienda en el menú principal. Elegís el producto y después presionás Comprar.",
+  "pasos": [
+    "En la pantalla principal tocá el botón Tienda.",
+    "Vas a ver el catálogo con todos los productos disponibles.",
+    "Tocá el producto que te interesa para ver el detalle y el precio.",
+    "Presioná Agregar al carrito.",
+    "Cuando termines de elegir, entrá al Carrito y presioná Comprar.",
+    "Completá la dirección de entrega y el método de pago.",
+    "Confirmá y listo. Vas a recibir un número de pedido."
+  ],
+  "sub_funciones": {
+    "buscar_producto": {
+      "pasos": [
+        "Entrá a Tienda.",
+        "Usá el buscador de arriba para escribir lo que buscás.",
+        "También podés filtrar por categorías: anzuelos, líneas, carnadas, etc."
+      ]
+    },
+    "ver_pedidos": {
+      "pasos": [
+        "Entrá a Tienda.",
+        "Tocá el ícono de pedidos o buscá Mis pedidos.",
+        "Ahí vas a ver el estado de cada compra."
+      ]
+    },
+    "carrito": {
+      "pasos": [
+        "El carrito está en el ícono de arriba a la derecha dentro de la Tienda.",
+        "Podés agregar o quitar productos antes de confirmar la compra."
+      ]
+    }
+  },
+  "si_no_encuentra": "No pasa nada. La Tienda está en el menú principal. Buscá el ícono de tienda o la etiqueta Tienda.",
+  "problemas_comunes": {
+    "sin_stock": "Si un producto aparece sin stock, significa que se agotó por ahora. Podés agregarlo a favoritos y te avisamos cuando vuelve.",
+    "pago_rechazado": "Si el pago fue rechazado, revisá que los datos de la tarjeta estén bien o intentá con otro método de pago.",
+    "no_llega_pedido": "Si tu pedido tarda más de lo esperado, entrá a Mis pedidos y fijate el estado. Si dice entregado y no lo recibiste, contactá al equipo de Capitan-YA."
+  }
+}

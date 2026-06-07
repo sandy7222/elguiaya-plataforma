@@ -1,0 +1,25 @@
+{
+  "pantalla": "login",
+  "activadores": [
+    "no puedo entrar", "no me deja entrar", "olvide mi contraseña", "olvidé mi contraseña",
+    "no recuerdo la clave", "como me registro", "cómo me registro", "crear cuenta",
+    "como inicio sesion", "cómo inicio sesión", "no puedo iniciar sesion",
+    "cuenta bloqueada", "mi cuenta no funciona", "perdí mi contraseña",
+    "perdi mi contraseña", "recuperar contraseña", "ingresar a la app"
+  ],
+  "respuesta_corta": "No pasa nada. Para ingresar necesitás tu email y contraseña. Si la olvidaste, tocá Olvidé mi contraseña y te mandamos un link.",
+  "pasos": [
+    "En la pantalla de ingreso poné tu email y contraseña.",
+    "Si no recordás la contraseña, tocá Olvidé mi contraseña.",
+    "Te van a mandar un email con un link para resetearla.",
+    "Si no tenés cuenta todavía, tocá Registrarme y completá el formulario."
+  ],
+  "recuperar_password": [
+    "Tocá Olvidé mi contraseña en la pantalla de login.",
+    "Ingresá tu email registrado.",
+    "Revisá tu bandeja de entrada y seguí el link del email.",
+    "Si no te llegó, revisá la carpeta de spam."
+  ],
+  "si_no_puede_entrar": "Si seguís sin poder entrar, puede que la cuenta esté desactivada o el email no esté registrado. Intentá registrarte de nuevo o contactá al equipo de Capitan-YA.",
+  "si_no_encuentra": "La pantalla de ingreso es la primera que aparece cuando abrís la app sin sesión activa."
+}

@@ -1,0 +1,244 @@
+{
+  "especie": "bagre_de_mar",
+  "nombres_populares": [
+    "mimoso",
+    "moncholo",
+    "monchuelo"
+  ],
+  "nombre_cientifico": "Genidens barbus",
+  "modulo": "especies_argentina",
+  "palabras_clave": [
+    "bagre de mar",
+    "mimoso",
+    "moncholo",
+    "monchuelo",
+    "Genidens barbus",
+    "pesca de fondo",
+    "Río de la Plata",
+    "Paraná Guazú",
+    "Paraná Bravo",
+    "anchoa fresca",
+    "calamar",
+    "sardina",
+    "espina venenosa",
+    "chuza",
+    "cuidado parental",
+    "incubación bucal",
+    "pez anádromo",
+    "pez de cuero",
+    "plomada pesada",
+    "anzuelo corvinero",
+    "boga grip"
+  ],
+  "intenciones": [
+    {
+      "intencion": "identificacion",
+      "activadores": [
+        "cómo lo reconozco",
+        "qué es el mimoso",
+        "qué es el moncholo",
+        "tiene escamas",
+        "cómo es el bagre de mar",
+        "cuánto pesa"
+      ]
+    },
+    {
+      "intencion": "habitat",
+      "activadores": [
+        "dónde vive",
+        "de dónde viene",
+        "vive en agua dulce",
+        "en qué ríos sale",
+        "dónde lo pesco",
+        "migra"
+      ]
+    },
+    {
+      "intencion": "carnadas",
+      "activadores": [
+        "qué carnada",
+        "qué le pongo",
+        "come camarón",
+        "qué come",
+        "mejor cebo",
+        "anchoa",
+        "calamar"
+      ]
+    },
+    {
+      "intencion": "tecnica",
+      "activadores": [
+        "cómo es el pique",
+        "cuándo clavo",
+        "cómo pesco",
+        "a qué profundidad",
+        "qué aparejo",
+        "cómo armo la línea"
+      ]
+    },
+    {
+      "intencion": "equipos",
+      "activadores": [
+        "qué caña",
+        "qué reel",
+        "qué anzuelo",
+        "qué plomada",
+        "qué línea",
+        "cuántas libras"
+      ]
+    },
+    {
+      "intencion": "condiciones",
+      "activadores": [
+        "influye la marea",
+        "en qué meses",
+        "cuándo sale más",
+        "afecta la tormenta",
+        "agua turbia",
+        "parada de agua"
+      ]
+    },
+    {
+      "intencion": "seguridad",
+      "activadores": [
+        "cómo lo agarro",
+        "me puede pinchar",
+        "espina venenosa",
+        "chuza",
+        "qué pasa si me pica",
+        "rompe el gomón"
+      ]
+    },
+    {
+      "intencion": "conservacion",
+      "activadores": [
+        "está en peligro",
+        "cuántos me llevo",
+        "cupo",
+        "veda",
+        "reglamento",
+        "cuota diaria"
+      ]
+    },
+    {
+      "intencion": "curiosidades",
+      "activadores": [
+        "cría en la boca",
+        "incubación",
+        "filopatría",
+        "vuelve al mismo río",
+        "como el salmón",
+        "huevos en la boca"
+      ]
+    }
+  ],
+  "identificacion": {
+    "descripcion_corta": "Pez de cuero gris sin escamas. Se lo llama mimoso, moncholo o monchuelo. Es el único bagre marino de Argentina.",
+    "descripcion_extensa": "El bagre de mar (Genidens barbus) es conocido como mimoso, moncholo o monchuelo. Es el único representante de los bagres marinos en Argentina. No tiene escamas, es un pez de cuero. Coloración gris ceniciento oscuro con reflejos verdosos en el dorso y panza blanco amarillenta. Cabeza elevada con boca amplia, bigotes largos y ojos pequeños adaptados a aguas turbias.",
+    "peso_comun_kg": "1 a 6",
+    "peso_trofeo_kg": "8 a 11",
+    "record_historico_kg": "+20",
+    "largo_maximo_cm": 120
+  },
+  "habitat": {
+    "descripcion_corta": "Es anádromo: vive en el mar y el estuario, pero migra a los ríos para reproducirse.",
+    "descripcion_extensa": "Es un pez anádromo que puede vivir en agua salada y dulce. Nace en agua dulce, crece en el estuario o mar, y regresa a los ríos para reproducirse. El 40% de los del Río de la Plata nunca llega al mar abierto. Prefiere fondos de barro en canales y pozones profundos.",
+    "tipo_fondo": "barro",
+    "profundidad_metros": "9 a 30+",
+    "zonas_pesca": [
+      "Río de la Plata (Berisso, Km 64)",
+      "Paraná Guazú (Zárate - Brazo Largo)",
+      "Paraná Bravo (Isla Paloma)",
+      "Desembocadura del Guazú",
+      "Arroyo Ceibita",
+      "Arroyo Las Piedras",
+      "Río Gutiérrez",
+      "Bahía San Blas (costa atlántica)"
+    ]
+  },
+  "temporada": {
+    "descripcion_corta": "Temporada fuerte: octubre, noviembre y diciembre. Llegan en primavera desde Brasil.",
+    "ingreso": "septiembre - octubre",
+    "pico": "octubre, noviembre, diciembre",
+    "retiro": "enero - marzo"
+  },
+  "carnadas": {
+    "descripcion_corta": "Las mejores son anchoa fresca, calamar y sardina fresca. También langostino y cornalito.",
+    "principales": [
+      "anchoa fresca",
+      "calamar (tiras, aletas o tentáculos)",
+      "sardina fresca"
+    ],
+    "secundarias": [
+      "langostino",
+      "cornalito"
+    ],
+    "consejo_encarne": "Pasar el anzuelo de ojo a ojo de la anchoa y atar la cola con hilo elástico para que no gire. Carnada que gira no pesca.",
+    "error_comun": "Si la carnada gira como hélice por la corriente, el pez la detecta como artificial y no la toma."
+  },
+  "tecnica": {
+    "descripcion_corta": "Pesca de fondo. Ante el primer tirón, aflojar sedal. Clavar solo en la corrida firme (chicharrazo).",
+    "descripcion_extensa": "El pique arranca con tirones cortos. No clavar ahí — abrir el pick-up y dejar correr el nylon sin resistencia. Cuando hace la corrida firme (chicharrazo), trabar el reel y clavar levantando la caña bien en alto.",
+    "revisar_aparejo": "Revisar periódicamente por lama y basura que tape la carnada.",
+    "mejor_momento": "Con correntada activa. Durante la parada de agua no pica."
+  },
+  "condiciones": {
+    "marea": "Pica con correntada fuerte. En parada de agua (freno entre mareas) no pica nada.",
+    "agua_turbia": "Prefiere aguas turbias y con sedimento. Las mejores pescas son con agua oscura y mal clima.",
+    "tormenta": "Aumenta la actividad antes y durante tormentas.",
+    "parada_de_agua": "Esperar media hora hasta que retome la corriente."
+  },
+  "equipos": {
+    "cana": "Telescópica o de acción de punta, 2.10 a 3.50 metros, 20 a 40 libras de resistencia.",
+    "reel": "Rotativo o frontal grande con mínimo 200 metros de multifilamento de 60 libras o nylon 0.40mm.",
+    "aparejo": "Plomada corrediza pesada sobre la madre, esmerillón resistente, brazolada larga hasta 1 metro de nylon 0.50 a 0.60mm, un solo anzuelo.",
+    "plomada_gramos": "70 a 700 según correntada",
+    "anzuelo": "Tipo corvinero o pata larga, tamaños 5/0 al 7/0.",
+    "embarcacion": "Lancha rígida de fibra. NUNCA gomón o semirrígido — las espinas pueden perforar los tubos."
+  },
+  "seguridad": {
+    "riesgo_principal": "Las espinas (chuzas) de las aletas dorsales y pectorales inyectan ponzoña. Producen ardor intenso que dura días y alto riesgo de infección.",
+    "como_agarrarlo": "Usar boga grip para sostener desde la mandíbula. Pinza de punta larga para sacar el anzuelo. Nunca con la mano desnuda.",
+    "gomones": "PROHIBIDO pescar desde gomones o semirrígidos. Las espinas pueden pinchar y desinflar los tubos.",
+    "gif": "alerta"
+  },
+  "conservacion": {
+    "estado": "Vulnerable (crítico en Brasil con veda total)",
+    "causa": "Baja fecundidad, alta longevidad antes de primera reproducción, presión pesquera en ruta migratoria.",
+    "cuota_buenos_aires": "10 piezas por pescador por día (pesca dirigida).",
+    "recomendacion": "Practicar moderación. Liberar los ejemplares más grandes."
+  },
+  "curiosidades": [
+    {
+      "titulo": "Incubación bucal",
+      "texto": "El macho recoge los huevos fecundados (hasta 48 unidades de 18mm) en su boca y los cuida durante meses sin alimentarse hasta que nacen las crías.",
+      "gif": "asombro"
+    },
+    {
+      "titulo": "Filopatría",
+      "texto": "Como los salmones, los bagres de mar vuelven exactamente al mismo río donde nacieron para reproducirse. Comportamiento confirmado por el CONICET.",
+      "gif": "hablaConMate"
+    },
+    {
+      "titulo": "Sin ir al mar",
+      "texto": "El 40% de los ejemplares del Río de la Plata nunca llega al mar abierto. Crecen en el estuario toda su vida.",
+      "gif": "piensaLeve"
+    }
+  ],
+  "respuestas_rapidas": {
+    "identificacion": "Sin escamas, gris plomo con panza blanca. Se llama mimoso o moncholo. Llega a 20 kilos.",
+    "carnada": "Anchoa fresca entera bien atada, calamar o sardina. Carnada que gira no pesca.",
+    "pique": "No claváes al primer tirón. Aflojar nylon y esperar el chicharrazo. Ahí clavás fuerte.",
+    "seguridad": "¡Cuidado con las chuzas! Usá boga grip y pinza. Nunca con la mano. Veneno doloroso.",
+    "temporada": "Octubre a diciembre es el pico. Llegan en primavera desde Brasil.",
+    "reglamento": "Máximo 10 por día en Buenos Aires. Son vulnerables, cuidalos.",
+    "curiosidad": "El macho cuida los huevos en la boca meses sin comer hasta que nacen las crías."
+  },
+  "respuestas_puente": [
+    "Genidens barbus",
+    "especies_argentina",
+    "Río de la Plata",
+    "espina venenosa",
+    "cuidado parental"
+  ]
+}

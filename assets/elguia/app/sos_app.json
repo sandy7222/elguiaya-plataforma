@@ -1,0 +1,29 @@
+{
+  "pantalla": "sos",
+  "activadores": [
+    "boton sos", "botón sos", "como pedir ayuda en la app", "cómo pedir ayuda en la app",
+    "sos de la app", "emergencia en la app", "donde esta el sos", "dónde está el sos",
+    "como uso el sos", "cómo uso el sos", "no encuentro el sos",
+    "necesito pedir ayuda", "alerta de emergencia"
+  ],
+  "respuesta_corta": "Si necesitás ayuda urgente, tocá el botón SOS. Está pensado para situaciones de peligro en el agua.",
+  "importante": "El botón SOS es solo para emergencias reales. Envía tu ubicación GPS automáticamente.",
+  "pasos": [
+    "El botón SOS está visible en la pantalla principal como un botón rojo.",
+    "Tocalo solo en caso de emergencia real.",
+    "La app va a enviar tu ubicación GPS automáticamente.",
+    "También avisa a tus contactos de emergencia si los configuraste.",
+    "Podés complementarlo llamando al 106 de Prefectura Naval Argentina."
+  ],
+  "como_configurar": [
+    "Para configurar contactos de emergencia, entrá a tu Perfil.",
+    "Buscá la sección Emergencia o Contactos de emergencia.",
+    "Agregá el número de alguien de confianza que pueda ayudarte."
+  ],
+  "si_no_encuentra": "El botón SOS debería estar visible en la pantalla principal como un ícono rojo de alerta. Si no lo ves, puede que estés en una pantalla secundaria. Volvé a la pantalla principal.",
+  "numeros_utiles": {
+    "prefectura": "106",
+    "emergencias": "911",
+    "vhf": "Canal VHF 16"
+  }
+}

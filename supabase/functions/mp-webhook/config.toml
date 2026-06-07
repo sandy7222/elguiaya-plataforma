@@ -1,0 +1,6 @@
+{
+  "id": "mp-webhook",
+  "entrypoint": "index.ts",
+  "verify_jwt": false,
+  "import_map": null
+}

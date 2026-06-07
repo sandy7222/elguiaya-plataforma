@@ -1,0 +1,17 @@
+{
+  "intent": "activar_guia",
+  "respuestas": [
+    "Para activar el asistente, entrá a tu perfil tocando el ícono arriba a la izquierda.\nTocá \"Editar Perfil\" y deslizá hasta el final.\nVas a ver el switch \"ACTIVA TU ASISTENTE\". Encendelo y guardá los cambios.\n\nDespués de activarlo, voy a estar flotando en la pantalla siempre.",
+    "¡Hola! Me encontraste.\nPara activarme de forma permanente, entrá a tu perfil (ícono arriba a la izquierda), tocá \"Editar Perfil\" y al final de la pantalla activá el switch \"ACTIVA TU ASISTENTE\".",
+    "Para que quede activo siempre, tocá el ícono de perfil arriba a la izquierda.\n\"Editar Perfil\" → al final vas a ver el switch del asistente. Encendelo y guardá.",
+    "El switch para activarme está en tu perfil.\nPerfil → Editar Perfil → al final de la pantalla. Activalo y guardá.\nDespués me vas a ver flotando en la app todo el tiempo."
+  ],
+  "seguimiento": "¿Encontraste el switch o necesitás que te guíe paso a paso?",
+  "respuestas_puente": [
+    "Para activar el asistente, entrá a tu perfil tocando el ícono arriba a la izquierda",
+    "Tocá \"Editar Perfil\" y deslizá hasta el final",
+    "Vas a ver el switch \"ACTIVA TU ASISTENTE\"",
+    "Encendelo y guardá los cambios",
+    "Después de activarlo, voy a estar flotando en la pantalla siempre"
+  ]
+}

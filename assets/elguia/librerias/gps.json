@@ -1,0 +1,52 @@
+{
+  "intent": "gps",
+  "ruta_navegacion": "/mapa",
+  "prioridad": 8,
+  "respuestas_puente": [
+    "Si chamigo ahí te lo alcanso.",
+    "Pará un segundo. Estoy viendo tu ubicación.",
+    "Ya te muestro dónde estás.",
+    "Voy a abrir el mapa.",
+    "Un momento. Revisando tu posición."
+  ],
+  "accion": "abrir_mapa",
+  "respuesta_navegacion": [
+    "Dale. Voy armando la ruta.",
+    "Un momento. Ya te guío.",
+    "Estoy preparando el camino."
+  ],
+  "consejos": [
+    "El GPS funciona sin internet. Si abriste el mapa antes de salir, las cartas siguen disponibles.",
+    "Para ahorrar batería activá el GPS solo cuando lo necesités.",
+    "El GPS puede tardar algunos minutos en obtener señal precisa."
+  ],
+  "orientacion_sin_senal": [
+    "Si te quedáste ciego sin señal, mirá la corriente: el Paraná baja siempre para el Sur, buscále la vuelta por ahí.",
+    "Fijate en los camalotes flotando; el sentido en el que viajan te canta clarito para dónde va el agua en ese brazo del río.",
+    "Si te agarró la noche sin batería, buscá la Cruz del Sur en el cielo; esa te marca el rumbo abajo del mapa.",
+    "Accordáte que el sol sale por el Este y se oculta en el Oeste; mirá la sombra de los árboles de la costa para no dar vueltas en círculo.",
+    "Ante la duda, prendé el equipo VHF: la Prefectura de Goya te modula en el Canal 12 las veinticuatro horas."
+  ],
+  "preguntas_seguimiento": [
+    "¿Te vas pa' Goya buscando surubí, viejo?",
+    "¿Tirás al rey pejerrey en la laguna bonaerense?",
+    "¿Pescás tarariras entre los camalotes en verano, chamigo?",
+    "¿Rumbéas pa' Bahía San Blas por la corvina?",
+    "¿Ya sacaste tu licencia de pesca obligatoria, cheraí?",
+    "¿Pescás flechas de plata en el embalse cordobés?",
+    "¿Te vas al Paraná Medio en octubre, chamigo?",
+    "¿Respetás la veda del surubí en enero, cheraí?",
+    "¿Buscás buena pescadilla en verano atlántico, maestro?",
+    "¿Tirás la mosca en el sur neuquino, viejo?",
+    "¿Lo cazás al dorado en el río Uruguay?",
+    "¿Buscás gatusos en Claromecó durante la primavera, chamigo?",
+    "¿Lo buscás al surubí en arroyos de noche?",
+    "¿Vas a escolleras marplatenses por unas brótolas, cheraí?",
+    "¿Dejás a los cachorros tranquilos en el carrizal?",
+    "¿Mirás bien los límites de extracción, viejo?",
+    "¿Vas a pescar de noche y reparado, chamigo?",
+    "¿Empezás a buscar pejerreyes en pleno mayo, cheraí?",
+    "¿Buscás corvinas con la marea en repunte, maestro?",
+    "¿Vas a tirar cerca del puerto de Reconquista?"
+  ]
+}

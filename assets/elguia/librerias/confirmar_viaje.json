@@ -1,0 +1,16 @@
+{
+  "intent": "confirmar_viaje",
+  "respuestas": [
+    "Cuando el capitán marca el viaje como finalizado, te llega una notificación.\nEntrá a \"Mis Viajes\", tocá ese viaje y presioná \"Confirmar Arribo\".\nDespués se abre automáticamente la pantalla para calificar.",
+    "El botón \"Confirmar Arribo\" aparece cuando el capitán finaliza la salida.\nTe llega un aviso en la campanita. Entrás al viaje y confirmás.\nEnseguida podés poner la calificación con anclas.",
+    "Cuando el capitán cierra el viaje te llega una notificación a la campanita.\nAbrís el viaje en \"Mis Viajes\" y tocás \"Confirmar Arribo\".\nAhí mismo se abre la pantalla de calificación para que puedas puntuar al capitán."
+  ],
+  "seguimiento": "¿Ya te llegó la notificación del capitán o todavía están en el río?",
+  "respuestas_puente": [
+    "confirmar_viaje",
+    "Cuando el capitán marca el viaje como finalizado, te llega una notificación",
+    "Entrá a \"Mis Viajes\", tocá ese viaje y presioná \"Confirmar Arribo\"",
+    "Después se abre automáticamente la pantalla para calificar",
+    "El botón \"Confirmar Arribo\" aparece cuando el capitán finaliza la salida"
+  ]
+}

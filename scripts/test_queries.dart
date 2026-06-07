@@ -1,0 +1,18 @@
+import 'dart:convert';
+import 'dart:io';
+
+void main() async {
+  final url = Uri.parse('https://ymgsxwfwntbqvguvbhoa.supabase.co/rest/v1/cotizaciones?select=*,profiles:pescador_id(nombre)&limit=1');
+  final req = await HttpClient().getUrl(url);
+  req.headers.add('apikey', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InltZ3N4d2Z3bnRicXZndXZiaG9hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc3ODgxMzQsImV4cCI6MjA5MzM2NDEzNH0.ZT2xlCIAnSyr_tR9qZAKIB7QAVQjJO2Jv0cwb51f1Uw');
+  final res = await req.close();
+  final body = await res.transform(utf8.decoder).join();
+  print('Cotizaciones: $body');
+  
+  final url2 = Uri.parse('https://ymgsxwfwntbqvguvbhoa.supabase.co/rest/v1/presupuestos?select=*,profiles:capitan_id(*)&limit=1');
+  final req2 = await HttpClient().getUrl(url2);
+  req2.headers.add('apikey', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InltZ3N4d2Z3bnRicXZndXZiaG9hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc3ODgxMzQsImV4cCI6MjA5MzM2NDEzNH0.ZT2xlCIAnSyr_tR9qZAKIB7QAVQjJO2Jv0cwb51f1Uw');
+  final res2 = await req2.close();
+  final body2 = await res2.transform(utf8.decoder).join();
+  print('Presupuestos: $body2');
+}

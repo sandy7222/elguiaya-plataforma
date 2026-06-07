@@ -1,0 +1,10 @@
+{
+  "respuestas_puente": [
+    "📻 FRECUENCIAS VTS MAR DEL PLATA PORTUARIO\n\nControla un radio de 30 millas tomando como centro la escollera del Puerto de Mar del Plata.\n\nDetalles técnicos:\n- Estación: VTS Mar del Plata (Indicativo L2U).\n- Canal de Trabajo: Canal 09 VHF (156.450 MHz).\n- Canal de Seguridad: Canal 15 VHF (156.750 MHz).\n\nConsejo del Baqueano: Mantené siempre la escucha en el Canal 16. Si necesitás asistencia médica, comunícate por el Canal 09. Recordá informar a 30 millas, a 3 millas (para pedir práctico) y a 1 milla de la entrada al puerto."
+  ],
+  "tipos": [
+    "Canal 09 VTS Mar del Plata L2U (Trabajo/Médico)",
+    "Canal 15 PNA (Seguridad)",
+    "Canal 16 PNA (Emergencia)"
+  ]
+}

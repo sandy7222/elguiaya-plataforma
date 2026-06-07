@@ -1,0 +1,16 @@
+{
+  "intent": "historial_viajes",
+  "respuestas": [
+    "Para ver tus viajes anteriores, entrá a la pestaña \"Mis Viajes\".\nAhí vas a ver todos tus viajes, incluyendo los que ya están cerrados.\nTocá cualquier viaje pasado para ver el resumen completo.",
+    "El historial de viajes está en la pestaña \"Mis Viajes\".\nLos viajes cerrados aparecen abajo de los activos. Cada uno tiene el resumen, el capitán, la fecha y la calificación que diste.",
+    "En \"Mis Viajes\" encontrás todo: activos, pagados y los ya cerrados.\nTocá cualquier viaje del historial para ver el detalle: capitán, fecha, calificaciones y resumen."
+  ],
+  "seguimiento": "¿Ves los viajes anteriores o querés buscar uno en especial?",
+  "respuestas_puente": [
+    "historial_viajes",
+    "Para ver tus viajes anteriores, entrá a la pestaña \"Mis Viajes\"",
+    "Ahí vas a ver todos tus viajes, incluyendo los que ya están cerrados",
+    "Tocá cualquier viaje pasado para ver el resumen completo",
+    "El historial de viajes está en la pestaña \"Mis Viajes\""
+  ]
+}

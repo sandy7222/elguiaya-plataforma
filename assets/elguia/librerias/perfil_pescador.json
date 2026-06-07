@@ -1,0 +1,20 @@
+{
+  "intent": "perfil_pescador",
+  "ruta_navegacion": "/perfil",
+  "respuestas": [
+    "Yo te alcanso el lugar donde configurar tus datos.",
+    "Para editar tu perfil, tocá el ícono de perfil arriba a la izquierda de la pantalla principal.\nDespués tocá \"Editar Perfil\" y podés cambiar nombre, teléfono, domicilio y la descripción de pescador.",
+    "Tu perfil está en el ícono de perfil arriba a la izquierda.\nAhí podés editar tus datos personales, preferencias de pesca y cambiar la contraseña.",
+    "El ícono de perfil arriba a la izquierda te lleva a tus datos.\nTocá \"Editar Perfil\" para cambiar lo que necesités: nombre, teléfono, foto o descripción."
+  ],
+  "contrasena": "Para cambiar la contraseña, tocá el ícono de perfil arriba a la izquierda.\nDespués buscá la sección \"Seguridad\" y tocá \"Cambiar Contraseña\".",
+  "foto": "Para cambiar tu foto, tocá el ícono de perfil arriba a la izquierda.\nTocar tu foto actual te permite sacar una nueva o elegir una de la galería.",
+  "seguimiento": "¿Pudiste encontrar lo que necesitabas en el perfil?",
+  "respuestas_puente": [
+    "perfil_pescador",
+    "Yo te alcanso el lugar donde configurar tus datos",
+    "Para editar tu perfil, tocá el ícono de perfil arriba a la izquierda de la pantalla principal",
+    "Después tocá \"Editar Perfil\" y podés cambiar nombre, teléfono, domicilio y la descripción de pescador",
+    "Tu perfil está en el ícono de perfil arriba a la izquierda"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "respuestas_puente": [
+    "📻 FRECUENCIAS VTS CORRIENTES (RÍO PARANÁ)\n\nEl VTS Corrientes coordina el tráfico portuario y fluvial en el Río Paraná, desde el Km 1240 hasta el 1135, limitando con Paraguay.\n\nDetalles técnicos:\n- Estación: VTS Corrientes (Indicativo L6Y).\n- Canal de Trabajo: Canal 12 VHF (156.600 MHz).\n- Canal de Seguridad y Clima: Canal 14 VHF (156.700 MHz).\n\nConsejo del Baqueano: Todo buque debe pedir autorización antes de ingresar al área. Sintonizá el Canal 14 a las 0010, 0410, 0810, 1210, 1610 y 2010 UTC para escuchar radioavisos y el boletín meteorológico de la zona."
+  ],
+  "tipos": [
+    "Canal 12 VTS Corrientes L6Y (Trabajo)",
+    "Canal 14 PNA (Seguridad/Clima)",
+    "Canal 16 PNA (Llamada y Socorro)"
+  ]
+}

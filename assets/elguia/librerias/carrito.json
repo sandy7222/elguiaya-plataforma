@@ -1,0 +1,16 @@
+{
+  "intent": "carrito",
+  "respuestas": [
+    "El carrito está arriba a la derecha en la pestaña \"Tienda\". Tocá el ícono del carrito para ver lo que agregaste.\nDesde ahí podés ajustar las cantidades y finalizar la compra.",
+    "Para ver tu carrito, entrá a \"Tienda\" y tocá el ícono del carrito arriba a la derecha.\nAhí vas a ver todos los productos que elegiste. Podés modificar cantidades o eliminar lo que no querés antes de pagar.",
+    "Entrá a la pestaña \"Tienda\" y buscá el ícono del carrito arriba a la derecha.\nTe muestra todo lo que sumaste, con los totales. Desde ahí finalizás la compra."
+  ],
+  "seguimiento": "¿Pudiste ver el carrito? ¿Buscás algún producto en especial?",
+  "respuestas_puente": [
+    "El carrito está arriba a la derecha en la pestaña \"Tienda\"",
+    "Tocá el ícono del carrito para ver lo que agregaste",
+    "Desde ahí podés ajustar las cantidades y finalizar la compra",
+    "Para ver tu carrito, entrá a \"Tienda\" y tocá el ícono del carrito arriba a la derecha",
+    "Ahí vas a ver todos los productos que elegiste"
+  ]
+}

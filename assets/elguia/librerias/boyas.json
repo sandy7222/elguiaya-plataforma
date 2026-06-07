@@ -1,0 +1,53 @@
+{
+  "intent": "boyas",
+  "prioridad": 13,
+  "respuestas_puente": [
+    "Voy a fijarme qué boya te conviene.",
+    "Un momento. Revisando la guía.",
+    "Ya te digo qué puede andar bien."
+  ],
+  "tipos": {
+    "chupetona": {
+      "descripcion": "Boya redonda con palito",
+      "uso": "Pesca de fondo y media agua en lagunas y ríos calmos",
+      "ideal_para": ["pejerrey", "boga", "carpa"]
+    },
+    "palito": {
+      "descripcion": "Boya alargada tipo palito",
+      "uso": "Muy sensible a picadas leves, ideal para peces pequeños",
+      "ideal_para": ["pejerrey", "peces de escama pequeños"]
+    },
+    "yo_yo": {
+      "descripcion": "Boya articulada tipo yo-yo",
+      "uso": "Líneas largas de flote con múltiples anzuelos",
+      "ideal_para": ["pejerrey", "pesca desde costa"]
+    },
+    "luminosa": {
+      "descripcion": "Boya con luz incorporada",
+      "uso": "Pesca nocturna para ver la picada en la oscuridad",
+      "ideal_para": ["cualquier especie en pesca nocturna"]
+    },
+    "corcho": {
+      "descripcion": "Boya de corcho clásica",
+      "uso": "Pesca artesanal en aguas tranquilas",
+      "ideal_para": ["variada en laguna"]
+    }
+  },
+  "por_condicion": {
+    "corriente": "Con corriente fuerte usá boyas más pesadas y elongadas que no se den vuelta.",
+    "laguna": "En laguna tranquila cualquier boya funciona. La chupetona y el palito son las más comunes.",
+    "noche": "Para pesca nocturna usá siempre boya luminosa o con palo fosforescente."
+  },
+  "preguntas_seguimiento": [
+    "¿Pescás embarcado al garete o estás anclado?",
+    "¿Hay mucha marejada o el agua está planchada?",
+    "¿Sol de frente para oscura o de espalda?",
+    "¿Es para muelle o vas a tirar de costa?",
+    "¿Usás boya con quilla o palito simple?",
+    "¿Usás boya chupetona para que bambolee la masa?",
+    "¿Le metiste puntero cargador circular al aparejo?",
+    "¿Te quedaron bien alineadas las tres boyas cometa?",
+    "¿Usás madera balsa o preferís telgopor livianito?",
+    "¿Gareteás lejos con el pick-up del reel abierto?"
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "intent": "canas_y_reeles",
+  "prioridad": 15,
+  "respuestas_puente": [
+    "Claro. Voy a consultar el equipo recomendado.",
+    "Revisando informacion de canas y reeles.",
+    "Buscando recomendaciones segun tu pesca."
+  ],
+  "canas": {
+    "liviana": {
+      "uso": "Pejerrey, boga, peces de escama pequenos",
+      "caracteristicas": "1.8m a 2.4m, accion media, carbon o fibra de vidrio liviana"
+    },
+    "media": {
+      "uso": "Dorado, pati, bagre",
+      "caracteristicas": "2.1m a 2.7m, accion media-rapida, carbon compuesto"
+    },
+    "pesada": {
+      "uso": "Surubi grande, armado, pesca de currican",
+      "caracteristicas": "2.4m a 3m, accion rapida, carbon de alta densidad"
+    }
+  },
+  "reeles": {
+    "frontal": {
+      "descripcion": "Reel de pique frontal",
+      "uso": "Pesca liviana a media, muy sensible al pique",
+      "recomendado_para": ["pejerrey", "boga", "dorado", "pati"]
+    },
+    "rotativo": {
+      "descripcion": "Reel tipo baitcasting o de carrete rotativo",
+      "uso": "Pesca pesada y de precision",
+      "recomendado_para": ["surubi", "dorado", "armado"]
+    },
+    "spinning": {
+      "descripcion": "Reel de spinning clasico",
+      "uso": "El mas versatil para todo tipo de pesca",
+      "recomendado_para": ["general"]
+    }
+  },
+  "preguntas_seguimiento": [
+    "¿Llevás el boga grip y pinza, cheraí?",
+    "¿Tenés tu chaleco salvavidas puesto, viejo?",
+    "¿Armaste el botiquín con buen Pervinox, chamigo?",
+    "¿Dejaste la radio VHF a la escucha?",
+    "¿Revisaste bien el ancla y cabos, viejo?"
+  ]
+}

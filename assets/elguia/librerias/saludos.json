@@ -1,0 +1,57 @@
+{
+  "intent": "saludo",
+  "activadores": [
+    "hola",
+    "buenas",
+    "buen dia",
+    "buen día",
+    "que tal",
+    "qué tal",
+    "como va",
+    "cómo va",
+    "hay alguien",
+    "quien sos",
+    "quién sos",
+    "como estas",
+    "cómo estás",
+    "como andas",
+    "cómo andas"
+  ],
+  "respuestas": [
+    "Hola, pescador. ¿En qué te puedo dar una mano hoy?",
+    "Buenas. ¿Qué necesitás?",
+    "Hola. Acá estoy para darte una mano. ¿Salís a pescar?",
+    "Buenas, buenas. Contame en qué te ayudo.",
+    "Qué tal. ¿Qué se ofrece hoy?",
+    "Hola chamigo, acá El Guía. ¿Qué andás necesitando?",
+    "¡Buenas! ¿Salida de pesca o algo de la app?",
+    "Hey, hola. ¿Cómo viene la jornada? ¿En qué te ayudo?",
+    "Acá estoy. ¿Qué pasa, pescador?",
+    "Hola. Estaba esperando que me dieras bola. ¿Qué necesitás?",
+    "Buenas. ¿Río o app, en qué arrancamos?",
+    "¡Hola! ¿Planificando una salida o tenés una duda de la app?"
+  ],
+  "respuestas_manana": [
+    "Buen día pescador. ¿Temprano al río o planificando la salida?",
+    "Buen día. A esta hora el dorado ya empieza a moverse. ¿En qué te ayudo?",
+    "Buenos días, chamigo. ¿Qué necesitás para arrancar bien el día?"
+  ],
+  "respuestas_tarde": [
+    "Buenas tardes. ¿Cómo viene la jornada?",
+    "Buenas. Hora del pejerrey. ¿En qué te ayudo?",
+    "Buenas tardes, pescador. ¿Qué necesitás?"
+  ],
+  "respuestas_noche": [
+    "Buenas noches. ¿Planificando para mañana?",
+    "Hola. Tarde para pescar, pero no para planificar. ¿Qué necesitás?",
+    "Buenas noches, chamigo. ¿Preparando la salida de mañana?"
+  ],
+  "respuesta_presentacion": "Soy El Guía, tu asistente de pesca y supervivencia en el Paraná. Puedo ayudarte con carnadas, nudos, especies, el río, supervivencia en isla, tu viaje con el capitán y mucho más. ¿Por dónde empezamos?",
+  "respuestas_puente": [
+    "¿En qué te puedo dar una mano hoy?",
+    "¿Qué necesitás?",
+    "Acá estoy para darte una mano",
+    "¿Salís a pescar?",
+    "Contame en qué te ayudo"
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "tipo": "como",
+  "accion": "seguridad",
+  "objetivo": "bagre_de_mar",
+  "seguridad": {
+    "riesgo_principal": "Las espinas (chuzas) de las aletas dorsales y pectorales inyectan ponzoña. Producen ardor intenso que dura días y alto riesgo de infección.",
+    "como_agarrarlo": "Usar boga grip para sostener desde la mandíbula. Pinza de punta larga para sacar el anzuelo. Nunca con la mano desnuda.",
+    "gomones": "PROHIBIDO pescar desde gomones o semirrígidos. Las espinas pueden pinchar y desinflar los tubos.",
+    "gif": "alerta"
+  },
+  "curiosidades": [
+    {
+      "titulo": "Incubación bucal",
+      "texto": "El macho recoge los huevos fecundados (hasta 48 unidades de 18mm) en su boca y los cuida durante meses sin alimentarse hasta que nacen las crías.",
+      "gif": "asombro"
+    },
+    {
+      "titulo": "Filopatría",
+      "texto": "Como los salmones, los bagres de mar vuelven exactamente al mismo río donde nacieron para reproducirse. Comportamiento confirmado por el CONICET.",
+      "gif": "hablaConMate"
+    },
+    {
+      "titulo": "Sin ir al mar",
+      "texto": "El 40% de los ejemplares del Río de la Plata nunca llega al mar abierto. Crecen en el estuario toda su vida.",
+      "gif": "piensaLeve"
+    }
+  ],
+  "respuestas_puente": [
+    "Las espinas (chuzas) de las aletas dorsales y pectorales inyectan ponzoña",
+    "Producen ardor intenso que dura días y alto riesgo de infección",
+    "Usar boga grip para sostener desde la mandíbula",
+    "Pinza de punta larga para sacar el anzuelo",
+    "Nunca con la mano desnuda"
+  ]
+}

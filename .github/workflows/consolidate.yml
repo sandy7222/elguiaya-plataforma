@@ -1,0 +1,41 @@
+name: Consolidar Conocimiento Aprobado
+
+on:
+  schedule:
+    # Corre todos los días a las 3:00 AM UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch: # Permite ejecutarlo manualmente desde la pestaña Actions de GitHub
+
+permissions:
+  contents: write
+
+jobs:
+  consolidate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 'stable'
+
+      - name: Run consolidation script
+        run: dart scratch/consolidate_distribuido_to_assets.dart
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Verificar si hay cambios en los archivos JSON
+          if [ -n "$(git status --porcelain assets/elguia/librerias/)" ]; then
+            git add assets/elguia/librerias/
+            git commit -m "auto: consolidar conocimiento aprobado de guia_conocimiento_distribuido"
+            git push
+            echo "Cambios consolidados y guardados en el repositorio."
+          else
+            echo "No se encontraron nuevas intenciones aprobadas para consolidar."
+          fi

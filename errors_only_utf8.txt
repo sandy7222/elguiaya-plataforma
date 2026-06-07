@@ -1,0 +1,76 @@
+﻿  error - The method 'canLaunchUrl' isn't defined for the type '_AdminTrackingScreenState' - lib\screens\admin_tracking_screen.dart:178:17 - undefined_method
+  error - The method 'launchUrl' isn't defined for the type '_AdminTrackingScreenState' - lib\screens\admin_tracking_screen.dart:179:15 - undefined_method
+  error - Invalid constant value - lib\screens\admin_tracking_screen.dart:251:34 - invalid_constant
+  error - The argument type 'Object' can't be assigned to the parameter type 'int'.  - lib\screens\admin_tracking_screen.dart:331:31 - argument_type_not_assignable
+  error - Undefined name '_grisDescanso' - lib\screens\admin_tracking_screen.dart:603:17 - undefined_identifier
+  error - The argument type 'Null Function(String)' can't be assigned to the parameter type 'dynamic Function(String, bool)'.  - lib\screens\asistente_chat_screen.dart:662:61 - argument_type_not_assignable
+  error - The method 'deleteBannerImage' isn't defined for the type 'StorageService' - lib\screens\banner_manager_screen.dart:77:28 - undefined_method
+  error - Undefined class 'File' - lib\screens\banner_manager_screen.dart:486:3 - undefined_class
+  error - The method 'File' isn't defined for the type '_BannerFormDialogState' - lib\screens\banner_manager_screen.dart:523:40 - undefined_method
+  error - The method 'File' isn't defined for the type '_BannerFormDialogState' - lib\screens\banner_manager_screen.dart:550:40 - undefined_method
+  error - The getter 'path' isn't defined for the type 'BoxFit' - lib\screens\banner_manager_screen.dart:572:119 - undefined_getter
+  error - The name 'Categoria' isn't a type, so it can't be used as a type argument - lib\screens\banner_manager_screen.dart:779:36 - non_type_as_type_argument
+  error - The property 'id' can't be unconditionally accessed because the receiver can be 'null' - lib\screens\banner_manager_screen.dart:792:70 - unchecked_use_of_nullable_value
+  error - The property 'nombre' can't be unconditionally accessed because the receiver can be 'null' - lib\screens\banner_manager_screen.dart:792:88 - unchecked_use_of_nullable_value
+  error - The name 'Producto' isn't a type, so it can't be used as a type argument - lib\screens\banner_manager_screen.dart:803:36 - non_type_as_type_argument
+  error - The property 'id' can't be unconditionally accessed because the receiver can be 'null' - lib\screens\banner_manager_screen.dart:816:71 - unchecked_use_of_nullable_value
+  error - The property 'nombre' can't be unconditionally accessed because the receiver can be 'null' - lib\screens\banner_manager_screen.dart:816:89 - unchecked_use_of_nullable_value
+  error - The getter 'tieneGeofencingConfigurada' isn't defined for the type 'PerfilCapitan' - lib\screens\capitan_config_screen.dart:419:26 - undefined_getter
+  error - 'ThousandsSeparatorInputFormatter.formatEditUpdate' ('TextEditingValue Function(TextEditingValue, TextEditingValue, TextEditingValue?)') isn't a valid override of 'TextInputFormatter.formatEditUpdate' ('TextEditingValue Function(TextEditingValue, TextEditingValue)') - lib\screens\captain_quote_screen.dart:734:20 - invalid_override
+  error - Target of URI doesn't exist: '../models/mensaje.dart' - lib\screens\chat_screen.dart:6:8 - uri_does_not_exist
+  error - Undefined name 'Supabase' - lib\screens\chat_screen.dart:136:39 - undefined_identifier
+  error - The getter 'check_all' isn't defined for the type 'Icons' - lib\screens\chat_screen.dart:278:30 - undefined_getter
+  error - The method 'obtenerPerfilGuiaActual' isn't defined for the type 'SupabaseService' - lib\screens\cotizacion_screen.dart:39:48 - undefined_method
+  error - A value of type 'Future<List<Map<String, dynamic>>>' can't be assigned to a variable of type 'List<Map<String, dynamic>>' - lib\screens\cotizaciones_capitan_screen.dart:98:19 - invalid_assignment
+  error - Undefined name '_mostrarFormularioCotizacion' - lib\screens\cotizaciones_capitan_screen.dart:274:20 - undefined_identifier
+  error - The operator '[]' isn't defined for the type 'Future<Map<String, dynamic>>' - lib\screens\cotizaciones_capitan_screen.dart:712:70 - undefined_operator
+  error - The operator '[]' isn't defined for the type 'Future<Map<String, dynamic>>' - lib\screens\cotizaciones_capitan_screen.dart:713:62 - undefined_operator
+  error - The operator '[]' isn't defined for the type 'Future<Map<String, dynamic>>' - lib\screens\cotizaciones_capitan_screen.dart:714:60 - undefined_operator
+  error - The operator '[]' isn't defined for the type 'Future<Map<String, dynamic>>' - lib\screens\cotizaciones_capitan_screen.dart:715:61 - undefined_operator
+  error - The operator '[]' isn't defined for the type 'Future<Map<String, dynamic>>' - lib\screens\cotizaciones_capitan_screen.dart:716:62 - undefined_operator
+  error - The operator '[]' isn't defined for the type 'Future<Map<String, dynamic>>' - lib\screens\cotizaciones_capitan_screen.dart:717:60 - undefined_operator
+  error - The operator '[]' isn't defined for the type 'Future<Map<String, dynamic>>' - lib\screens\cotizaciones_capitan_screen.dart:719:78 - undefined_operator
+  error - The operator '[]' isn't defined for the type 'Future<Map<String, dynamic>>' - lib\screens\cotizaciones_capitan_screen.dart:720:70 - undefined_operator
+  error - Undefined class 'LatLng' - lib\screens\cotizaciones_capitan_screen.dart:767:7 - undefined_class
+  error - Undefined class 'LatLng' - lib\screens\cotizaciones_capitan_screen.dart:768:7 - undefined_class
+  error - The method 'LatLng' isn't defined for the type '_CotizacionesCapitanScreenState' - lib\screens\cotizaciones_capitan_screen.dart:771:20 - undefined_method
+  error - The method 'LatLng' isn't defined for the type '_CotizacionesCapitanScreenState' - lib\screens\cotizaciones_capitan_screen.dart:776:20 - undefined_method
+  error - The method 'LatLng' isn't defined for the type '_CotizacionesCapitanScreenState' - lib\screens\cotizaciones_capitan_screen.dart:780:20 - undefined_method
+  error - The method 'LatLng' isn't defined for the type '_CotizacionesCapitanScreenState' - lib\screens\cotizaciones_capitan_screen.dart:785:20 - undefined_method
+  error - The method 'FlutterMap' isn't defined for the type '_CotizacionesCapitanScreenState' - lib\screens\cotizaciones_capitan_screen.dart:805:22 - undefined_method
+  error - The method 'MapOptions' isn't defined for the type '_CotizacionesCapitanScreenState' - lib\screens\cotizaciones_capitan_screen.dart:806:26 - undefined_method
+  error - The method 'TileLayer' isn't defined for the type '_CotizacionesCapitanScreenState' - lib\screens\cotizaciones_capitan_screen.dart:811:19 - undefined_method
+  error - The method 'PolylineLayer' isn't defined for the type '_CotizacionesCapitanScreenState' - lib\screens\cotizaciones_capitan_screen.dart:815:19 - undefined_method
+  error - The method 'Polyline' isn't defined for the type '_CotizacionesCapitanScreenState' - lib\screens\cotizaciones_capitan_screen.dart:817:23 - undefined_method
+  error - The method 'MarkerLayer' isn't defined for the type '_CotizacionesCapitanScreenState' - lib\screens\cotizaciones_capitan_screen.dart:824:19 - undefined_method
+  error - The method 'Marker' isn't defined for the type '_CotizacionesCapitanScreenState' - lib\screens\cotizaciones_capitan_screen.dart:826:23 - undefined_method
+  error - The method 'Marker' isn't defined for the type '_CotizacionesCapitanScreenState' - lib\screens\cotizaciones_capitan_screen.dart:830:23 - undefined_method
+  error - The operator '[]' isn't defined for the type 'Future<Map<String, dynamic>?>' - lib\screens\cotizaciones_formulario_fixed.dart:63:42 - undefined_operator
+  error - The operator '[]' isn't defined for the type 'Future<Map<String, dynamic>?>' - lib\screens\cotizaciones_formulario_fixed.dart:64:47 - undefined_operator
+  error - The operator '[]' isn't defined for the type 'Future<Map<String, dynamic>?>' - lib\screens\cotizaciones_formulario_fixed.dart:65:41 - undefined_operator
+  error - The operator '[]' isn't defined for the type 'Future<Map<String, dynamic>?>' - lib\screens\cotizaciones_formulario_fixed.dart:66:46 - undefined_operator
+  error - The operator '[]' isn't defined for the type 'Future<Map<String, dynamic>?>' - lib\screens\cotizaciones_formulario_fixed.dart:67:43 - undefined_operator
+  error - The operator '[]' isn't defined for the type 'Future<Map<String, dynamic>?>' - lib\screens\cotizaciones_formulario_fixed.dart:69:34 - undefined_operator
+  error - The named parameter 'children' is required, but there's no corresponding argument - lib\screens\cotizaciones_formulario_fixed.dart:316:15 - missing_required_argument
+  error - The named parameter 'child' isn't defined - lib\screens\cotizaciones_formulario_fixed.dart:318:17 - undefined_named_parameter
+  error - Invalid constant value - lib\screens\disclaimer_tiempos_entrega_widget.dart:102:30 - invalid_constant
+  error - Invalid constant value - lib\screens\disclaimer_tiempos_entrega_widget.dart:346:30 - invalid_constant
+  error - Invalid constant value - lib\screens\disclaimer_tiempos_entrega_widget.dart:429:30 - invalid_constant
+  error - The method 'RouteSelectionScreen' isn't defined for the type '_PescadorProfileScreenState' - lib\screens\pescador_profile_screen.dart:267:31 - undefined_method
+  error - Target of URI doesn't exist: '../widgets/baqueano_sales_widget.dart' - lib\screens\portal_capitan_fixed.dart:5:8 - uri_does_not_exist
+  error - The name 'BaqueanoSalesWidget' isn't a class - lib\screens\portal_capitan_fixed.dart:61:17 - creation_with_non_type
+  error - Target of URI doesn't exist: '../widgets/baqueano_sales_widget.dart' - lib\screens\portal_pescador_fixed.dart:5:8 - uri_does_not_exist
+  error - The name 'BaqueanoSalesWidget' isn't a class - lib\screens\portal_pescador_fixed.dart:328:17 - creation_with_non_type
+  error - The method '_buildDetallesSection' isn't defined for the type '_ProductFormScreenState' - lib\screens\product_form_screen.dart:282:19 - undefined_method
+  error - 'valor' can't be used as a setter because it's final - lib\screens\product_form_screen.dart:563:46 - assignment_to_final
+  error - The argument type 'void Function(Map<String, dynamic>, Map<String, dynamic>)' can't be assigned to the parameter type 'dynamic Function(Map<String, dynamic>, Map<String, dynamic>, List<Map<String, dynamic>>)'.  - lib\screens\route_selection_screen.dart:146:32 - argument_type_not_assignable
+  error - The argument type 'Object' can't be assigned to the parameter type 'int'.  - lib\screens\seguimiento_envios_screen.dart:178:31 - argument_type_not_assignable
+  error - Undefined name 'http' - lib\services\mercado_pago_webhook_service.dart:42:30 - undefined_identifier
+  error - The getter 'size' isn't defined for the type 'FileObject' - lib\services\storage_connection_test.dart:68:31 - undefined_getter
+  error - The method 'retrieveLostData' isn't defined for the type 'StorageService' - lib\widgets\camera_picker.dart:53:52 - undefined_method
+  error - The method 'compressImage' isn't defined for the type 'StorageService' - lib\widgets\camera_picker.dart:72:56 - undefined_method
+  error - The method 'uploadPescadorDocument' isn't defined for the type 'StorageService' - lib\widgets\camera_picker.dart:83:36 - undefined_method
+  error - A value of type 'XFile?' can't be assigned to a variable of type 'File?' - lib\widgets\camera_picker.dart:125:27 - invalid_assignment
+  error - A value of type 'XFile?' can't be assigned to a variable of type 'File?' - lib\widgets\camera_picker.dart:156:27 - invalid_assignment
+  error - The method 'compressImage' isn't defined for the type 'StorageService' - lib\widgets\camera_picker.dart:171:56 - undefined_method
+  error - The method 'uploadPescadorDocument' isn't defined for the type 'StorageService' - lib\widgets\camera_picker.dart:182:36 - undefined_method
