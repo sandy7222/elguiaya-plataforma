@@ -118,7 +118,7 @@ class MyApp extends StatelessWidget {
             fontFamily: 'Outfit',
           ),
         ),
-        pageTransitionsTheme: const PageTransitionsTheme(
+        pageTransitionsTheme: PageTransitionsTheme(
           builders: {
             TargetPlatform.android: CupertinoPageTransitionsBuilder(),
             TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
