@@ -45,7 +45,14 @@ class _CustomCropScreenState extends State<CustomCropScreen> {
                 Navigator.pop(context, image);
               },
               aspectRatio: widget.isCircular ? 1 : null,
-              initialSize: 0.8,
+              initialRectBuilder: InitialRectBuilder.withBuilder((viewportRect, imageRect) {
+                return Rect.fromLTRB(
+                  viewportRect.left + (viewportRect.width * 0.1),
+                  viewportRect.top + (viewportRect.height * 0.1),
+                  viewportRect.right - (viewportRect.width * 0.1),
+                  viewportRect.bottom - (viewportRect.height * 0.1),
+                );
+              }),
               maskColor: Colors.black.withOpacity(0.8),
               baseColor: Colors.black,
               withCircleUi: widget.isCircular,

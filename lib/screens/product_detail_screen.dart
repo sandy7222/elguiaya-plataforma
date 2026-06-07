@@ -469,8 +469,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  Widget _socialIcon(IconData icon) {
-    return Icon(icon, color: Colors.grey.shade400, size: 20);
+  Widget _socialIcon(FaIconData icon) {
+    return FaIcon(icon, color: Colors.grey.shade400, size: 20);
   }
 
   Widget _buildTechBadge(String text, Color color) {

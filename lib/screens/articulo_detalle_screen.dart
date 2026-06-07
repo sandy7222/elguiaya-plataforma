@@ -35,7 +35,7 @@ class _ArticuloDetalleScreenState extends State<ArticuloDetalleScreen> {
 
   @override
   void dispose() {
-    _youtubeController?.dispose();
+    _youtubeController?.close();
     super.dispose();
   }
 
@@ -46,17 +46,15 @@ class _ArticuloDetalleScreenState extends State<ArticuloDetalleScreen> {
         YoutubePlayerController? ytController;
         if (art.fuenteUrl != null &&
             (art.fuenteUrl!.contains('youtube.com') || art.fuenteUrl!.contains('youtu.be'))) {
-          final videoId = YoutubePlayer.convertUrlToId(art.fuenteUrl!);
+          final videoId = YoutubePlayerController.convertUrlToId(art.fuenteUrl!);
           if (videoId != null) {
-            ytController = YoutubePlayerController(
-              initialVideoId: videoId,
-              flags: const YoutubePlayerFlags(
-                autoPlay: false,
+            ytController = YoutubePlayerController.fromVideoId(
+              videoId: videoId,
+              autoPlay: false,
+              params: const YoutubePlayerParams(
                 mute: false,
-                disableDragSeek: false,
-                loop: false,
-                isLive: false,
-                forceHD: false,
+                showControls: true,
+                showFullscreenButton: true,
                 enableCaption: true,
               ),
             );
@@ -291,12 +289,6 @@ class _ArticuloDetalleScreenState extends State<ArticuloDetalleScreen> {
                           borderRadius: BorderRadius.circular(20),
                           child: YoutubePlayer(
                             controller: _youtubeController!,
-                            showVideoProgressIndicator: true,
-                            progressIndicatorColor: Colors.red,
-                            progressColors: const ProgressBarColors(
-                              playedColor: Colors.red,
-                              handleColor: Colors.redAccent,
-                            ),
                           ),
                         ),
                       ),
