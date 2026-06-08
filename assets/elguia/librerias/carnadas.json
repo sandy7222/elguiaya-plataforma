@@ -109,6 +109,16 @@
       ],
       "respuesta_limpia": "Panza de lisa en aceite con colante rojo",
       "gif": "hablaConMate"
+    },
+    {
+      "intencion": "carnada_para_pejerrey",
+      "activadores": [
+        "carnada para pejerrey",
+        "calamares como carnada",
+        "pescar pejerrey"
+      ],
+      "respuesta_limpia": "Calamares de agua dulce como carnada",
+      "gif": "exito"
     }
   ]
 }
