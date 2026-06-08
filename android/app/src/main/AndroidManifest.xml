@@ -48,6 +48,13 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="capitanya" android:host="pago"/>
             </intent-filter>
+
+            <intent-filter android:autoVerify="false">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="capitanya" android:host="tienda"/>
+            </intent-filter>
         </activity>
 
         <activity

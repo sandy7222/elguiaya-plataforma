@@ -53,6 +53,9 @@ import 'package:capitanya_master/screens/blog_piques_screen.dart';
 import 'package:capitanya_master/screens/pronostico_screen.dart';
 import 'package:capitanya_master/screens/viajes_programados_screen.dart';
 import 'package:capitanya_master/widgets/solunar_card_widget.dart';
+import 'package:capitanya_master/services/deep_link_service.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   usePathUrlStrategy();
@@ -86,6 +89,9 @@ Future<void> main() async {
   // 4. Ejecutar sincronizaciones de conocimiento El Guía
   GuiaKnowledgeSyncService.verificarYEjecutarSincronizaciones();
 
+  // 5. Inicializar servicio de Deep Links
+  DeepLinkService().inicializar();
+
   runApp(
     MultiProvider(
       providers: [
@@ -103,6 +109,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'Capitan YA',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
