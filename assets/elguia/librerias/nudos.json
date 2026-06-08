@@ -60,5 +60,17 @@
     "¿Vas a armar chicote con líder de acero?",
     "¿Querés un nudo corredizo para el rotor?",
     "¿Es para fijar plomada corrediza al fondo?"
+  ],
+  "intenciones": [
+    {
+      "intencion": "seleccionar_anzuelos",
+      "activadores": [
+        "anzuelos para peces",
+        "seleccionar anzuelos",
+        "caja de pesca"
+      ],
+      "respuesta_limpia": "Se debe seleccionar anzuelos según el pez que se quiere capturar y las condiciones del agua",
+      "gif": "hablaConMate"
+    }
   ]
 }

@@ -188,6 +188,66 @@
       ],
       "respuesta_limpia": "Pescar con río despejado, temp 13.8°C y viento suave",
       "gif": "hablaConMate"
+    },
+    {
+      "intencion": "preparacion_para_pescar",
+      "activadores": [
+        "preparacion para pescar",
+        "equipo de pesca",
+        "carnada para pescar"
+      ],
+      "respuesta_limpia": "La preparación para pescar incluye el armado del equipo y la búsqueda de carnada.",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "herramientas_de_pescar",
+      "activadores": [
+        "herramientas de pesca",
+        "caja de pesca",
+        "equipo de pesca"
+      ],
+      "respuesta_limpia": "Bogagrip, pinzas, alicates, tijeras, cuchillo, luminación, boyas, plomadas, líderes de acero",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "herramientas_de_pesca",
+      "activadores": [
+        "herramientas de pesca",
+        "caja de pesca",
+        "equipamiento de pesca"
+      ],
+      "respuesta_limpia": "Bogagrip, pinzas de punta, alicates, tijeras, cuchillo de corte, luminación portátil, boyas y plomadas, líderes de acero",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "modalidades_de_pesca",
+      "activadores": [
+        "pesca con mosca",
+        "pesca con señuelos artificiales",
+        "modalidades de pesca"
+      ],
+      "respuesta_limpia": "Pesca con mosca y pesca con señuelos artificiales",
+      "gif": "piensaLeve"
+    },
+    {
+      "intencion": "conexion_con_el_medio_ambiente",
+      "activadores": [
+        "observacion_visual",
+        "observacion_auditiva",
+        "conexion_con_la_naturaleza"
+      ],
+      "respuesta_limpia": "Observa el entorno para entender qué comen los peces",
+      "gif": "piensaLeve"
+    },
+    {
+      "intencion": "plan_de_aprendizaje",
+      "activadores": [
+        "aprendizaje",
+        "pesca",
+        "plan"
+      ],
+      "respuesta_limpia": "Aprender sobre pesca con Seba",
+      "gif": "hablaConMate"
     }
   ]
 }

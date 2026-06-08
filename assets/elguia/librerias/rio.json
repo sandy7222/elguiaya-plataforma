@@ -61,5 +61,16 @@
     "¿Relojeaste la tabla de mareas, cheraí?",
     "¿Viene buen viento pa' ir al garete?",
     "¿Llevás gorro contra la fiera insolación, chamigo?"
+  ],
+  "intenciones": [
+    {
+      "intencion": "recordar_usuario",
+      "activadores": [
+        "recordar nombre",
+        "recordar preferencias"
+      ],
+      "respuesta_limpia": "Me acordaré de ti",
+      "gif": "saludo"
+    }
   ]
 }

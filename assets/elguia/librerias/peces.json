@@ -200,6 +200,15 @@
       ],
       "respuesta_limpia": "Pez cascarudo: carnada viva, resistente, respira oxígeno fuera del agua.",
       "gif": "hablaConMate"
+    },
+    {
+      "intencion": "que_es_bogagrip",
+      "activadores": [
+        "bogagrip",
+        "dispositivo para sujetar peces"
+      ],
+      "respuesta_limpia": "Dispositivo para sujetar y manipular peces capturados",
+      "gif": "hablaConMate"
     }
   ]
 }
