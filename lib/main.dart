@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart'; // Para inicializar formatos locales en español
@@ -54,6 +55,7 @@ import 'package:capitanya_master/screens/viajes_programados_screen.dart';
 import 'package:capitanya_master/widgets/solunar_card_widget.dart';
 
 Future<void> main() async {
+  usePathUrlStrategy();
   WidgetsFlutterBinding.ensureInitialized();
 
   // Inicializar formatos de fecha para locales en español ('es')
