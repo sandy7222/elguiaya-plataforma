@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../providers/cart_provider.dart';
@@ -114,8 +114,8 @@ class _CarritoScreenState extends State<CarritoScreen> {
       backgroundColor: const Color(0xFFF4F7F6),
       appBar: AppBar(
         backgroundColor: const Color(0xFF001F3F),
-        title: Image.network(
-          BrandingService.defaultLogoUrl, 
+        title: Image.asset(
+          'assets/images/logo_elguiaya.png', 
           height: 40, 
           fit: BoxFit.contain,
           errorBuilder: (c, e, s) => const Text('MI CANASTO', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2)),
