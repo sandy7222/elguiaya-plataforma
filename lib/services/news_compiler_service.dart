@@ -1,10 +1,10 @@
-import 'dart:math';
+﻿import 'dart:math';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:capitanya_master/models/articulo_blog.dart';
-import 'package:capitanya_master/models/producto.dart';
-import 'package:capitanya_master/services/gemini_ai_service.dart';
-import 'package:capitanya_master/services/supabase_service.dart';
+import 'package:El Guia YA_master/models/articulo_blog.dart';
+import 'package:El Guia YA_master/models/producto.dart';
+import 'package:El Guia YA_master/services/gemini_ai_service.dart';
+import 'package:El Guia YA_master/services/supabase_service.dart';
 
 class NewsCompilerService {
   static const List<String> _imagenesPortadaPesca = [
@@ -252,10 +252,10 @@ class NewsCompilerService {
     return resultado;
   }
 
-  /// Obtiene las entradas del blog oficial en Blogger (capitanya.blogspot.com)
+  /// Obtiene las entradas del blog oficial en Blogger (El Guia YA.blogspot.com)
   static Future<List<Map<String, dynamic>>> scrapearBlogspot() async {
     final List<Map<String, dynamic>> resultado = [];
-    const String url = 'https://capitanya.blogspot.com/feeds/posts/default?alt=json';
+    const String url = 'https://El Guia YA.blogspot.com/feeds/posts/default?alt=json';
 
     try {
       String? jsonContent;
@@ -1198,7 +1198,7 @@ class NewsCompilerService {
   }
 
   /// Toma una noticia cruda de internet y utiliza Gemini AI para compilarla en un artículo editorial formateado,
-  /// asociando productos afines del catálogo de la tienda de Capitán-YA.
+  /// asociando productos afines del catálogo de la tienda de EL GUIA YA.
   static Future<ArticuloBlog> compilarArticuloConIA({
     required String tituloOriginal,
     required String fragmentoOriginal,

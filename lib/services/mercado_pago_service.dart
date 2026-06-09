@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'supabase_service.dart';
 
@@ -75,19 +75,19 @@ class MercadoPagoService {
         // El external_reference vincula el pago con nuestra reserva en Supabase
         'external_reference': reservaId,
         // URLs de retorno — usamos HTTPS para que MP Sandbox no quede trabado
-        // intentando resolver un deep link capitanya:// desde adentro del browser.
+        // intentando resolver un deep link El Guia YA:// desde adentro del browser.
         // El usuario vuelve manualmente a la app y toca "Verificar mi pago".
         'back_urls': {
-          'success': 'https://capitanya.com.ar/pago/success',
-          'failure': 'https://capitanya.com.ar/pago/failure',
-          'pending': 'https://capitanya.com.ar/pago/pending',
+          'success': 'https://El Guia YA.com.ar/pago/success',
+          'failure': 'https://El Guia YA.com.ar/pago/failure',
+          'pending': 'https://El Guia YA.com.ar/pago/pending',
         },
         // SIN auto_return: el usuario vuelve manualmente a la app
 
         // Webhook para notificación instantánea (configurar con tu URL real)
         if (notificacionUrl != null)
           'notification_url': notificacionUrl,
-        'statement_descriptor': 'CAPITANYA',
+        'statement_descriptor': 'El Guia YA',
         'payment_methods': {
           'excluded_payment_types': [],
           'installments': 1, // Sin cuotas para reservas

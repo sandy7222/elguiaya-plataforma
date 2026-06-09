@@ -1,4 +1,4 @@
-
+﻿
 import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -298,7 +298,7 @@ class SeguridadService {
           tipoAccion: 'info',
           detalles: 'El sistema está operando en modo local/recuperación. Por favor ejecuta el script sql/fix_seguridad_completo.sql en Supabase.',
           creadoAt: DateTime.now(),
-          adminEmail: 'sistema@capitanya.com',
+          adminEmail: 'sistema@El Guia YA.com',
           adminNombre: 'Sistema',
           usuarioAfectadoNombre: 'Ninguno',
           usuarioAfectadoEmail: '-',
@@ -335,7 +335,7 @@ class SeguridadService {
           tipoAccion: 'info',
           detalles: 'El sistema está operando en modo local/recuperación.',
           creadoAt: DateTime.now(),
-          adminEmail: 'sistema@capitanya.com',
+          adminEmail: 'sistema@El Guia YA.com',
           adminNombre: 'Sistema',
         )
       ]);

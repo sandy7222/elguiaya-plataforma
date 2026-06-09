@@ -1,4 +1,4 @@
-
+﻿
 
 import 'dart:async';
 
@@ -22,7 +22,7 @@ class _ConfirmarRetornoScreenState extends State<ConfirmarRetornoScreen>
   // ID de prueba para el pescador
   final String _pescadorId = '11111111-1111-1111-1111-111111111111';
   
-  // Colores CapitanYA
+  // Colores El Guia YA
   static const Color _azulNautico = Color(0xFF1565C0);
   static const Color _verdeExito = Color(0xFF10B981);
   static const Color _naranjaAlerta = Color(0xFFF59E0B);

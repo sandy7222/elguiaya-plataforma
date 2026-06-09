@@ -1,4 +1,4 @@
-
+﻿
 
 import 'package:flutter/material.dart';
 
@@ -24,7 +24,7 @@ class _DisclaimerTiemposEntregaWidgetState extends State<DisclaimerTiemposEntreg
   bool _aceptado = false;
   bool _procesando = false;
   
-  // Colores CapitanYA
+  // Colores El Guia YA
   static const Color _azulNautico = Color(0xFF1565C0);
   static const Color _naranjaAlerta = Color(0xFFF59E0B);
   static const Color _rojoProblema = Color(0xFFEF4444);
@@ -84,7 +84,7 @@ class _DisclaimerTiemposEntregaWidgetState extends State<DisclaimerTiemposEntreg
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'CapitanYA no gestiona los tiempos de entrega finales. Una vez despachado, el servicio queda sujeto a los plazos y condiciones de Correo Argentino.',
+                    'El Guia YA no gestiona los tiempos de entrega finales. Una vez despachado, el servicio queda sujeto a los plazos y condiciones de Correo Argentino.',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.black87,
@@ -94,7 +94,7 @@ class _DisclaimerTiemposEntregaWidgetState extends State<DisclaimerTiemposEntreg
                   const SizedBox(height: 8),
                   Text(
                     '• Los plazos estimados son proporcionados por el transportista\n'
-                    '• CapitanYA no se responsabiliza por demoras en la entrega\n'
+                    '• El Guia YA no se responsabiliza por demoras en la entrega\n'
                     '• Las consultas sobre el estado del envio deben realizarse directamente con Correo Argentino\n'
                     '• Una vez despachado, el seguimiento estara disponible en tu panel',
                     style: TextStyle(
@@ -196,7 +196,7 @@ class _DisclaimerTiemposEntregaWidgetState extends State<DisclaimerTiemposEntreg
             ),
             SizedBox(height: 12),
             Text(
-              '• CapitanYA no controla los tiempos de entrega finales\n'
+              '• El Guia YA no controla los tiempos de entrega finales\n'
               '• Los plazos dependen exclusivamente de Correo Argentino\n'
               '• Las demoras no afectaran la liquidacion del capitan\n'
               '• Deberas gestionar directamente las consultas de seguimiento',

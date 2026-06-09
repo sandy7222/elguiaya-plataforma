@@ -1,4 +1,4 @@
-
+﻿
 
 import 'package:flutter/material.dart';
 
@@ -8,7 +8,7 @@ class TicketGeneradoScreen extends StatelessWidget {
   final Map<String, dynamic>? invoice;
   final Map<String, dynamic>? paymentData;
 
-  // Colores CapitanYA - Alto contraste para exteriores
+  // Colores El Guia YA - Alto contraste para exteriores
   final Color _fondoOscuro = const Color(0xFF1A1A1A);      // Fondo oscuro
   final Color _blancoPuro = const Color(0xFFFFFFFF);        // Blanco puro
   final Color _azulVibrante = const Color(0xFF0066FF);      // Azul vibrante

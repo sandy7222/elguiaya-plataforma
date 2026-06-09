@@ -1,4 +1,4 @@
-
+﻿
 
 import 'package:flutter/material.dart';
 
@@ -16,7 +16,7 @@ class _StressTestDemoScreenState extends State<StressTestDemoScreen> {
   String _log = '';
   Map<String, dynamic>? _resultados;
 
-  // Colores CapitanYA
+  // Colores El Guia YA
   static const Color _fondoOscuro = Color(0xFF1A1A1A);
   static const Color _blancoPuro = Color(0xFFFFFFFF);
   static const Color _azulVibrante = Color(0xFF0066FF);
@@ -37,7 +37,7 @@ class _StressTestDemoScreenState extends State<StressTestDemoScreen> {
       _resultados = null;
     });
 
-    _addLog('🔥 INICIANDO PRUEBA DE ESTRES COMPLETA - Capitan YA');
+    _addLog('🔥 INICIANDO PRUEBA DE ESTRES COMPLETA - EL GUIA YA');
     _addLog('=' * 70);
 
     try {

@@ -1,4 +1,4 @@
-
+﻿
 
 
 import 'dart:typed_data';
@@ -583,7 +583,7 @@ class _BrandingEditorScreenState extends State<BrandingEditorScreen> {
                             const Icon(Icons.anchor, size: 50, color: Colors.white),
                           const SizedBox(height: 12),
                           const Text(
-                            'CAPITAN-YA',
+                            'EL GUIA YA',
                             style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 2),
                           ),
                           const SizedBox(height: 20),

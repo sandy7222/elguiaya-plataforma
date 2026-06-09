@@ -1,4 +1,4 @@
-
+﻿
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -31,7 +31,7 @@ class _CaptainQuoteScreenState extends State<CaptainQuoteScreen> {
   GoogleMapController? _mapController;
   final Set<Marker> _markers = {};
   
-  // Colores CapitanYA - Alto contraste para exteriores
+  // Colores El Guia YA - Alto contraste para exteriores
   static const Color _fondoOscuro = Color(0xFF1A1A1A);      // Fondo oscuro
   static const Color _blancoPuro = Color(0xFFFFFFFF);        // Blanco puro
   static const Color _azulVibrante = Color(0xFF0066FF);      // Azul vibrante

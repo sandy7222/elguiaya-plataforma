@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -22,7 +22,7 @@ class _AdminHeatmapScreenState extends State<AdminHeatmapScreen>
   Timer? _actualizacionTimer;
   final MapController _mapController = MapController();
   
-  // Colores CapitanYA
+  // Colores El Guia YA
   static const Color _azulNautico = Color(0xFF1565C0);
   static const Color _grisDescanso = Color(0xFF64748B);
   static const Color _fondoClaro = Color(0xFFF5F7FA);
@@ -262,7 +262,7 @@ class _AdminHeatmapScreenState extends State<AdminHeatmapScreen>
                           // Tile layer
                           TileLayer(
                             urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                            userAgentPackageName: 'com.example.capitanya',
+                            userAgentPackageName: 'com.example.El Guia YA',
                           ),
                           
                           // Circulos de cobertura (mapa de calor)

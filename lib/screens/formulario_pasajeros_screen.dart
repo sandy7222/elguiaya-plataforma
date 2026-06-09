@@ -1,10 +1,10 @@
-import 'dart:io' show File;
+﻿import 'dart:io' show File;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:capitanya_master/services/storage_service.dart';
+import 'package:El Guia YA_master/services/storage_service.dart';
 
 /// Formulario de Declaración de Pasajeros.
 /// El titular aparece pre-cargado. Con el botón [+] se agregan invitados.

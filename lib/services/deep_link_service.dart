@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:app_links/app_links.dart';
 import '../screens/product_catalog_screen.dart';
@@ -33,8 +33,8 @@ class DeepLinkService {
   void _procesarDeepLink(Uri uri) {
     debugPrint('⚓ Deep link recibido: $uri');
     
-    // capitanya://tienda o similar
-    if (uri.scheme == 'capitanya' && uri.host == 'tienda') {
+    // El Guia YA://tienda o similar
+    if (uri.scheme == 'El Guia YA' && uri.host == 'tienda') {
       _navegarATienda();
     }
   }

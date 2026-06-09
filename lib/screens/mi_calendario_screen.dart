@@ -1,4 +1,4 @@
-
+﻿
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -19,7 +19,7 @@ class _MiCalendarioScreenState extends State<MiCalendarioScreen> {
   bool _isLoading = false;
   String? _capitanId;
 
-  // Colores CapitanYA - Nautical Premium Theme
+  // Colores El Guia YA - Nautical Premium Theme
   static const Color _fondoOscuro = Color(0xFF001F3F);
   static const Color _blancoPuro = Color(0xFFFFFFFF);
   static const Color _azulVibrante = Color(0xFF0D47A1);

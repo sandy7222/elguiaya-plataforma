@@ -1,4 +1,4 @@
-
+﻿
 
 import 'package:flutter/material.dart';
 
@@ -19,7 +19,7 @@ class _BilleteraCapitanScreenState extends State<BilleteraCapitanScreen> {
   int _paginaActual = 1;
   final int _limitePorPagina = 10;
 
-  // Colores CapitanYA
+  // Colores El Guia YA
   static const Color _fondoOscuro = Color(0xFF1A1A1A);
   static const Color _blancoPuro = Color(0xFFFFFFFF);
   static const Color _azulVibrante = Color(0xFF0066FF);

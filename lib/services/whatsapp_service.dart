@@ -1,4 +1,4 @@
-
+﻿
 
 import 'dart:async';
 import 'dart:convert';
@@ -46,9 +46,9 @@ class WhatsAppService {
   /// Plantillas de mensajes predefinidas
   static const Map<String, String> _plantillas = {
     'confirmacion_pago': '''
-🎣 *CAPITAN YA - Confirmacion de Pago*
+🎣 *EL GUIA YA - Confirmacion de Pago*
 
-¡Hola {{nombre_cliente}}! Soy el Asistente CapitanYA.
+¡Hola {{nombre_cliente}}! Soy el Asistente El Guia YA.
 
 ✅ *Pago Confirmado*
 • Reserva: {{codigo_reserva}}
@@ -69,14 +69,14 @@ class WhatsAppService {
 
 🌊 *¡Nos vemos en el agua!*
 
-_Asistente CapitanYA_
+_Asistente El Guia YA_
 Tu experto en pesca segura
     ''',
 
     'recordatorio_salida': '''
-⏰ *CAPITAN YA - Recordatorio de Salida*
+⏰ *EL GUIA YA - Recordatorio de Salida*
 
-¡Hola {{nombre_cliente}}! Soy el Asistente CapitanYA.
+¡Hola {{nombre_cliente}}! Soy el Asistente El Guia YA.
 
 📅 *Manana es tu dia de pesca*
 • Salida: {{fecha_salida}}
@@ -103,14 +103,14 @@ Tu experto en pesca segura
 - Confirmar asistencia al capitan
 - Seguir sus indicaciones de seguridad
 
-_Asistente CapitanYA_
+_Asistente El Guia YA_
 ¡Preparate para una gran aventura!
     ''',
 
     'alerta_seguridad': '''
-🚨 *CAPITAN YA - Alerta de Seguridad*
+🚨 *EL GUIA YA - Alerta de Seguridad*
 
-¡Hola Admin! Soy el Asistente CapitanYA.
+¡Hola Admin! Soy el Asistente El Guia YA.
 
 ⚠️ *Deteccion de Actividad Sospechosa*
 
@@ -136,16 +136,16 @@ _Asistente CapitanYA_
 3. Contactar usuario si es necesario
 
 🔐 *Proteccion de la Plataforma*
-Esta alerta ayuda a mantener la integridad y seguridad de CapitanYA.
+Esta alerta ayuda a mantener la integridad y seguridad de El Guia YA.
 
-_Asistente CapitanYA_
+_Asistente El Guia YA_
 Vigilando tu comunidad
     ''',
 
     'cancelacion_reserva': '''
-❌ *CAPITAN YA - Cancelacion de Reserva*
+❌ *EL GUIA YA - Cancelacion de Reserva*
 
-¡Hola {{nombre_cliente}}! Soy el Asistente CapitanYA.
+¡Hola {{nombre_cliente}}! Soy el Asistente El Guia YA.
 
 📋 *Cancelacion Procesada*
 • Reserva: {{codigo_reserva}}
@@ -161,16 +161,16 @@ Vigilando tu comunidad
 • WhatsApp: {{whatsapp_soporte}}
 
 🔄 *¿Quieres reagendar?*
-Visita nuestra web o habla con tu Asistente CapitanYA
+Visita nuestra web o habla con tu Asistente El Guia YA
 
-_Asistente CapitanYA_
+_Asistente El Guia YA_
 Aqui para ayudarte
     ''',
 
     'bienvenida_pescador': '''
-🎣 *¡Bienvenido a Capitan YA!*
+🎣 *¡Bienvenido a EL GUIA YA!*
 
-¡Hola {{nombre}}! Soy el Asistente CapitanYA, tu experto personal en pesca.
+¡Hola {{nombre}}! Soy el Asistente El Guia YA, tu experto personal en pesca.
 
 🌊 *¿Lista para tu proxima aventura?*
 
@@ -186,14 +186,14 @@ Aqui para ayudarte
 📱 *Comunicate conmigo*
 Escribe "ayuda" o dime que tipo de pesca te interesa.
 
-_Asistente CapitanYA_
+_Asistente El Guia YA_
 Tu puerta de entrada al mundo de la pesca
     ''',
 
     'bienvenida_capitan': '''
-⚓ *¡Bienvenido Capitan a Capitan YA!*
+⚓ *¡Bienvenido Capitan a EL GUIA YA!*
 
-¡Hola {{nombre}}! Soy el Asistente CapitanYA, aqui para potenciar tu negocio.
+¡Hola {{nombre}}! Soy el Asistente El Guia YA, aqui para potenciar tu negocio.
 
 🚢 *Herramientas para tu exito*
 
@@ -211,7 +211,7 @@ Tu puerta de entrada al mundo de la pesca
 🎯 *¿Listo para mas reservas?*
 Dime "disponibilidad" y te ayudo a gestionar tu agenda.
 
-_Asistente CapitanYA_
+_Asistente El Guia YA_
 Tu partner en el exito
     ''',
   };

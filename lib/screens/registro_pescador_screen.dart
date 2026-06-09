@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -349,7 +349,7 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Cabecera Corporativa de Capitán-YA
+                    // Cabecera Corporativa de EL GUIA YA
                     _buildHeader(),
                     const SizedBox(height: 28),
                     
@@ -390,7 +390,7 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
         ),
         const SizedBox(height: 16),
         const Text(
-          'CAPITÁN-YA',
+          'EL GUIA YA',
           style: TextStyle(
             color: Colors.white,
             fontSize: 24,

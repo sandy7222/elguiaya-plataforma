@@ -1,17 +1,17 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:capitanya_master/services/branding_service.dart';
-import 'package:capitanya_master/services/seguridad_service.dart';
-import 'package:capitanya_master/services/supabase_service.dart';
-import 'package:capitanya_master/services/translation_service.dart';
-import 'package:capitanya_master/screens/admin_dashboard_screen.dart';
-import 'package:capitanya_master/screens/portal_capitan_screen.dart';
-import 'package:capitanya_master/screens/portal_pescador_screen.dart';
-import 'package:capitanya_master/screens/registro_maestro_screen.dart';
-import 'package:capitanya_master/widgets/failsafe_background.dart';
-import 'package:capitanya_master/utils/cya_styles.dart';
+import 'package:El Guia YA_master/services/branding_service.dart';
+import 'package:El Guia YA_master/services/seguridad_service.dart';
+import 'package:El Guia YA_master/services/supabase_service.dart';
+import 'package:El Guia YA_master/services/translation_service.dart';
+import 'package:El Guia YA_master/screens/admin_dashboard_screen.dart';
+import 'package:El Guia YA_master/screens/portal_capitan_screen.dart';
+import 'package:El Guia YA_master/screens/portal_pescador_screen.dart';
+import 'package:El Guia YA_master/screens/registro_maestro_screen.dart';
+import 'package:El Guia YA_master/widgets/failsafe_background.dart';
+import 'package:El Guia YA_master/utils/cya_styles.dart';
 
 class BienvenidaDefinitivaScreen extends StatefulWidget {
   const BienvenidaDefinitivaScreen({super.key});
@@ -44,11 +44,11 @@ class _BienvenidaDefinitivaScreenState extends State<BienvenidaDefinitivaScreen>
   String _textoAyuda = 'Cargando informacion de ayuda...';
   String _textoTerminos = 'Cargando terminos y condiciones...';
 
-  // Colores CapitanYA - Modernizados (ahora mutables)
+  // Colores El Guia YA - Modernizados (ahora mutables)
   final Color _fondoPorDefecto = const Color(0xFF0D47A1);
   final Color _blancoPuro = const Color(0xFFFFFFFF);
   Color _azulVibrante = const Color(0xFF0066FF);
-  Color _verdeVibrante = const Color(0xFF00E676); // Verde CapitanYA Premium
+  Color _verdeVibrante = const Color(0xFF00E676); // Verde El Guia YA Premium
   Color _naranjaIntenso = const Color(0xFF00E676);
   final Color _grisMedio = const Color(0xFF666666);
   final Color _rojoFuerte = const Color(0xFFE53935);
@@ -84,7 +84,7 @@ class _BienvenidaDefinitivaScreenState extends State<BienvenidaDefinitivaScreen>
           final userId = session.user.id;
           final email = session.user.email ?? '';
           
-          final bool isHardcodedAdmin = email.toLowerCase().trim() == 'admin@capitanya.com';
+          final bool isHardcodedAdmin = email.toLowerCase().trim() == 'admin@El Guia YA.com';
           final bool isMetadataAdmin = session.user.userMetadata?['rol']?.toString().toLowerCase() == 'admin';
 
           if (isHardcodedAdmin || isMetadataAdmin) {
@@ -239,7 +239,7 @@ class _BienvenidaDefinitivaScreenState extends State<BienvenidaDefinitivaScreen>
             Expanded(child: Divider(color: Colors.white24)),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Text('¿NUEVO EN CAPITÁN-YA?', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+              child: Text('¿NUEVO EN EL GUIA YA?', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
             ),
             Expanded(child: Divider(color: Colors.white24)),
           ],
@@ -351,7 +351,7 @@ class _BienvenidaDefinitivaScreenState extends State<BienvenidaDefinitivaScreen>
         final userId = authResponse.user!.id;
         final email = authResponse.user!.email!;
         
-        final bool isHardcodedAdmin = email.toLowerCase().trim() == 'admin@capitanya.com';
+        final bool isHardcodedAdmin = email.toLowerCase().trim() == 'admin@El Guia YA.com';
         final bool isMetadataAdmin = authResponse.user!.userMetadata?['rol']?.toString().toLowerCase() == 'admin';
 
         if (isHardcodedAdmin || isMetadataAdmin) {
@@ -502,7 +502,7 @@ class _BienvenidaDefinitivaScreenState extends State<BienvenidaDefinitivaScreen>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.network(
-                'https://ymgsxwfwntbqvguvbhoa.supabase.co/storage/v1/object/public/branding/logo_capitanya.png',
+                'https://ymgsxwfwntbqvguvbhoa.supabase.co/storage/v1/object/public/branding/logo_El Guia YA.png',
                 height: 90,
                 errorBuilder: (_, _, _) => const Icon(
                   Icons.anchor_rounded,

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../services/supabase_service.dart';
 import '../services/pdf_service.dart';
 
@@ -99,7 +99,7 @@ class _DirectorioCapitanesScreenState extends State<DirectorioCapitanesScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'CAPITÁN YA - LEGAJO INTERNO', 
+                            'EL GUIA YA - LEGAJO INTERNO', 
                             style: TextStyle(color: Color(0xFFFFD700), fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.5),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -163,7 +163,7 @@ class _DirectorioCapitanesScreenState extends State<DirectorioCapitanesScreen> {
                 ),
               ),
               
-              // Pie con Sello de Agua CapitanYA (Privado)
+              // Pie con Sello de Agua El Guia YA (Privado)
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: Row(

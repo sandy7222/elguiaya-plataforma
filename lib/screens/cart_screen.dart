@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -133,7 +133,7 @@ class _CartScreenState extends State<CartScreen> {
         builder: (_) => FormularioEnvioScreen(
           pedidoId: _reservaId!,
           amount: null, // Evitar cobro inmediato desde el formulario
-          description: 'Compra de Equipo Capitán-YA',
+          description: 'Compra de Equipo EL GUIA YA',
           emailPagador: Supabase.instance.client.auth.currentUser?.email ?? '',
         ),
       ),
@@ -185,7 +185,7 @@ class _CartScreenState extends State<CartScreen> {
       // Crear preferencia en Mercado Pago
       final preferencia = await MercadoPagoService.crearPreferencia(
         reservaId: _reservaId!,
-        titulo: 'Compra Capitán-YA',
+        titulo: 'Compra EL GUIA YA',
         monto: totalConEnvio,
         emailPagador: emailSilencioso,
       );
@@ -199,7 +199,7 @@ class _CartScreenState extends State<CartScreen> {
           MaterialPageRoute(
             builder: (_) => CheckoutPaymentScreen(
               amount: totalConEnvio,
-              description: 'Compra Capitán-YA',
+              description: 'Compra EL GUIA YA',
               reservaId: _reservaId!,
               emailPagador: emailSilencioso,
               initPoint: preferencia.linkPago,

@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -542,7 +542,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Capitán-YA Pesca',
+                  'EL GUIA YA Pesca',
                   style: GoogleFonts.outfit(
                     color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold,
                   ),

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
@@ -106,7 +106,7 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
           // ─── 🚀 PROCEDER DIRECTAMENTE A MERCADO PAGO DESDE EL FORMULARIO ───
           final preferencia = await MercadoPagoService.crearPreferencia(
             reservaId: widget.pedidoId,
-            titulo: widget.description ?? 'Compra de Equipo Capitán-YA',
+            titulo: widget.description ?? 'Compra de Equipo EL GUIA YA',
             monto: widget.amount!,
             emailPagador: widget.emailPagador ?? '',
           );
@@ -129,7 +129,7 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
               MaterialPageRoute(
                 builder: (_) => CheckoutPaymentScreen(
                   amount: widget.amount!,
-                  description: widget.description ?? 'Compra de Equipo Capitán-YA',
+                  description: widget.description ?? 'Compra de Equipo EL GUIA YA',
                   reservaId: widget.pedidoId,
                   emailPagador: widget.emailPagador ?? '',
                   initPoint: preferencia.linkPago,

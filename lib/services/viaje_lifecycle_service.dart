@@ -1,4 +1,4 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
+﻿import 'package:supabase_flutter/supabase_flutter.dart';
 import 'disponibilidad_service_final.dart';
 import 'notificacion_helper.dart';
 
@@ -96,7 +96,7 @@ class ViajeLifecycleService {
 
       if (!disponibilidad) {
         throw Exception(
-          'El Capitán ya no tiene disponibilidad para este horario.',
+          'El EL GUIA YA no tiene disponibilidad para este horario.',
         );
       }
 

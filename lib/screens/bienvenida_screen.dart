@@ -1,4 +1,4 @@
-
+﻿
 
 import 'dart:async';
 
@@ -34,11 +34,11 @@ class _BienvenidaScreenState extends State<BienvenidaScreen> {
   bool _isProcessing = false;
   
   // Textos legales por defecto
-  String _textoTerminos = 'Terminos y Condiciones de CapitanYA\n\n'
+  String _textoTerminos = 'Terminos y Condiciones de El Guia YA\n\n'
       '1. Aceptacion de los Terminos\n'
-      'Al usar CapitanYA, aceptas estos terminos y condiciones.\n\n'
+      'Al usar El Guia YA, aceptas estos terminos y condiciones.\n\n'
       '2. Descripcion del Servicio\n'
-      'CapitanYA es una plataforma que conecta pescadores con capitanes '
+      'El Guia YA es una plataforma que conecta pescadores con capitanes '
       'para experiencias de pesca unicas.\n\n'
       '3. Responsabilidades del Usuario\n'
       'Los usuarios deben proporcionar informacion veraz y utilizar '
@@ -50,20 +50,20 @@ class _BienvenidaScreenState extends State<BienvenidaScreen> {
       'Respetamos tu privacidad y protegemos tus datos personales '
       'de acuerdo con nuestra politica de privacidad.\n\n'
       '6. Propiedad Intelectual\n'
-      'Todo el contenido de CapitanYA esta protegido por derechos '
+      'Todo el contenido de El Guia YA esta protegido por derechos '
       'de propiedad intelectual.\n\n'
       '7. Modificacion del Servicio\n'
       'Nos reservamos el derecho de modificar o suspender el servicio '
       'en cualquier momento.\n\n'
       '8. Limitacion de Responsabilidad\n'
-      'CapitanYA no es responsable por danos directos o indirectos '
+      'El Guia YA no es responsable por danos directos o indirectos '
       'derivados del uso del servicio.\n\n'
       '9. Ley Aplicable\n'
       'Estos terminos se rigen por las leyes de Argentina.\n\n'
       '10. Contacto\n'
-      'Para cualquier duda, contacta a: legal@capitanya.com';
+      'Para cualquier duda, contacta a: legal@El Guia YA.com';
 
-  // Colores CapitanYA
+  // Colores El Guia YA
   static const Color _fondoPorDefecto = Color(0xFF0D47A1);
   static const Color _blancoPuro = Color(0xFFFFFFFF);
   static const Color _azulVibrante = Color(0xFF0066FF);
@@ -545,8 +545,8 @@ class _BienvenidaScreenState extends State<BienvenidaScreen> {
 
   bool _esAdministrador(String email, String password) {
     // En produccion, verificar contra base de datos
-    // Por ahora, admin@capitanya.com / admin123
-    return email == 'admin@capitanya.com' && password == 'admin123';
+    // Por ahora, admin@El Guia YA.com / admin123
+    return email == 'admin@El Guia YA.com' && password == 'admin123';
   }
 
   Widget _buildFooter() {
@@ -621,7 +621,7 @@ class _BienvenidaScreenState extends State<BienvenidaScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'CAPITAN YA',
+                            'EL GUIA YA',
                             style: TextStyle(
                               color: _blancoPuro,
                               fontSize: 24,
@@ -630,7 +630,7 @@ class _BienvenidaScreenState extends State<BienvenidaScreen> {
                             ),
                           ),
                           Text(
-                            'Tu aventura comienza aqui',
+                            'Tu mejor amigo de pesca en Argentina',
                             style: TextStyle(
                               color: _blancoPuro.withOpacity(0.8),
                               fontSize: 12,

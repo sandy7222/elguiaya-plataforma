@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/gemini_config.dart';
@@ -124,7 +124,7 @@ class GeminiService {
     );
 
     final promptEntrenamiento = '''
-Sos El Guía, el asistente de Capitán-YA, una app de pesca deportiva argentina en el Río Paraná.
+Sos El Guía, el asistente de EL GUIA YA, una app de pesca deportiva argentina en el Río Paraná.
 El administrador de la app te pide que aprendas sobre este tema para poder responderlo offline a los pescadores:
 
 TEMA A APRENDER: $tema

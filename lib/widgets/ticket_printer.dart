@@ -1,4 +1,4 @@
-
+﻿
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -17,7 +17,7 @@ class TicketPrinter {
     
     // Header del ticket
     buffer.writeln('================================');
-    buffer.writeln('      CAPITAN YA - TICKET      ');
+    buffer.writeln('      EL GUIA YA - TICKET      ');
     buffer.writeln('================================');
     buffer.writeln('');
     
@@ -68,7 +68,7 @@ class TicketPrinter {
     buffer.writeln('================================');
     buffer.writeln('');
     buffer.writeln('Para consultas sobre su pedido:');
-    buffer.writeln('Email: soporte@capitanya.com');
+    buffer.writeln('Email: soporte@El Guia YA.com');
     buffer.writeln('Telefono: +54 11 1234-5678');
     buffer.writeln('');
     buffer.writeln('Estado actual: ${pedido.estadoEnvioNombre}');
@@ -92,7 +92,7 @@ class TicketPrinter {
     buffer.writeln('<html>');
     buffer.writeln('<head>');
     buffer.writeln('<meta charset="UTF-8">');
-    buffer.writeln('<title>Ticket Capitan YA</title>');
+    buffer.writeln('<title>Ticket EL GUIA YA</title>');
     buffer.writeln('<style>');
     buffer.writeln('body { font-family: "Courier New", monospace; margin: 20px; }');
     buffer.writeln('.header { text-align: center; font-weight: bold; margin-bottom: 20px; }');
@@ -106,7 +106,7 @@ class TicketPrinter {
     
     // Header
     buffer.writeln('<div class="header">');
-    buffer.writeln('<h1>CAPITAN YA - TICKET</h1>');
+    buffer.writeln('<h1>EL GUIA YA - TICKET</h1>');
     buffer.writeln('</div>');
     
     // Informacion del pedido
@@ -161,7 +161,7 @@ class TicketPrinter {
     buffer.writeln('<div class="footer">');
     buffer.writeln('<strong>¡GRACIAS POR SU COMPRA!</strong><br><br>');
     buffer.writeln('Para consultas sobre su pedido:<br>');
-    buffer.writeln('Email: soporte@capitanya.com<br>');
+    buffer.writeln('Email: soporte@El Guia YA.com<br>');
     buffer.writeln('Telefono: +54 11 1234-5678<br><br>');
     buffer.writeln('Estado actual: ${pedido.estadoEnvioNombre}<br>');
     buffer.writeln('Actualizado: ${_formatDateTime(DateTime.now())}');

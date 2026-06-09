@@ -1,7 +1,7 @@
-import 'dart:math';
+﻿import 'dart:math';
 import 'dart:async';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:capitanya_master/models/pique_pulse.dart';
+import 'package:El Guia YA_master/models/pique_pulse.dart';
 
 // ─────────────────────────────────────────────
 //  MODELO: Acción offline pendiente de sincronizar

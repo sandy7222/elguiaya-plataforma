@@ -1,4 +1,4 @@
-
+﻿
 
 import 'dart:convert';
 
@@ -76,7 +76,7 @@ class WebhookTester {
       'status': status,
       'status_detail': status == 'approved' ? 'accredited' : 'pending_contingency',
       'currency_id': 'ARS',
-      'description': 'CapitanYA - Viaje de Pesca',
+      'description': 'El Guia YA - Viaje de Pesca',
       'live_mode': false,
       'sponsor_id': null,
       'authorization_code': null,
@@ -95,7 +95,7 @@ class WebhookTester {
         'supabase_id': 'user_supabase_123',
         'trip_offer_id': 'reserva_456',
         'cbu': '0000000000000000000000000',
-        'platform': 'capitanya_mobile',
+        'platform': 'El Guia YA_mobile',
       },
       'external_reference': externalReference,
       'transaction_amount': amount,

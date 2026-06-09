@@ -1,4 +1,4 @@
-
+﻿
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -71,7 +71,7 @@ class PdfService {
                         pw.Column(
                           crossAxisAlignment: pw.CrossAxisAlignment.start,
                           children: [
-                            pw.Text('CAPITAN-YA', 
+                            pw.Text('EL GUIA YA', 
                               style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
                             pw.Text('Legajo Administrativo de Socio', 
                               style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700, letterSpacing: 1.5)),
@@ -169,7 +169,7 @@ class PdfService {
                       pw.Column(
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
-                          pw.Text('Documento generado digitalmente por Capitan-YA', 
+                          pw.Text('Documento generado digitalmente por EL GUIA YA', 
                             style: pw.TextStyle(fontSize: 8, color: PdfColors.grey500)),
                           pw.Text('Sistema de Gestión de Flota - v1.0', 
                             style: pw.TextStyle(fontSize: 7, color: PdfColors.grey400)),

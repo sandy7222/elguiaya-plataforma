@@ -1,4 +1,4 @@
-
+﻿
 
 
 
@@ -258,7 +258,7 @@ class _CameraPickerState extends State<CameraPicker> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Permiso denegado permanentemente'),
-          content: Text('Para subir tu documentacion necesitamos acceso a la $tipo. Podes activarlo en Ajustes > Aplicaciones > Capitanya > Permisos.'),
+          content: Text('Para subir tu documentacion necesitamos acceso a la $tipo. Podes activarlo en Ajustes > Aplicaciones > El Guia YA > Permisos.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),

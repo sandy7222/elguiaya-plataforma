@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../providers/cart_provider.dart';
@@ -72,7 +72,7 @@ class _CarritoScreenState extends State<CarritoScreen> {
 
       final preferencia = await MercadoPagoService.crearPreferencia(
         reservaId: reservaId,
-        titulo: 'Compra Capitán-YA',
+        titulo: 'Compra EL GUIA YA',
         monto: totalConEnvio,
         emailPagador: emailSilencioso,
       );
@@ -83,7 +83,7 @@ class _CarritoScreenState extends State<CarritoScreen> {
           MaterialPageRoute(
             builder: (_) => CheckoutPaymentScreen(
               amount: totalConEnvio,
-              description: 'Compra Capitán-YA',
+              description: 'Compra EL GUIA YA',
               reservaId: reservaId,
               emailPagador: emailSilencioso,
               initPoint: preferencia.linkPago,

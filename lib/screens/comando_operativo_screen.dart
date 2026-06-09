@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../services/geo_service.dart';
@@ -377,7 +377,7 @@ class _ComandoOperativoScreenState extends State<ComandoOperativoScreen> {
                 TileLayer(
                   urlTemplate: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
                   subdomains: const ['a', 'b', 'c', 'd'],
-                  userAgentPackageName: 'com.capitanya.master',
+                  userAgentPackageName: 'com.El Guia YA.master',
                 ),
                 if (_verCapitanes) CircleLayer(circles: capitanesCircles),
                 if (_verCapitanes) MarkerLayer(markers: capitanesMarkers),

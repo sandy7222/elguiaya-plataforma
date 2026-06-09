@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/categoria.dart';
 import '../models/rubro.dart';
@@ -26,7 +26,7 @@ class _AdminCategoriasScreenState extends State<AdminCategoriasScreen> {
   final double _brightness = 1.0;
   final Color _azulVibrante = const Color(0xFF0066FF);
 
-  // Diseño Premium CapitanYA
+  // Diseño Premium El Guia YA
   static const Color _capitanAzul = Color(0xFF001F3F);
   static const Color _capitanNaranja = Color(0xFF00E676);
   static const Color _capitanAzulClaro = Color(0xFF7FDBFF);

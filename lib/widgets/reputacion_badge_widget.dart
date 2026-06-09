@@ -1,4 +1,4 @@
-import 'dart:ui';
+﻿import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -14,7 +14,7 @@ class ReputacionBadgeWidget extends StatefulWidget {
   /// Si false, muestra la fila completa con anclas y contador.
   final bool compact;
 
-  /// Color principal del badge (por defecto verde CapitanYA).
+  /// Color principal del badge (por defecto verde El Guia YA).
   final Color? color;
 
   const ReputacionBadgeWidget({

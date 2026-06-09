@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart' hide CarouselController;
+﻿import 'package:flutter/material.dart' hide CarouselController;
 import 'dart:async';
 import 'dart:ui';
 import 'dart:typed_data';
@@ -67,7 +67,7 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
       if (user != null) {
         final email = user.email;
         final rol = user.userMetadata?['rol'];
-        if (email == 'admin@capitanya.com' || rol == 'admin') {
+        if (email == 'admin@El Guia YA.com' || rol == 'admin') {
           _isAdmin = true;
         }
       }
@@ -1213,7 +1213,7 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'CapitanYA no nació en una oficina fría; nació en el rumor del agua, en el amanecer fresco de un muelle paranaense y en la mirada atenta del guía que conoce el río como la palma de su mano. Nacimos de una necesidad imperiosa: la de unir el mundo tradicional del río y la pesca deportiva con la velocidad y seguridad del siglo XXI.\n\n'
+                  'El Guia YA no nació en una oficina fría; nació en el rumor del agua, en el amanecer fresco de un muelle paranaense y en la mirada atenta del guía que conoce el río como la palma de su mano. Nacimos de una necesidad imperiosa: la de unir el mundo tradicional del río y la pesca deportiva con la velocidad y seguridad del siglo XXI.\n\n'
                   'Vimos a capitanes excepcionales batallando con reservas informales por chat, calendarios perdidos en papeles húmedos y comisiones injustas. Vimos a pescadores apasionados buscando aventuras a ciegas, sin saber si la embarcación contaba con las habilitaciones correspondientes o los seguros de navegación al día.\n\n'
                   'Con esa chispa en mente, nos sentamos a escribir las primeras líneas de código. Cada pantalla, cada botón de reserva, cada geofence y cada comisiones de referidos fue forjada a mano con un solo norte: devolverle el protagonismo al Capitán y darle la máxima seguridad al Pescador.',
                   style: TextStyle(
@@ -1253,7 +1253,7 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Miramos el horizonte y vemos a CapitanYA como la plataforma náutica y de turismo aventura líder de América Latina. Nos dirigimos hacia un futuro donde la tecnología de geolocalización, la inteligencia artificial en predicciones de pesca y la sustentabilidad ecológica converjan en una sola aplicación. Queremos ser el guardián de la seguridad en el agua, el motor que impulse las economías regionales costeras y el punto de encuentro definitivo de la gran comunidad de amantes de la naturaleza.',
+                  'Miramos el horizonte y vemos a El Guia YA como la plataforma náutica y de turismo aventura líder de América Latina. Nos dirigimos hacia un futuro donde la tecnología de geolocalización, la inteligencia artificial en predicciones de pesca y la sustentabilidad ecológica converjan en una sola aplicación. Queremos ser el guardián de la seguridad en el agua, el motor que impulse las economías regionales costeras y el punto de encuentro definitivo de la gran comunidad de amantes de la naturaleza.',
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.8),
                     fontSize: 12.5,
@@ -1369,7 +1369,7 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'En Capitán-YA, no solo conectamos lanchas con pescadores; estamos construyendo la comunidad náutica más grande y confiable de Argentina. Desde los esteros del Norte hasta los lagos más profundos de la Patagonia, nuestra misión es que cada salida al agua sea una experiencia de primer nivel.\n\n'
+                      'En EL GUIA YA, no solo conectamos lanchas con pescadores; estamos construyendo la comunidad náutica más grande y confiable de Argentina. Desde los esteros del Norte hasta los lagos más profundos de la Patagonia, nuestra misión es que cada salida al agua sea una experiencia de primer nivel.\n\n'
                       'Buscamos personas apasionadas, con espíritu emprendedor y respeto por la naturaleza. Si sos guía, experto en logística, promotor con ganas de crecer o simplemente alguien que ama el río tanto como nosotros, este es tu lugar.\n\n'
                       'Queremos conocerte. Dejanos tu currículum y contanos por qué querés ser parte de la revolución de la navegación argentina. El próximo gran viaje lo iniciamos juntos.',
                       style: TextStyle(
@@ -1746,7 +1746,7 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
                 children: [
                   const Center(
                     child: Text(
-                      'TÉRMINOS Y CONDICIONES DE USO — CAPITÁN-YA',
+                      'TÉRMINOS Y CONDICIONES DE USO — EL GUIA YA',
                       style: TextStyle(
                         color: Color(0xFF00E676),
                         fontWeight: FontWeight.bold,
@@ -1768,7 +1768,7 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Bienvenido/a a Capitán-YA, plataforma digital destinada a conectar pescadores con servicios de excursiones de pesca, navegación, experiencias recreativas relacionadas, contenidos informativos, herramientas digitales y productos vinculados a la pesca, camping y actividades al aire libre.',
+                    'Bienvenido/a a EL GUIA YA, plataforma digital destinada a conectar pescadores con servicios de excursiones de pesca, navegación, experiencias recreativas relacionadas, contenidos informativos, herramientas digitales y productos vinculados a la pesca, camping y actividades al aire libre.',
                     style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 12, height: 1.4),
                   ),
                   const SizedBox(height: 12),
@@ -1784,7 +1784,7 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
                   ),
                   _buildTermSection(
                     '2. OBJETO DE LA PLATAFORMA',
-                    'Capitán-YA funciona como una plataforma tecnológica destinada a:\n'
+                    'EL GUIA YA funciona como una plataforma tecnológica destinada a:\n'
                     '• Gestionar solicitudes de salidas de pesca.\n'
                     '• Facilitar cotizaciones entre pescadores y capitanes/guías.\n'
                     '• Administrar reservas y pagos.\n'
@@ -1799,12 +1799,12 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
                     '• Mantener la confinencialidad de sus credenciales.\n'
                     '• Toda actividad realizada desde su cuenta.\n'
                     '• Verificar la exactitud de sus datos personales y de entrega.\n\n'
-                    'Capitán-YA podrá suspender cuentas que presenten uso fraudulento, información falsa o conductas abusivas.',
+                    'EL GUIA YA podrá suspender cuentas que presenten uso fraudulento, información falsa o conductas abusivas.',
                   ),
                   _buildTermSection(
                     '4. SALIDAS DE PESCA Y RESPONSABILIDADES',
                     'Las salidas de pesca son coordinadas entre el usuario y el capitán o prestador correspondiente.\n\n'
-                    'Capitán-YA realiza esfuerzos razonables para verificar información, pero no garantiza:\n'
+                    'EL GUIA YA realiza esfuerzos razonables para verificar información, pero no garantiza:\n'
                     '• Condiciones climáticas favorables;\n'
                     '• Capturas de peces;\n'
                     '• Navegabilidad;\n'
@@ -1831,7 +1831,7 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
                     'Toda entrega de productos físicos se realizará exclusivamente mediante operadores logísticos, correos o servicios tradicionales de transporte de paquetería, conforme las modalidades, tiempos, coberturas, limitaciones y términos establecidos por dichas empresas transportistas.\n\n'
                     'El usuario acepta expresamente que:\n'
                     'a) Los plazos de entrega son estimativos y pueden variar según la empresa logística.\n'
-                    'b) Capitán-YA no garantiza entregas inmediatas ni sincronizadas con excursiones contratadas.\n'
+                    'b) EL GUIA YA no garantiza entregas inmediatas ni sincronizadas con excursiones contratadas.\n'
                     'c) Las demoras, reprogramaciones, pérdidas parciales, contingencias climáticas, conflictos gremiales, restricciones regionales o incidencias operativas propias del transporte quedan sujetas a las condiciones del operador logístico interviniente.\n'
                     'd) El usuario deberá ingresar correctamente el domicilio de entrega, siendo responsable por errores en la dirección proporcionada.\n'
                     'e) La contratación de una salida de pesca y la compra de productos en la tienda constituyen operaciones independientes.\n\n'
@@ -1850,12 +1850,12 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
                   _buildTermSection(
                     '8. PAGOS',
                     'Los pagos podrán procesarse mediante pasarelas externas como Mercado Pago u otros proveedores autorizados.\n\n'
-                    'Capitán-YA no almacena información completa de tarjetas bancarias.\n\n'
+                    'EL GUIA YA no almacena información completa de tarjetas bancarias.\n\n'
                     'Toda operación queda sujeta a validaciones antifraude y autorizaciones del medio de pago correspondiente.',
                   ),
                   _buildTermSection(
                     '9. LIMITACIÓN DE RESPONSABILIDAD',
-                    'Capitán-YA no será responsable por:\n'
+                    'EL GUIA YA no será responsable por:\n'
                     '• Interrupciones temporales del servicio;\n'
                     '• Fallas de conectividad;\n'
                     '• Decisiones de terceros prestadores;\n'
@@ -1875,7 +1875,7 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
                   ),
                   _buildTermSection(
                     '11. MODIFICACIONES',
-                    'Capitán-YA podrá modificar estos términos cuando resulte necesario por cuestiones operativas, legales o comerciales.\n\n'
+                    'EL GUIA YA podrá modificar estos términos cuando resulte necesario por cuestiones operativas, legales o comerciales.\n\n'
                     'Las nuevas versiones entrarán en vigencia desde su publicación dentro de la aplicación.',
                   ),
                   _buildTermSection(
@@ -1941,7 +1941,7 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
           const Icon(Icons.anchor, color: Colors.white, size: 40),
           const SizedBox(height: 16),
           const Text(
-            'CAPITAN-YA',
+            'EL GUIA YA',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 20, letterSpacing: 2),
           ),
           const SizedBox(height: 8),
@@ -1990,7 +1990,7 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
             spacing: 8,
             children: [
               Text(
-                '© 2026 CapitanYA. Todos los derechos reservados.',
+                '© 2026 El Guia YA. Todos los derechos reservados.',
                 style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 10),
               ),
               Text(

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -239,7 +239,7 @@ class _CapitanZonaConfigScreenState extends State<CapitanZonaConfigScreen> {
                               TileLayer(
                                 urlTemplate:
                                     'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                                userAgentPackageName: 'com.capitanya.app',
+                                userAgentPackageName: 'com.El Guia YA.app',
                               ),
                               CircleLayer(
                                 circles: [

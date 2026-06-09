@@ -1,4 +1,4 @@
-
+﻿
 
 import 'dart:async';
 
@@ -265,7 +265,7 @@ class ModeracionService {
         descripcionPatron: deteccion.patronDetectado,
         mensajeDetectado: deteccion.mensajeDetectado,
         accionRecomendada: _generarRecomendacionAccion(deteccion),
-        enlaceChat: 'https://capitanya.com/admin/chats/${deteccion.chatId}',
+        enlaceChat: 'https://El Guia YA.com/admin/chats/${deteccion.chatId}',
         opcionesSancion: _generarOpcionesSancion(deteccion),
       );
 
@@ -516,7 +516,7 @@ class ModeracionService {
     }
 
     final buffer = StringBuffer();
-    buffer.writeln('📊 **REPORTE DE SEGURIDAD - CAPITAN YA**');
+    buffer.writeln('📊 **REPORTE DE SEGURIDAD - EL GUIA YA**');
     buffer.writeln('');
     buffer.writeln('**Fecha:** ${DateTime.now().toString().split(' ')[0]}');
     buffer.writeln('**Total de Alertas:** ${alertas.length}');

@@ -1,4 +1,4 @@
-import 'dart:ui';
+﻿import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -407,7 +407,7 @@ class _SolicitudDetalleScreenState extends State<SolicitudDetalleScreen>
                       urlTemplate:
                           'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
                       subdomains: const ['a', 'b', 'c'],
-                      userAgentPackageName: 'com.example.capitanya',
+                      userAgentPackageName: 'com.example.El Guia YA',
                     ),
                     PolylineLayer(
                       polylines: [

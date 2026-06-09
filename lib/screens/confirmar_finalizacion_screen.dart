@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -31,7 +31,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
       SupabaseService.currentUserId ??
       ''; // Si es vacío, los métodos fallarán con gracia
   
-  // Colores CapitanYA
+  // Colores El Guia YA
   static const Color _azulNautico = Color(0xFF1565C0);
   static const Color _verdeExito = Color(0xFF10B981);
   static const Color _naranjaAlerta = Color(0xFFF59E0B);
