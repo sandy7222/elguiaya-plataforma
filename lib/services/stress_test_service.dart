@@ -1,4 +1,4 @@
-
+﻿
 
 import 'dart:math';
 
@@ -360,7 +360,7 @@ class StressTestService {
   
   // Ejecutar prueba de estres completa
   static Future<Map<String, dynamic>> ejecutarPruebaDeEstresCompleta() async {
-    print('\n🔥 INICIANDO PRUEBA DE ESTRES COMPLETA - Capitan YA');
+    print('\n🔥 INICIANDO PRUEBA DE ESTRES COMPLETA - EL GUIA YA');
     print('=' * 70);
     
     final resultados = <String, dynamic>{};

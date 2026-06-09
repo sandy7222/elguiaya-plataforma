@@ -1,4 +1,4 @@
-
+﻿
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -29,7 +29,7 @@ class _ManifiestoPasajerosScreenState extends State<ManifiestoPasajerosScreen> {
   bool _isSaving = false;
   final ImagePicker _imagePicker = ImagePicker();
   
-  // Colores CapitanYA
+  // Colores El Guia YA
   static const Color _azulNautico = Color(0xFF1565C0);
   static const Color _verdeExito = Color(0xFF10B981);
   static const Color _naranjaAlerta = Color(0xFFF59E0B);

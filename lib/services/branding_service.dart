@@ -1,10 +1,10 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'package:capitanya_master/services/supabase_service.dart';
+import 'package:El Guia YA_master/services/supabase_service.dart';
 
 class BrandingConfig {
   final String clave;

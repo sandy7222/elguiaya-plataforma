@@ -1,4 +1,4 @@
-
+﻿
 
 import 'package:flutter/material.dart';
 
@@ -8,16 +8,16 @@ import 'screens/portal_pescador_fixed.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  runApp(const CapitanYA());
+  runApp(const El Guia YA());
 }
 
-class CapitanYA extends StatelessWidget {
-  const CapitanYA({super.key});
+class El Guia YA extends StatelessWidget {
+  const El Guia YA({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Capitan YA - Portales Integrados',
+      title: 'EL GUIA YA - Portales Integrados',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         primaryColor: const Color(0xFF002366),
@@ -58,7 +58,7 @@ class PortalSelectorScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             const Text(
-              'Capitan YA',
+              'EL GUIA YA',
               style: TextStyle(
                 color: Color(0xFFFFFFFF),
                 fontSize: 32,

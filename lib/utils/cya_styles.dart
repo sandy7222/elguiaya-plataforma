@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
-/// Sistema Centralizado de Diseño y Estética Premium de Capitán-YA.
+/// Sistema Centralizado de Diseño y Estética Premium de EL GUIA YA.
 /// Contiene tokens de color, decoraciones y constructores de UI estandarizados
 /// para lograr consistencia visual total en las plataformas Pescador, Capitán y Administrador.
 class CYAStyles {

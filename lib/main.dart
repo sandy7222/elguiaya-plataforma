@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
@@ -7,53 +7,53 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart'; // Para inicializar formatos locales en español
 
 // Importaciones normalizadas
-import 'package:capitanya_master/services/supabase_service.dart';
-import 'package:capitanya_master/services/fcm_service.dart';
-import 'package:capitanya_master/providers/cart_provider.dart';
-import 'package:capitanya_master/providers/favoritos_provider.dart';
-import 'package:capitanya_master/screens/bienvenida_definitiva_screen.dart';
-import 'package:capitanya_master/screens/inicio_screen.dart';
-import 'package:capitanya_master/screens/admin_catalogo_screen.dart';
-import 'package:capitanya_master/screens/admin_dashboard_screen.dart';
-import 'package:capitanya_master/screens/admin_banners_screen.dart';
-import 'package:capitanya_master/screens/directorio_pescadores_screen.dart';
-import 'package:capitanya_master/screens/directorio_capitanes_screen.dart';
-import 'package:capitanya_master/screens/documentos_pendientes_screen.dart';
-import 'package:capitanya_master/screens/admin_perfiles_aprobacion_screen.dart';
-import 'package:capitanya_master/screens/admin_inventario_screen.dart';
-import 'package:capitanya_master/screens/admin_pedidos_screen.dart';
-import 'package:capitanya_master/screens/admin_reembolsos_screen.dart';
-import 'package:capitanya_master/screens/admin_envios_screen.dart';
-import 'package:capitanya_master/screens/admin_viajes_screen.dart';
-import 'package:capitanya_master/screens/admin_disputas_screen.dart';
-import 'package:capitanya_master/screens/admin_tracking_screen.dart';
-import 'package:capitanya_master/screens/admin_logs_screen.dart';
-import 'package:capitanya_master/screens/portal_capitan_screen.dart';
-import 'package:capitanya_master/screens/portal_pescador_screen.dart';
-import 'package:capitanya_master/screens/cart_screen.dart';
-import 'package:capitanya_master/screens/notificaciones_screen.dart';
-import 'package:capitanya_master/screens/chat_asistido_screen.dart'; // 🚀 Importado el asistido inteligente
-import 'package:capitanya_master/services/mercado_pago_service.dart';
-import 'package:capitanya_master/services/dynamic_skill_system.dart';
-import 'package:capitanya_master/services/afip_billing_skill.dart';
-import 'package:capitanya_master/services/maestro_pescador_skill.dart';
-import 'package:capitanya_master/services/emergencia_nautica_skill.dart';
-import 'package:capitanya_master/services/navegacion_gps_skill.dart';
-import 'package:capitanya_master/services/truco_argentino_skill.dart';
-import 'package:capitanya_master/services/guia_local_core.dart';
-import 'package:capitanya_master/services/connectivity_bridge.dart';
-import 'package:capitanya_master/services/baqueano_ia_service.dart';
-import 'package:capitanya_master/widgets/guia_overlay.dart';
-import 'package:capitanya_master/widgets/map_selector_widget.dart';
-import 'package:capitanya_master/services/guia_knowledge_sync_service.dart';
-import 'package:capitanya_master/screens/categories_grid_screen.dart';
-import 'package:capitanya_master/screens/pescador_perfil_edit_screen.dart';
-import 'package:capitanya_master/screens/favoritos_screen.dart';
-import 'package:capitanya_master/screens/blog_piques_screen.dart';
-import 'package:capitanya_master/screens/pronostico_screen.dart';
-import 'package:capitanya_master/screens/viajes_programados_screen.dart';
-import 'package:capitanya_master/widgets/solunar_card_widget.dart';
-import 'package:capitanya_master/services/deep_link_service.dart';
+import 'package:El Guia YA_master/services/supabase_service.dart';
+import 'package:El Guia YA_master/services/fcm_service.dart';
+import 'package:El Guia YA_master/providers/cart_provider.dart';
+import 'package:El Guia YA_master/providers/favoritos_provider.dart';
+import 'package:El Guia YA_master/screens/bienvenida_definitiva_screen.dart';
+import 'package:El Guia YA_master/screens/inicio_screen.dart';
+import 'package:El Guia YA_master/screens/admin_catalogo_screen.dart';
+import 'package:El Guia YA_master/screens/admin_dashboard_screen.dart';
+import 'package:El Guia YA_master/screens/admin_banners_screen.dart';
+import 'package:El Guia YA_master/screens/directorio_pescadores_screen.dart';
+import 'package:El Guia YA_master/screens/directorio_capitanes_screen.dart';
+import 'package:El Guia YA_master/screens/documentos_pendientes_screen.dart';
+import 'package:El Guia YA_master/screens/admin_perfiles_aprobacion_screen.dart';
+import 'package:El Guia YA_master/screens/admin_inventario_screen.dart';
+import 'package:El Guia YA_master/screens/admin_pedidos_screen.dart';
+import 'package:El Guia YA_master/screens/admin_reembolsos_screen.dart';
+import 'package:El Guia YA_master/screens/admin_envios_screen.dart';
+import 'package:El Guia YA_master/screens/admin_viajes_screen.dart';
+import 'package:El Guia YA_master/screens/admin_disputas_screen.dart';
+import 'package:El Guia YA_master/screens/admin_tracking_screen.dart';
+import 'package:El Guia YA_master/screens/admin_logs_screen.dart';
+import 'package:El Guia YA_master/screens/portal_capitan_screen.dart';
+import 'package:El Guia YA_master/screens/portal_pescador_screen.dart';
+import 'package:El Guia YA_master/screens/cart_screen.dart';
+import 'package:El Guia YA_master/screens/notificaciones_screen.dart';
+import 'package:El Guia YA_master/screens/chat_asistido_screen.dart'; // 🚀 Importado el asistido inteligente
+import 'package:El Guia YA_master/services/mercado_pago_service.dart';
+import 'package:El Guia YA_master/services/dynamic_skill_system.dart';
+import 'package:El Guia YA_master/services/afip_billing_skill.dart';
+import 'package:El Guia YA_master/services/maestro_pescador_skill.dart';
+import 'package:El Guia YA_master/services/emergencia_nautica_skill.dart';
+import 'package:El Guia YA_master/services/navegacion_gps_skill.dart';
+import 'package:El Guia YA_master/services/truco_argentino_skill.dart';
+import 'package:El Guia YA_master/services/guia_local_core.dart';
+import 'package:El Guia YA_master/services/connectivity_bridge.dart';
+import 'package:El Guia YA_master/services/baqueano_ia_service.dart';
+import 'package:El Guia YA_master/widgets/guia_overlay.dart';
+import 'package:El Guia YA_master/widgets/map_selector_widget.dart';
+import 'package:El Guia YA_master/services/guia_knowledge_sync_service.dart';
+import 'package:El Guia YA_master/screens/categories_grid_screen.dart';
+import 'package:El Guia YA_master/screens/pescador_perfil_edit_screen.dart';
+import 'package:El Guia YA_master/screens/favoritos_screen.dart';
+import 'package:El Guia YA_master/screens/blog_piques_screen.dart';
+import 'package:El Guia YA_master/screens/pronostico_screen.dart';
+import 'package:El Guia YA_master/screens/viajes_programados_screen.dart';
+import 'package:El Guia YA_master/widgets/solunar_card_widget.dart';
+import 'package:El Guia YA_master/services/deep_link_service.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -110,7 +110,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: navigatorKey,
-      title: 'Capitan YA',
+      title: 'El Guia YA',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
@@ -349,7 +349,8 @@ class _SessionWrapperState extends State<SessionWrapper> {
     }
 
     final bool isAdmin =
-        (session.user.email == 'admin@capitanya.com') ||
+        (session.user.email == 'admin@elguiaya.com') ||
+        (session.user.email == 'admin@El Guia YA.com') || // compatibilidad legacy
         (session.user.userMetadata?['rol'] == 'admin') ||
         (_perfil != null && _perfil!['es_admin'] == true);
 

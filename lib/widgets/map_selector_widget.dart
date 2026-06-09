@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
@@ -403,7 +403,7 @@ class MapSelectorWidgetState extends State<MapSelectorWidget>
       );
       final response = await http.get(
         url,
-        headers: {'User-Agent': 'CapitanYA_App'},
+        headers: {'User-Agent': 'El Guia YA_App'},
       );
 
       if (response.statusCode == 200) {
@@ -678,7 +678,7 @@ class MapSelectorWidgetState extends State<MapSelectorWidget>
         TileLayer(
           urlTemplate: 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
           subdomains: const ['a', 'b', 'c'],
-          userAgentPackageName: 'com.example.capitanya',
+          userAgentPackageName: 'com.example.El Guia YA',
         ),
         if (_routePoints.isNotEmpty)
           PolylineLayer(

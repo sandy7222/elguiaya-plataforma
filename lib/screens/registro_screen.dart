@@ -1,4 +1,4 @@
-
+﻿
 import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -315,7 +315,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
         const Icon(Icons.anchor, size: 60, color: Colors.white),
         const SizedBox(height: 10),
         const Text(
-          'CAPITAN YA',
+          'EL GUIA YA',
           style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold, letterSpacing: 2),
         ),
         const SizedBox(height: 30),

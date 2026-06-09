@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/articulo_blog.dart';
@@ -865,7 +865,7 @@ class _AdminBlogScreenState extends State<AdminBlogScreen> with SingleTickerProv
     // Controladores de texto
     final tituloCtrl = TextEditingController(text: articuloExistente.titulo);
     final resumenCtrl = TextEditingController(text: articuloExistente.resumen);
-    final autorCtrl = TextEditingController(text: articuloExistente.autor.isEmpty ? 'Staff Capitán-YA' : articuloExistente.autor);
+    final autorCtrl = TextEditingController(text: articuloExistente.autor.isEmpty ? 'Staff EL GUIA YA' : articuloExistente.autor);
     final imagenCtrl = TextEditingController(text: articuloExistente.imagenPortada);
     final contenidoCtrl = TextEditingController(text: articuloExistente.contenido);
     final minutosCtrl = TextEditingController(text: articuloExistente.minutosLectura.toString());
@@ -2105,7 +2105,7 @@ class _ModalSalidaPescaState extends State<_ModalSalidaPesca> {
 
       try {
         final profile = await SupabaseService.obtenerPerfilGuiaActual();
-        final autor = profile?['nombre'] ?? 'Staff Capitán-YA';
+        final autor = profile?['nombre'] ?? 'Staff EL GUIA YA';
         
         final portada = _fotosSubidas.isNotEmpty 
             ? _fotosSubidas.first 

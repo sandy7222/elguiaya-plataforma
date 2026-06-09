@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -41,7 +41,7 @@ class _PescadorDashboardScreenState extends State<PescadorDashboardScreen>
   String _nombrePescador = 'Pescador';
   String? _avatarUrl;
 
-  // Colores CapitanYA
+  // Colores El Guia YA
   static const Color _azulNautico = Color(0xFF1565C0);
   static const Color _verdeExito = Color(0xFF10B981);
   static const Color _naranjaAlerta = Color(0xFFF59E0B);

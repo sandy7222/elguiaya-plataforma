@@ -1,4 +1,4 @@
-
+﻿
 
 import 'dart:convert';
 
@@ -73,17 +73,17 @@ class DeteccionFraude {
   });
 }
 
-/// Servicio de Inteligencia Artificial - Asistente CapitanYA
+/// Servicio de Inteligencia Artificial - Asistente El Guia YA
 class GeminiAIService {
   static const String _apiKey = String.fromEnvironment('GEMINI_API_KEY', defaultValue: 'AIzaSy...'); // Reemplazar con API key real
   static const String _baseUrl = 'https://generativelanguage.googleapis.com/v1beta';
   static const String _model = 'gemini-2.5-flash';
   
   static String get _identidadAsistente => '''
-Soy el Asistente CapitanYA, tu experto en pesca y ventas especializado en la plataforma CapitanYA. 
+Soy el Asistente El Guia YA, tu experto en pesca y ventas especializado en la plataforma El Guia YA. 
 Mi mision es ayudarte a encontrar las mejores experiencias de pesca y garantizar transacciones seguras.
 Tengo acceso a informacion en tiempo real sobre disponibilidad de guias, perfiles verificados y condiciones actuales.
-Siempre me identificare como Asistente CapitanYA y ofrecere recomendaciones personalizadas basadas en tus preferencias.
+Siempre me identificare como Asistente El Guia YA y ofrecere recomendaciones personalizadas basadas en tus preferencias.
 
 \${EmergenciaNauticaSkill.protocoloEmergencia}
 
@@ -94,7 +94,7 @@ Siempre me identificare como Asistente CapitanYA y ofrecere recomendaciones pers
 \${TrucoArgentinoSkill.manifiestoReglas}
 ''';
 
-  /// Inicializar conversacion con identidad del Asistente CapitanYA
+  /// Inicializar conversacion con identidad del Asistente El Guia YA
   static Future<AsistenteResponse> inicializarConversacion({
     required String usuarioId,
     required String rol, // 'pescador' o 'capitan'
@@ -109,7 +109,7 @@ Contexto del usuario:
 - Fecha actual: ${DateTime.now().toString().split(' ')[0]}
 
 Genera un mensaje de bienvenida personalizado que:
-1. Me identifique como Asistente CapitanYA
+1. Me identifique como Asistente El Guia YA
 2. Reconozca el rol del usuario
 3. Ofrezca ayuda especifica segun sus necesidades
 4. Mencione que tengo acceso a disponibilidad en tiempo real
@@ -151,11 +151,11 @@ CONTEXTO DE VENTA ACTIVA:
 - Fecha actual: ${DateTime.now().toString().split(' ')[0]}
 
 SITUACION:
-Un pescador esta explorando guias en la plataforma. Como Asistente CapitanYA, debo intervenir proactivamente para ayudarle a tomar una decision.
+Un pescador esta explorando guias en la plataforma. Como Asistente El Guia YA, debo intervenir proactivamente para ayudarle a tomar una decision.
 
 OBJETIVO:
 Generar un mensaje de venta activa que:
-1. Me identifique como Asistente CapitanYA
+1. Me identifique como Asistente El Guia YA
 2. Pregunte especificamente: "¿Buscas pesca de costa o embarcado?"
 3. Mencione que puedo recomendar el mejor guia disponible hoy
 4. Sea persuasivo pero no agresivo
@@ -220,7 +220,7 @@ GUIAS DISPONIBLES:
 ${_formatGuiasParaPrompt(guiasDisponibles)}
 
 OBJETIVO:
-Como Asistente CapitanYA, debo recomendar el mejor guia disponible basandome en:
+Como Asistente El Guia YA, debo recomendar el mejor guia disponible basandome en:
 1. Especialidad del guia vs preferencias del pescador
 2. Disponibilidad confirmada
 3. Relacion calidad-precio
@@ -275,7 +275,7 @@ CONTEXTO DE MODERACION:
 - Fecha: ${DateTime.now().toString()}
 
 OBJETIVO:
-Como Asistente CapitanYA con rol de seguridad, debo detectar patrones de evasion de comision en los chats.
+Como Asistente El Guia YA con rol de seguridad, debo detectar patrones de evasion de comision en los chats.
 
 PATRONES A DETECTAR:
 1. Evasion de comision:
@@ -350,7 +350,7 @@ CONTEXTO DE REPORTE DE SEGURIDAD:
 - Fecha: ${deteccion.fechaDeteccion.toString()}
 
 OBJETIVO:
-Como Asistente CapitanYA, debo generar un reporte detallado para el Panel de Seguridad que:
+Como Asistente El Guia YA, debo generar un reporte detallado para el Panel de Seguridad que:
 1. Describa claramente la violacion detectada
 2. Explique el riesgo para la plataforma
 3. Recomende acciones especificas
@@ -524,7 +524,7 @@ Genera un reporte profesional y detallado (300-500 palabras).
     }
   }
 
-  /// Chat general con el Asistente CapitanYA
+  /// Chat general con el Asistente El Guia YA
   static Future<AsistenteResponse> chatGeneral({
     required String usuarioId,
     required String mensaje,
@@ -546,7 +546,7 @@ HISTORIAL RECIENTE:
 ${_formatHistorialChat(contextoChat ?? [])}
 
 INSTRUCCIONES:
-1. Responde siempre como Asistente CapitanYA
+1. Responde siempre como Asistente El Guia YA
 2. Se util, profesional y amigable
 3. Ofrece ayuda especifica sobre pesca y la plataforma
 4. Si es sobre guias, menciona que puedo verificar disponibilidad
@@ -555,7 +555,7 @@ INSTRUCCIONES:
 
 Responde en formato JSON:
 {
-  "mensaje": "tu respuesta como Asistente CapitanYA",
+  "mensaje": "tu respuesta como Asistente El Guia YA",
   "tipo": "chat_general",
   "confianza": 0.9
 }
@@ -604,7 +604,7 @@ Responde en formato JSON:
 $_identidadAsistente
 
 OBJETIVO:
-Actuar como un redactor deportivo experto de pesca para la plataforma Capitán-YA. Debes compilar una noticia a partir de la fuente proporcionada.
+Actuar como un redactor deportivo experto de pesca para la plataforma EL GUIA YA. Debes compilar una noticia a partir de la fuente proporcionada.
 
 $contextoEspecifico
 
@@ -714,7 +714,7 @@ Responde únicamente con un arreglo JSON con los objetos de la estructura indica
   }) async {
     try {
       final prompt = '''
-Sos el redactor del blog de pesca deportiva CapitanYA.
+Sos el redactor del blog de pesca deportiva El Guia YA.
 El canal "$canalNombre" publicó un nuevo video titulado: "$tituloVideo".
 
 Escribí UN comentario editorial de exactamente 2 oraciones (máx. 200 caracteres en total) que:
@@ -743,7 +743,7 @@ Respondé únicamente con el texto del comentario, sin comillas ni formato JSON.
 $_identidadAsistente
 
 TEST DE CONEXION:
-Responde simplemente con: {"status": "ok", "servicio": "Asistente CapitanYA"}
+Responde simplemente con: {"status": "ok", "servicio": "Asistente El Guia YA"}
 ''';
 
       final response = await _callGemini(prompt);

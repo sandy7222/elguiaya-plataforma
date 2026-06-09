@@ -1,4 +1,4 @@
-import 'dart:ui';
+﻿import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -203,7 +203,7 @@ class _SalaEsperaPescadorScreenState extends State<SalaEsperaPescadorScreen> wit
                               Row(
                                 children: [
                                   Text(
-                                    'CAPITÁN YA',
+                                    'EL GUIA YA',
                                     style: GoogleFonts.outfit(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w900,

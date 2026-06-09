@@ -1,18 +1,18 @@
-
+﻿
 
 import 'package:flutter/material.dart';
 
 import '../services/gemini_ai_service.dart';
 import '../services/seguridad_service.dart';
 
-class AsistenteCapitanYAScreen extends StatefulWidget {
-  const AsistenteCapitanYAScreen({super.key});
+class AsistenteEl Guia YAScreen extends StatefulWidget {
+  const AsistenteEl Guia YAScreen({super.key});
 
   @override
-  State<AsistenteCapitanYAScreen> createState() => _AsistenteCapitanYAScreenState();
+  State<AsistenteEl Guia YAScreen> createState() => _AsistenteEl Guia YAScreenState();
 }
 
-class _AsistenteCapitanYAScreenState extends State<AsistenteCapitanYAScreen> {
+class _AsistenteEl Guia YAScreenState extends State<AsistenteEl Guia YAScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final List<Map<String, dynamic>> _chatHistory = [];
@@ -21,7 +21,7 @@ class _AsistenteCapitanYAScreenState extends State<AsistenteCapitanYAScreen> {
   bool _isTyping = false;
   final String _usuarioId = 'usuario_demo'; // En produccion obtener del auth
   
-  // Colores CapitanYA
+  // Colores El Guia YA
   static const Color _fondoOscuro = Color(0xFF1A1A1A);
   static const Color _blancoPuro = Color(0xFFFFFFFF);
   static const Color _azulVibrante = Color(0xFF0066FF);
@@ -51,7 +51,7 @@ class _AsistenteCapitanYAScreenState extends State<AsistenteCapitanYAScreen> {
       final usuario = await SeguridadService.getUsuarioPorId(_usuarioId);
       final rol = usuario?.rol ?? 'pescador';
 
-      // Inicializar conversacion con el Asistente CapitanYA
+      // Inicializar conversacion con el Asistente El Guia YA
       final response = await GeminiAIService.inicializarConversacion(
         usuarioId: _usuarioId,
         rol: rol,
@@ -59,7 +59,7 @@ class _AsistenteCapitanYAScreenState extends State<AsistenteCapitanYAScreen> {
 
       _addMessageToChat('asistente', response.mensaje);
     } catch (e) {
-      _addMessageToChat('asistente', '¡Hola! Soy el Asistente CapitanYA. ¿En que puedo ayudarte hoy?');
+      _addMessageToChat('asistente', '¡Hola! Soy el Asistente El Guia YA. ¿En que puedo ayudarte hoy?');
     } finally {
       setState(() {
         _isLoading = false;
@@ -94,12 +94,12 @@ class _AsistenteCapitanYAScreenState extends State<AsistenteCapitanYAScreen> {
         // Generar reporte y mostrar advertencia
         final reporte = await GeminiAIService.generarReporteSeguridad(deteccion);
         _addMessageToChat('asistente', 
-          '⚠️ He detectado actividad sospechosa en tu mensaje. Por tu seguridad y la de los guias, te recomiendo mantener todas las transacciones dentro de la plataforma CapitanYA. Esto te protege contra fraudes y garantiza un servicio de calidad.');
+          '⚠️ He detectado actividad sospechosa en tu mensaje. Por tu seguridad y la de los guias, te recomiendo mantener todas las transacciones dentro de la plataforma El Guia YA. Esto te protege contra fraudes y garantiza un servicio de calidad.');
         
         // En produccion: registrar deteccion en Panel de Seguridad
         _registrarDeteccionFraude(deteccion);
       } else {
-        // Chat normal con el Asistente CapitanYA
+        // Chat normal con el Asistente El Guia YA
         final response = await GeminiAIService.chatGeneral(
           usuarioId: _usuarioId,
           mensaje: message,
@@ -115,7 +115,7 @@ class _AsistenteCapitanYAScreenState extends State<AsistenteCapitanYAScreen> {
       }
     } catch (e) {
       _addMessageToChat('asistente', 
-        'Disculpa, he tenido un problema. Soy el Asistente CapitanYA y estoy aqui para ayudarte. ¿Podrias reformular tu pregunta?');
+        'Disculpa, he tenido un problema. Soy el Asistente El Guia YA y estoy aqui para ayudarte. ¿Podrias reformular tu pregunta?');
     } finally {
       setState(() {
         _isTyping = false;
@@ -187,7 +187,7 @@ class _AsistenteCapitanYAScreenState extends State<AsistenteCapitanYAScreen> {
         mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
           if (!isUser) ...[
-            // Avatar del Asistente CapitanYA
+            // Avatar del Asistente El Guia YA
             Container(
               width: 32,
               height: 32,
@@ -227,7 +227,7 @@ class _AsistenteCapitanYAScreenState extends State<AsistenteCapitanYAScreen> {
                 children: [
                   if (!isUser)
                     Text(
-                      'Asistente CapitanYA',
+                      'Asistente El Guia YA',
                       style: TextStyle(
                         color: _verdeBrillante,
                         fontSize: 12,
@@ -315,7 +315,7 @@ class _AsistenteCapitanYAScreenState extends State<AsistenteCapitanYAScreen> {
             child: Row(
               children: [
                 Text(
-                  'Asistente CapitanYA esta escribiendo',
+                  'Asistente El Guia YA esta escribiendo',
                   style: TextStyle(
                     color: _blancoPuro.withOpacity(0.7),
                     fontSize: 12,
@@ -416,7 +416,7 @@ class _AsistenteCapitanYAScreenState extends State<AsistenteCapitanYAScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Asistente CapitanYA',
+                  'Asistente El Guia YA',
                   style: TextStyle(
                     color: _blancoPuro,
                     fontSize: 16,
@@ -464,7 +464,7 @@ class _AsistenteCapitanYAScreenState extends State<AsistenteCapitanYAScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Conectando con Asistente CapitanYA...',
+                          'Conectando con Asistente El Guia YA...',
                           style: TextStyle(
                             color: _blancoPuro,
                             fontSize: 16,

@@ -1,4 +1,4 @@
-
+﻿
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -28,7 +28,7 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
   String _motivoVencimiento = '';
   String _capitanUuid = '';
 
-  // Colores CapitanYA
+  // Colores El Guia YA
   static const Color _fondoOscuro = Color(0xFF1A1A1A);
   static const Color _blancoPuro = Color(0xFFFFFFFF);
   static const Color _azulVibrante = Color(0xFF0066FF);
@@ -423,7 +423,7 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
             Text(
               'Tu $_motivoVencimiento está vencido.\n'
               'Para volver a recibir solicitudes de pescadores,\n'
-              'regularizá tu documentación con el equipo de Capitán-YA.',
+              'regularizá tu documentación con el equipo de EL GUIA YA.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: _blancoPuro.withOpacity(0.7),
@@ -1028,7 +1028,7 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
                 children: [
                   TileLayer(
                     urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.capitanya.app',
+                    userAgentPackageName: 'com.El Guia YA.app',
                   ),
                   PolylineLayer(
                     polylines: [

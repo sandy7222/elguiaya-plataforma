@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 import 'package:http/http.dart' as http;
@@ -7,28 +7,28 @@ import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'package:capitanya_master/models/banner_promo.dart';
-import 'package:capitanya_master/models/categoria.dart';
-import 'package:capitanya_master/models/cotizacion.dart';
-import 'package:capitanya_master/models/direccion_envio.dart';
-import 'package:capitanya_master/models/documento.dart';
-import 'package:capitanya_master/models/favorito.dart';
-import 'package:capitanya_master/models/guia.dart';
-import 'package:capitanya_master/models/manifiesto_viaje.dart';
-import 'package:capitanya_master/models/pedido.dart';
-import 'package:capitanya_master/models/pedido_item.dart';
-import 'package:capitanya_master/models/perfil_capitan.dart';
-import 'package:capitanya_master/models/pescador.dart';
-import 'package:capitanya_master/models/producto.dart';
-import 'package:capitanya_master/models/rubro.dart';
-import 'package:capitanya_master/models/user_profile.dart';
-import 'package:capitanya_master/models/viajes_invitados.dart';
-import 'package:capitanya_master/models/producto_atributo.dart';
-import 'package:capitanya_master/models/notificacion.dart';
-import 'package:capitanya_master/models/articulo_blog.dart';
-import 'package:capitanya_master/services/afip_service.dart';
-import 'package:capitanya_master/services/geofencing_service.dart';
-import 'package:capitanya_master/services/notificacion_service.dart';
+import 'package:El Guia YA_master/models/banner_promo.dart';
+import 'package:El Guia YA_master/models/categoria.dart';
+import 'package:El Guia YA_master/models/cotizacion.dart';
+import 'package:El Guia YA_master/models/direccion_envio.dart';
+import 'package:El Guia YA_master/models/documento.dart';
+import 'package:El Guia YA_master/models/favorito.dart';
+import 'package:El Guia YA_master/models/guia.dart';
+import 'package:El Guia YA_master/models/manifiesto_viaje.dart';
+import 'package:El Guia YA_master/models/pedido.dart';
+import 'package:El Guia YA_master/models/pedido_item.dart';
+import 'package:El Guia YA_master/models/perfil_capitan.dart';
+import 'package:El Guia YA_master/models/pescador.dart';
+import 'package:El Guia YA_master/models/producto.dart';
+import 'package:El Guia YA_master/models/rubro.dart';
+import 'package:El Guia YA_master/models/user_profile.dart';
+import 'package:El Guia YA_master/models/viajes_invitados.dart';
+import 'package:El Guia YA_master/models/producto_atributo.dart';
+import 'package:El Guia YA_master/models/notificacion.dart';
+import 'package:El Guia YA_master/models/articulo_blog.dart';
+import 'package:El Guia YA_master/services/afip_service.dart';
+import 'package:El Guia YA_master/services/geofencing_service.dart';
+import 'package:El Guia YA_master/services/notificacion_service.dart';
 import 'mercado_pago_service.dart';
 import 'disponibilidad_service_final.dart';
 import 'notificacion_helper.dart';
@@ -224,7 +224,7 @@ class SupabaseService {
 
       final httpResponse = await http.get(
         geoUrl,
-        headers: {'User-Agent': 'CapitanYA_Mobile_App'},
+        headers: {'User-Agent': 'El Guia YA_Mobile_App'},
       );
 
       if (httpResponse.statusCode == 200) {
@@ -254,7 +254,7 @@ class SupabaseService {
 
         final fallbackHttpResponse = await http.get(
           fallbackGeoUrl,
-          headers: {'User-Agent': 'CapitanYA_Mobile_App'},
+          headers: {'User-Agent': 'El Guia YA_Mobile_App'},
         );
 
         if (fallbackHttpResponse.statusCode == 200) {
@@ -3476,7 +3476,7 @@ class SupabaseService {
       await enviarNotificacionConDopamina(
         usuarioId: usuarioId,
         titulo: '¡Fondos Enviados! 💸',
-        mensaje: 'Hola $nombreUsuario, acabamos de transferir \$${monto.toStringAsFixed(2)} a tu cuenta de Mercado Pago. ¡Gracias por ser parte de Capitán-YA!',
+        mensaje: 'Hola $nombreUsuario, acabamos de transferir \$${monto.toStringAsFixed(2)} a tu cuenta de Mercado Pago. ¡Gracias por ser parte de EL GUIA YA!',
         tipo: 'promo',
         sonido: 'alerta',
       );
@@ -4598,7 +4598,7 @@ class SupabaseService {
           .update({'pescador_califico': true})
           .eq('id', pedidoId);
 
-      // 4. Verificar si el capitán ya calificó para cerrar el viaje automáticamente
+      // 4. Verificar si el EL GUIA YA calificó para cerrar el viaje automáticamente
       final pedido = await supabase
           .from('pedidos')
           .select('capitan_califico')
@@ -6149,7 +6149,7 @@ class SupabaseService {
           'respuesta': datos['respuesta'],
           'timestamp': datos['timestamp'],
           'metadata': datos['metadata'],
-          'source': 'capitanya_mobile',
+          'source': 'El Guia YA_mobile',
           'environment': kDebugMode ? 'development' : 'production',
         }
       };

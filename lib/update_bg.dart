@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:capitanya_master/services/supabase_service.dart';
-import 'package:capitanya_master/services/branding_service.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:El Guia YA_master/services/supabase_service.dart';
+import 'package:El Guia YA_master/services/branding_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

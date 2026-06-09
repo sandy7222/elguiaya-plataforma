@@ -1,4 +1,4 @@
-
+﻿
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -43,7 +43,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   List<Atributo> _todosLosAtributos = [];
   final List<ProductoAtributo> _atributosSeleccionados = [];
 
-  // Design System CapitanYA
+  // Design System El Guia YA
   static const Color _azulProfundo = Color(0xFF001F3F);
   static const Color _naranjaVibrante = Color(0xFF00E676);
   static const Color _grisFondo = Color(0xFFF4F7F6);

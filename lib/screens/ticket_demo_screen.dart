@@ -1,4 +1,4 @@
-
+﻿
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -23,7 +23,7 @@ class _TicketDemoScreenState extends State<TicketDemoScreen> {
   Map<String, dynamic>? _guiaData;
   String? _guiaCbu;
 
-  // Colores CapitanYA - Alto contraste para exteriores
+  // Colores El Guia YA - Alto contraste para exteriores
   final Color _fondoOscuro = const Color(0xFF1A1A1A);      // Fondo oscuro
   final Color _blancoPuro = const Color(0xFFFFFFFF);        // Blanco puro
   final Color _azulVibrante = const Color(0xFF0066FF);      // Azul vibrante
@@ -197,7 +197,7 @@ class _TicketDemoScreenState extends State<TicketDemoScreen> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'CAPITAN YA',
+                        'EL GUIA YA',
                         style: TextStyle(
                           color: _blancoPuro,
                           fontSize: 24,
@@ -565,7 +565,7 @@ class _TicketDemoScreenState extends State<TicketDemoScreen> {
           ),
           const SizedBox(height: 16),
           
-          _buildInfoFiscal('CUIT', '30-12345678-9', 'Capitan YA S.A.'),
+          _buildInfoFiscal('CUIT', '30-12345678-9', 'EL GUIA YA S.A.'),
           _buildInfoFiscal('IVA', '21%', 'Responsable Inscripto'),
           _buildInfoFiscal('Ingresos Brutos', '3%', 'Convenio Multilateral'),
           _buildInfoFiscal('Condicion', 'IVA Responsable Inscripto', 'Factura A'),

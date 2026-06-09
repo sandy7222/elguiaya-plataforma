@@ -1,10 +1,10 @@
-
+﻿
 
 import 'package:uuid/uuid.dart';
 
 class PaymentService {
   static const String MERCADO_PAGO_API_URL = 'https://api.mercadopago.com/v1/payments';
-  static const String WEBHOOK_URL = 'https://api.capitanya.com/webhooks/mercadopago'; // Produccion
+  static const String WEBHOOK_URL = 'https://api.El Guia YA.com/webhooks/mercadopago'; // Produccion
   static const String WEBHOOK_URL_DEV = 'http://localhost:8080/webhooks/mercadopago'; // Desarrollo
   
   static Map<String, dynamic> generatePaymentData({
@@ -21,7 +21,7 @@ class PaymentService {
     
     return {
       'transaction_amount': total,
-      'description': description ?? 'CapitanYA - Viaje de Pesca',
+      'description': description ?? 'El Guia YA - Viaje de Pesca',
       'payment_method_id': 'visa', // Por defecto, puede ser dinamico
       'external_reference': externalReference,
       'payer': {
@@ -36,7 +36,7 @@ class PaymentService {
         'trip_offer_id': tripOfferId,
         'taxes': taxes,
         'cbu': cbu, // Campo CBU recuperado de Supabase
-        'platform': 'capitanya_mobile',
+        'platform': 'El Guia YA_mobile',
         'created_at': DateTime.now().toIso8601String(),
         'webhook_url': webhookUrl,
       },
@@ -54,7 +54,7 @@ class PaymentService {
       tripOfferId: invoice['tripOfferId'],
       total: invoice['total'],
       taxes: invoice['taxes'],
-      description: 'CapitanYA - Viaje ID: ${invoice['tripOfferId']}',
+      description: 'El Guia YA - Viaje ID: ${invoice['tripOfferId']}',
     );
     
     return {

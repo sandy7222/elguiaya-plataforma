@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
@@ -187,7 +187,7 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> {
                   // Crédito
                   Center(
                     child: Text(
-                      '🎣 CapitanYA — Blog de Pesca',
+                      '🎣 El Guia YA — Blog de Pesca',
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.2),
                         fontSize: 11,

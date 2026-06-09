@@ -1,18 +1,18 @@
-
+﻿
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:capitanya_master/services/supabase_service.dart';
-import 'package:capitanya_master/services/branding_service.dart';
-import 'package:capitanya_master/models/producto.dart';
-import 'package:capitanya_master/models/categoria.dart';
-import 'package:capitanya_master/models/banner_promo.dart';
-import 'package:capitanya_master/providers/cart_provider.dart';
-import 'package:capitanya_master/screens/product_detail_screen.dart';
-import 'package:capitanya_master/screens/product_catalog_screen.dart';
-import 'package:capitanya_master/widgets/cart_sheet.dart';
-import 'package:capitanya_master/screens/blog_piques_screen.dart';
+import 'package:El Guia YA_master/services/supabase_service.dart';
+import 'package:El Guia YA_master/services/branding_service.dart';
+import 'package:El Guia YA_master/models/producto.dart';
+import 'package:El Guia YA_master/models/categoria.dart';
+import 'package:El Guia YA_master/models/banner_promo.dart';
+import 'package:El Guia YA_master/providers/cart_provider.dart';
+import 'package:El Guia YA_master/screens/product_detail_screen.dart';
+import 'package:El Guia YA_master/screens/product_catalog_screen.dart';
+import 'package:El Guia YA_master/widgets/cart_sheet.dart';
+import 'package:El Guia YA_master/screens/blog_piques_screen.dart';
 
 class InicioScreen extends StatefulWidget {
   const InicioScreen({super.key});
@@ -157,7 +157,7 @@ class _InicioScreenState extends State<InicioScreen> {
           const Icon(Icons.anchor, color: _primaryBlue, size: 28),
           const SizedBox(width: 8),
           Text(
-            'CAPITAN-YA',
+            'EL GUIA YA',
             style: GoogleFonts.outfit(
               color: _primaryBlue,
               fontWeight: FontWeight.w900,
@@ -401,7 +401,7 @@ class _InicioScreenState extends State<InicioScreen> {
             isAlternative: true,
           ),
 
-        // 4. SECCIÓN SORPRESA: COMUNIDAD CAPITAN-YA (Blog/Reviews)
+        // 4. SECCIÓN SORPRESA: COMUNIDAD EL GUIA YA (Blog/Reviews)
         _buildCommunitySection(),
 
         // 5. Grid de Productos Sueltos (Para no repetir carruseles)

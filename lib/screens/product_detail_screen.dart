@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -448,7 +448,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       ),
       child: Column(
         children: [
-          const Text('Capitán YA', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: _capitanBlue)),
+          const Text('EL GUIA YA', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: _capitanBlue)),
           const SizedBox(height: 8),
           const Text('Tu aliado en el agua.', style: TextStyle(color: Colors.grey)),
           const SizedBox(height: 32),
@@ -463,7 +463,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ],
           ),
           const SizedBox(height: 32),
-          Text('© 2026 Capitán YA - Todos los derechos reservados.', style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+          Text('© 2026 EL GUIA YA - Todos los derechos reservados.', style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
         ],
       ),
     );
@@ -544,11 +544,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   void _compartirProducto() {
-    final String texto = '⚓ ¡Mira este equipo en Capitán YA!\n\n'
+    final String texto = '⚓ ¡Mira este equipo en EL GUIA YA!\n\n'
         '*${widget.producto.nombre}*\n'
         '💰 Precio: ${widget.producto.precioFormateado}\n\n'
         '📍 Ver más detalles en la app o en la web:\n'
-        'https://capitanya.com/producto?id=${widget.producto.id}';
+        'https://El Guia YA.com/producto?id=${widget.producto.id}';
     
     Share.share(texto, subject: 'Interés en ${widget.producto.nombre}');
   }

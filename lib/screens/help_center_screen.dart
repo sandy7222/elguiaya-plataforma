@@ -1,4 +1,4 @@
-import 'dart:ui';
+﻿import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -782,7 +782,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
           const Icon(Icons.anchor_rounded, color: Colors.white30, size: 28),
           const SizedBox(height: 8),
           Text(
-            'CAPITÁN-YA — Tienda Oficial',
+            'EL GUIA YA — Tienda Oficial',
             style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 10, letterSpacing: 1),
           ),
         ],

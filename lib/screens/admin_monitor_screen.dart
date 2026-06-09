@@ -1,4 +1,4 @@
-
+﻿
 
 import 'dart:async';
 
@@ -20,7 +20,7 @@ class _AdminMonitorScreenState extends State<AdminMonitorScreen>
   bool _isLoading = true;
   Timer? _actualizacionTimer;
   
-  // Colores CapitanYA
+  // Colores El Guia YA
   static const Color _azulNautico = Color(0xFF1565C0);
   static const Color _verdeExito = Color(0xFF10B981);
   static const Color _naranjaAlerta = Color(0xFFF59E0B);

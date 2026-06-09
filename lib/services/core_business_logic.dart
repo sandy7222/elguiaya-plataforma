@@ -1,8 +1,8 @@
-import 'dart:math' as Math;
+﻿import 'dart:math' as Math;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// MASTER CONNECTION SKILL
-/// El corazón de la operatividad de Capitan-YA.
+/// El corazón de la operatividad de EL GUIA YA.
 /// Gestiona la vinculación irrompible entre Pescadores, Capitanes y Viajes.
 class MasterConnectionSkill {
   static final _supabase = Supabase.instance.client;
@@ -108,7 +108,7 @@ class MasterConnectionSkill {
     required String pescadorId,
   }) async {
     try {
-      // A. Verificar si el Capitán ya tiene un pedido para esa fecha exacta (Double-booking protection)
+      // A. Verificar si el EL GUIA YA tiene un pedido para esa fecha exacta (Double-booking protection)
       final existe = await _supabase
           .from('pedidos')
           .select()
@@ -118,7 +118,7 @@ class MasterConnectionSkill {
           .maybeSingle();
 
       if (existe != null) {
-        throw Exception('El Capitán ya ha reservado este horario con otro cliente.');
+        throw Exception('El EL GUIA YA ha reservado este horario con otro cliente.');
       }
 
       // B. Crear el registro maestro en Pedidos (El Viaje Programado)

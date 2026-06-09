@@ -1,4 +1,4 @@
-
+﻿
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/supabase_service.dart';
@@ -283,7 +283,7 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
         content: Text(
           esCapitan 
             ? 'Tu legajo ha sido enviado a la Central de Admisiones. Un administrador revisará tu perfil. Te notificaremos por email cuando tu cuenta sea habilitada.'
-            : 'Tu perfil ha sido creado correctamente. Ya puedes comenzar a usar Capitan-YA.',
+            : 'Tu perfil ha sido creado correctamente. Ya puedes comenzar a usar EL GUIA YA.',
           style: const TextStyle(color: Colors.white70),
         ),
         actions: [

@@ -1,4 +1,4 @@
-
+﻿
 
 import 'package:flutter/material.dart';
 
@@ -25,7 +25,7 @@ class _AsistenteChatScreenState extends State<AsistenteChatScreen> {
   bool _isMuted = false;
   final String _usuarioId = 'usuario_demo'; // En produccion obtener del auth
   
-  // Colores CapitanYA
+  // Colores El Guia YA
   static const Color _fondoOscuro = Color(0xFF1A1A1A);
   static const Color _blancoPuro = Color(0xFFFFFFFF);
   static const Color _azulVibrante = Color(0xFF0066FF);
@@ -59,7 +59,7 @@ class _AsistenteChatScreenState extends State<AsistenteChatScreen> {
       final usuario = await SeguridadService.getUsuarioPorId(_usuarioId);
       final rol = usuario?.rol ?? 'pescador';
 
-      // Inicializar conversacion con el Asistente CapitanYA
+      // Inicializar conversacion con el Asistente El Guia YA
       final response = await GeminiAIService.inicializarConversacion(
         usuarioId: _usuarioId,
         rol: rol,
@@ -68,8 +68,8 @@ class _AsistenteChatScreenState extends State<AsistenteChatScreen> {
       _addMessageToChat('asistente', response.mensaje);
       VoiceService().speak(response.mensaje);
     } catch (e) {
-      _addMessageToChat('asistente', '¡Hola! Soy el Asistente CapitanYA. ¿En que puedo ayudarte hoy?');
-      VoiceService().speak('¡Hola! Soy el Asistente CapitanYA. ¿En qué puedo ayudarte hoy?');
+      _addMessageToChat('asistente', '¡Hola! Soy el Asistente El Guia YA. ¿En que puedo ayudarte hoy?');
+      VoiceService().speak('¡Hola! Soy el Asistente El Guia YA. ¿En qué puedo ayudarte hoy?');
     } finally {
       setState(() {
         _isLoading = false;
@@ -111,7 +111,7 @@ class _AsistenteChatScreenState extends State<AsistenteChatScreen> {
         
         // Mostrar advertencia al usuario
         _addMessageToChat('asistente', 
-          '⚠️ He detectado actividad sospechosa en tu mensaje. Por tu seguridad y la de los guias, te recomiendo mantener todas las transacciones dentro de la plataforma CapitanYA. Esto te protege contra fraudes y garantiza un servicio de calidad.');
+          '⚠️ He detectado actividad sospechosa en tu mensaje. Por tu seguridad y la de los guias, te recomiendo mantener todas las transacciones dentro de la plataforma El Guia YA. Esto te protege contra fraudes y garantiza un servicio de calidad.');
         VoiceService().speak('He detectado actividad sospechosa. Por tu seguridad, mantén las transacciones en la plataforma.');
         
         // Agregar reporte al sistema de moderacion
@@ -120,11 +120,11 @@ class _AsistenteChatScreenState extends State<AsistenteChatScreen> {
         // Si es severidad alta, mostrar advertencia adicional
         if (deteccion.severidad > 0.7) {
           _addMessageToChat('asistente',
-            '🚨 **ADVERTENCIA IMPORTANTE**: He detectado un patron que podria violar nuestros terminos de servicio. Las transacciones fuera de la plataforma pueden resultar en perdida de proteccion, garantias y asistencia. Por favor, utiliza los canales oficiales de CapitanYA.');
+            '🚨 **ADVERTENCIA IMPORTANTE**: He detectado un patron que podria violar nuestros terminos de servicio. Las transacciones fuera de la plataforma pueden resultar en perdida de proteccion, garantias y asistencia. Por favor, utiliza los canales oficiales de El Guia YA.');
           VoiceService().speak('Advertencia importante. Estás violando los términos de servicio. Por favor usa los canales oficiales.');
         }
       } else {
-        // Chat normal con el Asistente CapitanYA
+        // Chat normal con el Asistente El Guia YA
         final response = await GeminiAIService.chatGeneral(
           usuarioId: _usuarioId,
           mensaje: message,
@@ -141,7 +141,7 @@ class _AsistenteChatScreenState extends State<AsistenteChatScreen> {
       }
     } catch (e) {
       _addMessageToChat('asistente', 
-        'Disculpa, he tenido un problema. Soy el Asistente CapitanYA y estoy aqui para ayudarte. ¿Podrias reformular tu pregunta?');
+        'Disculpa, he tenido un problema. Soy el Asistente El Guia YA y estoy aqui para ayudarte. ¿Podrias reformular tu pregunta?');
       if (!_isMuted) VoiceService().speak('Disculpa, he tenido un problema. ¿Podrías reformular tu pregunta?');
     } finally {
       setState(() {
@@ -216,7 +216,7 @@ class _AsistenteChatScreenState extends State<AsistenteChatScreen> {
         mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
           if (!isUser) ...[
-            // Avatar del Asistente CapitanYA
+            // Avatar del Asistente El Guia YA
             Container(
               width: 32,
               height: 32,
@@ -256,7 +256,7 @@ class _AsistenteChatScreenState extends State<AsistenteChatScreen> {
                 children: [
                   if (!isUser)
                     Text(
-                      'Asistente CapitanYA',
+                      'Asistente El Guia YA',
                       style: TextStyle(
                         color: _verdeBrillante,
                         fontSize: 12,
@@ -353,7 +353,7 @@ class _AsistenteChatScreenState extends State<AsistenteChatScreen> {
             child: Row(
               children: [
                 Text(
-                  'Asistente CapitanYA esta escribiendo',
+                  'Asistente El Guia YA esta escribiendo',
                   style: TextStyle(
                     color: _blancoPuro.withOpacity(0.7),
                     fontSize: 12,
@@ -486,7 +486,7 @@ class _AsistenteChatScreenState extends State<AsistenteChatScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Asistente CapitanYA',
+                  'Asistente El Guia YA',
                   style: TextStyle(
                     color: _blancoPuro,
                     fontSize: 16,
@@ -553,7 +553,7 @@ class _AsistenteChatScreenState extends State<AsistenteChatScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Conectando con Asistente CapitanYA...',
+                          'Conectando con Asistente El Guia YA...',
                           style: TextStyle(
                             color: _blancoPuro,
                             fontSize: 16,

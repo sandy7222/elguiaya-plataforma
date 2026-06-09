@@ -1,4 +1,4 @@
-
+﻿
 
 import 'package:flutter/material.dart';
 
@@ -35,7 +35,7 @@ class _CotizacionesFormularioScreenState extends State<CotizacionesFormularioScr
   final _especialidadController = TextEditingController();
   final _experienciaController = TextEditingController();
   
-  // Colores CapitanYA
+  // Colores El Guia YA
   static const Color _fondoOscuro = Color(0xFF1A1A1A);
   static const Color _blancoPuro = Color(0xFFFFFFFF);
   static const Color _azulVibrante = Color(0xFF0066FF);

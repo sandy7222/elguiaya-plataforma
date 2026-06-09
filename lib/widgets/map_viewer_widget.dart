@@ -1,4 +1,4 @@
-
+﻿
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -68,7 +68,7 @@ class MapViewerWidget extends StatelessWidget {
           children: [
             TileLayer(
               urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              userAgentPackageName: 'com.example.capitanya',
+              userAgentPackageName: 'com.example.El Guia YA',
             ),
             
             // Marcador de partida

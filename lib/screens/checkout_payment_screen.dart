@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -425,7 +425,7 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
               const Icon(Icons.anchor, color: Color(0xFF0D47A1), size: 22),
               const SizedBox(width: 8),
               const Text(
-                'CapitanYA',
+                'El Guia YA',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,

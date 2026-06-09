@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../services/supabase_service.dart';
 import '../services/pdf_service.dart';
 
@@ -99,7 +99,7 @@ class _DirectorioPescadoresScreenState extends State<DirectorioPescadoresScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'CAPITÁN YA - LEGAJO DE SOCIO', 
+                            'EL GUIA YA - LEGAJO DE SOCIO', 
                             style: TextStyle(color: Color(0xFFFFD700), fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.5),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,

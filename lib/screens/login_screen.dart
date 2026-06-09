@@ -1,4 +1,4 @@
-
+﻿
 
 import 'dart:async';
 
@@ -29,7 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
   double _opacity = 0.5;
   double _brightness = 1.0;
   final Color _primaryColor = const Color(0xFF0D47A1);
-  final String _welcomeText = 'Bienvenido a CapitanYA';
+  final String _welcomeText = 'Bienvenido a El Guia YA';
 
   @override
   void initState() {
@@ -241,7 +241,7 @@ class _LoginScreenState extends State<LoginScreen> {
         // (el SessionWrapper también enrutará automáticamente,
         //  pero mantenemos esto como fallback explícito)
         if (mounted) {
-          if (profile['es_admin'] == true || _emailController.text.trim().toLowerCase() == 'admin@capitanya.com') {
+          if (profile['es_admin'] == true || _emailController.text.trim().toLowerCase() == 'admin@El Guia YA.com') {
             Navigator.pushReplacementNamed(context, '/admin/dashboard');
           } else if (profile['es_capitan'] == true) {
             Navigator.pushReplacementNamed(context, '/portal/capitan');

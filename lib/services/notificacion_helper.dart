@@ -1,4 +1,4 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
+﻿import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// 🔔 HELPER CENTRALIZADO DE NOTIFICACIONES
 ///
@@ -148,7 +148,7 @@ class NotificacionHelper {
     await enviarAVarios(
       usuarioIds: [pescadorId, capitanId],
       titulo: '🔒 Viaje Cerrado',
-      mensaje: 'El viaje $codigo quedó cerrado. ¡Gracias por usar CapitanYA!',
+      mensaje: 'El viaje $codigo quedó cerrado. ¡Gracias por usar El Guia YA!',
       tipo: 'viaje_cerrado',
       metadata: {'pedido_id': pedidoId},
     );
@@ -182,7 +182,7 @@ class NotificacionHelper {
     await enviar(
       usuarioId: capitanId,
       titulo: '🎉 ¡Perfil Aprobado!',
-      mensaje: '¡Felicitaciones! Tu perfil fue aprobado. Ya podés recibir viajes en CapitanYA.',
+      mensaje: '¡Felicitaciones! Tu perfil fue aprobado. Ya podés recibir viajes en El Guia YA.',
       tipo: 'perfil_aprobado',
     );
   }

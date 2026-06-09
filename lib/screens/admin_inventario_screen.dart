@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/categoria.dart';
 import '../models/producto.dart';
@@ -22,7 +22,7 @@ class _AdminInventarioScreenState extends State<AdminInventarioScreen> {
   final _busquedaController = TextEditingController();
   List<Producto> _productosFiltrados = [];
 
-  // Colores Premium CapitanYA
+  // Colores Premium El Guia YA
   static const Color _capitanAzul = Color(0xFF001F3F);
   static const Color _capitanNaranja = Color(0xFF00E676);
   static const Color _capitanAzulClaro = Color(0xFF7FDBFF);

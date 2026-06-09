@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'categories_grid_screen.dart';
 import 'chat_unificado_screen.dart';
@@ -105,7 +105,7 @@ class _PortalPescadorScreenState extends State<PortalPescadorScreen> {
       extendBody: true,
       appBar: AppBar(
         title: const Text(
-          'Capitan YA',
+          'EL GUIA YA',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.2),
         ),
         backgroundColor: Colors.black.withOpacity(0.4),

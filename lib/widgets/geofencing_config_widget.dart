@@ -1,4 +1,4 @@
-
+﻿
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -328,7 +328,7 @@ class _GeofencingConfigWidgetState extends State<GeofencingConfigWidget> {
                 children: [
                   TileLayer(
                     urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.example.capitanya',
+                    userAgentPackageName: 'com.example.El Guia YA',
                   ),
                   
                   // Circulo de operacion

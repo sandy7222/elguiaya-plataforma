@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -662,7 +662,7 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
       children: [
         TileLayer(
           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-          userAgentPackageName: 'com.capitanya.app',
+          userAgentPackageName: 'com.El Guia YA.app',
         ),
         // Polyline para la cola del viaje
         PolylineLayer(

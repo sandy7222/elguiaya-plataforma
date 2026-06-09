@@ -1,13 +1,13 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:capitanya_master/models/direccion_envio.dart';
-import 'package:capitanya_master/models/manifiesto_viaje.dart';
-import 'package:capitanya_master/models/user_profile.dart';
-import 'package:capitanya_master/providers/cart_provider.dart';
-import 'package:capitanya_master/services/storage_service.dart';
-import 'package:capitanya_master/services/supabase_service.dart';
-import 'package:capitanya_master/screens/checkout_payment_screen.dart';
+import 'package:El Guia YA_master/models/direccion_envio.dart';
+import 'package:El Guia YA_master/models/manifiesto_viaje.dart';
+import 'package:El Guia YA_master/models/user_profile.dart';
+import 'package:El Guia YA_master/providers/cart_provider.dart';
+import 'package:El Guia YA_master/services/storage_service.dart';
+import 'package:El Guia YA_master/services/supabase_service.dart';
+import 'package:El Guia YA_master/screens/checkout_payment_screen.dart';
 // import '../widgets/product_cart_item.dart'; // Removido por no existir y no usarse
 
 class SmartCheckoutScreen extends StatefulWidget {
@@ -298,7 +298,7 @@ class _SmartCheckoutScreenState extends State<SmartCheckoutScreen>
 
         final descripcion = cartProvider.tieneItemsViaje
             ? 'Reserva de Viaje – ${cartProvider.manifiestosViaje.length} pasajero(s)'
-            : 'Compra en CapitanYA';
+            : 'Compra en El Guia YA';
 
         // Marcar que el pago fue iniciado → bloquea los formularios
         setState(() => _pagoProcesado = true);

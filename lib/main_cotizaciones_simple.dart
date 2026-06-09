@@ -1,4 +1,4 @@
-
+﻿
 
 import 'package:flutter/material.dart';
 
@@ -7,16 +7,16 @@ import 'screens/cotizaciones_capitan_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  runApp(const CapitanYA());
+  runApp(const El Guia YA());
 }
 
-class CapitanYA extends StatelessWidget {
-  const CapitanYA({super.key});
+class El Guia YA extends StatelessWidget {
+  const El Guia YA({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Capitan YA - Portal de Cotizaciones',
+      title: 'EL GUIA YA - Portal de Cotizaciones',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         primaryColor: const Color(0xFF002366),

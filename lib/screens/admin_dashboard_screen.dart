@@ -1,4 +1,4 @@
-import 'dart:ui';
+﻿import 'dart:ui';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -1019,7 +1019,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             filter: ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
             child: Container(
               decoration: BoxDecoration(
-                color: const Color(0xFF0D47A1), // Azul Profundo CapitanYA
+                color: const Color(0xFF0D47A1), // Azul Profundo El Guia YA
                 border: Border(
                   bottom: BorderSide(color: Colors.white.withOpacity(0.2), width: 0.5),
                 ),
@@ -1047,7 +1047,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  'CAPITAN-YA',
+                                  'EL GUIA YA',
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 16,
@@ -1176,7 +1176,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       );
     }
     return const BoxDecoration(
-      color: Color(0xFF0D47A1), // Azul Profundo CapitanYA Sólido
+      color: Color(0xFF0D47A1), // Azul Profundo El Guia YA Sólido
     );
   }
 

@@ -1,4 +1,4 @@
-
+﻿
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Resultado de una operación de facturación AFIP.
@@ -27,7 +27,7 @@ class ResultadoFactura {
 }
 
 /// ─────────────────────────────────────────────────────────────────────────────
-/// AfipService — Motor de Facturación Electrónica de CapitanYA
+/// AfipService — Motor de Facturación Electrónica de El Guia YA
 ///
 /// Diseño de Interruptor Maestro:
 ///   • Cuando `afip_facturacion_activa = false` el servicio escribe un log

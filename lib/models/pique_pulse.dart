@@ -1,4 +1,4 @@
-import 'package:hive/hive.dart';
+﻿import 'package:hive/hive.dart';
 
 part 'pique_pulse.g.dart';
 
@@ -31,7 +31,7 @@ class PiquePulse extends HiveObject {
     this.especieDetectada,
   });
 
-  /// Convierte el modelo a un Map (para el servidor Supabase en Capitán-YA)
+  /// Convierte el modelo a un Map (para el servidor Supabase en EL GUIA YA)
   Map<String, dynamic> toMap() {
     return {
       'id': id,

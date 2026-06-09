@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Capitanya Master</string>
+	<string>El Guia YA</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -77,6 +77,6 @@
 	<key>NSMicrophoneUsageDescription</key>
 	<string>El GuIA necesita acceder al micrófono para escucharte en el río.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>CapitanYA necesita tu ubicación para que los capitanes y el Centro de Comando puedan encontrarte rápidamente.</string>
+	<string>El Guia YA necesita tu ubicación para que los capitanes y el Centro de Comando puedan encontrarte rápidamente.</string>
 </dict>
 </plist>

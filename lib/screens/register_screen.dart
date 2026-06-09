@@ -1,4 +1,4 @@
-
+﻿
 
 import 'dart:async';
 
@@ -31,7 +31,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   double _opacity = 0.5;
   double _brightness = 1.0;
   Color _primaryColor = const Color(0xFF0D47A1);
-  String _welcomeText = 'Crea tu cuenta en CapitanYA';
+  String _welcomeText = 'Crea tu cuenta en El Guia YA';
 
   @override
   void initState() {
@@ -44,7 +44,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           _opacity = config.opacity;
           _brightness = config.brightness;
           _primaryColor = _parseColor('#0D47A1');
-          _welcomeText = 'Crea tu cuenta en CapitanYA';
+          _welcomeText = 'Crea tu cuenta en El Guia YA';
         });
       }
     });

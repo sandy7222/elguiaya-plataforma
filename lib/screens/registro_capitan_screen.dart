@@ -1,12 +1,12 @@
-import 'package:flutter/foundation.dart';
+﻿import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'package:capitanya_master/services/storage_service.dart';
-import 'package:capitanya_master/services/supabase_service.dart';
-import 'package:capitanya_master/screens/custom_camera_screen.dart';
-import 'package:capitanya_master/screens/custom_crop_screen.dart';
+import 'package:El Guia YA_master/services/storage_service.dart';
+import 'package:El Guia YA_master/services/supabase_service.dart';
+import 'package:El Guia YA_master/screens/custom_camera_screen.dart';
+import 'package:El Guia YA_master/screens/custom_crop_screen.dart';
 
 class RegistroCapitanScreen extends StatefulWidget {
   const RegistroCapitanScreen({super.key});
@@ -41,7 +41,7 @@ class _RegistroCapitanScreenState extends State<RegistroCapitanScreen> {
   final _referidoController = TextEditingController();
   bool _traeReferido = false;
 
-  // Colores Premium CapitanYA
+  // Colores Premium El Guia YA
   static const Color _capitanAzul = Color(0xFF001F3F);
   static const Color _capitanNaranja = Color(0xFF00E676); // Ahora Verde Premium
   static const Color _capitanAzulClaro = Color(0xFF7FDBFF);
@@ -487,7 +487,7 @@ class _RegistroCapitanScreenState extends State<RegistroCapitanScreen> {
       children: [
         const Text('UNITE A LA FLOTA', style: TextStyle(color: _capitanNaranja, fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 2)),
         const SizedBox(height: 8),
-        const Text('CAPITAN YA', style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
+        const Text('EL GUIA YA', style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
         const SizedBox(height: 10),
         Text('Completá tu perfil y subí la documentación para empezar a recibir reservas de pescadores.', 
           style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 16)),

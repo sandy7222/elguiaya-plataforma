@@ -1,11 +1,11 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:capitanya_master/services/supabase_service.dart';
-import 'package:capitanya_master/services/storage_service.dart';
-import 'package:capitanya_master/utils/cya_styles.dart';
+import 'package:El Guia YA_master/services/supabase_service.dart';
+import 'package:El Guia YA_master/services/storage_service.dart';
+import 'package:El Guia YA_master/utils/cya_styles.dart';
 import 'dart:ui' as ui;
 
 class PortalCapitanSuspendidoScreen extends StatefulWidget {
@@ -660,7 +660,7 @@ class _PortalCapitanSuspendidoScreenState extends State<PortalCapitanSuspendidoS
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text('Titular:', style: TextStyle(color: Colors.white54, fontSize: 13)),
-                          Text('Capitán-YA S.R.L.', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                          Text('EL GUIA YA S.R.L.', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
                         ],
                       ),
                       SizedBox(height: 8),

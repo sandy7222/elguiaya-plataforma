@@ -1,4 +1,4 @@
-
+﻿
 
 import 'package:flutter/material.dart';
 import 'billetera_capitan_screen.dart';
@@ -15,7 +15,7 @@ class PortalCapitanScreen extends StatefulWidget {
 class _PortalCapitanScreenState extends State<PortalCapitanScreen> {
   int _selectedIndex = 0;
 
-  // Colores CapitanYA
+  // Colores El Guia YA
   static const Color _fondoOscuro = Color(0xFF1A1A1A);
   static const Color _blancoPuro = Color(0xFFFFFFFF);
   static const Color _azulVibrante = Color(0xFF0066FF);

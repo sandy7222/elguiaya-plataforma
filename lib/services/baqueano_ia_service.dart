@@ -1,8 +1,8 @@
-import 'dart:math';
+﻿import 'dart:math';
 import 'package:flutter/foundation.dart';
-import 'package:capitanya_master/models/el_guia_respuesta.dart';
-import 'package:capitanya_master/models/producto.dart';
-import 'package:capitanya_master/services/supabase_service.dart';
+import 'package:El Guia YA_master/models/el_guia_respuesta.dart';
+import 'package:El Guia YA_master/models/producto.dart';
+import 'package:El Guia YA_master/services/supabase_service.dart';
 import 'connectivity_bridge.dart';
 import 'el_guia_engine.dart';
 import 'el_guia_context.dart';
@@ -219,7 +219,7 @@ class BaqueanoIAService {
     // Filtro de temas prohibidos (siempre, independiente del motor)
     if (esTemaProhibido(pq)) {
       return ElGuiaRespuesta.simple(
-        'Ese tema esta fuera de mi zona. Para consultas sobre pagos o reembolsos, contacta al equipo de Capitan-YA.',
+        'Ese tema esta fuera de mi zona. Para consultas sobre pagos o reembolsos, contacta al equipo de EL GUIA YA.',
       );
     }
 

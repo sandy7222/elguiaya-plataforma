@@ -1,6 +1,6 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:capitanya_master/services/baqueano_ia_service.dart';
+import 'package:El Guia YA_master/services/baqueano_ia_service.dart';
 
 /// ════════════════════════════════════════════════════════════════════
 ///  GuiaChatScreen — El GuIA Pro
@@ -16,7 +16,7 @@ class GuiaChatScreen extends StatefulWidget {
 
 class _GuiaChatScreenState extends State<GuiaChatScreen>
     with TickerProviderStateMixin {
-  // ── Paleta CapitanYA ──────────────────────────────────────────────
+  // ── Paleta El Guia YA ──────────────────────────────────────────────
   static const Color _fondoOscuro    = Color(0xFF1A1A1A);
   static const Color _blancoPuro     = Color(0xFFFFFFFF);
   static const Color _azulVibrante   = Color(0xFF0066FF);

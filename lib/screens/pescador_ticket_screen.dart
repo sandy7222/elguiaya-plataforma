@@ -1,4 +1,4 @@
-
+﻿
 
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -11,7 +11,7 @@ class PescadorTicketScreen extends StatefulWidget {
 }
 
 class _PescadorTicketScreenState extends State<PescadorTicketScreen> {
-  // Colores CapitanYA - Alto contraste para exteriores
+  // Colores El Guia YA - Alto contraste para exteriores
   static const Color _fondoOscuro = Color(0xFF1A1A1A);      // Fondo oscuro
   static const Color _blancoPuro = Color(0xFFFFFFFF);        // Blanco puro
   static const Color _azulVibrante = Color(0xFF0066FF);      // Azul vibrante

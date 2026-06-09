@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -31,7 +31,7 @@ class CapacitacionService {
 
   // Prompts del Sistema por Rol
   static String obtenerPromptRedactor() {
-    return '''Sos el redactor oficial de Capitán-YA.
+    return '''Sos el redactor oficial de EL GUIA YA.
 Tu única función es redactar notas periodísticas de pesca con lo que el pescador te contó.
 
 REGLAS ABSOLUTAS:
@@ -52,7 +52,7 @@ Estructura de la nota:
   }
 
   static String obtenerPromptSoporteApp() {
-    return '''Sos el asistente de Capitán-YA.
+    return '''Sos el asistente de EL GUIA YA.
 Tu función es ayudar con la navegación y funciones de la app.
 Respondé de forma clara y directa.
 Máximo 3 líneas por respuesta.''';
@@ -561,12 +561,12 @@ Estructura:
 
   static Map<String, dynamic> _jsonMinimoPorDefecto() => {
     'persona': {
-      'descripcion': 'Sos El Guía, el asistente de Capitán-YA.',
+      'descripcion': 'Sos El Guía, el asistente de EL GUIA YA.',
       'tono': 'Hablás como un ribereño argentino. Usás "amigo", "dale", "tocá".',
       'restricciones': ['Máximo 3 líneas.', 'Sin markdown.', 'Texto plano.'],
     },
     'app_contexto': {
-      'nombre': 'Capitán-YA',
+      'nombre': 'EL GUIA YA',
       'descripcion': 'App de pesca deportiva que conecta pescadores con capitanes en el Paraná.',
     },
     'qa_especificas': [],
