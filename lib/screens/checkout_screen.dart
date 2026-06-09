@@ -82,8 +82,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Image.network(
-          BrandingService.defaultLogoUrl, 
+        title: Image.asset(
+          'assets/images/logo_elguiaya.png', 
           height: 35, 
           fit: BoxFit.contain,
           errorBuilder: (c, e, s) => const Text('CHECKOUT PRO', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2)),

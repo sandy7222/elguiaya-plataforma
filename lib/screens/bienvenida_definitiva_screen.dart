@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -466,8 +466,8 @@ class _BienvenidaDefinitivaScreenState extends State<BienvenidaDefinitivaScreen>
       child: Column(
         children: [
           _logoUrl != null && _logoUrl!.isNotEmpty
-              ? ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.network(_logoUrl!, height: 100, fit: BoxFit.contain, errorBuilder: (context, error, stackTrace) => Image.network(BrandingService.defaultLogoUrl, height: 100)))
-              : Image.network(BrandingService.defaultLogoUrl, height: 100),
+              ? ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.network(_logoUrl!, height: 100, fit: BoxFit.contain, errorBuilder: (context, error, stackTrace) => Image.asset('assets/images/logo_elguiaya.png', height: 100)))
+              : Image.asset('assets/images/logo_elguiaya.png', height: 100),
           const SizedBox(height: 16),
           Text('welcome_title'.t(), style: TextStyle(color: _blancoPuro, fontSize: 36, fontWeight: FontWeight.bold, letterSpacing: 3.5)),
           const SizedBox(height: 12),

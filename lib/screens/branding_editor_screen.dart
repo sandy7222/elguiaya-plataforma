@@ -1,4 +1,4 @@
-﻿
+
 
 
 import 'dart:typed_data';
@@ -577,10 +577,10 @@ class _BrandingEditorScreenState extends State<BrandingEditorScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (_logoUrl != null)
+                          if (_logoUrl != null && _logoUrl!.isNotEmpty)
                             Image.network(_logoUrl!, height: 50)
                           else
-                            const Icon(Icons.anchor, size: 50, color: Colors.white),
+                            Image.asset('assets/images/logo_elguiaya.png', height: 50),
                           const SizedBox(height: 12),
                           const Text(
                             'EL GUIA YA',

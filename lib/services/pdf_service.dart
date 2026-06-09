@@ -1,4 +1,4 @@
-﻿
+
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -26,7 +26,7 @@ class PdfService {
     // Cargar Logo
     pw.MemoryImage? logo;
     try {
-      final logoData = await rootBundle.load('assets/images/logo_capitan.png');
+      final logoData = await rootBundle.load('assets/images/logo_elguiaya.png');
       logo = pw.MemoryImage(logoData.buffer.asUint8List());
     } catch (e) {}
 

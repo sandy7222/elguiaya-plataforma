@@ -1,4 +1,4 @@
-﻿
+
 
 import 'dart:async';
 
@@ -112,7 +112,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset('assets/images/unnamed.jpg', height: 100),
+              Image.asset('assets/images/logo_elguiaya.png', height: 100),
               const SizedBox(height: 20),
               Text(
                 _welcomeText,
