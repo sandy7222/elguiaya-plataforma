@@ -1,12 +1,12 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:El Guia YA_master/models/categoria.dart';
-import 'package:El Guia YA_master/models/producto.dart';
-import 'package:El Guia YA_master/models/rubro.dart';
-import 'package:El Guia YA_master/services/supabase_service.dart';
-import 'package:El Guia YA_master/services/storage_service.dart';
-import 'package:El Guia YA_master/screens/product_detail_screen.dart';
+import 'package:capitanya_master/models/categoria.dart';
+import 'package:capitanya_master/models/producto.dart';
+import 'package:capitanya_master/models/rubro.dart';
+import 'package:capitanya_master/services/supabase_service.dart';
+import 'package:capitanya_master/services/storage_service.dart';
+import 'package:capitanya_master/screens/product_detail_screen.dart';
 
 class AdminCatalogoScreen extends StatefulWidget {
   const AdminCatalogoScreen({super.key});

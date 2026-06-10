@@ -1,4 +1,4 @@
-﻿import 'dart:ui';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -32,7 +32,7 @@ class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
       final String? email = user.email;
       final String? role = user.userMetadata?['rol']?.toString() ?? user.userMetadata?['role']?.toString();
       
-      if (email == 'admin@El Guia YA.com' || role == 'admin') {
+      if (email == 'admin@capitanya.com' || role == 'admin') {
         setState(() {
           _isAdmin = true;
         });

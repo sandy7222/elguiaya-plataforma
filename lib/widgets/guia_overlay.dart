@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -168,7 +168,7 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
 
   Future<void> _verificarRolUsuario(String userId) async {
     final email = Supabase.instance.client.auth.currentSession?.user.email ?? '';
-    final bool isHardcodedAdmin = email.toLowerCase().trim() == 'admin@El Guia YA.com';
+    final bool isHardcodedAdmin = email.toLowerCase().trim() == 'admin@capitanya.com';
     final bool isMetadataAdmin = Supabase.instance.client.auth.currentSession?.user.userMetadata?['rol']?.toString().toLowerCase() == 'admin';
 
     if (isHardcodedAdmin || isMetadataAdmin) {

@@ -241,7 +241,7 @@ class _LoginScreenState extends State<LoginScreen> {
         // (el SessionWrapper también enrutará automáticamente,
         //  pero mantenemos esto como fallback explícito)
         if (mounted) {
-          if (profile['es_admin'] == true || _emailController.text.trim().toLowerCase() == 'admin@El Guia YA.com') {
+          if (profile['es_admin'] == true || _emailController.text.trim().toLowerCase() == 'admin@capitanya.com') {
             Navigator.pushReplacementNamed(context, '/admin/dashboard');
           } else if (profile['es_capitan'] == true) {
             Navigator.pushReplacementNamed(context, '/portal/capitan');

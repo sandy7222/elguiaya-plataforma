@@ -1,6 +1,6 @@
-﻿import 'package:flutter/material.dart';
-import 'package:El Guia YA_master/services/dynamic_skill_system.dart';
-import 'package:El Guia YA_master/widgets/afip_config_card.dart';
+import 'package:flutter/material.dart';
+import 'package:capitanya_master/services/dynamic_skill_system.dart';
+import 'package:capitanya_master/widgets/afip_config_card.dart';
 
 class AfipBillingSkill extends DynamicSystemSkill {
   @override

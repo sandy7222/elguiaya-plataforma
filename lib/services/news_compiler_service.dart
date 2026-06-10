@@ -1,10 +1,10 @@
-﻿import 'dart:math';
+import 'dart:math';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:El Guia YA_master/models/articulo_blog.dart';
-import 'package:El Guia YA_master/models/producto.dart';
-import 'package:El Guia YA_master/services/gemini_ai_service.dart';
-import 'package:El Guia YA_master/services/supabase_service.dart';
+import 'package:capitanya_master/models/articulo_blog.dart';
+import 'package:capitanya_master/models/producto.dart';
+import 'package:capitanya_master/services/gemini_ai_service.dart';
+import 'package:capitanya_master/services/supabase_service.dart';
 
 class NewsCompilerService {
   static const List<String> _imagenesPortadaPesca = [

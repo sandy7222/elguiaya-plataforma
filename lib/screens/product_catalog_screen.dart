@@ -513,32 +513,35 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-              child: CachedNetworkImage(
-                imageUrl: prod.imagenUrl,
-                width: double.infinity,
-                height: 140,
-                fit: BoxFit.cover,
-                placeholder: (context, url) => Container(
+            Hero(
+              tag: 'prod_${prod.id}',
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                child: CachedNetworkImage(
+                  imageUrl: prod.imagenUrl,
+                  width: double.infinity,
                   height: 140,
-                  color: const Color(0xFFF0F4F8),
-                  child: const Center(
-                    child: SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0D47A1)),
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    height: 140,
+                    color: const Color(0xFFF0F4F8),
+                    child: const Center(
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0D47A1)),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                errorWidget: (context, url, error) => Container(
-                  height: 140,
-                  color: const Color(0xFFF0F4F8),
-                  child: const Center(
-                    child: Icon(Icons.image_not_supported, color: Colors.grey, size: 32),
+                  errorWidget: (context, url, error) => Container(
+                    height: 140,
+                    color: const Color(0xFFF0F4F8),
+                    child: const Center(
+                      child: Icon(Icons.image_not_supported, color: Colors.grey, size: 32),
+                    ),
                   ),
                 ),
               ),

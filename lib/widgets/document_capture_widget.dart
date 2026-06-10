@@ -1,11 +1,11 @@
-﻿
+
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:El Guia YA_master/services/storage_service.dart';
-import 'package:El Guia YA_master/services/supabase_service.dart';
-import 'package:El Guia YA_master/screens/custom_camera_screen.dart';
-import 'package:El Guia YA_master/screens/custom_crop_screen.dart';
+import 'package:capitanya_master/services/storage_service.dart';
+import 'package:capitanya_master/services/supabase_service.dart';
+import 'package:capitanya_master/screens/custom_camera_screen.dart';
+import 'package:capitanya_master/screens/custom_crop_screen.dart';
 
 class DocumentCaptureWidget extends StatefulWidget {
   final String label;

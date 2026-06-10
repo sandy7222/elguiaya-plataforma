@@ -1,6 +1,6 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'package:crypto/crypto.dart';
-import 'package:El Guia YA_master/services/supabase_service.dart';
+import 'package:capitanya_master/services/supabase_service.dart';
 import 'package:http/http.dart' as http;
 
 class MercadoPagoWebhookService {

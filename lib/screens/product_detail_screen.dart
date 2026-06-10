@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -188,7 +188,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 onPageChanged: (index) => setState(() => _currentGalleryIndex = index),
                 itemBuilder: (context, index) {
                   return Hero(
-                    tag: 'prod_${widget.producto.id}',
+                    tag: index == 0 ? 'prod_${widget.producto.id}' : 'prod_${widget.producto.id}_$index',
                     child: Image.network(
                       allImages[index],
                       fit: BoxFit.contain, // Ajustado para ver todo el producto

@@ -1,11 +1,11 @@
-﻿import 'dart:io';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:El Guia YA_master/services/supabase_service.dart';
-import 'package:El Guia YA_master/services/storage_service.dart';
-import 'package:El Guia YA_master/utils/cya_styles.dart';
+import 'package:capitanya_master/services/supabase_service.dart';
+import 'package:capitanya_master/services/storage_service.dart';
+import 'package:capitanya_master/utils/cya_styles.dart';
 import 'dart:ui' as ui;
 
 class PortalCapitanSuspendidoScreen extends StatefulWidget {
