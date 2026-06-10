@@ -1,6 +1,6 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:El Guia YA_master/services/baqueano_ia_service.dart';
+import 'package:capitanya_master/services/baqueano_ia_service.dart';
 
 /// ════════════════════════════════════════════════════════════════════
 ///  GuiaChatScreen — El GuIA Pro

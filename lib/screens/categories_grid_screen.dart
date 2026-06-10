@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart' hide CarouselController;
+import 'package:flutter/material.dart' hide CarouselController;
 import 'dart:async';
 import 'dart:ui';
 import 'dart:typed_data';
@@ -67,7 +67,7 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
       if (user != null) {
         final email = user.email;
         final rol = user.userMetadata?['rol'];
-        if (email == 'admin@El Guia YA.com' || rol == 'admin') {
+        if (email == 'admin@capitanya.com' || rol == 'admin') {
           _isAdmin = true;
         }
       }
@@ -519,7 +519,7 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
         ),
         const SizedBox(height: 4),
         const Text(
-          'CapitánYA',
+          'El Guia YA',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w900,
@@ -666,7 +666,7 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
             ),
             const SizedBox(width: 8),
             const Text(
-              'CapitánYA',
+              'El Guia YA',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w900,
@@ -847,18 +847,21 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
               flex: 3,
               child: Stack(
                 children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                    child: Image.network(
-                       prod.imagenUrl,
-                      width: double.infinity,
-                      height: double.infinity,
-                      fit: BoxFit.cover,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Container(color: const Color(0xFFF0F4F8));
-                      },
-                      errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.image_not_supported, color: Colors.grey)),
+                  Hero(
+                    tag: 'prod_${prod.id}',
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                      child: Image.network(
+                         prod.imagenUrl,
+                        width: double.infinity,
+                        height: double.infinity,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(color: const Color(0xFFF0F4F8));
+                        },
+                        errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.image_not_supported, color: Colors.grey)),
+                      ),
                     ),
                   ),
                   Positioned(
@@ -1640,7 +1643,7 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
               children: [
                 const Center(
                   child: Text(
-                    '“En CapitánYA, protegemos los datos de la comunidad de pescadores y capitanes con la misma firmeza con la que navegamos el río”',
+                    '“En El Guia YA, protegemos los datos de la comunidad de pescadores y capitanes con la misma firmeza con la que navegamos el río”',
                     style: TextStyle(
                       color: Color(0xFF00E676),
                       fontStyle: FontStyle.italic,
@@ -1663,7 +1666,7 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
                 const SizedBox(height: 12),
                 _buildPolicySection(
                   'Pagos Blindados:',
-                  'CapitánYA no almacena, no ve, ni tiene acceso a tus datos de tarjetas de crédito o cuentas bancarias. Todo el flujo de dinero, señas y cobros se gestiona mediante la plataforma segura y encriptada de Mercado Pago.',
+                  'El Guia YA no almacena, no ve, ni tiene acceso a tus datos de tarjetas de crédito o cuentas bancarias. Todo el flujo de dinero, señas y cobros se gestiona mediante la plataforma segura y encriptada de Mercado Pago.',
                 ),
                 const SizedBox(height: 12),
                 _buildPolicySection(

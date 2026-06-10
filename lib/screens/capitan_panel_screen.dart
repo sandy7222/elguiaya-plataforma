@@ -315,7 +315,7 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
       backgroundColor: const Color(0xFF000B21),
       appBar: AppBar(
         title: const Text(
-          'CONSOLA DE CONTROL',
+          'Panel de Control El Guia YA',
           style: TextStyle(
             fontWeight: FontWeight.w900,
             fontSize: 16,

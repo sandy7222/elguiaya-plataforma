@@ -2,16 +2,16 @@ import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:El Guia YA_master/services/branding_service.dart';
-import 'package:El Guia YA_master/services/seguridad_service.dart';
-import 'package:El Guia YA_master/services/supabase_service.dart';
-import 'package:El Guia YA_master/services/translation_service.dart';
-import 'package:El Guia YA_master/screens/admin_dashboard_screen.dart';
-import 'package:El Guia YA_master/screens/portal_capitan_screen.dart';
-import 'package:El Guia YA_master/screens/portal_pescador_screen.dart';
-import 'package:El Guia YA_master/screens/registro_maestro_screen.dart';
-import 'package:El Guia YA_master/widgets/failsafe_background.dart';
-import 'package:El Guia YA_master/utils/cya_styles.dart';
+import 'package:capitanya_master/services/branding_service.dart';
+import 'package:capitanya_master/services/seguridad_service.dart';
+import 'package:capitanya_master/services/supabase_service.dart';
+import 'package:capitanya_master/services/translation_service.dart';
+import 'package:capitanya_master/screens/admin_dashboard_screen.dart';
+import 'package:capitanya_master/screens/portal_capitan_screen.dart';
+import 'package:capitanya_master/screens/portal_pescador_screen.dart';
+import 'package:capitanya_master/screens/registro_maestro_screen.dart';
+import 'package:capitanya_master/widgets/failsafe_background.dart';
+import 'package:capitanya_master/utils/cya_styles.dart';
 
 class BienvenidaDefinitivaScreen extends StatefulWidget {
   const BienvenidaDefinitivaScreen({super.key});
@@ -84,7 +84,7 @@ class _BienvenidaDefinitivaScreenState extends State<BienvenidaDefinitivaScreen>
           final userId = session.user.id;
           final email = session.user.email ?? '';
           
-          final bool isHardcodedAdmin = email.toLowerCase().trim() == 'admin@El Guia YA.com';
+          final bool isHardcodedAdmin = email.toLowerCase().trim() == 'admin@capitanya.com';
           final bool isMetadataAdmin = session.user.userMetadata?['rol']?.toString().toLowerCase() == 'admin';
 
           if (isHardcodedAdmin || isMetadataAdmin) {
@@ -351,7 +351,7 @@ class _BienvenidaDefinitivaScreenState extends State<BienvenidaDefinitivaScreen>
         final userId = authResponse.user!.id;
         final email = authResponse.user!.email!;
         
-        final bool isHardcodedAdmin = email.toLowerCase().trim() == 'admin@El Guia YA.com';
+        final bool isHardcodedAdmin = email.toLowerCase().trim() == 'admin@capitanya.com';
         final bool isMetadataAdmin = authResponse.user!.userMetadata?['rol']?.toString().toLowerCase() == 'admin';
 
         if (isHardcodedAdmin || isMetadataAdmin) {
@@ -471,7 +471,7 @@ class _BienvenidaDefinitivaScreenState extends State<BienvenidaDefinitivaScreen>
           const SizedBox(height: 16),
           Text('welcome_title'.t(), style: TextStyle(color: _blancoPuro, fontSize: 36, fontWeight: FontWeight.bold, letterSpacing: 3.5)),
           const SizedBox(height: 12),
-          Text('welcome_subtitle'.t(), style: TextStyle(color: _blancoPuro.withOpacity(0.85), fontSize: 16, fontStyle: FontStyle.italic)),
+          Text('welcome_subtitle'.t(), textAlign: TextAlign.center, style: TextStyle(color: _blancoPuro.withOpacity(0.85), fontSize: 16, fontStyle: FontStyle.italic)),
         ],
       ),
     );

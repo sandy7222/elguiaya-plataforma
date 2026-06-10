@@ -1,18 +1,18 @@
-﻿
+
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:El Guia YA_master/services/supabase_service.dart';
-import 'package:El Guia YA_master/services/branding_service.dart';
-import 'package:El Guia YA_master/models/producto.dart';
-import 'package:El Guia YA_master/models/categoria.dart';
-import 'package:El Guia YA_master/models/banner_promo.dart';
-import 'package:El Guia YA_master/providers/cart_provider.dart';
-import 'package:El Guia YA_master/screens/product_detail_screen.dart';
-import 'package:El Guia YA_master/screens/product_catalog_screen.dart';
-import 'package:El Guia YA_master/widgets/cart_sheet.dart';
-import 'package:El Guia YA_master/screens/blog_piques_screen.dart';
+import 'package:capitanya_master/services/supabase_service.dart';
+import 'package:capitanya_master/services/branding_service.dart';
+import 'package:capitanya_master/models/producto.dart';
+import 'package:capitanya_master/models/categoria.dart';
+import 'package:capitanya_master/models/banner_promo.dart';
+import 'package:capitanya_master/providers/cart_provider.dart';
+import 'package:capitanya_master/screens/product_detail_screen.dart';
+import 'package:capitanya_master/screens/product_catalog_screen.dart';
+import 'package:capitanya_master/widgets/cart_sheet.dart';
+import 'package:capitanya_master/screens/blog_piques_screen.dart';
 
 class InicioScreen extends StatefulWidget {
   const InicioScreen({super.key});
@@ -782,14 +782,17 @@ class _InicioScreenState extends State<InicioScreen> {
           children: [
             Stack(
               children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                  child: Image.network(
-                    p.imagenUrl,
-                    height: 150,
-                    width: 170,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(height: 150, width: 170, color: Colors.grey[200]),
+                Hero(
+                  tag: 'prod_${p.id}',
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                    child: Image.network(
+                      p.imagenUrl,
+                      height: 150,
+                      width: 170,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(height: 150, width: 170, color: Colors.grey[200]),
+                    ),
                   ),
                 ),
                 Positioned(top: 10, right: 10, child: _buildStockBadge(p.stock)),

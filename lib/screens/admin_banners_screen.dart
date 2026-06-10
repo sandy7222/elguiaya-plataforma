@@ -1,11 +1,11 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
-import 'package:El Guia YA_master/models/banner_promo.dart';
-import 'package:El Guia YA_master/models/producto.dart';
-import 'package:El Guia YA_master/models/categoria.dart';
-import 'package:El Guia YA_master/services/supabase_service.dart';
-import 'package:El Guia YA_master/services/branding_service.dart';
+import 'package:capitanya_master/models/banner_promo.dart';
+import 'package:capitanya_master/models/producto.dart';
+import 'package:capitanya_master/models/categoria.dart';
+import 'package:capitanya_master/services/supabase_service.dart';
+import 'package:capitanya_master/services/branding_service.dart';
 
 class AdminBannersScreen extends StatefulWidget {
   const AdminBannersScreen({super.key});

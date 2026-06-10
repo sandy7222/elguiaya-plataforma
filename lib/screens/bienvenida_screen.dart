@@ -1,4 +1,4 @@
-﻿
+
 
 import 'dart:async';
 
@@ -545,8 +545,8 @@ class _BienvenidaScreenState extends State<BienvenidaScreen> {
 
   bool _esAdministrador(String email, String password) {
     // En produccion, verificar contra base de datos
-    // Por ahora, admin@El Guia YA.com / admin123
-    return email == 'admin@El Guia YA.com' && password == 'admin123';
+    // Por ahora, admin@capitanya.com / admin123
+    return email == 'admin@capitanya.com' && password == 'admin123';
   }
 
   Widget _buildFooter() {
