@@ -621,7 +621,7 @@ class _BienvenidaScreenState extends State<BienvenidaScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'EL GUIA YA',
+                            'El Guía YA',
                             style: TextStyle(
                               color: _blancoPuro,
                               fontSize: 24,

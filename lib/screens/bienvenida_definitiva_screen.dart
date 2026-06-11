@@ -239,7 +239,7 @@ class _BienvenidaDefinitivaScreenState extends State<BienvenidaDefinitivaScreen>
             Expanded(child: Divider(color: Colors.white24)),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Text('¿NUEVO EN EL GUIA YA?', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+              child: Text('¿NUEVO EN EL GUÍA YA?', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
             ),
             Expanded(child: Divider(color: Colors.white24)),
           ],

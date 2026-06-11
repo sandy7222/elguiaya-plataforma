@@ -29,7 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
   double _opacity = 0.5;
   double _brightness = 1.0;
   final Color _primaryColor = const Color(0xFF0D47A1);
-  final String _welcomeText = 'Bienvenido a El Guia YA';
+  final String _welcomeText = 'Bienvenido a El Guía YA';
 
   @override
   void initState() {

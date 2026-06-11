@@ -7,7 +7,7 @@ class TranslationService {
   // Claves de traduccion
   static const Map<String, Map<String, String>> _translations = {
     'es': {
-      'welcome_title': 'EL GUIA YA',
+      'welcome_title': 'El Guía YA',
       'welcome_subtitle': 'Tu mejor amigo de pesca en Argentina',
       'login': 'Login',
       'register': 'Registro',
@@ -31,7 +31,7 @@ class TranslationService {
       'existing_user': '¿Ya tienes cuenta?',
     },
     'en': {
-      'welcome_title': 'EL GUIA YA',
+      'welcome_title': 'El Guía YA',
       'welcome_subtitle': 'Your best fishing buddy in Argentina',
       'login': 'Login',
       'register': 'Register',
@@ -55,7 +55,7 @@ class TranslationService {
       'existing_user': 'Already have an account?',
     },
     'pt': {
-      'welcome_title': 'EL GUIA YA',
+      'welcome_title': 'El Guía YA',
       'welcome_subtitle': 'Seu melhor amigo de pesca na Argentina',
       'login': 'Login',
       'register': 'Registro',
