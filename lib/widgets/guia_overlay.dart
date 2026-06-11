@@ -553,7 +553,10 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
         VoiceService().speak(responseText);
         // Opción 1: VAD — escucha en paralelo mientras el GuIA habla.
         // El callback recibe las palabras ya capturadas para no perderlas.
-        if (_modoConversacionVoz && GuiaOverlayController.micActivo.value) {
+        // Evitamos arrancar VAD si estamos offline porque el STT local sin red
+        // arranca tan rápido (y sin cancelación de eco en la nube) que detecta
+        // la propia voz del TTS y se auto-interrumpe.
+        if (_modoConversacionVoz && GuiaOverlayController.micActivo.value && _haySenal) {
           VoiceService().startVADListener((textoDetectado) {
             if (mounted && _mostrarGuia && _permiteInteractuar) {
               _interrumpir(textoInicial: textoDetectado);
