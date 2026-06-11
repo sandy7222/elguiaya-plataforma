@@ -1,0 +1,96 @@
+name: 🚀 Build y Publicar APK - El Guia YA
+
+on:
+  push:
+    branches:
+      - main
+    # Solo si hay cambios relevantes (no documentación ni scripts de CI)
+    paths-ignore:
+      - '**.md'
+      - '.github/workflows/consolidate.yml'
+      - 'scripts/**'
+      - 'sql/**'
+      - 'database/**'
+
+permissions:
+  contents: write  # necesario para crear/actualizar el GitHub Release
+
+jobs:
+  build-and-release:
+    name: Build APK y Actualizar Release
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Descargar el código del repositorio
+      - name: 📥 Checkout del repositorio
+        uses: actions/checkout@v4
+
+      # 2. Instalar Java (necesario para compilar Android)
+      - name: ☕ Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # 3. Instalar Flutter stable
+      - name: 🐦 Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.0'
+          channel: 'stable'
+          cache: true
+
+      # 4. Obtener dependencias del proyecto
+      - name: 📦 Flutter pub get
+        run: flutter pub get
+
+      # 5. Leer la versión desde pubspec.yaml
+      - name: 🏷️ Leer versión del proyecto
+        id: version
+        run: |
+          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //;s/+.*//')
+          BUILD=$(grep '^version:' pubspec.yaml | sed 's/.*+//')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "build=$BUILD" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+          echo "✅ Versión detectada: $VERSION+$BUILD"
+
+      # 6. Compilar el APK de release
+      - name: 🔨 Compilar APK Release
+        run: |
+          flutter build apk --release --no-tree-shake-icons
+          echo "✅ APK compilado correctamente"
+          ls -lh build/app/outputs/flutter-apk/app-release.apk
+
+      # 7. Renombrar el APK con la versión
+      - name: 📝 Renombrar APK
+        run: |
+          cp build/app/outputs/flutter-apk/app-release.apk \
+             build/app/outputs/flutter-apk/ElGuiaYA-v${{ steps.version.outputs.version }}.apk
+
+      # 8. Borrar el release "latest" anterior y crear uno nuevo con el APK actualizado
+      - name: 🚀 Publicar en GitHub Releases (latest)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "El Guia YA - Última versión (v${{ steps.version.outputs.version }})"
+          body: |
+            ## 📱 El Guia YA — v${{ steps.version.outputs.version }}
+            
+            > Actualización automática generada el ${{ github.event.head_commit.timestamp }}
+            
+            ### 📥 Cómo instalar
+            1. Descargá el archivo `ElGuiaYA-v${{ steps.version.outputs.version }}.apk`
+            2. Abrilo desde tu Android (puede pedirte activar "fuentes desconocidas")
+            3. ¡Listo!
+            
+            ### 🔄 Cambios de esta versión
+            ${{ github.event.head_commit.message }}
+            
+            ---
+            *Commit: `${{ github.sha }}`*
+          prerelease: false
+          make_latest: true
+          files: |
+            build/app/outputs/flutter-apk/ElGuiaYA-v${{ steps.version.outputs.version }}.apk
+          token: ${{ secrets.GITHUB_TOKEN }}
