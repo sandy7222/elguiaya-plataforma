@@ -61,9 +61,11 @@ jobs:
           echo "✅ APK compilado correctamente"
           ls -lh build/app/outputs/flutter-apk/app-release.apk
 
-      # 7. Renombrar el APK con la versión
+      # 7. Renombrar el APK: versión fija (para la URL del botón) + versión numerada
       - name: 📝 Renombrar APK
         run: |
+          cp build/app/outputs/flutter-apk/app-release.apk \
+             build/app/outputs/flutter-apk/ElGuiaYA-latest.apk
           cp build/app/outputs/flutter-apk/app-release.apk \
              build/app/outputs/flutter-apk/ElGuiaYA-v${{ steps.version.outputs.version }}.apk
 
@@ -91,5 +93,6 @@ jobs:
           prerelease: false
           make_latest: true
           files: |
+            build/app/outputs/flutter-apk/ElGuiaYA-latest.apk
             build/app/outputs/flutter-apk/ElGuiaYA-v${{ steps.version.outputs.version }}.apk
           token: ${{ secrets.GITHUB_TOKEN }}
