@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Descargar El Guia YA — App para Pescadores</title>
+  <meta name="description" content="Descargá la app El Guia YA para Android. Encontrá guías de pesca verificados, organizá tus salidas y navegá con el mapa de ríos de Argentina." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet" />
+  <!-- QR Code library -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --azul:    #0a1628;
+      --verde:   #1a9e5c;
+      --verde2:  #15c96d;
+      --dorado:  #f5a623;
+      --blanco:  #f0f4f8;
+      --gris:    #8899aa;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--azul);
+      color: var(--blanco);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+    }
+
+    /* ─── FONDO ANIMADO ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 0%, rgba(26,158,92,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 100%, rgba(245,166,35,0.12) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    header {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      justify-content: center;
+      padding: 2.5rem 1rem 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .logo-badge {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 999px;
+      padding: .5rem 1.25rem .5rem .6rem;
+      backdrop-filter: blur(12px);
+    }
+
+    .logo-badge img {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .logo-badge span {
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: .02em;
+    }
+
+    /* ─── HERO ─── */
+    .hero {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 3.5rem 1.5rem 2rem;
+      max-width: 720px;
+    }
+
+    .badge-pill {
+      display: inline-block;
+      background: linear-gradient(90deg, var(--verde), var(--verde2));
+      color: #fff;
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      padding: .35rem 1rem;
+      border-radius: 999px;
+      margin-bottom: 1.4rem;
+      animation: pulse-glow 2.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(21,201,109,.5); }
+      50%       { box-shadow: 0 0 0 10px rgba(21,201,109,0); }
+    }
+
+    h1 {
+      font-size: clamp(2.2rem, 6vw, 3.8rem);
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+
+    h1 span { color: var(--verde2); }
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: var(--gris);
+      line-height: 1.6;
+      margin-bottom: 2.5rem;
+    }
+
+    /* ─── TARJETA DESCARGA ─── */
+    .download-card {
+      position: relative;
+      z-index: 1;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 28px;
+      padding: 2.5rem 2rem;
+      max-width: 520px;
+      width: 90%;
+      backdrop-filter: blur(20px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.8rem;
+      margin-bottom: 2rem;
+    }
+
+    /* QR */
+    .qr-wrapper {
+      background: #fff;
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #qr-code canvas, #qr-code img { border-radius: 8px; }
+
+    .qr-label {
+      color: var(--azul);
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    /* Botón */
+    .btn-download {
+      display: flex;
+      align-items: center;
+      gap: .8rem;
+      background: linear-gradient(135deg, var(--verde), var(--verde2));
+      color: #fff;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 1.05rem;
+      padding: 1rem 2rem;
+      border-radius: 999px;
+      transition: transform .2s, box-shadow .2s;
+      box-shadow: 0 4px 20px rgba(21,201,109,0.35);
+      width: 100%;
+      justify-content: center;
+    }
+
+    .btn-download:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 32px rgba(21,201,109,0.5);
+    }
+
+    .btn-download svg { flex-shrink: 0; }
+
+    .version-info {
+      font-size: .82rem;
+      color: var(--gris);
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    .dot { width: 6px; height: 6px; background: var(--verde2); border-radius: 50%; }
+
+    /* ─── FEATURES ─── */
+    .features {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      max-width: 720px;
+      width: 90%;
+      margin-bottom: 3rem;
+    }
+
+    .feature-item {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 1.25rem;
+      display: flex;
+      align-items: flex-start;
+      gap: .75rem;
+      transition: background .2s;
+    }
+
+    .feature-item:hover { background: rgba(255,255,255,0.08); }
+
+    .feature-icon {
+      font-size: 1.6rem;
+      flex-shrink: 0;
+    }
+
+    .feature-text h3 { font-size: .95rem; font-weight: 700; margin-bottom: .2rem; }
+    .feature-text p  { font-size: .82rem; color: var(--gris); line-height: 1.4; }
+
+    /* ─── INSTRUCCIONES ─── */
+    .steps {
+      position: relative;
+      z-index: 1;
+      max-width: 520px;
+      width: 90%;
+      margin-bottom: 3rem;
+    }
+
+    .steps h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      text-align: center;
+      color: var(--dorado);
+    }
+
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: .9rem;
+    }
+
+    .step-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--verde), var(--verde2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: .85rem;
+      flex-shrink: 0;
+    }
+
+    .step-text { font-size: .9rem; color: var(--gris); line-height: 1.5; padding-top: 6px; }
+    .step-text strong { color: var(--blanco); }
+
+    /* ─── FOOTER ─── */
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      font-size: .8rem;
+      color: var(--gris);
+      padding: 1rem 1rem 2rem;
+    }
+
+    footer a { color: var(--verde2); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo-badge">
+      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#1a9e5c,#15c96d);display:flex;align-items:center;justify-content:center;font-size:1.2rem;">🎣</div>
+      <span>El Guia YA</span>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="badge-pill">🚀 Ya disponible para Android</div>
+    <h1>La app de pesca que<br><span>necesitabas</span></h1>
+    <p class="subtitle">
+      Guías certificados, mapas de ríos, cotizaciones y toda la información que necesita un pescador argentino. En un solo lugar.
+    </p>
+  </section>
+
+  <div class="download-card">
+    <!-- QR generado dinámicamente -->
+    <div class="qr-wrapper">
+      <div id="qr-code"></div>
+      <div class="qr-label">📷 Escaneá para descargar</div>
+    </div>
+
+    <!-- Botón de descarga directa -->
+    <a id="btn-apk"
+       href="https://github.com/sandy7222/elguiaya-plataforma/releases/latest/download/ElGuiaYA-v1.0.0.apk"
+       class="btn-download"
+       download>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Descargar APK gratis
+    </a>
+
+    <div class="version-info">
+      <div class="dot"></div>
+      <span>Android 5.0+ &nbsp;•&nbsp; ~120 MB &nbsp;•&nbsp; Última versión</span>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <div class="features">
+    <div class="feature-item">
+      <div class="feature-icon">🗺️</div>
+      <div class="feature-text">
+        <h3>Mapa de ríos</h3>
+        <p>Navegá con el mapa interactivo de ríos y zonas de pesca de Argentina</p>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">👨‍✈️</div>
+      <div class="feature-text">
+        <h3>Guías verificados</h3>
+        <p>Encontrá y contratá guías certificados cerca tuyo en segundos</p>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">🤖</div>
+      <div class="feature-text">
+        <h3>Bot con IA</h3>
+        <p>El Guía Bot responde todas tus preguntas sobre pesca con IA avanzada</p>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">📋</div>
+      <div class="feature-text">
+        <h3>Cotizaciones</h3>
+        <p>Pedí y gestioná cotizaciones para tus salidas de pesca fácilmente</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pasos de instalación -->
+  <div class="steps">
+    <h2>⚙️ ¿Cómo instalar?</h2>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-text"><strong>Descargá el APK</strong> tocando el botón de arriba o escaneando el QR con tu celular</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-text">Abrí el archivo descargado. Si tu Android te lo pide, <strong>activá "Instalar desde fuentes desconocidas"</strong> (Solo una vez)</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-text"><strong>Instalá y abrí la app.</strong> ¡Listo! Ya podés registrarte y empezar a pescar</div>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2026 El Guia YA &nbsp;•&nbsp; <a href="https://app.elguiaya.com">Versión Web</a> &nbsp;•&nbsp; Hecho en Argentina 🇦🇷</p>
+  </footer>
+
+  <script>
+    // URL permanente de descarga (siempre apunta a "latest")
+    const APK_URL = 'https://github.com/sandy7222/elguiaya-plataforma/releases/latest/download/ElGuiaYA-v1.0.0.apk';
+
+    // Generar QR con esa URL
+    new QRCode(document.getElementById('qr-code'), {
+      text: APK_URL,
+      width: 180,
+      height: 180,
+      colorDark: '#0a1628',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H,
+    });
+  </script>
+</body>
+</html>
