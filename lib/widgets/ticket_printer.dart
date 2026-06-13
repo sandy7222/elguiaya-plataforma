@@ -1,4 +1,4 @@
-﻿
+
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -68,7 +68,7 @@ class TicketPrinter {
     buffer.writeln('================================');
     buffer.writeln('');
     buffer.writeln('Para consultas sobre su pedido:');
-    buffer.writeln('Email: soporte@El Guia YA.com');
+    buffer.writeln('Email: soporte@elguiaya.com');
     buffer.writeln('Telefono: +54 11 1234-5678');
     buffer.writeln('');
     buffer.writeln('Estado actual: ${pedido.estadoEnvioNombre}');
@@ -161,7 +161,7 @@ class TicketPrinter {
     buffer.writeln('<div class="footer">');
     buffer.writeln('<strong>¡GRACIAS POR SU COMPRA!</strong><br><br>');
     buffer.writeln('Para consultas sobre su pedido:<br>');
-    buffer.writeln('Email: soporte@El Guia YA.com<br>');
+    buffer.writeln('Email: soporte@elguiaya.com<br>');
     buffer.writeln('Telefono: +54 11 1234-5678<br><br>');
     buffer.writeln('Estado actual: ${pedido.estadoEnvioNombre}<br>');
     buffer.writeln('Actualizado: ${_formatDateTime(DateTime.now())}');

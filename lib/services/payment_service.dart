@@ -1,10 +1,10 @@
-﻿
+
 
 import 'package:uuid/uuid.dart';
 
 class PaymentService {
   static const String MERCADO_PAGO_API_URL = 'https://api.mercadopago.com/v1/payments';
-  static const String WEBHOOK_URL = 'https://api.El Guia YA.com/webhooks/mercadopago'; // Produccion
+  static const String WEBHOOK_URL = 'https://api.elguiaya.com/webhooks/mercadopago'; // Produccion
   static const String WEBHOOK_URL_DEV = 'http://localhost:8080/webhooks/mercadopago'; // Desarrollo
   
   static Map<String, dynamic> generatePaymentData({

@@ -37,15 +37,11 @@ class SupabaseService {
   static List<Producto> _cachedProductos = [];
   static List<Categoria> _cachedCategorias = [];
 
-  // Configuracion de conexion cargada de variables de entorno o valores por defecto
-  static const String _url = String.fromEnvironment(
-    'SUPABASE_URL',
-    defaultValue: 'https://ymgsxwfwntbqvguvbhoa.supabase.co',
-  );
-  static const String _anonKey = String.fromEnvironment(
-    'SUPABASE_ANON_KEY',
-    defaultValue: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InltZ3N4d2Z3bnRicXZndXZiaG9hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc3ODgxMzQsImV4cCI6MjA5MzM2NDEzNH0.ZT2xlCIAnSyr_tR9qZAKIB7QAVQjJO2Jv0cwb51f1Uw',
-  );
+  static const String _envUrl = String.fromEnvironment('SUPABASE_URL');
+  static const String _url = _envUrl != '' ? _envUrl : 'https://ymgsxwfwntbqvguvbhoa.supabase.co';
+
+  static const String _envAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+  static const String _anonKey = _envAnonKey != '' ? _envAnonKey : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InltZ3N4d2Z3bnRicXZndXZiaG9hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc3ODgxMzQsImV4cCI6MjA5MzM2NDEzNH0.ZT2xlCIAnSyr_tR9qZAKIB7QAVQjJO2Jv0cwb51f1Uw';
 
   // 🚨 CONFIGURACIÓN MODO OBRA (Bypass Auth 429) - DESACTIVADO PARA PRODUCCIÓN REAL
   static const bool MODO_OBRA_ACTIVE = false; 

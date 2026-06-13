@@ -61,7 +61,7 @@ class _BienvenidaScreenState extends State<BienvenidaScreen> {
       '9. Ley Aplicable\n'
       'Estos terminos se rigen por las leyes de Argentina.\n\n'
       '10. Contacto\n'
-      'Para cualquier duda, contacta a: legal@El Guia YA.com';
+      'Para cualquier duda, contacta a: legal@elguiaya.com';
 
   // Colores El Guia YA
   static const Color _fondoPorDefecto = Color(0xFF0D47A1);
