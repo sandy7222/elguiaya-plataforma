@@ -548,7 +548,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         '*${widget.producto.nombre}*\n'
         '💰 Precio: ${widget.producto.precioFormateado}\n\n'
         '📍 Ver más detalles en la app o en la web:\n'
-        'https://El Guia YA.com/producto?id=${widget.producto.id}';
+        'https://elguiaya.com/producto?id=${widget.producto.id}';
     
     Share.share(texto, subject: 'Interés en ${widget.producto.nombre}');
   }

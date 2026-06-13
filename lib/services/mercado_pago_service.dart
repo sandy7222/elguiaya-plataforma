@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'supabase_service.dart';
 
@@ -78,9 +78,9 @@ class MercadoPagoService {
         // intentando resolver un deep link El Guia YA:// desde adentro del browser.
         // El usuario vuelve manualmente a la app y toca "Verificar mi pago".
         'back_urls': {
-          'success': 'https://El Guia YA.com.ar/pago/success',
-          'failure': 'https://El Guia YA.com.ar/pago/failure',
-          'pending': 'https://El Guia YA.com.ar/pago/pending',
+          'success': 'https://elguiaya.com/pago/success',
+          'failure': 'https://elguiaya.com/pago/failure',
+          'pending': 'https://elguiaya.com/pago/pending',
         },
         // SIN auto_return: el usuario vuelve manualmente a la app
 

@@ -4,6 +4,7 @@
   "buildCommand": "bash scripts/vercel_build.sh",
   "outputDirectory": "build/web",
   "rewrites": [
+    { "source": "/descarga", "destination": "/descarga.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

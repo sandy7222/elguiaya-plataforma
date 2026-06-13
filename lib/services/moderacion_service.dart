@@ -1,4 +1,4 @@
-﻿
+
 
 import 'dart:async';
 
@@ -265,7 +265,7 @@ class ModeracionService {
         descripcionPatron: deteccion.patronDetectado,
         mensajeDetectado: deteccion.mensajeDetectado,
         accionRecomendada: _generarRecomendacionAccion(deteccion),
-        enlaceChat: 'https://El Guia YA.com/admin/chats/${deteccion.chatId}',
+        enlaceChat: 'https://elguiaya.com/admin/chats/${deteccion.chatId}',
         opcionesSancion: _generarOpcionesSancion(deteccion),
       );
 
