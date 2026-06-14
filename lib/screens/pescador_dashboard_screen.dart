@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -17,6 +17,7 @@ import '../services/viaje_lifecycle_service.dart';
 import '../widgets/oferta_capitan_card.dart';
 import 'resumen_reserva_screen.dart';
 import '../services/gps_tracker_service.dart';
+import 'capitan_tracker_screen.dart';
 
 class PescadorDashboardScreen extends StatefulWidget {
   final Map<String, dynamic>? initialQuoteData;
@@ -374,6 +375,16 @@ class _PescadorDashboardScreenState extends State<PescadorDashboardScreen>
               MaterialPageRoute(
                 builder: (context) =>
                     const ViajesProgramadosScreen(esCapitan: false),
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.map_outlined, color: Color(0xFF00E676)),
+            tooltip: 'Mi Tracker GPS',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const CapitanTrackerScreen(esCapitan: false),
               ),
             ),
           ),

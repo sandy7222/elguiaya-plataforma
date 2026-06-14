@@ -1,14 +1,18 @@
-﻿import 'dart:async';
+import 'dart:async';
+import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:intl/intl.dart';
 import '../services/viaje_tracking_service.dart';
 import '../services/mapa_offline_service.dart';
 
 class CapitanTrackerScreen extends StatefulWidget {
-  const CapitanTrackerScreen({super.key});
+  final bool esCapitan;
+  const CapitanTrackerScreen({super.key, this.esCapitan = true});
 
   @override
   State<CapitanTrackerScreen> createState() => _CapitanTrackerScreenState();
@@ -36,10 +40,17 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
   bool _downloadSuccess = false;
   Timer? _downloadTimer;
 
+  // Variables de historial y visualización
+  List<Map<String, dynamic>> _savedTracks = [];
+  bool _showingHistory = false;
+  List<LatLng>? _selectedHistoryRoute;
+  String? _selectedHistoryName;
+
   @override
   void initState() {
     super.initState();
     _checkTrackingState();
+    _loadSavedTracks();
   }
 
   @override
@@ -162,29 +173,109 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
     );
   }
 
+  Future<void> _loadSavedTracks() async {
+    final tracks = await ViajeTrackingService().getManualTracksLocal();
+    if (mounted) {
+      setState(() {
+        _savedTracks = tracks;
+      });
+    }
+  }
+
   void _stopManualTracking() async {
     _durationTimer?.cancel();
     _positionSubscription?.cancel();
-    
-    // Detener el servicio oficial de GPS en segundo plano y forzar sincronización a Supabase
-    await ViajeTrackingService().stopTracking();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+    final TextEditingController nameController = TextEditingController(
+      text: 'Ruta ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}'
+    );
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF0A192F),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'Guardar Trayecto', 
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('🛑 Navegación finalizada.', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 4),
-            Text('Tiempo navegando: $_durationStr | Recorrido guardado en el legajo.'),
+            const Text(
+              'Ingresá un nombre para recordar este trayecto en tu historial local:', 
+              style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.4)
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: nameController,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                hintText: 'Ej. Salida de pesca Cañas',
+                hintStyle: TextStyle(color: Colors.white30),
+                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white30)),
+                focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF00E676))),
+              ),
+            ),
           ],
         ),
-        backgroundColor: Colors.blueAccent,
-        duration: const Duration(seconds: 4),
-        behavior: SnackBarBehavior.floating,
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _finishManualTracking(null);
+            },
+            child: const Text('DESCARTAR', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _finishManualTracking(nameController.text.trim());
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF00E676),
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('GUARDAR', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
       ),
     );
+  }
+
+  void _finishManualTracking(String? name) async {
+    final pointsCopy = List<LatLng>.from(_routePoints);
+    final durationCopy = _durationStr;
+    final tripIdCopy = _currentManualTripId;
+
+    await ViajeTrackingService().stopTracking();
+
+    if (name != null && name.isNotEmpty && tripIdCopy != null && pointsCopy.isNotEmpty) {
+      await ViajeTrackingService().saveManualTrackLocal(
+        tripId: tripIdCopy,
+        name: name,
+        durationStr: durationCopy,
+        points: pointsCopy,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('💾 Trayecto "$name" guardado en tu caché local.'),
+          backgroundColor: const Color(0xFF00E676),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('🛑 Trayecto finalizado sin guardar.'),
+          backgroundColor: Colors.orangeAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
 
     setState(() {
       _isLive = false;
@@ -193,6 +284,8 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
       _routePoints.clear();
       _currentLatLng = null;
     });
+
+    _loadSavedTracks();
   }
 
   // --- MÓDULO DE DESCARGA OFFLINE PREMIUM INTERACTIVO ---
@@ -432,6 +525,106 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
     );
   }
 
+  void _showCoordinatesDialog() async {
+    setState(() => _isLoadingMap = true);
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      if (mounted) {
+        setState(() => _isLoadingMap = false);
+        final String coordsText = 'Lat: ${position.latitude}\nLng: ${position.longitude}';
+        
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: const Color(0xFF0A192F),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: const Row(
+              children: [
+                Icon(Icons.settings_input_antenna_rounded, color: Color(0xFF00E676)),
+                SizedBox(width: 10),
+                Text('Coordenadas GPS', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Tus coordenadas actuales de alta precisión:',
+                  style: TextStyle(color: Colors.white70, fontSize: 13),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white12),
+                  ),
+                  child: Text(
+                    coordsText,
+                    style: const TextStyle(
+                      color: Color(0xFF00E676),
+                      fontSize: 18,
+                      fontFamily: 'monospace',
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Útil en zonas inhóspitas sin conexión a internet ni mapas satelitales.',
+                  style: TextStyle(color: Colors.white30, fontSize: 11, fontStyle: FontStyle.italic),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('CERRAR', style: TextStyle(color: Colors.white54)),
+              ),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: 'https://maps.google.com/?q=${position.latitude},${position.longitude}'));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('📋 Coordenadas copiadas al portapapeles.'),
+                      backgroundColor: Color(0xFF00E676),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                  Navigator.pop(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00E676),
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                icon: const Icon(Icons.copy, size: 16),
+                label: const Text('COPIAR MAPS'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingMap = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error al obtener GPS: $e'),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -472,13 +665,25 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
               child: _buildLiveStatusCard(),
             ),
 
-            // Botones flotantes de mapa (Descargar offline y Recentrando en columna)
+            // Botones flotantes de mapa (Descargar offline, Consulta GPS y Recentrando en columna)
             Positioned(
               bottom: _isManual ? 100 : 24,
               right: 16,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Botón flotante para consultar coordenadas GPS rápidas
+                  FloatingActionButton(
+                    heroTag: 'btnCoords',
+                    onPressed: _showCoordinatesDialog,
+                    backgroundColor: const Color(0xFF0A192F).withOpacity(0.9),
+                    foregroundColor: const Color(0xFF00E676),
+                    elevation: 6,
+                    shape: const CircleBorder(side: BorderSide(color: Colors.white12, width: 0.8)),
+                    child: const Icon(Icons.settings_input_antenna_rounded, size: 22),
+                  ),
+                  const SizedBox(height: 12),
+
                   // Botón flotante para descargar mapa offline
                   FloatingActionButton(
                     heroTag: 'btnOffline',
@@ -524,8 +729,92 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
   }
 
   Widget _buildInactiveView() {
+    return SafeArea(
+      child: Column(
+        children: [
+          // Toggle de navegación superior
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+            child: Container(
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(25),
+                border: Border.all(color: Colors.white10),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() {
+                        _showingHistory = false;
+                        _selectedHistoryRoute = null;
+                        _selectedHistoryName = null;
+                      }),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: !_showingHistory ? const Color(0xFF00E676) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '🧭 NUEVO VIAJE',
+                          style: TextStyle(
+                            color: !_showingHistory ? Colors.black : Colors.white60,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _showingHistory = true;
+                          _selectedHistoryRoute = null;
+                          _selectedHistoryName = null;
+                        });
+                        _loadSavedTracks();
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: _showingHistory ? const Color(0xFF00E676) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '📂 HISTORIAL LOCAL',
+                          style: TextStyle(
+                            color: _showingHistory ? Colors.black : Colors.white60,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
+          Expanded(
+            child: _showingHistory 
+              ? _selectedHistoryRoute != null 
+                ? _buildHistoryRouteViewer() 
+                : _buildHistoryList()
+              : _buildRadarDashboard(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRadarDashboard() {
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -560,9 +849,10 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
               ],
             ),
             const SizedBox(height: 24),
-            const Text(
-              'SISTEMA DE NAVEGACIÓN',
-              style: TextStyle(
+            Text(
+              widget.esCapitan ? 'SISTEMA DE NAVEGACIÓN' : 'SISTEMA DE SEGUIMIENTO PESCADOR',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w900,
                 fontSize: 16,
@@ -577,14 +867,14 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: Colors.amber.withOpacity(0.3), width: 0.8),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.anchor_rounded, color: Colors.amber, size: 14),
-                  SizedBox(width: 8),
+                  const Icon(Icons.anchor_rounded, color: Colors.amber, size: 14),
+                  const SizedBox(width: 8),
                   Text(
-                    'MODO: EN PUERTO / ESPERA',
-                    style: TextStyle(
+                    widget.esCapitan ? 'MODO: EN PUERTO / ESPERA' : 'MODO: PESCADOR DEPORTIVO',
+                    style: const TextStyle(
                       color: Colors.amber,
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
@@ -596,7 +886,9 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
             ),
             const SizedBox(height: 20),
             Text(
-              'El tracker satelital registrará de manera automática tu posición en el mapa y la trayectoria cada 15 segundos en viajes contratados.\n\nTambién podés utilizarlo de forma manual en cualquier momento presionando el siguiente botón:',
+              widget.esCapitan
+                  ? 'El tracker satelital registrará de manera automática tu posición en el mapa y la trayectoria cada 15 segundos en viajes contratados.\n\nTambién podés utilizarlo de forma manual en cualquier momento presionando el siguiente botón:'
+                  : 'El tracker registrará tu posición en el mapa y tu trayectoria de pesca cada 15 segundos de forma automática para mayor seguridad.\n\nIniciá tu salida de pesca presionando el siguiente botón:',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white.withOpacity(0.6),
@@ -613,9 +905,9 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
                 ElevatedButton.icon(
                   onPressed: _startManualTracking,
                   icon: const Icon(Icons.navigation_rounded, color: Colors.black, size: 16),
-                  label: const Text(
-                    'INICIAR TRACKER',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5, letterSpacing: 0.5),
+                  label: Text(
+                    widget.esCapitan ? 'INICIAR TRACKER' : 'INICIAR SALIDA',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5, letterSpacing: 0.5),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF00E676),
@@ -642,9 +934,243 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 24),
+            // Botón GPS de consulta rápida
+            TextButton.icon(
+              onPressed: _showCoordinatesDialog,
+              icon: const Icon(Icons.settings_input_antenna_rounded, color: Color(0xFF00E676), size: 18),
+              label: const Text(
+                '📍 OBTENER COORDENADAS GPS RÁPIDAS',
+                style: TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold, fontSize: 11),
+              ),
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.white.withOpacity(0.05),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              ),
+            ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildHistoryList() {
+    if (_savedTracks.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.folder_open_rounded, size: 48, color: Colors.white.withOpacity(0.3)),
+            const SizedBox(height: 16),
+            const Text(
+              'No hay trayectos guardados',
+              style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Tus trayectos finalizados aparecerán aquí.',
+              style: TextStyle(color: Colors.white30, fontSize: 12),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+      itemCount: _savedTracks.length,
+      itemBuilder: (context, index) {
+        final track = _savedTracks[index];
+        final String nombre = track['nombre'] ?? 'Sin Nombre';
+        final String fechaRaw = track['fecha'] ?? '';
+        final String duracion = track['duracion'] ?? '00:00';
+        final List<dynamic> puntos = track['puntos'] ?? [];
+        
+        String fechaStr = fechaRaw;
+        try {
+          final dt = DateTime.parse(fechaRaw);
+          fechaStr = DateFormat('dd/MM/yyyy - HH:mm').format(dt);
+        } catch (_) {}
+
+        return Card(
+          color: const Color(0xFF0A192F).withOpacity(0.8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Colors.white10),
+          ),
+          margin: const EdgeInsets.only(bottom: 12),
+          child: ListTile(
+            contentPadding: const EdgeInsets.all(16),
+            title: Text(
+              nombre,
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    const Icon(Icons.calendar_today_rounded, size: 12, color: Colors.white54),
+                    const SizedBox(width: 6),
+                    Text(fechaStr, style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.timer_outlined, size: 12, color: Colors.white54),
+                    const SizedBox(width: 6),
+                    Text('Duración: $duracion', style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                    const SizedBox(width: 16),
+                    const Icon(Icons.location_on_outlined, size: 12, color: Colors.white54),
+                    const SizedBox(width: 6),
+                    Text('${puntos.length} pts', style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                  ],
+                ),
+              ],
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.map_outlined, color: Color(0xFF00E676)),
+                  tooltip: 'Ver en Mapa',
+                  onPressed: () {
+                    final List<LatLng> latLngList = puntos.map((p) {
+                      final map = p as Map<String, dynamic>;
+                      return LatLng(map['lat'] as double, map['lng'] as double);
+                    }).toList();
+                    setState(() {
+                      _selectedHistoryRoute = latLngList;
+                      _selectedHistoryName = nombre;
+                    });
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
+                  tooltip: 'Eliminar',
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        backgroundColor: const Color(0xFF0A192F),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        title: const Text('¿Eliminar trayecto?', style: TextStyle(color: Colors.white)),
+                        content: Text('¿Seguro que deseas eliminar "$nombre"? Esto no se puede deshacer.', style: const TextStyle(color: Colors.white70)),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('CANCELAR', style: TextStyle(color: Colors.white54)),
+                          ),
+                          ElevatedButton(
+                            onPressed: () async {
+                              await ViajeTrackingService().deleteManualTrackLocal(track['id']);
+                              Navigator.pop(context);
+                              _loadSavedTracks();
+                            },
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                            child: const Text('ELIMINAR'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildHistoryRouteViewer() {
+    if (_selectedHistoryRoute == null || _selectedHistoryRoute!.isEmpty) {
+      return const Center(child: Text('No hay datos de ruta', style: TextStyle(color: Colors.white)));
+    }
+    
+    return Stack(
+      children: [
+        FlutterMap(
+          options: MapOptions(
+            initialCenter: _selectedHistoryRoute!.first,
+            initialZoom: 14.0,
+          ),
+          children: [
+            TileLayer(
+              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              userAgentPackageName: 'com.El Guia YA.app',
+            ),
+            PolylineLayer(
+              polylines: [
+                Polyline(
+                  points: _selectedHistoryRoute!,
+                  color: const Color(0xFF00E676),
+                  strokeWidth: 4.5,
+                  borderColor: Colors.black.withOpacity(0.6),
+                  borderStrokeWidth: 1.5,
+                ),
+              ],
+            ),
+            MarkerLayer(
+              markers: [
+                // Marcador de inicio
+                Marker(
+                  point: _selectedHistoryRoute!.first,
+                  width: 32,
+                  height: 32,
+                  child: const Icon(Icons.play_circle_fill, color: Color(0xFF00E676), size: 28),
+                ),
+                // Marcador de fin
+                Marker(
+                  point: _selectedHistoryRoute!.last,
+                  width: 32,
+                  height: 32,
+                  child: const Icon(Icons.stop_circle_rounded, color: Colors.redAccent, size: 28),
+                ),
+              ],
+            ),
+          ],
+        ),
+        
+        // Panel flotante superior con el nombre
+        Positioned(
+          top: 16,
+          left: 16,
+          right: 16,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0A192F).withOpacity(0.9),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white10),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    _selectedHistoryName ?? 'Ruta Visualizada',
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white),
+                  onPressed: () {
+                    setState(() {
+                      _selectedHistoryRoute = null;
+                      _selectedHistoryName = null;
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -770,7 +1296,9 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
                     Row(
                       children: [
                         Text(
-                          _isManual ? 'NAVEGACIÓN MANUAL' : 'VIAJE OFICIAL EN CURSO',
+                          _isManual 
+                              ? (widget.esCapitan ? 'NAVEGACIÓN MANUAL' : 'SALIDA DE PESCA') 
+                              : 'VIAJE OFICIAL EN CURSO',
                           style: const TextStyle(
                             color: Color(0xFF00E676),
                             fontWeight: FontWeight.w900,
