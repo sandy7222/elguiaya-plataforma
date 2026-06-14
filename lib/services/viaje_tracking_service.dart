@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:geolocator/geolocator.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ViajeTrackingService {
   static final ViajeTrackingService _instance = ViajeTrackingService._internal();
@@ -77,6 +79,12 @@ class ViajeTrackingService {
   Future<void> _syncTrackToSupabase() async {
     if (_currentTripId == null || _currentTrack.isEmpty) return;
     
+    // Si es un viaje manual, no lo subimos a Supabase de esta forma (se guarda localmente al finalizar)
+    if (_currentTripId!.startsWith('manual-')) {
+      print('🛰️ [TRACKING] Acumulando puntos localmente en memoria para viaje manual...');
+      return;
+    }
+    
     try {
       // Obtenemos el log actual para no sobreescribir (opcional, pero seguro)
       final res = await _supabase
@@ -101,15 +109,84 @@ class ViajeTrackingService {
     }
   }
 
-  /// FIN DEL RASTREO
-  Future<void> stopTracking() async {
+  /// FIN DEL RASTREO (Retorna los puntos acumulados para poder procesarlos en memoria si es manual)
+  Future<List<Map<String, dynamic>>> stopTracking() async {
+    final collectedPoints = List<Map<String, dynamic>>.from(_currentTrack);
     await _syncTrackToSupabase(); // Última sincronización antes de cerrar
     _trackingTimer?.cancel();
     _syncTimer?.cancel();
     _trackingTimer = null;
     _syncTimer = null;
     _currentTripId = null;
+    _currentTrack = [];
     print('🛑 Auditor GPS detenido.');
+    return collectedPoints;
+  }
+
+  // --- MÉTODOS DE CACHÉ LOCAL (COMPRADOR / CAPITÁN) ---
+
+  /// Guarda una ruta manual en SharedPreferences
+  Future<void> saveManualTrackLocal({
+    required String tripId,
+    required String name,
+    required String durationStr,
+    required List<LatLng> points,
+  }) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? existingData = prefs.getString('manual_tracks');
+      List<dynamic> tracksList = existingData != null ? json.decode(existingData) : [];
+      
+      final serializedPoints = points.map((p) => {
+        'lat': p.latitude,
+        'lng': p.longitude,
+      }).toList();
+
+      final newTrack = {
+        'id': tripId,
+        'nombre': name,
+        'fecha': DateTime.now().toIso8601String(),
+        'duracion': durationStr,
+        'puntos': serializedPoints,
+      };
+      
+      tracksList.add(newTrack);
+      await prefs.setString('manual_tracks', json.encode(tracksList));
+      print('💾 Ruta manual guardada localmente: $name ($tripId)');
+    } catch (e) {
+      print('❌ Error guardando ruta manual localmente: $e');
+    }
+  }
+
+  /// Obtiene la lista de rutas manuales guardadas localmente
+  Future<List<Map<String, dynamic>>> getManualTracksLocal() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? existingData = prefs.getString('manual_tracks');
+      if (existingData == null) return [];
+      
+      final List<dynamic> decoded = json.decode(existingData);
+      return List<Map<String, dynamic>>.from(decoded);
+    } catch (e) {
+      print('❌ Error al obtener rutas manuales: $e');
+      return [];
+    }
+  }
+
+  /// Elimina una ruta manual guardada localmente
+  Future<void> deleteManualTrackLocal(String tripId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? existingData = prefs.getString('manual_tracks');
+      if (existingData == null) return;
+      
+      List<dynamic> tracksList = json.decode(existingData);
+      tracksList.removeWhere((track) => track['id'] == tripId);
+      await prefs.setString('manual_tracks', json.encode(tracksList));
+      print('🗑️ Ruta manual eliminada: $tripId');
+    } catch (e) {
+      print('❌ Error al eliminar ruta manual: $e');
+    }
   }
 
   // --- HERRAMIENTAS PARA EL ADMIN ---
