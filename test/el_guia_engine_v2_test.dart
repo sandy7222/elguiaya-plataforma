@@ -9,6 +9,7 @@ void main() {
 
     setUp(() {
       engine = ElGuiaEngine();
+      engine.contexto.resetearContexto();
     });
 
     test('1. Normalizador Previo - Alias and Noise Removal', () async {
@@ -88,6 +89,31 @@ void main() {
       final respInferred = await engine.responder('como se hace');
       // Check that it responds with nudo steps or explanation
       expect(respInferred.texto.toLowerCase(), anyOf([contains('palomar'), contains('nudo')]));
+    });
+
+    test('6. Emergencias - Capa de Sinónimos y Preguntas de Seguimiento Propias', () async {
+      await engine.inicializar();
+      engine.contexto.resetearContexto();
+
+      // "estoy sangrando" no es activador exacto de herida. json de sinonimos lo matchea.
+      final respEmergencia = await engine.responder('estoy sangrando de la mano');
+      expect(respEmergencia.texto.toLowerCase(), contains('presioná'));
+      expect(respEmergencia.texto.toLowerCase(), contains('herida'));
+
+      // Verificar que tenga pregunta de seguimiento específica de herida y no la global
+      expect(
+        respEmergencia.texto,
+        anyOf([
+          contains('sangrado'),
+          contains('limpio'),
+          contains('profunda'),
+          contains('zona'),
+          contains('apretando'),
+        ]),
+      );
+      // Las de emergencia global de radio náutica no aplican
+      expect(respEmergencia.texto, isNot(contains('VHF')));
+      expect(respEmergencia.texto, isNot(contains('radio')));
     });
   });
 }
