@@ -7,6 +7,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/viaje_tracking_service.dart';
 import '../services/mapa_offline_service.dart';
 
@@ -45,12 +47,32 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
   bool _showingHistory = false;
   List<LatLng>? _selectedHistoryRoute;
   String? _selectedHistoryName;
+  String? _perfilNombre;
 
   @override
   void initState() {
     super.initState();
     _checkTrackingState();
     _loadSavedTracks();
+    _loadUserProfile();
+  }
+
+  Future<void> _loadUserProfile() async {
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user != null) {
+        final profile = await Supabase.instance.client
+            .from('profiles')
+            .select('nombre')
+            .eq('user_id', user.id)
+            .maybeSingle();
+        if (profile != null && mounted) {
+          setState(() {
+            _perfilNombre = profile['nombre'];
+          });
+        }
+      }
+    } catch (_) {}
   }
 
   @override
@@ -525,6 +547,207 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
     );
   }
 
+  void _showPanicConfigDialog({VoidCallback? onSaved}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final phoneController = TextEditingController(text: prefs.getString('panic_contact_phone') ?? '');
+    final nameController = TextEditingController(text: prefs.getString('panic_contact_name') ?? '');
+    final messageController = TextEditingController(
+      text: prefs.getString('panic_custom_message') ?? 'Estoy navegando y sufrí un inconveniente, por favor contactame.'
+    );
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF0A192F),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.contact_phone_outlined, color: Color(0xFF00E676)),
+            SizedBox(width: 10),
+            Text('Contacto de Confianza', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Configurá la persona a la que le llegará la alerta en caso de emergencia:',
+                style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.4),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: nameController,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  labelText: 'Nombre del Contacto',
+                  labelStyle: TextStyle(color: Colors.white60, fontSize: 13),
+                  focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF00E676))),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: phoneController,
+                style: const TextStyle(color: Colors.white),
+                keyboardType: TextInputType.phone,
+                decoration: const InputDecoration(
+                  labelText: 'Número (con código de país, ej: +54911...)',
+                  labelStyle: TextStyle(color: Colors.white60, fontSize: 13),
+                  focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF00E676))),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: messageController,
+                style: const TextStyle(color: Colors.white),
+                maxLines: 2,
+                decoration: const InputDecoration(
+                  labelText: 'Mensaje Pregrabado',
+                  labelStyle: TextStyle(color: Colors.white60, fontSize: 13),
+                  focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF00E676))),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('CANCELAR', style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (phoneController.text.trim().isEmpty || nameController.text.trim().isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Por favor, completa todos los campos.')),
+                );
+                return;
+              }
+              await prefs.setString('panic_contact_phone', phoneController.text.trim());
+              await prefs.setString('panic_contact_name', nameController.text.trim());
+              await prefs.setString('panic_custom_message', messageController.text.trim());
+              Navigator.pop(context);
+              if (onSaved != null) onSaved();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF00E676),
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('GUARDAR', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPanicAction() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? phone = prefs.getString('panic_contact_phone');
+    final String? name = prefs.getString('panic_contact_name');
+    final String? customMsg = prefs.getString('panic_custom_message');
+
+    if (phone == null || phone.isEmpty || name == null || name.isEmpty) {
+      _showPanicConfigDialog(onSaved: _showPanicAction);
+      return;
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF0A192F),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 24),
+            SizedBox(width: 10),
+            Text('🚨 Alerta y Responsabilidad', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Por favor lee y acepta los siguientes términos antes de disparar la alerta:',
+              style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.03),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white10),
+              ),
+              child: const Text(
+                'Entiendo y acepto que El Guía YA es un gestor intermediario y facilitador técnico. La plataforma NO es responsable de mi seguridad ni realiza tareas de rescate o auxilio de personas.\n\nEsta función únicamente facilita el envío de mis coordenadas GPS a mi contacto de confianza para que este gestione de forma privada mi rescate o encuentro con las autoridades oficiales competentes (Prefectura Naval Argentina / Policía).',
+                style: TextStyle(color: Colors.white54, fontSize: 11, height: 1.4),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('CANCELAR', style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _sendPanicAlert(phone, name, customMsg ?? '');
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('ACEPTAR Y ENVIAR', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _sendPanicAlert(String phone, String name, String customMsg) async {
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      
+      final String mapUrl = 'https://maps.google.com/?q=${position.latitude},${position.longitude}';
+      final String fullMessage = 
+          '🚨 ALERTA ANTIPÁNICO de ${_perfilNombre ?? "Usuario"}. Necesito asistencia en el agua.\n'
+          'Ubicación GPS: $mapUrl\n'
+          'Mensaje pregrabado: "$customMsg"\n'
+          'Por favor, comunícate de inmediato y gestiona el encuentro/rescate con Prefectura.';
+
+      final Uri whatsappUri = Uri.parse('https://wa.me/$phone?text=${Uri.encodeComponent(fullMessage)}');
+      final Uri smsUri = Uri.parse('sms:$phone?body=${Uri.encodeComponent(fullMessage)}');
+
+      if (await canLaunchUrl(whatsappUri)) {
+        await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+      } else if (await canLaunchUrl(smsUri)) {
+        await launchUrl(smsUri);
+      } else {
+        throw 'No se pudo abrir WhatsApp ni SMS.';
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error al enviar alerta: $e'),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
   void _showCoordinatesDialog() async {
     setState(() => _isLoadingMap = true);
     try {
@@ -935,19 +1158,44 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
               ],
             ),
             const SizedBox(height: 24),
-            // Botón GPS de consulta rápida
-            TextButton.icon(
-              onPressed: _showCoordinatesDialog,
-              icon: const Icon(Icons.settings_input_antenna_rounded, color: Color(0xFF00E676), size: 18),
-              label: const Text(
-                '📍 OBTENER COORDENADAS GPS RÁPIDAS',
-                style: TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold, fontSize: 11),
-              ),
-              style: TextButton.styleFrom(
-                backgroundColor: Colors.white.withOpacity(0.05),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              ),
+            // Botones GPS de consulta rápida y SOS Antipánico
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton.icon(
+                  onPressed: _showCoordinatesDialog,
+                  icon: const Icon(Icons.settings_input_antenna_rounded, color: Color(0xFF00E676), size: 18),
+                  label: const Text(
+                    '📍 GPS RÁPIDO',
+                    style: TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold, fontSize: 11),
+                  ),
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.white.withOpacity(0.05),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                TextButton.icon(
+                  onPressed: _showPanicAction,
+                  icon: const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 18),
+                  label: const Text(
+                    '🚨 SOS ANTIPÁNICO',
+                    style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 11),
+                  ),
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.redAccent.withOpacity(0.1),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                IconButton(
+                  onPressed: () => _showPanicConfigDialog(),
+                  icon: const Icon(Icons.settings, color: Colors.white54, size: 18),
+                  tooltip: 'Configurar Contacto SOS',
+                ),
+              ],
             ),
           ],
         ),
@@ -1330,6 +1578,24 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
                     ),
                   ],
                 ),
+              ),
+              const SizedBox(width: 8),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ElevatedButton(
+                    onPressed: _showPanicAction,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent,
+                      foregroundColor: Colors.white,
+                      shape: const CircleBorder(),
+                      padding: const EdgeInsets.all(12),
+                    ),
+                    child: const Icon(Icons.warning_amber_rounded, size: 20),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text('SOS', style: TextStyle(color: Colors.redAccent, fontSize: 8, fontWeight: FontWeight.bold)),
+                ],
               ),
             ],
           ),
