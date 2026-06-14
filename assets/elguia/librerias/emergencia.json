@@ -13,18 +13,39 @@
       "respuestas": [
         "Primero: presioná la herida con tela limpia para cortar el sangrado. Mantené la presión constante durante 10 minutos.",
         "Para cortar el sangrado, presioná firmemente la herida con lo que tengas limpio. No soltés la presión."
+      ],
+      "preguntas_seguimiento": [
+        "¿Pudiste cortar el sangrado con presión constante, chamigo?",
+        "¿Tenés algo limpio para presionar la herida, viejo?",
+        "¿La herida es profunda o superficial, cheraí?",
+        "¿Podés ver bien la zona de la herida, chamigo?",
+        "¿La seguís apretando o aflojaste la presión, viejo?"
       ]
     },
     "anzuelo": {
       "activadores": ["me clavo un anzuelo", "me clavé un anzuelo", "anzuelo en la piel", "anzuelo clavado"],
       "respuestas": [
         "No intentes sacar el anzuelo jalando. Si está muy adentro, cubrí la zona y buscá atención médica. Si es superficial, empujá hacia adelante y cortá la punta con alicate antes de retirarlo."
+      ],
+      "preguntas_seguimiento": [
+        "¿El anzuelo está superficial o muy adentro, chamigo?",
+        "¿Tenés alicate o cortante a mano, viejo?",
+        "¿Podés ver la punta del anzuelo del otro lado, cheraí?",
+        "¿Podés inmovilizar la zona sin mover el anzuelo, chamigo?",
+        "¿Hay inflamación o enrojecimiento alrededor, viejo?"
       ]
     },
     "mordedura": {
       "activadores": ["mordedura", "me mordio", "me mordió", "picadura de vibora", "serpiente", "víbora"],
       "respuestas": [
         "Mantené la zona afectada por debajo del nivel del corazón. No hagas torniquetes. Inmovilizate y buscá ayuda médica urgente."
+      ],
+      "preguntas_seguimiento": [
+        "¿Viste qué tipo de víbora fue, chamigo?",
+        "¿La zona ya está hinchada o enrojecida, viejo?",
+        "¿Podés mantener la pierna quieta por debajo del corazón, cheraí?",
+        "¿Tenés alguien cerca que pueda ir a buscar ayuda, chamigo?",
+        "¿Cuánto tiempo hace que te picó, viejo?"
       ]
     },
     "rescate": {
