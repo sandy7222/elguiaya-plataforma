@@ -9,6 +9,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/viaje_tracking_service.dart';
 import '../services/mapa_offline_service.dart';
 
@@ -664,7 +665,7 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
           children: [
             Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 24),
             SizedBox(width: 10),
-            Text('🚨 Alerta y Responsabilidad', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+            Text('🚨 Aviso y Responsabilidad', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
           ],
         ),
         content: Column(
@@ -672,7 +673,7 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Por favor lee y acepta los siguientes términos antes de disparar la alerta:',
+              'Por favor lee y acepta los siguientes términos antes de enviar el aviso:',
               style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
@@ -720,10 +721,10 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
       
       final String mapUrl = 'https://maps.google.com/?q=${position.latitude},${position.longitude}';
       final String fullMessage = 
-          '🚨 ALERTA ANTIPÁNICO de ${_perfilNombre ?? "Usuario"}. Necesito asistencia en el agua.\n'
+          '🚨 AVISO DE EMERGENCIA PERSONAL de ${_perfilNombre ?? "Usuario"}.\n'
           'Ubicación GPS: $mapUrl\n'
           'Mensaje pregrabado: "$customMsg"\n'
-          'Por favor, comunícate de inmediato y gestiona el encuentro/rescate con Prefectura.';
+          'Por favor, comunícate a la brevedad y gestiona el encuentro/rescate con Prefectura.';
 
       final Uri whatsappUri = Uri.parse('https://wa.me/$phone?text=${Uri.encodeComponent(fullMessage)}');
       final Uri smsUri = Uri.parse('sms:$phone?body=${Uri.encodeComponent(fullMessage)}');
@@ -733,7 +734,17 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
       } else if (await canLaunchUrl(smsUri)) {
         await launchUrl(smsUri);
       } else {
-        throw 'No se pudo abrir WhatsApp ni SMS.';
+        // Fallback: copiar al portapapeles
+        await Clipboard.setData(ClipboardData(text: fullMessage));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No se pudo abrir WhatsApp ni SMS. Mensaje copiado al portapapeles.'),
+              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 6),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -1180,7 +1191,7 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
                   onPressed: _showPanicAction,
                   icon: const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 18),
                   label: const Text(
-                    '🚨 SOS ANTIPÁNICO',
+                    '🚨 AVISO PERSONAL',
                     style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 11),
                   ),
                   style: TextButton.styleFrom(
@@ -1193,7 +1204,7 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
                 IconButton(
                   onPressed: () => _showPanicConfigDialog(),
                   icon: const Icon(Icons.settings, color: Colors.white54, size: 18),
-                  tooltip: 'Configurar Contacto SOS',
+                  tooltip: 'Configurar Contacto de Aviso',
                 ),
               ],
             ),
@@ -1594,7 +1605,7 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
                     child: const Icon(Icons.warning_amber_rounded, size: 20),
                   ),
                   const SizedBox(height: 4),
-                  const Text('SOS', style: TextStyle(color: Colors.redAccent, fontSize: 8, fontWeight: FontWeight.bold)),
+                  const Text('AVISO', style: TextStyle(color: Colors.redAccent, fontSize: 8, fontWeight: FontWeight.bold)),
                 ],
               ),
             ],
