@@ -222,12 +222,12 @@
     {
       "intencion": "modalidades_de_pesca",
       "activadores": [
-        "pesca con mosca",
-        "pesca con señuelos artificiales",
+        "pesca con hilo",
+        "pesca tradicional",
         "modalidades de pesca"
       ],
-      "respuesta_limpia": "Pesca con mosca y pesca con señuelos artificiales",
-      "gif": "piensaLeve"
+      "respuesta_limpia": "La pesca con hilo es una modalidad tradicional",
+      "gif": "hablaConMate"
     },
     {
       "intencion": "conexion_con_el_medio_ambiente",
@@ -247,6 +247,35 @@
         "plan"
       ],
       "respuesta_limpia": "Aprender sobre pesca con Seba",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "preparacion_caja_pesca",
+      "activadores": [
+        "caja de pesca",
+        "preparacion pesca",
+        "anzuelos y señuelos"
+      ],
+      "respuesta_limpia": "Una caja de pesca debe incluir anzuelos y señuelos para diferentes modalidades de pesca",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "preparacion_equipo_pesca",
+      "activadores": [
+        "preparacion equipo pesca",
+        "organizacion lineas pesca"
+      ],
+      "respuesta_limpia": "Llevar lineas armadas y organizadas en tablillas",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "tecnica_de_pesca_corvina_negra",
+      "activadores": [
+        "corvina negra",
+        "cangrejos",
+        "costa argentina"
+      ],
+      "respuesta_limpia": "Recolectar cangrejos en costas de ríos para usar como carnada",
       "gif": "hablaConMate"
     }
   ]
