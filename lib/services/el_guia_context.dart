@@ -38,6 +38,15 @@ class ElGuiaContext {
   /// Texto de la pregunta guiada pendiente (para contexto de seguimiento).
   String preguntaGuiadaPendiente = '';
 
+  /// Indica que el bot terminó su última respuesta con una pregunta de seguimiento
+  /// y ahora espera cualquier respuesta del usuario para cerrar la conversación
+  /// de forma ordenada (con una frase de cierre variada en español ribereño).
+  bool esperandoCierre = false;
+
+  /// Guarda el texto de la última pregunta que hizo el bot (para contextualizar
+  /// la frase de cierre si fuera necesario).
+  String ultimaPreguntaHecha = '';
+
   /// Última respuesta entregada (para evitar repetición exacta).
   String ultimaRespuesta = '';
 
@@ -88,6 +97,8 @@ class ElGuiaContext {
     ultimaConsulta = '';
     esBlog = false;
     objetivosRecientes = [];
+    esperandoCierre = false;
+    ultimaPreguntaHecha = '';
     _ultimaActividad = null;
   }
 
