@@ -36,6 +36,12 @@ class ElGuiaEngine {
   Map<String, dynamic> _personalidad = {};
   final Map<String, Map<String, dynamic>> _librerias = {};
 
+  // ── Sinónimos de activadores (sinonimos_activadores.json) ─────────────────
+  // Clave: término canónico → Lista de sinónimos que mapean a ese término.
+  // Antes de buscar en _activadores, el motor reemplaza en el texto
+  // cualquier sinónimo por su término canónico.
+  Map<String, List<String>> _sinonimos = {};
+
   // ── Motor de navegación de la app ───────────────────────────────────────────────
   final ElGuiaAppEngine _appEngine = ElGuiaAppEngine();
 
@@ -1137,6 +1143,31 @@ class ElGuiaEngine {
       // _appEngine y _humor también en paralelo
       await Future.wait([_appEngine.inicializar(), _humor.inicializar()]);
 
+      // ── Cargar sinónimos de activadores ──────────────────────────────────
+      try {
+        String sinonimosStr = '';
+        bool sinonimosDesdeOverride = false;
+        if (baseDirPath != null) {
+          final overrideSin = File('$baseDirPath/elguia/librerias/sinonimos_activadores.json');
+          try {
+            if (await overrideSin.exists().timeout(const Duration(milliseconds: 500))) {
+              sinonimosStr = await overrideSin.readAsString().timeout(const Duration(seconds: 1));
+              sinonimosDesdeOverride = true;
+            }
+          } catch (_) {}
+        }
+        if (!sinonimosDesdeOverride) {
+          sinonimosStr = await rootBundle.loadString('assets/elguia/librerias/sinonimos_activadores.json');
+        }
+        final raw = json.decode(sinonimosStr) as Map<String, dynamic>;
+        _sinonimos = raw.map((k, v) =>
+          MapEntry(k, List<String>.from((v as List).map((e) => e.toString().toLowerCase().trim())))
+        );
+        debugPrint('📖 [EL-GUIA] Sinónimos cargados: ${_sinonimos.length} claves');
+      } catch (e) {
+        debugPrint('⚠️ [EL-GUIA] sinonimos_activadores.json no disponible: $e');
+      }
+
       _inicializado = true;
       debugPrint('✅ [EL-GUIA] v2.0 inicializado. Librerías: ${_librerias.length}');
       // Cargar aprendizajes del local updater
@@ -1264,14 +1295,40 @@ class ElGuiaEngine {
     }
   }
 
+  // ── EXPANSIÓN POR SINÓNIMOS ───────────────────────────────────────────────
+  /// Reemplaza en [texto] cualquier sinónimo por su término canónico,
+  /// ampliando la búsqueda sin modificar los JSONs de intenciones.
+  String _expandirConSinonimos(String texto) {
+    if (_sinonimos.isEmpty) return texto;
+    String expandido = texto;
+    for (final entry in _sinonimos.entries) {
+      final canonico = entry.key;      // ej. "herida"
+      for (final sinonimo in entry.value) {
+        if (expandido.contains(sinonimo)) {
+          // Agregamos el canónico al texto sin borrar el original
+          // para que cualquier activador que coincida con el original
+          // también siga funcionando.
+          if (!expandido.contains(canonico)) {
+            expandido = '$expandido $canonico';
+          }
+          break; // Una coincidencia por clave es suficiente
+        }
+      }
+    }
+    return expandido;
+  }
+
   // ── DETECCIÓN DE INTENCIONES ──────────────────────────────────────────────
   List<String> detectarIntenciones(String textoNormalizado) {
     final intenciones = <String>[];
 
-    // Primero revisar activadores estáticos en _activadores
+    // Expandir texto con sinónimos antes de buscar en activadores
+    final textoExpandido = _expandirConSinonimos(textoNormalizado);
+
+    // Revisar activadores estáticos en _activadores (usando texto expandido)
     for (final entry in _activadores.entries) {
       for (final activador in entry.value) {
-        if (textoNormalizado.contains(activador)) {
+        if (textoExpandido.contains(activador)) {
           if (!intenciones.contains(entry.key)) {
             intenciones.add(entry.key);
           }
@@ -1282,7 +1339,7 @@ class ElGuiaEngine {
 
     // Integrar GuiaLocalUpdater: buscar coincidencias en intenciones aprendidas consolidadas
     final intencionAprendida = GuiaLocalUpdater.detectarIntencion(
-      textoNormalizado,
+      textoExpandido,
     );
     if (intencionAprendida != null &&
         !intenciones.contains(intencionAprendida)) {
