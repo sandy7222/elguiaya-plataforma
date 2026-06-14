@@ -42,6 +42,13 @@ class ElGuiaEngine {
   // cualquier sinónimo por su término canónico.
   Map<String, List<String>> _sinonimos = {};
 
+  // ── Sinónimos por librería (sinonimos_[nombre].json) ──────────────────────
+  // Clave nivel 1: nombre de librería ("emergencia", "carnadas", etc.)
+  // Clave nivel 2: nombre exacto de subintención ("herida", "anzuelo", etc.)
+  // Valor: lista de sinónimos. Se usa como segunda capa dentro de handlers
+  // de subintenciones, si los activadores exactos no matchean.
+  final Map<String, Map<String, List<String>>> _sinomimosPorLib = {};
+
   // ── Motor de navegación de la app ───────────────────────────────────────────────
   final ElGuiaAppEngine _appEngine = ElGuiaAppEngine();
 
@@ -1168,6 +1175,44 @@ class ElGuiaEngine {
         debugPrint('⚠️ [EL-GUIA] sinonimos_activadores.json no disponible: $e');
       }
 
+      // ── Cargar sinónimos por librería (sinonimos_[nombre].json) ───────────
+      // Se intenta cargar para cada librería que tenga subintenciones.
+      // Si el archivo no existe, se continúa sin él (no bloquea).
+      const libsConSubintenciones = [
+        'emergencia', 'supervivencia', 'primeros_auxilios',
+        'agua', 'refugio', 'fuego', 'alimento',
+      ];
+      for (final libNombre in libsConSubintenciones) {
+        try {
+          String sinStr = '';
+          bool sinDesdeOverride = false;
+          if (baseDirPath != null) {
+            final overrideSin = File('$baseDirPath/elguia/librerias/sinonimos_$libNombre.json');
+            try {
+              if (await overrideSin.exists().timeout(const Duration(milliseconds: 300))) {
+                sinStr = await overrideSin.readAsString().timeout(const Duration(seconds: 1));
+                sinDesdeOverride = true;
+              }
+            } catch (_) {}
+          }
+          if (!sinDesdeOverride) {
+            sinStr = await rootBundle.loadString('assets/elguia/librerias/sinonimos_$libNombre.json');
+          }
+          final rawSin = json.decode(sinStr) as Map<String, dynamic>;
+          // Filtrar la clave _comentario si existe
+          rawSin.remove('_comentario');
+          _sinomimosPorLib[libNombre] = rawSin.map((subint, lista) =>
+            MapEntry(
+              subint,
+              List<String>.from((lista as List).map((e) => e.toString().toLowerCase().trim())),
+            ),
+          );
+          debugPrint('📖 [EL-GUIA] Sinónimos cargados para $libNombre: ${_sinomimosPorLib[libNombre]!.length} subintenciones');
+        } catch (_) {
+          // Archivo no existe → silencioso, la librería funciona con activadores exactos
+        }
+      }
+
       _inicializado = true;
       debugPrint('✅ [EL-GUIA] v2.0 inicializado. Librerías: ${_librerias.length}');
       // Cargar aprendizajes del local updater
@@ -1951,6 +1996,39 @@ class ElGuiaEngine {
     return respBase;
   }
 
+  // ── HELPERS: sinónimos por librería y preguntas por subintención ───────────
+
+  /// Devuelve true si [texto] contiene algún sinónimo de [subintNombre]
+  /// en la librería [libNombre]. Usa _sinomimosPorLib cargado en inicializar().
+  bool _matcheaSinonimoPorLib(String libNombre, String subintNombre, String texto) {
+    final lista = _sinomimosPorLib[libNombre]?[subintNombre];
+    if (lista == null || lista.isEmpty) return false;
+    return lista.any((s) => texto.contains(s));
+  }
+
+  /// Selecciona la lista correcta de preguntas_seguimiento para una subintención.
+  ///
+  /// Prioridad:
+  ///   1. Preguntas propias de la subintención (sub['preguntas_seguimiento'])
+  ///   2. Preguntas globales de la librería (libData['preguntas_seguimiento'])
+  ///      — solo si [allowGlobalFallback] es true.
+  ///
+  /// Usá [allowGlobalFallback] = false cuando las preguntas globales no sean
+  /// relevantes para la subintención (ej: herida/anzuelo/mordedura en emergencia
+  /// no deben recibir preguntas de radio náutica).
+  List<dynamic>? _obtenerPreguntasSeguimiento({
+    required Map<String, dynamic>? subintData,
+    required Map<String, dynamic> libData,
+    bool allowGlobalFallback = true,
+  }) {
+    final propias = subintData?['preguntas_seguimiento'] as List<dynamic>?;
+    if (propias != null && propias.isNotEmpty) return propias;
+    if (!allowGlobalFallback) return null;
+    return libData['preguntas_seguimiento'] as List<dynamic>?;
+  }
+
+  // ── HANDLER: emergencia ────────────────────────────────────────────────────
+
   String _responderEmergencia(String texto) {
     _contexto.modoActual = 'emergencia';
     final lib = _librerias['emergencia'];
@@ -1960,19 +2038,28 @@ class ElGuiaEngine {
 
     String respBase = '';
     bool subintencionEncontrada = false;
+    String? matchedSubint; // nombre de la subintención que matcheó
     final subintenciones = lib['subintenciones'] as Map<String, dynamic>? ?? {};
+
     for (final entry in subintenciones.entries) {
       final sub = entry.value as Map<String, dynamic>;
       final activadores = List<String>.from(sub['activadores'] as List);
-      for (final act in activadores) {
-        if (texto.contains(act)) {
-          final respuestas = List<String>.from(sub['respuestas'] as List);
-          respBase = respuestas[_random.nextInt(respuestas.length)];
-          subintencionEncontrada = true;
-          break;
-        }
+
+      // Paso 1: matching por activadores exactos
+      bool matched = activadores.any((act) => texto.contains(act));
+
+      // Paso 2: si no matcheó, buscar en sinónimos específicos de la librería
+      if (!matched) {
+        matched = _matcheaSinonimoPorLib('emergencia', entry.key, texto);
       }
-      if (subintencionEncontrada) break;
+
+      if (matched) {
+        final respuestas = List<String>.from(sub['respuestas'] as List);
+        respBase = respuestas[_random.nextInt(respuestas.length)];
+        matchedSubint = entry.key;
+        subintencionEncontrada = true;
+        break;
+      }
     }
 
     if (!subintencionEncontrada) {
@@ -1981,12 +2068,24 @@ class ElGuiaEngine {
     }
 
     // Pregunta de seguimiento (30% de probabilidad)
-    final preguntas = lib['preguntas_seguimiento'] as List<dynamic>?;
-    if (preguntas != null &&
-        preguntas.isNotEmpty &&
-        _random.nextDouble() < 0.3) {
-      final pregunta = preguntas[_random.nextInt(preguntas.length)] as String;
-      return '$respBase $pregunta';
+    // Regla especial emergencia:
+    //   - rescate → puede usar preguntas globales (radio náutica) como fallback
+    //   - herida / anzuelo / mordedura → SOLO sus propias; nunca el global
+    //   - subintención no encontrada → no agregar pregunta
+    if (subintencionEncontrada && matchedSubint != null) {
+      final subintData = subintenciones[matchedSubint] as Map<String, dynamic>?;
+      final allowGlobal = matchedSubint == 'rescate';
+      final preguntas = _obtenerPreguntasSeguimiento(
+        subintData: subintData,
+        libData: lib,
+        allowGlobalFallback: allowGlobal,
+      );
+      if (preguntas != null &&
+          preguntas.isNotEmpty &&
+          _random.nextDouble() < 0.3) {
+        final pregunta = preguntas[_random.nextInt(preguntas.length)] as String;
+        return '$respBase $pregunta';
+      }
     }
 
     return respBase;
