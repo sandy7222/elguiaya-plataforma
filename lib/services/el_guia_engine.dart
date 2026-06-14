@@ -1167,9 +1167,12 @@ class ElGuiaEngine {
           sinonimosStr = await rootBundle.loadString('assets/elguia/librerias/sinonimos_activadores.json');
         }
         final raw = json.decode(sinonimosStr) as Map<String, dynamic>;
-        _sinonimos = raw.map((k, v) =>
-          MapEntry(k, List<String>.from((v as List).map((e) => e.toString().toLowerCase().trim())))
-        );
+        _sinonimos = {};
+        raw.forEach((k, v) {
+          if (v is List) {
+            _sinonimos[k] = List<String>.from(v.map((e) => e.toString().toLowerCase().trim()));
+          }
+        });
         debugPrint('📖 [EL-GUIA] Sinónimos cargados: ${_sinonimos.length} claves');
       } catch (e) {
         debugPrint('⚠️ [EL-GUIA] sinonimos_activadores.json no disponible: $e');

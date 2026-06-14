@@ -9,6 +9,7 @@ void main() {
 
     setUp(() {
       engine = ElGuiaEngine();
+      engine.contexto.resetearContexto();
     });
 
     test('1. PNA General Fallback Response', () async {
