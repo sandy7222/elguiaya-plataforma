@@ -42,6 +42,22 @@ class ElGuiaEngine {
   // ── Motor de humor contextual ───────────────────────────────────────────────
   final ElGuiaHumorEngine _humor = ElGuiaHumorEngine();
 
+  // ── Pool de frases de cierre (cuando el bot hizo una pregunta y el usuario responde) ──
+  static const List<String> _frasesDeCierre = [
+    'Me parece bien, chamigo. Estoy atento si necesitás algo más.',
+    'Dale, sin problema. Cualquier consulta, acá estoy.',
+    'Joya. Avisame cuando quieras, que no me voy a ningún lado.',
+    'Perfecto. A pescar con confianza entonces.',
+    'Bárbaro. Seguimos por acá si se te ocurre algo.',
+    'Entendido. Estoy a disposición, cualquier cosa me mandás.',
+    'Va bien, compañero. Si surge algo más, ya sabés.',
+    'Diez puntos. Seguimos charlando cuando quieras.',
+    'Ta bien eso. Avisame si necesitás más datos.',
+    'Okey chamigo, quedamos así. Suerte con el pique.',
+    'Anotado. Estoy acá si se te cruza otra duda.',
+    'Bien ahí. Cualquier otra cosa, me preguntás nomás.',
+  ];
+
   // ── Tabla de Prioridades (nivel más bajo = mayor prioridad) ───────────────
   static const Map<int, String> _prioridades = {
     1: 'emergencia',
@@ -1137,10 +1153,28 @@ class ElGuiaEngine {
     _contexto.registrarActividad();
     final texto = _limpiarYNormalizarEntrada(entrada);
 
+    // ── INTERCEPTOR: Cierre ordenado de pregunta de seguimiento ──────────────
+    // Si el bot había hecho una pregunta en su última respuesta, cualquier
+    // entrada del usuario ("sí", "no", texto libre) se toma como respuesta
+    // a esa pregunta y se cierra la conversación con una frase natural.
+    if (_contexto.esperandoCierre) {
+      _contexto.esperandoCierre = false;
+      _contexto.ultimaPreguntaHecha = '';
+      _contexto.nivelFrustracion = 0; // resetear frustración, la charla cerró bien
+      _actualizarContexto('agradecimiento', texto);
+      final fraseCierre = _frasesDeCierre[_random.nextInt(_frasesDeCierre.length)];
+      _contexto.ultimaRespuesta = fraseCierre;
+      return ElGuiaRespuesta(
+        texto: fraseCierre,
+        gifSugerido: 'hablaConMate',
+      );
+    }
+
     // Búsqueda directa inteligente en librerías locales basada en frases de acción ("cómo se prepara", "qué hago", etc.)
     final respuestaBusquedaDinamica = await _buscarEnLibreriasDinamico(texto);
     if (respuestaBusquedaDinamica != null) {
       _actualizarContexto('informacion', texto);
+      _guardarRespuestaYDetectarPregunta(respuestaBusquedaDinamica.texto);
       return respuestaBusquedaDinamica;
     }
 
@@ -1203,10 +1237,31 @@ class ElGuiaEngine {
         intencionPrincipal,
         _contexto,
       );
-      if (conHumor != null) return conHumor;
+      if (conHumor != null) {
+        _guardarRespuestaYDetectarPregunta(conHumor.texto);
+        return conHumor;
+      }
     }
 
+    // Guardar la respuesta en el contexto y activar cierre si terminó en pregunta
+    _guardarRespuestaYDetectarPregunta(respuesta.texto);
+
     return respuesta;
+  }
+
+  /// Guarda el texto de la respuesta generada en el contexto y activa
+  /// [esperandoCierre] si la respuesta termina en un signo de interrogación.
+  /// Esto permite que la siguiente entrada del usuario sea interceptada
+  /// y cerrada de forma ordenada con una frase de cierre natural.
+  void _guardarRespuestaYDetectarPregunta(String textoRespuesta) {
+    _contexto.ultimaRespuesta = textoRespuesta;
+    final limpio = textoRespuesta.trim();
+    if (limpio.endsWith('?') || limpio.endsWith('¿')) {
+      _contexto.esperandoCierre = true;
+      // Extraer la última pregunta (desde el último salto de línea o punto)
+      final partes = limpio.split(RegExp(r'[.!\n]'));
+      _contexto.ultimaPreguntaHecha = partes.last.trim();
+    }
   }
 
   // ── DETECCIÓN DE INTENCIONES ──────────────────────────────────────────────
