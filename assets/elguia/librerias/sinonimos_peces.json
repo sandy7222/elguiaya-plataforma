@@ -1,0 +1,132 @@
+{
+  "_comentario": "Sinónimos para peces.json. Claves mapeadas a especies de peces en lenguaje rioplatense.",
+
+  "dorado": [
+    "dorado",
+    "tigre del rio",
+    "tigre del río",
+    "doradito",
+    "el rey del parana",
+    "el rey del paraná",
+    "pirayu",
+    "pirayú",
+    "doradotes"
+  ],
+
+  "surubi": [
+    "surubi",
+    "surubí",
+    "pintado",
+    "atigrado",
+    "cachorro",
+    "cachorrito",
+    "torito",
+    "gigante del rio",
+    "gigante del río",
+    "surubies"
+  ],
+
+  "boga": [
+    "boga",
+    "bogita",
+    "boguita",
+    "voga",
+    "tres puntos",
+    "boga comun",
+    "boga común",
+    "bogas"
+  ],
+
+  "bagre": [
+    "bagre",
+    "amarillo",
+    "bagre amarillo",
+    "moncholo",
+    "bagrecito",
+    "bagre de rio",
+    "bagre de río",
+    "bagre de cuero"
+  ],
+
+  "pati": [
+    "pati",
+    "patí",
+    "paticito",
+    "patingo",
+    "bagre azul",
+    "paties",
+    "patíes"
+  ],
+
+  "tararira": [
+    "tararira",
+    "tarucha",
+    "taru",
+    "tarucha dentuda",
+    "dentuda",
+    "taruchita",
+    "hoplias",
+    "tarariras"
+  ],
+
+  "pejerrey": [
+    "pejerrey",
+    "peje",
+    "flecha de plata",
+    "pejerreyes",
+    "pejerey",
+    "pejerrei",
+    "matungo",
+    "matungos"
+  ],
+
+  "sabalo": [
+    "sabalo",
+    "sábalo",
+    "sabalito",
+    "filtrador",
+    "sabalos",
+    "sábalos"
+  ],
+
+  "pacu": [
+    "pacu",
+    "pacú",
+    "pacucito",
+    "lechon del rio",
+    "lechón del río",
+    "pacu de rio",
+    "pacus"
+  ],
+
+  "armado": [
+    "armado",
+    "armadito",
+    "armado chancho",
+    "chancho del rio",
+    "chancho del río",
+    "armado comun",
+    "armado común",
+    "armados"
+  ],
+
+  "bagre de mar": [
+    "bagre de mar",
+    "mimoso",
+    "mimoso de mar",
+    "bagre mimoso",
+    "moncholo de mar",
+    "bagre marino",
+    "mimosos"
+  ],
+
+  "mimoso": [
+    "mimoso",
+    "bagre de mar",
+    "mimoso de mar",
+    "bagre mimoso",
+    "moncholo de mar",
+    "bagre marino",
+    "mimosos"
+  ]
+}

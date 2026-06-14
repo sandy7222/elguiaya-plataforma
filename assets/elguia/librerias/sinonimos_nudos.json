@@ -1,0 +1,63 @@
+{
+  "_comentario": "Sinónimos para nudos.json. Claves mapeadas a tipos de nudos en lenguaje rioplatense.",
+
+  "palomar": [
+    "nudo palomar",
+    "nudo para anzuelo",
+    "atar anzuelo",
+    "atar senuelo",
+    "atar señuelo",
+    "nudo facil",
+    "nudo fácil",
+    "nudo fuerte",
+    "paloma",
+    "nudo rapido",
+    "nudo rápido"
+  ],
+
+  "clinch_mejorado": [
+    "clinch",
+    "clinch mejorado",
+    "nudo clinch",
+    "nudo clin",
+    "tanza delgada",
+    "tanza fina",
+    "nudo para nylon fino",
+    "clin mejorado",
+    "nudo para anzuelo chico",
+    "nudo clasico",
+    "nudo clásico"
+  ],
+
+  "albright": [
+    "albright",
+    "nudo albright",
+    "unir tanzas",
+    "unir lineas",
+    "unir líneas",
+    "nudo chicote",
+    "unir multifilamento",
+    "unir multi",
+    "nudo para lider",
+    "nudo para líder",
+    "distinto diametro",
+    "distinto diámetro",
+    "nudo de empalme"
+  ],
+
+  "uni": [
+    "uni",
+    "nudo uni",
+    "unir tanzas iguales",
+    "mismo diametro",
+    "mismo diámetro",
+    "nudo doble uni",
+    "uni to uni",
+    "unir dos nylon",
+    "unir dos lineas",
+    "unir dos líneas",
+    "nudo corredizo",
+    "nudo de union",
+    "nudo de unión"
+  ]
+}

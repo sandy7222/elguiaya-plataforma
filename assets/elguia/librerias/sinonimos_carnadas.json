@@ -1,0 +1,168 @@
+{
+  "_comentario": "Sinónimos para carnadas.json. Claves mapeadas a especies y condiciones del río en lenguaje rioplatense.",
+
+  "boga": [
+    "bogita",
+    "boguita",
+    "voga",
+    "boga de rio",
+    "pescar boga",
+    "para la boga",
+    "para tentar las bogas",
+    "carnada de boga"
+  ],
+
+  "carpa": [
+    "carpita",
+    "carpas",
+    "carpa grande",
+    "pescar carpa",
+    "para la carpa",
+    "carnada de carpa",
+    "cebo para carpas",
+    "carpones"
+  ],
+
+  "bagre": [
+    "bagrecito",
+    "bagres",
+    "amarillo",
+    "bagre amarillo",
+    "pescar bagre",
+    "para el bagre",
+    "moncholo",
+    "bagre de rio"
+  ],
+
+  "pati": [
+    "paticito",
+    "patí",
+    "paties",
+    "pescar pati",
+    "para el pati",
+    "carnada de pati",
+    "cebo para pati",
+    "patingo"
+  ],
+
+  "dorado": [
+    "doradito",
+    "tigre del rio",
+    "tigre del río",
+    "el rey",
+    "pescar dorado",
+    "para el dorado",
+    "dorados",
+    "carnada de dorado"
+  ],
+
+  "surubi": [
+    "surubí",
+    "surubies",
+    "cachorro",
+    "cachorrito",
+    "pintado",
+    "atigrado",
+    "pescar surubi",
+    "para el surubi"
+  ],
+
+  "pejerrey": [
+    "peje",
+    "flecha de plata",
+    "pejerreyes",
+    "pescar peje",
+    "para el peje",
+    "pejerey",
+    "pejerrei",
+    "carnada de peje"
+  ],
+
+  "tararira": [
+    "tarucha",
+    "taru",
+    "tarariras",
+    "dentuda",
+    "pescar tarucha",
+    "para la tarucha",
+    "carnada de tarucha",
+    "taruchita"
+  ],
+
+  "sabalo": [
+    "sábalo",
+    "sabalito",
+    "sabalos",
+    "filtrador",
+    "pescar sabalo",
+    "para el sabalo",
+    "carnada de sabalo",
+    "sabalo de fondo"
+  ],
+
+  "pacu": [
+    "pacú",
+    "pacus",
+    "pacucito",
+    "pescar pacu",
+    "para el pacu",
+    "carnada de pacu",
+    "lechon del rio",
+    "lechón del río"
+  ],
+
+  "armado": [
+    "armadito",
+    "armados",
+    "chancho del rio",
+    "chancho del río",
+    "pescar armado",
+    "para el armado",
+    "carnada de armado",
+    "armado comun"
+  ],
+
+  "rio_crecido": [
+    "crecida",
+    "rio alto",
+    "río alto",
+    "mucha agua",
+    "crecido el parana",
+    "crecio el rio",
+    "creció el río",
+    "desborde"
+  ],
+
+  "rio_bajo": [
+    "bajante",
+    "rio bajo",
+    "río bajo",
+    "poca agua",
+    "seco el rio",
+    "seco el río",
+    "bajo el parana",
+    "playo"
+  ],
+
+  "agua_turbia": [
+    "agua sucia",
+    "turbio",
+    "barroso",
+    "chocolate",
+    "agua de chocolate",
+    "rio turbio",
+    "río turbio",
+    "mucha mugre"
+  ],
+
+  "agua_clara": [
+    "agua limpia",
+    "transparente",
+    "claro",
+    "agua cristalina",
+    "rio claro",
+    "río claro",
+    "rio limpio",
+    "río limpio"
+  ]
+}

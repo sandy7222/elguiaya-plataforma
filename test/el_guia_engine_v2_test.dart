@@ -68,7 +68,11 @@ void main() {
 
       // Let's query something that maps to an exact level 1: como_se_prepara_masa
       final respMasa = await engine.responder('como se prepara la masa para boga');
+      // ignore: avoid_print
+      print('DEBUG RESP MASA: ${respMasa.texto}');
       expect(respMasa.texto.toLowerCase(), anyOf([contains('harina'), contains('masa'), contains('esencia'), contains('polenta')]));
+
+      engine.contexto.resetearContexto();
 
       // Level 4/5 fallback: query 'boyas' directly
       final respBoya = await engine.responder('que boya me recomendas');
