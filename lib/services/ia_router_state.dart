@@ -6,11 +6,22 @@ import 'audio_service.dart';
 
 /// Estado visible del motor de IA activo.
 enum IAEstado {
-  /// Groq Cloud (Tier 1) — conectado a la nube
+  /// Tier 0 — Acción directa en pantalla (< 5ms, sin IA).
+  /// El copiloto ejecuta una acción en la pantalla activa sin consultar nada.
+  accionDirecta,
+
+  /// Tier 1 — Navegación instantánea (< 5ms, sin IA).
+  /// El copiloto navega a una ruta sin consultar nada.
+  navegacion,
+
+  /// Tier 2 — Groq Cloud con contexto enriquecido de pantalla.
   cloud,
 
-  /// ElGuiaEngine offline (Tier 2) — sin red ni modelo local
+  /// Tier 3 — ElGuiaEngine offline con contexto de pantalla.
   offline,
+
+  /// Tier 4 — Frase de contingencia (sin red, sin JSON match).
+  contingencia,
 }
 
 /// Notifier global del estado del router IA.

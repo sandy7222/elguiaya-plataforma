@@ -12,6 +12,7 @@ import 'guia_rol_service.dart';
 import 'connectivity_bridge.dart';
 import 'supabase_service.dart';
 import 'guia_memoria_service.dart';
+import 'guia_copilot_brain.dart';
 
 
 class GroqService {
@@ -234,6 +235,13 @@ El campo "respuesta_limpia" máximo 120 caracteres, sin asteriscos ni markdown.
         try {
           gif = jsonAprendido['gif']?.toString() ?? 'hablaConMate';
           
+          // Enriquecer el JSON aprendido con el contexto de la pantalla activa del copiloto
+          jsonAprendido['pantalla_origen'] = GuiaCopilotBrain.instance.pantallaActiva.value.name;
+          final String? accion = GuiaCopilotBrain.instance.accionActiva.value?.name;
+          if (accion != null) {
+            jsonAprendido['accion_contexto'] = accion;
+          }
+
           // Persistencia en Supabase (global)
           SupabaseService.guardarConocimiento(jsonAprendido).then((id) {
             if (id != null) {

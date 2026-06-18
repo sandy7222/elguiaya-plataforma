@@ -1,10 +1,11 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'el_guia_context.dart';
 import 'guia_clima_service.dart';
 import 'guia_rol_service.dart';
+import 'guia_copilot_brain.dart';
 
 /// CapacitacionService — Gestiona el JSON de capacitación de Gemini.
 ///
@@ -344,20 +345,47 @@ Estructura:
         queryLower.contains('pique') ||
         queryLower.contains('condicion') ||
         queryLower.contains('marea');
+    final bool esHora = queryLower.contains('hora') || queryLower.contains('reloj');
 
     // ── FASE 1: Clasificación — ¿merece buscar contexto? ─────────────────
     final categoria = _clasificarConsulta(query);
-    if (categoria == null && !esClimaPescaCondicion) {
+    if (categoria == null && !esClimaPescaCondicion && !esHora) {
       // Charla o pregunta sin match técnico → directo a Groq
       return '';
     }
-    debugPrint('[CapacitacionService] 🔍 Categoría detectada: $categoria (clima/pesca=$esClimaPescaCondicion) — buscando contexto...');
+    debugPrint('[CapacitacionService] 🔍 Categoría detectada: $categoria (clima/pesca=$esClimaPescaCondicion, hora=$esHora) — buscando contexto...');
 
     final buffer = StringBuffer();
+
+    // ── FASE 0 (NUEVA): Contexto de pantalla activa ───────────────────────
+    // Transforma a Groq de asistente genérico a copiloto contextual.
+    // El modelo sabe en qué pantalla está el usuario antes de responder.
+    final brain = GuiaCopilotBrain.instance;
+    final pantallaActiva = brain.pantallaActiva.value;
+    final accionActiva = brain.accionActiva.value;
+    if (pantallaActiva != ScreenContext.ninguna) {
+      buffer.writeln('[CONTEXTO DE PANTALLA]');
+      buffer.writeln('El usuario está en: ${pantallaActiva.name}');
+      if (accionActiva != null) {
+        buffer.writeln('Acción en curso: ${accionActiva.name}');
+      }
+      final flujo = brain.resumenFlujReciente;
+      if (flujo.isNotEmpty) {
+        buffer.writeln('Flujo reciente: $flujo');
+      }
+      buffer.writeln('');
+      debugPrint('[CapacitacionService] 📍 Contexto de pantalla inyectado: ${pantallaActiva.name}');
+    }
 
     if (esClimaPescaCondicion) {
       final climaCtx = await GuiaClimaService.getResumenParaPesca();
       buffer.writeln(climaCtx);
+    }
+
+    if (esHora) {
+      final ahora = DateTime.now();
+      final horaStr = '${ahora.hour.toString().padLeft(2, '0')}:${ahora.minute.toString().padLeft(2, '0')}';
+      buffer.writeln('[RELOJ DE A BORDO] Hora actual del dispositivo: $horaStr. Utilizá esta hora exacta para responder al usuario si te consulta la hora.');
     }
 
     // ── FASE 2: Buscar en JSON de capacitación (Supabase o assets) ────────

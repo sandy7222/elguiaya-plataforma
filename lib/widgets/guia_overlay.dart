@@ -10,10 +10,11 @@ import '../services/voice_service.dart';
 import '../services/connectivity_bridge.dart';
 import '../services/intent_service.dart';
 import '../screens/pescador_perfil_edit_screen.dart';
+import 'package:capitanya_master/main.dart';
 
 
 
-/// Notifier global â€” cualquier parte de la app puede activar/desactivar el Guía
+/// Notifier global — cualquier parte de la app puede activar/desactivar el Guía
 /// sin necesidad de pasar callbacks. Leer/escribir con GuiaOverlayController.
 class GuiaOverlayController {
   static final ValueNotifier<bool> activo = ValueNotifier(false);
@@ -23,28 +24,55 @@ class GuiaOverlayController {
   /// Llama esto desde pescador_perfil_edit_screen al cambiar el toggle
   static Future<void> setActivo(bool value) async {
     activo.value = value;
+    final user = Supabase.instance.client.auth.currentUser;
     final prefs = await SharedPreferences.getInstance();
+    if (user != null) {
+      await prefs.setBool('guia_activo_${user.id}', value);
+    }
     await prefs.setBool('guia_activo', value);
   }
 
   static Future<void> setSilenciado(bool value) async {
     silenciado.value = value;
+    final user = Supabase.instance.client.auth.currentUser;
     final prefs = await SharedPreferences.getInstance();
+    if (user != null) {
+      await prefs.setBool('guia_silenciado_${user.id}', value);
+    }
     await prefs.setBool('guia_silenciado', value);
   }
 
   static Future<void> setMicActivo(bool value) async {
     micActivo.value = value;
+    final user = Supabase.instance.client.auth.currentUser;
     final prefs = await SharedPreferences.getInstance();
+    if (user != null) {
+      await prefs.setBool('guia_mic_activo_${user.id}', value);
+    }
     await prefs.setBool('guia_mic_activo', value);
   }
 
-  /// Carga la preferencia guardada al arrancar la app
+  /// Carga la preferencia guardada al arrancar la app o cambiar de usuario.
+  /// El Guía arranca APAGADO por defecto — el pescador debe encenderlo
+  /// la primera vez desde su pantalla de perfil.
   static Future<void> cargarPreferencia() async {
+    final user = Supabase.instance.client.auth.currentUser;
     final prefs = await SharedPreferences.getInstance();
-    activo.value = prefs.getBool('guia_activo') ?? true;
-    silenciado.value = prefs.getBool('guia_silenciado') ?? false;
-    micActivo.value = prefs.getBool('guia_mic_activo') ?? true;
+    if (user != null) {
+      activo.value    = prefs.getBool('guia_activo_${user.id}')
+                     ?? prefs.getBool('guia_activo')
+                     ?? false;
+      silenciado.value = prefs.getBool('guia_silenciado_${user.id}')
+                      ?? prefs.getBool('guia_silenciado')
+                      ?? false;
+      micActivo.value  = prefs.getBool('guia_mic_activo_${user.id}')
+                     ?? prefs.getBool('guia_mic_activo')
+                     ?? true;
+    } else {
+      activo.value    = false;
+      silenciado.value = false;
+      micActivo.value  = true;
+    }
   }
 }
 
@@ -127,7 +155,7 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
     });
 
     // Escuchar cambios de autenticación para resetear/verificar roles
-    _authSub = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+    _authSub = Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
       if (!mounted) return;
       final session = data.session;
       setState(() {
@@ -135,8 +163,10 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
         _esCapitanOAdmin = false;
       });
       if (session != null) {
+        await GuiaOverlayController.cargarPreferencia();
         _verificarRolUsuario(session.user.id);
       } else {
+        GuiaOverlayController.activo.value = false;
         if (_mostrarGuia) {
           _apagarGuia();
         }
@@ -496,17 +526,32 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
         _chatHistory.add({'text': cleanText, 'isUser': 'true'});
         _chatHistory.add({'text': navIntent.respuesta, 'isUser': 'false'});
         _estadoGuia = CapitanState.exito;
+        _isListening = false;
+        _isTyping = false;
       });
       _chatController.clear();
+
       if (!_isMuted) {
-        VoiceService().speak(navIntent.respuesta);
+        await VoiceService().speak(navIntent.respuesta);
       }
-      // Navega con una pequeña pausa para que el usuario escuche la confirmación
-      Future.delayed(const Duration(milliseconds: 900), () {
-        if (mounted) {
-          Navigator.of(context, rootNavigator: true).pushNamed(navIntent.ruta);
+
+      // Navegar solo si es ruta interna
+      if (navIntent.ruta != 'externo') {
+        navigatorKey.currentState?.pushNamed(navIntent.ruta);
+      }
+
+      // Reiniciar el ciclo de voz después de navegar
+      Future.delayed(const Duration(milliseconds: 1200), () {
+        if (mounted && _mostrarGuia && _modoConversacionVoz) {
+          setState(() {
+            _estadoGuia = CapitanState.durmiendo;
+            _isListening = false;
+          });
+          _verificarWakeWord();
+          _reiniciarTemporizadorInactividad();
         }
       });
+
       _reiniciarTemporizadorInactividad();
       return;
     }
@@ -537,7 +582,7 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
       if (respuesta.rutaNavegacion != null && GuiaOverlayController.micActivo.value) {
         Future.delayed(const Duration(milliseconds: 1000), () {
           if (mounted) {
-            Navigator.of(context, rootNavigator: true).pushNamed(respuesta.rutaNavegacion!);
+            navigatorKey.currentState?.pushNamed(respuesta.rutaNavegacion!);
           }
         });
       }
@@ -553,10 +598,7 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
         VoiceService().speak(responseText);
         // Opción 1: VAD — escucha en paralelo mientras el GuIA habla.
         // El callback recibe las palabras ya capturadas para no perderlas.
-        // Evitamos arrancar VAD si estamos offline porque el STT local sin red
-        // arranca tan rápido (y sin cancelación de eco en la nube) que detecta
-        // la propia voz del TTS y se auto-interrumpe.
-        if (_modoConversacionVoz && GuiaOverlayController.micActivo.value && _haySenal) {
+        if (_modoConversacionVoz && GuiaOverlayController.micActivo.value) {
           VoiceService().startVADListener((textoDetectado) {
             if (mounted && _mostrarGuia && _permiteInteractuar) {
               _interrumpir(textoInicial: textoDetectado);
@@ -621,7 +663,8 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
       return const SizedBox.shrink();
     }
 
-    // Si hay sesión y el guía debe estar activo pero no se muestra, lo encendemos reactivamente
+    // Si hay sesión y el guia debe estar activo pero no se muestra, lo encendemos reactivamente
+    // SOLO si el usuario lo activó explicitamente (la key fue guardada en SharedPreferences)
     if (GuiaOverlayController.activo.value && !_mostrarGuia && !(_rolVerificado && _esCapitanOAdmin)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && GuiaOverlayController.activo.value && !_mostrarGuia && !(_rolVerificado && _esCapitanOAdmin)) {

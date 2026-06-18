@@ -1,4 +1,4 @@
-﻿
+
 
 import 'package:flutter/material.dart';
 
@@ -7,11 +7,11 @@ import 'screens/cotizaciones_capitan_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  runApp(const El Guia YA());
+  runApp(const ElGuiaYaApp());
 }
 
-class El Guia YA extends StatelessWidget {
-  const El Guia YA({super.key});
+class ElGuiaYaApp extends StatelessWidget {
+  const ElGuiaYaApp({super.key});
 
   @override
   Widget build(BuildContext context) {

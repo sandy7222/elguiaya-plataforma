@@ -1,18 +1,18 @@
-﻿
+
 
 import 'package:flutter/material.dart';
 
 import '../services/gemini_ai_service.dart';
 import '../services/seguridad_service.dart';
 
-class AsistenteEl Guia YAScreen extends StatefulWidget {
-  const AsistenteEl Guia YAScreen({super.key});
+class AsistenteElGuiaYaScreen extends StatefulWidget {
+  const AsistenteElGuiaYaScreen({super.key});
 
   @override
-  State<AsistenteEl Guia YAScreen> createState() => _AsistenteEl Guia YAScreenState();
+  State<AsistenteElGuiaYaScreen> createState() => _AsistenteElGuiaYaScreenState();
 }
 
-class _AsistenteEl Guia YAScreenState extends State<AsistenteEl Guia YAScreen> {
+class _AsistenteElGuiaYaScreenState extends State<AsistenteElGuiaYaScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final List<Map<String, dynamic>> _chatHistory = [];

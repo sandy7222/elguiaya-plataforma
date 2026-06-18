@@ -1,8 +1,10 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/mercado_pago_service.dart';
+import '../services/guia_copilot_brain.dart';
+import '../services/copilot_channel.dart';
 
 /// Pantalla de pago real con Mercado Pago Checkout Pro.
 /// Flujo:
@@ -50,6 +52,19 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
   @override
   void initState() {
     super.initState();
+
+    GuiaCopilotBrain.instance.pantallaCargada(
+      ScreenContext.pago,
+      datosLocales: {'amount': widget.amount, 'reservaId': widget.reservaId},
+    );
+    GuiaCopilotBrain.instance.iniciarAccion(AppAction.pagando);
+
+    CopilotChannel.registrar('pago', (payload) {
+      if (payload['accion'] == 'solicitar_confirmacion_pago') {
+        _iniciarPago();
+      }
+    });
+
     if (widget.initPoint != null && widget.initPoint!.isNotEmpty) {
       _pantalla = _Pantalla.esperando;
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -61,6 +76,7 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
 
   @override
   void dispose() {
+    CopilotChannel.desregistrar('pago');
     _pollingTimer?.cancel();
     super.dispose();
   }

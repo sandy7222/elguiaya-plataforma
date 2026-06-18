@@ -12,6 +12,9 @@ import 'ia_router_state.dart';
 import 'gemini_learner.dart';
 import '../config/groq_config.dart';
 import 'guia_memoria_service.dart';
+import 'guia_copilot_brain.dart';
+import 'copilot_action_service.dart';
+import 'copilot_channel.dart';
 
 
 /// BaqueanoIAService — Router hibrido online/offline.
@@ -223,6 +226,31 @@ class BaqueanoIAService {
       );
     }
 
+    // ── TIER 0: Acción contextual directa (< 5ms, sin IA) ─────────────────────
+    // Si el copiloto sabe en qué pantalla está el usuario, puede ejecutar
+    // acciones sin consultar ningún motor de IA.
+    final brain = GuiaCopilotBrain.instance;
+    final copilotAction = CopilotActionService.detectarAccion(
+      pregunta,
+      brain.pantallaActiva.value,
+      brain.accionActiva.value,
+    );
+    if (copilotAction != null) {
+      IARouterState.reportarEstado(IAEstado.accionDirecta);
+      debugPrint('[BaqueanoRouter] → TIER 0 ACCIÓN DIRECTA: ${copilotAction.tipo} en ${brain.pantallaActiva.value.name}');
+      // Delegar la acción a la pantalla activa vía CopilotChannel
+      if (copilotAction.payload != null) {
+        CopilotChannel.delegar(copilotAction.payload!);
+      }
+      return ElGuiaRespuesta(
+        texto: copilotAction.respuesta,
+        gifSugerido: copilotAction.gifSugerido,
+        rutaNavegacion: copilotAction.ruta,
+        accionPayload: copilotAction.payload,
+        exito: true,
+      );
+    }
+
     // Tienda: siempre local (datos del catálogo de Supabase)
     if (_catalogo.isNotEmpty) {
       final intenciones = _motorLocal.detectarIntenciones(pq);
@@ -243,7 +271,7 @@ class BaqueanoIAService {
     final intencionPrincipal = _motorLocal.obtenerIntencionPrincipal(pq);
     debugPrint('[BaqueanoRouter] intent=$intencionPrincipal | offline_count=$_consultasOffline');
 
-    // ── TIER 1: Groq Cloud ───────────────────────────────────
+    // ── TIER 2: Groq Cloud ───────────────────────────────────
     if (ConnectivityBridge.estaConectado && GroqConfig.tieneApiKey) {
       try {
         debugPrint('[BaqueanoRouter] → GROQ ONLINE');
@@ -428,16 +456,31 @@ class BaqueanoIAService {
     );
   }
 
+  // Intenciones que devuelven datos dinámicos: no se bloquean por repetición
+  static const Set<String> _intentsDinamicos = {
+    'hora', 'clima', 'gps', 'solunar', 'notificaciones', 'carrito',
+  };
+
   static ElGuiaRespuesta? _detectarTriggersEnojo(String pq) {
     // 1. Detección de insistencia / repetición de frases idénticas
-    if (_ultimaPregunta == pq) {
-      _coincidenciasPregunta++;
+    // Excepto para intents dinámicos (hora, GPS, clima) que siempre dan datos frescos
+    final intencionActual = _motorLocal.obtenerIntencionPrincipal(pq);
+    final esDinamico = _intentsDinamicos.contains(intencionActual);
+
+    if (esDinamico) {
+      // Para datos dinámicos: reseteamos el contador de repetición y dejamos pasar
+      _ultimaPregunta = null;
+      _coincidenciasPregunta = 0;
     } else {
-      _ultimaPregunta = pq;
-      _coincidenciasPregunta = 1;
+      if (_ultimaPregunta == pq) {
+        _coincidenciasPregunta++;
+      } else {
+        _ultimaPregunta = pq;
+        _coincidenciasPregunta = 1;
+      }
     }
 
-    if (_coincidenciasPregunta >= 3) {
+    if (!esDinamico && _coincidenciasPregunta >= 3) {
       _nivelFrustracion = (_nivelFrustracion + 1).clamp(0, 3);
       if (pq.contains('no anda') || pq.contains('no funciona') || pq.contains('error') || pq.contains('no responde')) {
         return ElGuiaRespuesta(
