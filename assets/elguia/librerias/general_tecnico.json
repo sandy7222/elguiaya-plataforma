@@ -277,6 +277,113 @@
       ],
       "respuesta_limpia": "Recolectar cangrejos en costas de ríos para usar como carnada",
       "gif": "hablaConMate"
+    },
+    {
+      "intencion": "conocer_pescador",
+      "activadores": [
+        "nombre pescador",
+        "seba borrego"
+      ],
+      "respuesta_limpia": "Seba Borrego, pescador de surubí, dorado y patí",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "descripcion_corvina_negra",
+      "activadores": [
+        "corvina negra",
+        "pez marino",
+        "pesca deportiva"
+      ],
+      "respuesta_limpia": "Pez marino de gran tamaño, fuerte mandíbula, emite sonidos similares a un tambor",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "corvina_negra_alimentacion",
+      "activadores": [
+        "corvina negra",
+        "alimentación",
+        "cangrejos"
+      ],
+      "respuesta_limpia": "Corvina negra se alimenta de cangrejos en costas",
+      "gif": "piensaLeve"
+    },
+    {
+      "intencion": "equipo_para_pescar_corvina_negra",
+      "activadores": [
+        "equipo de pesca para corvina negra",
+        "caña y reel para corvina negra"
+      ],
+      "respuesta_limpia": "Caña de 2 tramos, reel 5500-8000, nylon 60mm, plomadas 120-150gr, anzuelos 7.0-10",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "como_pescar_corvina_negra",
+      "activadores": [
+        "corvina negra",
+        "pesca en el Mar Argentino",
+        "carnadas para corvina"
+      ],
+      "respuesta_limpia": "Pescar corvina negra con calamares o camarones",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "caracteristicas_corvina_negra",
+      "activadores": [
+        "corvina negra",
+        "tamaño",
+        "alimentación"
+      ],
+      "respuesta_limpia": "La corvina negra puede superar 1,5 m de longitud y pesar más de 35 kg, se alimenta de crustáceos y moluscos",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "donde_pescar_corvina_negra",
+      "activadores": [
+        "corvina negra",
+        "costa bonaerense",
+        "pescar en Mar Chiquita"
+      ],
+      "respuesta_limpia": "Restingas, canales y desembocaduras",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "aprender_panel_control_pescador",
+      "activadores": [
+        "panel de control del pescador",
+        "aprender a manejar el panel"
+      ],
+      "respuesta_limpia": "Aprender a manejar el panel de control del pescador",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "utilizar_tabla_lunar",
+      "activadores": [
+        "tabla lunar",
+        "fase lunar",
+        "iluminacion"
+      ],
+      "respuesta_limpia": "Utilizar la tabla lunar para planificar la pesca",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "consejos_de_pesca",
+      "activadores": [
+        "consejos de pesca",
+        "pesca en condiciones ideales",
+        "cómo pescar en clima despejado"
+      ],
+      "respuesta_limpia": "Elige lugar adecuado, utiliza carnada adecuada, ajusta línea y anzuelo, pesa con paciencia y mantén perfil bajo.",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "caracteristicas_moncholo",
+      "activadores": [
+        "moncholo",
+        "Pseudoplatystoma fasciatum",
+        "pez de agua dulce"
+      ],
+      "respuesta_limpia": "Moncholo: 40-50 cm, 5 kg",
+      "gif": "hablaConMate"
     }
   ]
 }

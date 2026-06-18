@@ -206,9 +206,8 @@
     {
       "intencion": "saludo_pescador",
       "activadores": [
-        "hola",
-        "guia",
-        "como_estas"
+        "hola amigo",
+        "como estas"
       ],
       "respuesta_limpia": "Estoy bien, gracias",
       "gif": "saludo"
