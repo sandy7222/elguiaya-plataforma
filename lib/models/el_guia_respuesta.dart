@@ -21,6 +21,12 @@ class ElGuiaRespuesta {
   final String? error;
   final String tipoError; // 'network'|'timeout'|'parse'|'none'
 
+  /// Payload de acción para que la pantalla activa ejecute algo directamente.
+  /// Se delega a la pantalla activa vía CopilotChannel.delegar().
+  /// Ejemplo: {'accion': 'confirmar_cotizacion'} | {'accion': 'centrar_en_usuario'}
+  /// null si la respuesta es solo texto (comportamiento anterior preservado).
+  final Map<String, dynamic>? accionPayload;
+
   const ElGuiaRespuesta({
     required this.texto,
     this.gifSugerido = 'hablaConMate',
@@ -31,6 +37,7 @@ class ElGuiaRespuesta {
     this.mensaje,
     this.error,
     this.tipoError = 'none',
+    this.accionPayload,
   });
 
   /// Constructor exitoso compatible con los servicios y la UI
@@ -43,7 +50,8 @@ class ElGuiaRespuesta {
         exito = true,
         mensaje = msg,
         error = null,
-        tipoError = 'none';
+        tipoError = 'none',
+        accionPayload = null;
 
   /// Constructor de fallo compatible con los servicios y la UI
   const ElGuiaRespuesta.fallo(String? err, String tipoErr)
@@ -55,7 +63,8 @@ class ElGuiaRespuesta {
         exito = false,
         mensaje = null,
         error = err,
-        tipoError = tipoErr;
+        tipoError = tipoErr,
+        accionPayload = null;
 
   /// Respuesta de texto simple con GIF por defecto
   factory ElGuiaRespuesta.simple(String texto) =>

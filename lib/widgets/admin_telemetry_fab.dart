@@ -79,9 +79,15 @@ class _AdminTelemetryFABState extends State<AdminTelemetryFAB> {
 
   Color _obtenerColorPorEstado(IAEstado estado) {
     switch (estado) {
+      case IAEstado.accionDirecta:
+        return Colors.blue;
+      case IAEstado.navegacion:
+        return Colors.cyan;
       case IAEstado.cloud:
         return Colors.green;
       case IAEstado.offline:
+        return Colors.amber;
+      case IAEstado.contingencia:
         return Colors.red;
     }
   }

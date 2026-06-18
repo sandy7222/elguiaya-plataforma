@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Resultado de un comando de navegación detectado.
 class NavIntencion {
@@ -31,6 +32,13 @@ class IntentService {
       f.contains('anda a') ||
       f.contains('llevame a') ||
       f.contains('quiero ir');
+
+  static Future<void> _abrirUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
 
   /// Detecta si la frase es un comando de navegación.
   /// Retorna [NavIntencion] con ruta + frase de confirmación, o null si no es navegación.
@@ -171,6 +179,53 @@ class IntentService {
       return const NavIntencion(
         '/inicio',
         'Dale, volvemos al inicio.',
+      );
+    }
+
+    // ── YOUTUBE ──────────────────────────────────────────────────────
+    if (f.contains('youtube') || 
+        f.contains('video') && nav) {
+      _abrirUrl('https://www.youtube.com');
+      return const NavIntencion(
+        'externo',
+        'Dale chamigo, te abro YouTube.',
+      );
+    }
+
+    // ── WHATSAPP ─────────────────────────────────────────────────────
+    if (f.contains('whatsapp') ||
+        f.contains('manda un mensaje') ||
+        f.contains('mandá un mensaje')) {
+      _abrirUrl('https://wa.me/');
+      return const NavIntencion(
+        'externo',
+        'Dale, te abro WhatsApp.',
+      );
+    }
+
+    // ── SPOTIFY ──────────────────────────────────────────────────────
+    if (f.contains('spotify') ||
+        f.contains('música') && nav ||
+        f.contains('musica') && nav ||
+        f.contains('poner música') ||
+        f.contains('poner musica')) {
+      _abrirUrl('https://open.spotify.com');
+      return const NavIntencion(
+        'externo',
+        'Dale chamigo, te abro Spotify.',
+      );
+    }
+
+    // ── MAPS / GOOGLE MAPS ───────────────────────────────────────────
+    if (f.contains('google maps') ||
+        f.contains('cómo llego') ||
+        f.contains('como llego') ||
+        f.contains('navegación gps') ||
+        f.contains('navegacion gps')) {
+      _abrirUrl('https://maps.google.com');
+      return const NavIntencion(
+        'externo',
+        'Dale, te abro Google Maps.',
       );
     }
 

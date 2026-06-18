@@ -24,16 +24,18 @@ class AdminGuiaEducadorScreen extends StatefulWidget {
 }
 
 class _AdminGuiaEducadorScreenState extends State<AdminGuiaEducadorScreen> {
-  final _apiKeyController    = TextEditingController();
-  final _groqApiKeyController = TextEditingController();
-  final _limitController     = TextEditingController();
+  final _apiKeyController         = TextEditingController();
+  final _groqApiKeyController      = TextEditingController(); // El Guía
+  final _groqCentralitaController  = TextEditingController(); // Centralita
+  final _limitController           = TextEditingController();
 
-  bool _cargandoStats  = true;
-  bool _guardandoKey   = false;
-  bool _mostrarKey     = false;
-  bool _mostrarGroqKey = false;
-  bool _probandoGroq   = false;
-  bool _robotActivo    = false;
+  bool _cargandoStats       = true;
+  bool _guardandoKey        = false;
+  bool _mostrarKey          = false;
+  bool _mostrarGroqKey      = false;
+  bool _mostrarCentralitaKey = false;
+  bool _probandoGroq        = false;
+  bool _robotActivo         = false;
   String? _resultadoGroqPrueba;
   bool _groqPruebaExitosa = false;
   Map<String, dynamic> _stats = {};
@@ -78,6 +80,7 @@ El JSON resultante debe ser una lista con este formato:
   void dispose() {
     _apiKeyController.dispose();
     _groqApiKeyController.dispose();
+    _groqCentralitaController.dispose();
     _limitController.dispose();
     super.dispose();
   }
@@ -96,6 +99,9 @@ El JSON resultante debe ser una lista con este formato:
             ? '••••••••••••••••••••'
             : '';
         _groqApiKeyController.text = GroqConfig.tieneApiKey
+            ? '••••••••••••••••••••'
+            : '';
+        _groqCentralitaController.text = GroqConfig.tieneApiKeyCentralita
             ? '••••••••••••••••••••'
             : '';
         _limitController.text  = GeminiConfig.limiteDiario.toString();
@@ -128,7 +134,7 @@ El JSON resultante debe ser una lista con este formato:
     final key = _groqApiKeyController.text.trim();
     if (key.isEmpty || key.startsWith('•')) return;
     setState(() => _guardandoKey = true);
-    await GroqConfig.setApiKey(key);
+    await GroqConfig.setApiKeyGuia(key);
     setState(() {
       _guardandoKey = false;
       _groqApiKeyController.text = '••••••••••••••••••••';
@@ -137,7 +143,28 @@ El JSON resultante debe ser una lista con este formato:
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('✅ API Key de Groq guardada correctamente'),
+          content: Text('✅ Clave El Guía (Groq) guardada'),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Future<void> _guardarGroqCentralitaKey() async {
+    final key = _groqCentralitaController.text.trim();
+    if (key.isEmpty || key.startsWith('•')) return;
+    setState(() => _guardandoKey = true);
+    await GroqConfig.setApiKeyCentralita(key);
+    setState(() {
+      _guardandoKey = false;
+      _groqCentralitaController.text = '••••••••••••••••••••';
+      _mostrarCentralitaKey = false;
+    });
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ Clave Centralita (Groq) guardada'),
           backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
         ),
@@ -850,33 +877,47 @@ El JSON resultante debe ser una lista con este formato:
 
   Widget _buildGroqApiKeyCard() {
     return _glassCard(
-      label: 'API KEY DE GROQ',
+      label: 'CLAVES GROQ — EL GUÍA Y CENTRALITA',
       labelColor: Colors.cyanAccent,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Obtenela en console.groq.com. Llama 3.3 responderá súper rápido.',
+            'Creá una clave por servicio en console.groq.com → API Keys → Create API Key. Así si cambiás una no rompés la otra.',
             style: TextStyle(color: Colors.white54, fontSize: 12),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 20),
+
+          // ── CLAVE EL GUÍA ──────────────────────────────────────────────
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.cyanAccent.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.smart_toy_rounded, color: Colors.cyanAccent, size: 16),
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'El Guía (robot asistente)',
+                style: TextStyle(color: Colors.cyanAccent, fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
           TextField(
             controller: _groqApiKeyController,
             obscureText: !_mostrarGroqKey,
             style: const TextStyle(color: Colors.white, fontSize: 13),
-            onChanged: (val) {
-              final trimmed = val.trim();
-              if (trimmed.isNotEmpty && !trimmed.startsWith('•')) {
-                GroqConfig.setApiKey(trimmed);
-              }
-            },
             onTap: () {
               if (_groqApiKeyController.text.startsWith('•')) {
                 _groqApiKeyController.clear();
               }
             },
             decoration: InputDecoration(
-              hintText: 'gsk_...',
+              hintText: 'gsk_... (clave de El Guía)',
               hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
               filled: true,
               fillColor: Colors.white.withOpacity(0.05),
@@ -902,20 +943,18 @@ El JSON resultante debe ser una lista con este formato:
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: _guardandoKey ? null : _guardarGroqApiKey,
                   icon: const Icon(Icons.save_rounded, size: 16),
-                  label: const Text('Guardar Clave', style: TextStyle(fontSize: 12)),
+                  label: const Text('Guardar Guía', style: TextStyle(fontSize: 12)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.cyan[700],
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
@@ -930,7 +969,7 @@ El JSON resultante debe ser una lista con este formato:
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.cyanAccent),
                         )
                       : const Icon(Icons.wifi_tethering_rounded, size: 16, color: Colors.cyanAccent),
-                  label: const Text('Probar Conexión', style: TextStyle(color: Colors.cyanAccent, fontSize: 12)),
+                  label: const Text('Probar', style: TextStyle(color: Colors.cyanAccent, fontSize: 12)),
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: Colors.cyanAccent.withOpacity(0.5)),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -956,7 +995,6 @@ El JSON resultante debe ser una lista con este formato:
                 ),
               ),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(
                     _groqPruebaExitosa ? Icons.check_circle_rounded : Icons.error_rounded,
@@ -968,9 +1006,7 @@ El JSON resultante debe ser una lista con este formato:
                     child: Text(
                       _resultadoGroqPrueba!,
                       style: TextStyle(
-                        color: _groqPruebaExitosa
-                            ? const Color(0xFF00E676)
-                            : Colors.redAccent,
+                        color: _groqPruebaExitosa ? const Color(0xFF00E676) : Colors.redAccent,
                         fontSize: 12,
                       ),
                     ),
@@ -980,22 +1016,108 @@ El JSON resultante debe ser una lista con este formato:
             ),
           ],
           if (GroqConfig.tieneApiKey) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             TextButton.icon(
               onPressed: () async {
-                await GroqConfig.setApiKey('');
+                await GroqConfig.setApiKeyGuia('');
                 setState(() => _groqApiKeyController.clear());
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('🔒 API Key de Groq eliminada de la memoria local'),
-                      backgroundColor: Colors.orange,
-                    ),
+                    const SnackBar(content: Text('🔒 Clave El Guía eliminada'), backgroundColor: Colors.orange),
                   );
                 }
               },
-              icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 18),
-              label: const Text('Borrar API Key de Groq de la memoria local', style: TextStyle(color: Colors.redAccent, fontSize: 12)),
+              icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 16),
+              label: const Text('Borrar clave Guía', style: TextStyle(color: Colors.redAccent, fontSize: 11)),
+            ),
+          ],
+
+          const Divider(color: Colors.white12, height: 32),
+
+          // ── CLAVE CENTRALITA ───────────────────────────────────────────
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.orangeAccent.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.dashboard_rounded, color: Colors.orangeAccent, size: 16),
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'Centralita (panel admin)',
+                style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _groqCentralitaController,
+            obscureText: !_mostrarCentralitaKey,
+            style: const TextStyle(color: Colors.white, fontSize: 13),
+            onTap: () {
+              if (_groqCentralitaController.text.startsWith('•')) {
+                _groqCentralitaController.clear();
+              }
+            },
+            decoration: InputDecoration(
+              hintText: 'gsk_... (clave de la Centralita)',
+              hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+              filled: true,
+              fillColor: Colors.white.withOpacity(0.05),
+              prefixIcon: const Icon(Icons.vpn_key_rounded, color: Colors.orangeAccent),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _mostrarCentralitaKey ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                  color: Colors.white38,
+                ),
+                onPressed: () => setState(() => _mostrarCentralitaKey = !_mostrarCentralitaKey),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: Colors.orangeAccent, width: 2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _guardandoKey ? null : _guardarGroqCentralitaKey,
+              icon: const Icon(Icons.save_rounded, size: 16),
+              label: const Text('Guardar Centralita', style: TextStyle(fontSize: 12)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange[700],
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+          if (GroqConfig.tieneApiKeyCentralita) ...[
+            const SizedBox(height: 4),
+            TextButton.icon(
+              onPressed: () async {
+                await GroqConfig.setApiKeyCentralita('');
+                setState(() => _groqCentralitaController.clear());
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('🔒 Clave Centralita eliminada'), backgroundColor: Colors.orange),
+                  );
+                }
+              },
+              icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 16),
+              label: const Text('Borrar clave Centralita', style: TextStyle(color: Colors.redAccent, fontSize: 11)),
             ),
           ],
         ],
@@ -1004,7 +1126,9 @@ El JSON resultante debe ser una lista con este formato:
   }
 
 
+
   // ── Límite diario ─────────────────────────────────────────────────────────
+
 
   Widget _buildLimiteCard() {
     return _glassCard(

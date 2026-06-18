@@ -12,6 +12,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/viaje_tracking_service.dart';
 import '../services/mapa_offline_service.dart';
+import '../services/guia_copilot_brain.dart';
+import '../services/copilot_channel.dart';
 
 class CapitanTrackerScreen extends StatefulWidget {
   final bool esCapitan;
@@ -56,6 +58,21 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
     _checkTrackingState();
     _loadSavedTracks();
     _loadUserProfile();
+
+    GuiaCopilotBrain.instance.pantallaCargada(
+      ScreenContext.mapa,
+    );
+    GuiaCopilotBrain.instance.iniciarAccion(AppAction.navegandoMapa);
+
+    CopilotChannel.registrar('mapa', (payload) {
+      if (payload['accion'] == 'centrar_en_usuario') {
+        if (_currentLatLng != null) {
+          _mapController.move(_currentLatLng!, _mapController.camera.zoom);
+        }
+      } else if (payload['accion'] == 'mostrar_capitanes') {
+        _loadSavedTracks();
+      }
+    });
   }
 
   Future<void> _loadUserProfile() async {
@@ -78,6 +95,8 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
 
   @override
   void dispose() {
+    CopilotChannel.desregistrar('mapa');
+    GuiaCopilotBrain.instance.completarAccion(AppAction.navegandoMapa);
     _positionSubscription?.cancel();
     _durationTimer?.cancel();
     _downloadTimer?.cancel();

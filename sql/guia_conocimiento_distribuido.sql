@@ -46,3 +46,9 @@ CREATE POLICY "Permitir borrado para administradores y service_role" ON public.g
         OR (SELECT rol FROM public.profiles WHERE user_id = auth.uid()) = 'admin' 
         OR (SELECT raw_user_meta_data->>'role' FROM auth.users WHERE id = auth.uid()) = 'admin'
     );
+
+-- ── CONTEXTO DE COPILOTO ──────────────────────────────────────────────────────
+-- Agregar columnas para registrar el contexto en el que se aprendió el conocimiento
+ALTER TABLE public.guia_conocimiento_distribuido
+  ADD COLUMN IF NOT EXISTS pantalla_origen TEXT,
+  ADD COLUMN IF NOT EXISTS accion_contexto TEXT;

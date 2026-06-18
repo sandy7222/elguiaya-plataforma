@@ -233,8 +233,11 @@ class _ChatUnificadoScreenState extends State<ChatUnificadoScreen>
                   valueListenable: IARouterState.estado,
                   builder: (_, estado, __) {
                     final label = switch (estado) {
+                      IAEstado.accionDirecta => '⚡ Acción directa',
+                      IAEstado.navegacion => '🗺️ Navegación asistida',
                       IAEstado.cloud => '🟢 Groq Cloud activo',
                       IAEstado.offline => '🟡 Modo offline',
+                      IAEstado.contingencia => '🔴 Modo contingencia',
                     };
                     return Text(
                       label,

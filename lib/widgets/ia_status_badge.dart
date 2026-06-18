@@ -112,6 +112,18 @@ class _IAStatusBadgeState extends State<IAStatusBadge>
 
   _BadgeConfig _configForEstado(IAEstado estado) {
     switch (estado) {
+      case IAEstado.accionDirecta:
+        return const _BadgeConfig(
+          color: Color(0xFF00B0FF),
+          label: 'Copiloto',
+          tooltip: 'Acción directa contextual ejecutada por el copiloto',
+        );
+      case IAEstado.navegacion:
+        return const _BadgeConfig(
+          color: Color(0xFF00E5FF),
+          label: 'Navegación',
+          tooltip: 'Navegación de ruta asistida',
+        );
       case IAEstado.cloud:
         return const _BadgeConfig(
           color: Color(0xFF00E676),
@@ -123,6 +135,12 @@ class _IAStatusBadgeState extends State<IAStatusBadge>
           color: Color(0xFFFFC107),
           label: 'Offline',
           tooltip: 'Modo offline — El Guía Engine',
+        );
+      case IAEstado.contingencia:
+        return const _BadgeConfig(
+          color: Color(0xFFE57373),
+          label: 'Contingencia',
+          tooltip: 'Modo contingencia — Respuestas básicas locales',
         );
     }
   }

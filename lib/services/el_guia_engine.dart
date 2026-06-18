@@ -244,6 +244,12 @@ class ElGuiaEngine {
       'temperatura',
       'pronostico',
       'pronóstico',
+      'conoces el pronostico',
+      'sabes el pronostico',
+      'conoces la tabla solunar',
+      'sabes la tabla solunar',
+      'tabla solunar',
+      'solunar',
     ],
     'gps': [
       'gps',
@@ -356,6 +362,10 @@ class ElGuiaEngine {
       'con que pesco',
       'que le pongo',
       'que uso de carnada',
+      'conoces como poner la carnada',
+      'sabes poner la carnada',
+      'conoces de carnadas',
+      'sabes de carnadas',
     ],
     'nudos': [
       'nudo',
@@ -799,6 +809,10 @@ class ElGuiaEngine {
       'que hora tengo',
       'qué hora tengo',
       'me decis la hora',
+      'conoces la hora',
+      'sabes la hora',
+      'conoces que hora es',
+      'sabes que hora es',
     ],
     'ayuda_app': [
       'como funciona',
@@ -1007,6 +1021,53 @@ class ElGuiaEngine {
       'sos mi amigo', 'me acompanas', 'te quiero', 'te extrane', 'me caes bien',
       // Disponibilidad
       'estas ahi', 'estas disponible', 'hay alguien', 'me escuchas',
+      // Gustos personales / offline
+      'que te gusta hacer', 'que haces', 'que te gusta',
+      'que haces offline', 'que haces cuando no tenes internet',
+      'que haces en tu tiempo libre', 'que te gusta en modo offline',
+      'a que te dedicas', 'cuales son tus gustos', 'que te gusta hacer a vos',
+      'que disfrutas', 'que te apasiona', 'que te gusta mas',
+      'que hobbies tenes', 'tenes hobbies', 'que te divierte',
+      'te gusta pescar', 'te gusta la isla', 'te gusta navegar',
+      'que cosas te gustan', 'que te pone contento', 'que cosas te apasionan',
+      // Disgustos
+      'que no te gusta', 'que te molesta', 'que odias', 'que te cae mal',
+      // Sueños
+      'cuales son tus suenos', 'que sonas', 'que te gustaria hacer',
+      'algun sueno tenes', 'que te gustaria lograr', 'que quiseras hacer',
+      // Camping / naturaleza
+      'te gusta acampar', 'te gusta el camping', 'acampas',
+      'te gusta el monte', 'te gusta estar en la isla', 'te gusta quedarte en la isla',
+      'te gusta dormir afuera', 'te gusta la naturaleza', 'te gusta el campo',
+      // Cocinar / fuego / fogata
+      'te gusta cocinar', 'sabes cocinar', 'cocinas algo', 'que cocinás', 'que cocinas',
+      'te gusta el fuego', 'te gusta estar al lado del fuego', 'te gusta la fogata',
+      'te gusta prender fuego', 'te gusta la hoguera', 'sabes hacer fuego',
+      'te gusta cocinar al fuego', 'te gusta cocinar a la parrilla',
+      // Comer pescado
+      'te gusta comer pescado', 'comes pescado', 'que pescado te gusta',
+      'cual es tu pescado favorito', 'te gusta el dorado', 'te gusta el surubi',
+      'te gusta el pejerrey', 'te gusta la boga', 'como te gusta el pescado',
+      'te comes lo que pescas',
+      // Mate preferencia
+      'te gusta el mate dulce o amargo', 'lo tomas dulce o amargo',
+      'como tomas el mate', 'dulce o amargo', 'tomas dulce', 'tomas amargo',
+      'con azucar o sin azucar', 'como lo cebas', 'muy caliente o tibio',
+      'caliente o a punto de hervir', 'a que temperatura',
+      // Asado
+      'te gusta el asado', 'comes asado', 'sabes hacer asado',
+      'te gusta la parrilla', 'te gusta asar', 'haces asado',
+      'te gusta el choripan', 'te gusta el chorizo', 'sos asador',
+      // Conocés/sabés X (meta-consultas de capacidades)
+      'conoces la hora', 'sabes la hora',
+      'conoces el pronostico', 'sabes el pronostico',
+      'conoces la tabla solunar', 'sabes la tabla solunar',
+      'conoces como poner la carnada', 'sabes poner la carnada',
+      'conoces como llevarme', 'sabes como llevarme',
+      'conoces como manejar el celular', 'sabes manejar el celular',
+      'conoces la app', 'sabes usar la app',
+      'que conoces', 'que cosas sabes', 'sabes algo de esto',
+      'sabes o conoces', 'conoces o sabes',
     ],
   };
 
@@ -1232,11 +1293,16 @@ class ElGuiaEngine {
     _contexto.registrarActividad();
     final texto = _limpiarYNormalizarEntrada(entrada);
 
+    final intenciones = detectarIntenciones(texto);
+    final intencionPrincipal = _obtenerMayorPrioridad(intenciones);
+
     // ── INTERCEPTOR: Cierre ordenado de pregunta de seguimiento ──────────────
     // Si el bot había hecho una pregunta en su última respuesta, cualquier
     // entrada del usuario ("sí", "no", texto libre) se toma como respuesta
     // a esa pregunta y se cierra la conversación con una frase natural.
-    if (_contexto.esperandoCierre) {
+    // BYPASS: Si la consulta tiene una intención clara estructurada (distinta de fallback/agradecimiento),
+    // se procesa de forma directa sin interceptar.
+    if (_contexto.esperandoCierre && (intenciones.isEmpty || intencionPrincipal == 'fallback' || intencionPrincipal == 'agradecimiento')) {
       _contexto.esperandoCierre = false;
       _contexto.ultimaPreguntaHecha = '';
       _contexto.nivelFrustracion = 0; // resetear frustración, la charla cerró bien
@@ -1249,6 +1315,10 @@ class ElGuiaEngine {
       );
     }
 
+    if (intencionPrincipal != 'fallback') {
+      _contexto.esperandoCierre = false;
+    }
+
     // Búsqueda directa inteligente en librerías locales basada en frases de acción ("cómo se prepara", "qué hago", etc.)
     final respuestaBusquedaDinamica = await _buscarEnLibreriasDinamico(texto);
     if (respuestaBusquedaDinamica != null) {
@@ -1256,9 +1326,6 @@ class ElGuiaEngine {
       _guardarRespuestaYDetectarPregunta(respuestaBusquedaDinamica.texto);
       return respuestaBusquedaDinamica;
     }
-
-    final intenciones = detectarIntenciones(texto);
-    final intencionPrincipal = _obtenerMayorPrioridad(intenciones);
 
     // Registrar actividad en logger
     GuiaLogger.registrar(
@@ -2896,6 +2963,49 @@ class ElGuiaEngine {
 
   // ── Preguntas humanas recurrentes ────────────────────────────────────────────
   String _responderPreguntasHumanas(String texto) {
+    // ── RESPUESTAS PERSONALES DESDE PERSONALIDAD.JSON ───────────────────────
+    final identidad = _personalidad['identidad_personal'];
+    if (identidad != null && identidad['respuestas_personales'] != null) {
+      final respuestasPersonales = identidad['respuestas_personales'] as Map<String, dynamic>;
+      final t = texto.toLowerCase();
+
+      if (t.contains('pescar') || t.contains('pesca')) {
+        if (respuestasPersonales.containsKey('te_gusta_pescar')) {
+          return respuestasPersonales['te_gusta_pescar'] as String;
+        }
+      }
+      if (t.contains('isla')) {
+        if (respuestasPersonales.containsKey('te_gusta_la_isla')) {
+          return respuestasPersonales['te_gusta_la_isla'] as String;
+        }
+      }
+      if (t.contains('mate')) {
+        if (respuestasPersonales.containsKey('tomas_mate')) {
+          return respuestasPersonales['tomas_mate'] as String;
+        }
+      }
+      if (t.contains('cocinar') || t.contains('fuego') || t.contains('fogata') || t.contains('asado') || t.contains('asador') || t.contains('acampar') || t.contains('campamento')) {
+        if (respuestasPersonales.containsKey('te_gusta_el_fuego_cocinar')) {
+          return respuestasPersonales['te_gusta_el_fuego_cocinar'] as String;
+        }
+      }
+      if (t.contains('navegar') || t.contains('lancha') || t.contains('bote') || t.contains('conducir') || t.contains('manejar')) {
+        if (respuestasPersonales.containsKey('te_gusta_navegar')) {
+          return respuestasPersonales['te_gusta_navegar'] as String;
+        }
+      }
+      if (t.contains('truco')) {
+        if (respuestasPersonales.containsKey('te_gusta_el_truco')) {
+          return respuestasPersonales['te_gusta_el_truco'] as String;
+        }
+      }
+      if (t.contains('que te gusta hacer') || t.contains('que haces offline') || t.contains('tiempo libre') || t.contains('que te gusta en modo offline') || t.contains('gustos personales') || t.contains('tus gustos')) {
+        if (respuestasPersonales.containsKey('que_te_gusta_hacer')) {
+          return respuestasPersonales['que_te_gusta_hacer'] as String;
+        }
+      }
+    }
+
     final lib = _librerias['preguntas_humanas'];
     if (lib == null)
       return 'Soy El Guía. Estoy para ayudarte con pesca y la app.';

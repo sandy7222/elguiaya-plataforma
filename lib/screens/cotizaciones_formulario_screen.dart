@@ -1,8 +1,10 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../services/cotizaciones_service.dart';
 import '../services/supabase_service.dart';
+import '../services/guia_copilot_brain.dart';
+import '../services/copilot_channel.dart';
 import 'sala_espera_pescador_screen.dart';
 
 class CotizacionesFormularioScreen extends StatefulWidget {
@@ -55,6 +57,34 @@ class _CotizacionesFormularioScreenState extends State<CotizacionesFormularioScr
     } else {
       _agregarItemVacio(); // Agregar primer item vacio
     }
+
+    GuiaCopilotBrain.instance.pantallaCargada(
+      ScreenContext.cotizacion,
+      datosLocales: {'cotizacionId': widget.cotizacionId},
+    );
+    GuiaCopilotBrain.instance.iniciarAccion(AppAction.cotizando);
+
+    CopilotChannel.registrar('cotizacion', (payload) {
+      if (payload['accion'] == 'confirmar_cotizacion') {
+        _guardarCotizacion();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    CopilotChannel.desregistrar('cotizacion');
+    _tituloController.dispose();
+    _descripcionController.dispose();
+    _montoController.dispose();
+    _vigenciaDiasController.dispose();
+    _pescadorIdController.dispose();
+    _viajeIdController.dispose();
+    _incluyeController.dispose();
+    _noIncluyeController.dispose();
+    _especialidadController.dispose();
+    _experienciaController.dispose();
+    super.dispose();
   }
 
   Future<void> _cargarCotizacionExistente() async {

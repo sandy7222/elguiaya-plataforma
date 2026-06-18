@@ -77,9 +77,9 @@ class _PescadorPerfilEditScreenState extends State<PescadorPerfilEditScreen> {
 
       // Cargar preferencia del Guía ANTES del setState (await no puede ir dentro)
       final prefs = await SharedPreferences.getInstance();
-      final guiaActivo = prefs.getBool('guia_activo') ?? false;
-      final guiaSilenciado = prefs.getBool('guia_silenciado') ?? false;
-      final guiaMicActivo = prefs.getBool('guia_mic_activo') ?? true;
+      final guiaActivo = prefs.getBool('guia_activo_${user.id}') ?? prefs.getBool('guia_activo') ?? false;
+      final guiaSilenciado = prefs.getBool('guia_silenciado_${user.id}') ?? prefs.getBool('guia_silenciado') ?? false;
+      final guiaMicActivo = prefs.getBool('guia_mic_activo_${user.id}') ?? prefs.getBool('guia_mic_activo') ?? true;
 
       if (mounted) {
         setState(() {

@@ -6973,6 +6973,8 @@ class SupabaseService {
         'fecha_consolidacion': DateTime.now().toIso8601String().substring(0, 10),
         'veces_preguntado': 1,
         'limite_libreria': limite,
+        'pantalla_origen': json['pantalla_origen'],
+        'accion_contexto': json['accion_contexto'],
       }).select('id').single();
 
       final id = response['id']?.toString();
