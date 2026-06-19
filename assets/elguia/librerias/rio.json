@@ -71,6 +71,15 @@
       ],
       "respuesta_limpia": "Me acordaré de ti",
       "gif": "saludo"
+    },
+    {
+      "intencion": "recordar_nombre_usuario",
+      "activadores": [
+        "identidad del pescador",
+        "nombre del usuario"
+      ],
+      "respuesta_limpia": "Me alegra recordar tu nombre",
+      "gif": "saludo"
     }
   ]
 }
