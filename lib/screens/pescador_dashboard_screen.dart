@@ -112,11 +112,6 @@ class _PescadorDashboardScreenState extends State<PescadorDashboardScreen>
         });
       }
 
-      // Iniciar el rastreo GPS en vivo para el Pescador
-      if (_pescadorId != null) {
-        GpsTrackerService().startTracking(_pescadorId!);
-      }
-
       // Cargar cotizaciones y presupuestos
       final cotizaciones = await SupabaseService.getCotizacionesPescador(
         _pescadorId!,

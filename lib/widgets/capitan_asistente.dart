@@ -62,13 +62,14 @@ class _CapitanAsistenteState extends State<CapitanAsistente> {
           'assets/gifs/se_rie_y_saluda_al_frente.gif',
           'assets/gifs/duerme.gif',
           'assets/gifs/se_despierte_y_queda_de_pie.gif',
-          'assets/gifs/solo_piensa.gif',
           'assets/gifs/piensa_y_mira_arriba.gif',
           'assets/gifs/escucha_mientras_habla.gif',
           'assets/gifs/solo_escucha.gif',
           'assets/gifs/carita_de_pregunta_y_habla.gif',
           'assets/gifs/habla_y_explica.gif',
+          'assets/gifs/habla_y_explica_con_manos.gif',
           'assets/gifs/habla_convencido_y_hace_ok.gif',
+          'assets/gifs/habla_y_hace_ok.gif',
           'assets/gifs/chiste_y_rie.gif',
           'assets/gifs/habla_con_mate.gif',
           'assets/gifs/habla_y_ceba_mate.gif',
@@ -193,7 +194,7 @@ class _CapitanAsistenteState extends State<CapitanAsistente> {
       case CapitanState.despierta:
         return 'assets/gifs/se_despierte_y_queda_de_pie.gif';
       case CapitanState.piensaLeve:
-        return 'assets/gifs/solo_piensa.gif';
+        return 'assets/gifs/piensa_y_mira_arriba.gif';
       case CapitanState.piensaProfundo:
         return 'assets/gifs/piensa_y_mira_arriba.gif';
       case CapitanState.escuchando:
@@ -203,9 +204,13 @@ class _CapitanAsistenteState extends State<CapitanAsistente> {
       case CapitanState.duda:
         return 'assets/gifs/carita_de_pregunta_y_habla.gif';
       case CapitanState.explica:
-        return 'assets/gifs/habla_y_explica.gif';
+        return _random.nextBool()
+            ? 'assets/gifs/habla_y_explica.gif'
+            : 'assets/gifs/habla_y_explica_con_manos.gif';
       case CapitanState.exito:
-        return 'assets/gifs/habla_convencido_y_hace_ok.gif';
+        return _random.nextBool()
+            ? 'assets/gifs/habla_convencido_y_hace_ok.gif'
+            : 'assets/gifs/habla_y_hace_ok.gif';
       case CapitanState.chiste:
         return 'assets/gifs/chiste_y_rie.gif';
       case CapitanState.hablaConMate:

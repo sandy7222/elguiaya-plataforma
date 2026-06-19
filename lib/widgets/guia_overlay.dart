@@ -537,7 +537,15 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
 
       // Navegar solo si es ruta interna
       if (navIntent.ruta != 'externo') {
-        navigatorKey.currentState?.pushNamed(navIntent.ruta);
+        // El panel principal reemplaza toda la pila para que sea el origen limpio
+        if (navIntent.ruta == '/panel') {
+          navigatorKey.currentState?.pushNamedAndRemoveUntil(
+            '/panel',
+            (route) => false,
+          );
+        } else {
+          navigatorKey.currentState?.pushNamed(navIntent.ruta);
+        }
       }
 
       // Reiniciar el ciclo de voz después de navegar
@@ -569,12 +577,14 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
     }
 
     // Respuesta IA
-    final String responseText;
+    String responseText = '';
     CapitanState nuevoEstado = CapitanState.explica;
 
-    if (!_haySenal) {
-      responseText = ConnectivityBridge.obtenerRespuestaTrinchera();
-    } else {
+    // ── Siempre llamamos al motor IA, online o no.
+    // BaqueanoIAService ya tiene su propio Tier offline (ElGuiaEngine local)
+    // que puede responder sobre pesca, nudos, carnadas, etc. sin internet.
+    // La respuesta Trinchera solo sale si el motor falla completamente.
+    try {
       final ElGuiaRespuesta respuesta = await BaqueanoIAService.responder(cleanText);
       responseText = respuesta.texto;
       nuevoEstado = _gifToState(respuesta.gifSugerido);
@@ -586,6 +596,11 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
           }
         });
       }
+    } catch (e) {
+      // Falla total del motor (caso muy raro) → respuesta de trinchera como último recurso
+      debugPrint('[GuiaOverlay] Motor offline falló completamente: $e');
+      responseText = ConnectivityBridge.obtenerRespuestaTrinchera();
+      nuevoEstado = CapitanState.duda;
     }
 
     if (mounted) {
