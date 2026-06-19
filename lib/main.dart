@@ -220,6 +220,7 @@ class MyApp extends StatelessWidget {
         ),
         '/clima': (context) => const PronosticoScreen(),
         '/historial': (context) => const ViajesProgramadosScreen(esCapitan: false),
+        '/panel': (context) => const PortalPescadorScreen(),
       },
     );
   }

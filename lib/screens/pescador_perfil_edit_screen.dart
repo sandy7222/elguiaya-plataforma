@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:permission_handler/permission_handler.dart';
+import '../services/voice_service.dart';
 import '../widgets/guia_overlay.dart';
 
 class PescadorPerfilEditScreen extends StatefulWidget {
@@ -469,6 +471,26 @@ class _PescadorPerfilEditScreenState extends State<PescadorPerfilEditScreen> {
                                 Switch(
                                   value: _guiaMicActivo,
                                   onChanged: (val) async {
+                                    if (val) {
+                                      // Pedir permiso de micrófono en contexto
+                                      // (el usuario acaba de activar 'Comandos por Voz')
+                                      final status = await Permission.microphone.request();
+                                      if (!status.isGranted) {
+                                        // Si deniega, no activamos el mic
+                                        if (mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(
+                                              content: Text('Se necesita el micrófono para los comandos de voz. Activalo en los ajustes del celular.'),
+                                              backgroundColor: Colors.redAccent,
+                                              behavior: SnackBarBehavior.floating,
+                                            ),
+                                          );
+                                        }
+                                        return;
+                                      }
+                                      // Inicializar el STT ahora que tenemos permiso
+                                      await VoiceService().initStt();
+                                    }
                                     await GuiaOverlayController.setMicActivo(val);
                                   },
                                   activeColor: const Color(0xFF00E676),

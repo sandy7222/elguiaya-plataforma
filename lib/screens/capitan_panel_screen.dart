@@ -16,7 +16,7 @@ import 'capitan_identidad_screen.dart';
 import 'capitan_zona_config_screen.dart';
 import 'viajes_programados_screen.dart';
 import '../services/viaje_lifecycle_service.dart';
-import '../services/viaje_tracking_service.dart'; // Servicio principal de GPS y tracking de viajes
+import '../services/viaje_tracking_service.dart';
 import '../services/core_business_logic.dart';
 import 'solicitud_detalle_screen.dart';
 import '../widgets/notification_quick_view.dart';
@@ -62,11 +62,7 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
     _cargarDatos();
     _configurarRealtime();
     _escucharNotificacionesRuta();
-    _prepararGPS(); // Preparar GPS silenciosamente
-  }
-
-  void _prepararGPS() async {
-    await ViajeTrackingService().requestPermissionSilently();
+    // GPS NO se pide aquí — solo cuando el capitán inicia un tracker de viaje
   }
 
   void _escucharNotificacionesRuta() {

@@ -1,5 +1,6 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'categories_grid_screen.dart';
 import 'chat_unificado_screen.dart';
 import '../widgets/map_selector_widget.dart';
@@ -22,6 +23,7 @@ class _PortalPescadorScreenState extends State<PortalPescadorScreen> {
   int _selectedIndex = 0;
   String _userName = 'Cargando...';
   Map<String, dynamic>? _initialQuoteData;
+  bool _gpsYaSolicitado = false; // Evita mostrar el diálogo más de una vez por sesión
 
   // Branding
   String? _backgroundUrl;
@@ -71,6 +73,86 @@ class _PortalPescadorScreenState extends State<PortalPescadorScreen> {
     } catch (e) {
       debugPrint('Error cargando perfil: $e');
       if (mounted) setState(() => _userName = 'Laura');
+    }
+  }
+
+  /// Pide permiso de GPS solo al abrir el mapa por primera vez.
+  /// Muestra un diálogo propio explicativo ANTES del diálogo del sistema operativo.
+  Future<void> _solicitarGPSParaMapa() async {
+    // Si ya lo pedimos esta sesión, no volver a molestar
+    if (_gpsYaSolicitado) return;
+
+    // Si ya tiene permiso concedido, no hay nada que pedir
+    final permiso = await Geolocator.checkPermission();
+    if (permiso == LocationPermission.always ||
+        permiso == LocationPermission.whileInUse) {
+      _gpsYaSolicitado = true;
+      return;
+    }
+
+    // Si el permiso está bloqueado permanentemente, no podemos hacer nada
+    if (permiso == LocationPermission.deniedForever) {
+      _gpsYaSolicitado = true;
+      return;
+    }
+
+    // Mostrar diálogo propio antes de disparar el del sistema operativo
+    if (!mounted) return;
+    final aceptado = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF001529),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.map_rounded, color: Color(0xFF00E676), size: 28),
+            SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                '¿Usamos tu ubicación?',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: const Text(
+          'Para mostrarte capitanes cerca de donde estás y trazar tu ruta de pesca, necesitamos acceder a tu GPS.\n\nSolo se activa cuando usás el mapa.',
+          style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.5),
+        ),
+        actionsAlignment: MainAxisAlignment.spaceEvenly,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text(
+              'No por ahora',
+              style: TextStyle(color: Colors.white54, fontSize: 14),
+            ),
+          ),
+          ElevatedButton.icon(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            icon: const Icon(Icons.gps_fixed_rounded, size: 18),
+            label: const Text('Activar GPS'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF00E676),
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    _gpsYaSolicitado = true; // No volver a preguntar, sin importar la respuesta
+
+    // Solo si el usuario aceptó, disparamos el diálogo real del sistema operativo
+    if (aceptado == true) {
+      await Geolocator.requestPermission();
     }
   }
 
@@ -152,7 +234,13 @@ class _PortalPescadorScreenState extends State<PortalPescadorScreen> {
           ),
           child: BottomNavigationBar(
             currentIndex: _selectedIndex,
-            onTap: (index) => setState(() => _selectedIndex = index),
+            onTap: (index) async {
+              // Índice 1 = Mapa de Ruta: pedir GPS en contexto antes de mostrarlo
+              if (index == 1) {
+                await _solicitarGPSParaMapa();
+              }
+              if (mounted) setState(() => _selectedIndex = index);
+            },
             backgroundColor: const Color(0xFF001529).withOpacity(0.95),
             selectedItemColor: const Color(0xFF00E676),
             unselectedItemColor: Colors.white60,

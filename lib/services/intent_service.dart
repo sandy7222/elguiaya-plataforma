@@ -174,11 +174,26 @@ class IntentService {
       );
     }
 
-    // ── INICIO / HOME ──────────────────────────────────────────────────────
-    if ((f.contains('inicio') || f.contains('pantalla principal')) && nav) {
+    // ── PANEL PRINCIPAL / MENÚ PESCADOR ───────────────────────────────────
+    if (f.contains('menú principal') ||
+        f.contains('menu principal') ||
+        f.contains('panel de control') ||
+        f.contains('panel principal') ||
+        f.contains('panel del pescador') ||
+        f.contains('mi panel') ||
+        f.contains('pantalla principal') ||
+        f.contains('volver al inicio') ||
+        f.contains('ir al inicio') ||
+        f.contains('ir al home') ||
+        f.contains('ir al menú') ||
+        f.contains('ir al menu') ||
+        f.contains('menú') && nav ||
+        f.contains('menu') && nav ||
+        f.contains('home') && nav ||
+        f.contains('inicio') && nav) {
       return const NavIntencion(
-        '/inicio',
-        'Dale, volvemos al inicio.',
+        '/panel',
+        '¡Dale chamigo! Te llevo al menú principal.',
       );
     }
 

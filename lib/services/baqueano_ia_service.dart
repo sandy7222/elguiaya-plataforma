@@ -284,9 +284,10 @@ class BaqueanoIAService {
         );
         IARouterState.reportarEstado(IAEstado.cloud);
         final finalResp = _agregarRuta(resp, _obtenerRutaParaIntencion(intencionPrincipal));
-        GeminiLearner.evaluarYGuardar(pregunta, finalResp.texto, exito: finalResp.exito);
-        _actualizarHistorial(pregunta, finalResp.texto);
-        return finalResp;
+        final analizado = _analizarSentimientoYEnriquecer(finalResp);
+        GeminiLearner.evaluarYGuardar(pregunta, analizado.texto, exito: analizado.exito);
+        _actualizarHistorial(pregunta, analizado.texto);
+        return analizado;
       } catch (e) {
         debugPrint('[BaqueanoRouter] → GROQ ONLINE falló: $e. Cayendo al motor offline...');
       }
@@ -308,15 +309,17 @@ class BaqueanoIAService {
         debugPrint('[BaqueanoRouter] → Usando caché de respuesta online para $intencionPrincipal');
         final cachedResp = _cacheRespuestas[intencionPrincipal]!;
         final finalResp = _agregarRuta(cachedResp, _obtenerRutaParaIntencion(intencionPrincipal));
-        GeminiLearner.evaluarYGuardar(pregunta, finalResp.texto, exito: finalResp.exito);
-        _actualizarHistorial(pregunta, finalResp.texto);
-        return finalResp;
+        final analizado = _analizarSentimientoYEnriquecer(finalResp);
+        GeminiLearner.evaluarYGuardar(pregunta, analizado.texto, exito: analizado.exito);
+        _actualizarHistorial(pregunta, analizado.texto);
+        return analizado;
       }
 
       final finalResp = _agregarRuta(respuestaLocal, _obtenerRutaParaIntencion(intencionPrincipal));
-      GeminiLearner.evaluarYGuardar(pregunta, finalResp.texto, exito: finalResp.exito);
-      _actualizarHistorial(pregunta, finalResp.texto);
-      return finalResp;
+      final analizado = _analizarSentimientoYEnriquecer(finalResp);
+      GeminiLearner.evaluarYGuardar(pregunta, analizado.texto, exito: analizado.exito);
+      _actualizarHistorial(pregunta, analizado.texto);
+      return analizado;
     } catch (e) {
       debugPrint('[BaqueanoRouter] → Motor local offline falló: $e');
       final errorResp = const ElGuiaRespuesta(
@@ -362,6 +365,112 @@ class BaqueanoIAService {
       mensaje: original.mensaje,
       error: original.error,
       tipoError: original.tipoError,
+      accionPayload: original.accionPayload,
+    );
+  }
+
+  static ElGuiaRespuesta _analizarSentimientoYEnriquecer(ElGuiaRespuesta original) {
+    final text = original.texto.toLowerCase();
+    String nuevoGif = original.gifSugerido;
+
+    // Solo refinamos el GIF si viene con el valor genérico por defecto
+    if (original.gifSugerido == 'hablaConMate' || original.gifSugerido == 'explica') {
+      // 1. Peligro, advertencia o clima hostil
+      if (text.contains('cuidado') ||
+          text.contains('peligro') ||
+          text.contains('atención') ||
+          text.contains('atencion') ||
+          text.contains('advertencia') ||
+          text.contains('tormenta') ||
+          text.contains('temporal') ||
+          text.contains('sudestada') ||
+          text.contains('riesgo') ||
+          text.contains('no te confíes') ||
+          text.contains('no te confies') ||
+          text.contains('no vayas') ||
+          text.contains('prohibido')) {
+        nuevoGif = 'enojado';
+      }
+      // 2. Duda o incertidumbre
+      else if (text.contains('no sé') ||
+          text.contains('no se') ||
+          text.contains('quizás') ||
+          text.contains('quizas') ||
+          text.contains('tal vez') ||
+          text.contains('difícil') ||
+          text.contains('dificil') ||
+          text.contains('complicado') ||
+          text.contains('¿') ||
+          text.contains('depende') ||
+          text.contains('extraño') ||
+          text.contains('raro')) {
+        nuevoGif = 'duda';
+      }
+      // 3. Tristeza o mala suerte
+      else if (text.contains('triste') ||
+          text.contains('lástima') ||
+          text.contains('lastima') ||
+          text.contains('macana') ||
+          text.contains('lamentablemente') ||
+          text.contains('horrible') ||
+          text.contains('sin pique') ||
+          text.contains('no picó') ||
+          text.contains('no pico') ||
+          text.contains('perdió') ||
+          text.contains('perdio') ||
+          text.contains('suspendido') ||
+          text.contains('cancelado')) {
+        nuevoGif = 'triste';
+      }
+      // 4. Éxito o celebración
+      else if (text.contains('¡buenísimo!') ||
+          text.contains('buenisimo') ||
+          text.contains('excelente') ||
+          text.contains('¡genial!') ||
+          text.contains('genial') ||
+          text.contains('exitos') ||
+          text.contains('éxito') ||
+          text.contains('exito') ||
+          text.contains('logrado') ||
+          text.contains('listo') ||
+          text.contains('perfecto') ||
+          text.contains('¡felicitaciones!') ||
+          text.contains('felicitaciones') ||
+          text.contains('muy bien') ||
+          text.contains('buena pesca')) {
+        nuevoGif = 'exito';
+      }
+      // 5. Explicación larga técnica
+      else if (original.gifSugerido == 'hablaConMate' &&
+          (original.texto.length > 120 ||
+              text.contains('•') ||
+              text.contains('- ') ||
+              text.contains('1.') ||
+              text.contains('paso') ||
+              text.contains('hacer') ||
+              text.contains('receta') ||
+              text.contains('nudo') ||
+              text.contains('linea') ||
+              text.contains('caña') ||
+              text.contains('reel') ||
+              text.contains('carnada'))) {
+        nuevoGif = 'explica';
+      }
+    }
+
+    if (nuevoGif == original.gifSugerido) return original;
+
+    return ElGuiaRespuesta(
+      texto: original.texto,
+      gifSugerido: nuevoGif,
+      esHumorContextual: original.esHumorContextual,
+      origenGemini: original.origenGemini,
+      rutaNavegacion: original.rutaNavegacion,
+      exito: original.exito,
+      mensaje: original.mensaje,
+      error: original.error,
+      tipoError: original.tipoError,
+      accionPayload: original.accionPayload,
     );
   }
 

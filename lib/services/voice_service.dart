@@ -42,8 +42,11 @@ class VoiceService {
   ];
 
   Future<void> init() async {
+    // Solo inicializamos TTS (síntesis de voz) — no necesita permisos.
+    // El STT (reconocimiento de voz) se inicializa de forma lazy en el
+    // primer uso real del micrófono para no disparar el diálogo de permiso
+    // al arrancar la app antes de que el usuario active el GuIA.
     await _initTts();
-    await _initStt();
   }
 
   Future<void> _initTts() async {
@@ -76,6 +79,10 @@ class VoiceService {
       debugPrint('Error inicializando STT: $e');
     }
   }
+
+  /// Inicializa el STT de forma explícita (llamado desde el perfil cuando el
+  /// usuario activa los comandos de voz y ya tiene el permiso concedido).
+  Future<void> initStt() => _initStt();
 
   Future<void> _initVad() async {
     if (_isVadInitialized) return;
