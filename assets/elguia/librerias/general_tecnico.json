@@ -379,11 +379,173 @@
       "intencion": "caracteristicas_moncholo",
       "activadores": [
         "moncholo",
-        "Pseudoplatystoma fasciatum",
-        "pez de agua dulce"
+        "pez norte",
+        "chupín"
       ],
-      "respuesta_limpia": "Moncholo: 40-50 cm, 5 kg",
+      "respuesta_limpia": "Moncholo: pez de 40-50 cm, 5 kg, carne suave, ideal para chupín y frito.",
       "gif": "hablaConMate"
+    },
+    {
+      "intencion": "caracteristicas_cascarudo",
+      "activadores": [
+        "cascarudo",
+        "el caminador",
+        "peces con aletas especiales"
+      ],
+      "respuesta_limpia": "Cascarudo: pez con aletas que intentan caminar en la superficie",
+      "gif": "piensaLeve"
+    },
+    {
+      "intencion": "conocer_pescado_cuchilleta",
+      "activadores": [
+        "cuchilleta",
+        "pez cuchilleta",
+        "pescado cuchilleta"
+      ],
+      "respuesta_limpia": "Pez cuchilleta, similar a otro pez, vive en el norte argentino",
+      "gif": "piensaLeve"
+    },
+    {
+      "intencion": "entendiendo_la_idea",
+      "activadores": [
+        "idea de aprendizaje",
+        "recordar usuario"
+      ],
+      "respuesta_limpia": "Aprendo y recuerdo",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "caracteristicas_cuchilleta",
+      "activadores": [
+        "cuchilleta",
+        "pez cuchilleta",
+        "caracteristicas cuchilleta"
+      ],
+      "respuesta_limpia": "Pez de superficie, similar a pejerrey y mojarra",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "memoria_local",
+      "activadores": [
+        "memoria en dispositivo",
+        "aprendizaje local"
+      ],
+      "respuesta_limpia": "Cada dispositivo almacena su propia memoria",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "modelo_de_conocimiento",
+      "activadores": [
+        "mochila de conocimiento",
+        "modelo de conocimiento"
+      ],
+      "respuesta_limpia": "Mi modelo se divide en 2 partes",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "almacenar_conocimiento_local",
+      "activadores": [
+        "mochila de conocimiento",
+        "archivos JSON",
+        "memoria local"
+      ],
+      "respuesta_limpia": "Almacenar conocimiento en archivos JSON locales",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "como_pescar_pejerrey",
+      "activadores": [
+        "pescar pejerrey",
+        "técnicas para pejerrey",
+        "carnadas para pejerrey"
+      ],
+      "respuesta_limpia": "Usar carnada de lombriz o mosca",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "entender_comandos",
+      "activadores": [
+        "órdenes",
+        "comandos"
+      ],
+      "respuesta_limpia": "Estoy listo para aprender",
+      "gif": "piensaLeve"
+    },
+    {
+      "intencion": "mostrar_mapa_patagonia",
+      "activadores": [
+        "mapa Patagonia",
+        "pesca en Patagonia"
+      ],
+      "respuesta_limpia": "La Patagonia es una región rica en recursos naturales",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "utilizar_tabla_fase_lunar",
+      "activadores": [
+        "tabla de fase lunar",
+        "fase lunar y pesca"
+      ],
+      "respuesta_limpia": "La fase lunar puede influir en la actividad de los peces",
+      "gif": "piensaLeve"
+    },
+    {
+      "intencion": "extraccion_lombrices_electricidad",
+      "activadores": [
+        "electro-pesca",
+        "extraccion de lombrices con electricidad",
+        "lombrices con bateria"
+      ],
+      "respuesta_limpia": "Se utiliza una bateria de 12v y dos electrodos para atraer lombrices.",
+      "gif": "piensaLeve"
+    },
+    {
+      "intencion": "donde_encontrar_lombrices",
+      "activadores": [
+        "lombrices para pescar",
+        "donde encontrar lombrices",
+        "cebo para pescar"
+      ],
+      "respuesta_limpia": "En suelos húmedos y ricos en materia orgánica",
+      "gif": "piensaLeve"
+    },
+    {
+      "intencion": "conocer_moncholo",
+      "activadores": [
+        "moncholo",
+        "pez del norte",
+        "Pseudoplatystoma fasciatum"
+      ],
+      "respuesta_limpia": "El moncholo es un pez de agua dulce que pertenece a la familia Pimelodidae.",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "donde_se_sacan_lombrices",
+      "activadores": [
+        "lombrices para pescar",
+        "donde se extraen lombrices"
+      ],
+      "respuesta_limpia": "Se extraen de suelos húmedos",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "aprendizaje_automatico",
+      "activadores": [
+        "aprendizaje",
+        "retroalimentacion",
+        "memoria"
+      ],
+      "respuesta_limpia": "Aprendizaje automático con retroalimentación",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "como_afecta_temperatura_pesca",
+      "activadores": [
+        "temperatura y pesca",
+        "cómo afecta la temperatura"
+      ],
+      "respuesta_limpia": "Temperatura afecta comportamiento",
+      "gif": "piensaLeve"
     }
   ]
 }

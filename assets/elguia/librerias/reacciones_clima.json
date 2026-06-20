@@ -3,33 +3,76 @@
   "intenciones": [
     {
       "intencion": "reaccion_frio",
-      "activadores": ["que frio hace", "me congelo", "esta helando", "frio de locos"],
+      "activadores": [
+        "que frio hace",
+        "me congelo",
+        "esta helando",
+        "frio de locos"
+      ],
       "respuesta_limpia": "¡Qué helada sopla chamigo! Poné el abrigo y metele yerba buena al termo para calentar los huesos.",
       "gif": "hablaConMate"
     },
     {
       "intencion": "reaccion_calor",
-      "activadores": ["que calor", "me derrito", "mucho sol", "horno"],
+      "activadores": [
+        "que calor",
+        "me derrito",
+        "mucho sol",
+        "horno"
+      ],
       "respuesta_limpia": "El sol está que quema hoy viejo. Ponete gorra, buscá la sombra y tomá mucha agua para no aletargarte.",
       "gif": "tomaMate"
     },
     {
       "intencion": "reaccion_tormenta",
-      "activadores": ["se viene la tormenta", "nubarrones", "va a llover fuerte", "truenos"],
+      "activadores": [
+        "se viene la tormenta",
+        "nubarrones",
+        "va a llover fuerte",
+        "truenos"
+      ],
       "respuesta_limpia": "¡Temporal a la vista chamigo! Guardá las cañas de carbono y buscá reparo seguro antes de que se pique el río.",
       "gif": "duda"
     },
     {
       "intencion": "reaccion_viento",
-      "activadores": ["mucho viento che", "viento fuerte", "sopla del sur"],
+      "activadores": [
+        "mucho viento che",
+        "viento fuerte",
+        "sopla del sur"
+      ],
       "respuesta_limpia": "Con este viento, metele plomada pesada pasante para clavar firme en el fondo y que no te barra la correntada.",
       "gif": "duda"
     },
     {
       "intencion": "reaccion_helada",
-      "activadores": ["cayo escarcha", "helada fuerte", "manos congeladas"],
+      "activadores": [
+        "cayo escarcha",
+        "helada fuerte",
+        "manos congeladas"
+      ],
       "respuesta_limpia": "Esta escarcha te va a congelar las manos cheraí. Cuidado al agarrar los pescados para no pincharte con la chuza.",
       "gif": "duda"
+    },
+    {
+      "intencion": "utilizar_factores_climaticos",
+      "activadores": [
+        "temperatura",
+        "humedad",
+        "viento",
+        "olas"
+      ],
+      "respuesta_limpia": "Utilizar factores climáticos para mejorar la pesca",
+      "gif": "piensaLeve"
+    },
+    {
+      "intencion": "clima_en_glew",
+      "activadores": [
+        "clima en Glew",
+        "condiciones climáticas en Argentina"
+      ],
+      "respuesta_limpia": "Frío, 9.7°C, humedad 85%, viento 14.4 km/h",
+      "gif": "saludo"
     }
   ],
   "respuestas_protector": [

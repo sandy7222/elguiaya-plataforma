@@ -148,6 +148,15 @@
       ],
       "respuesta_limpia": "Filete de sardina + cangrejo sin pinzas, envuelto con hilo elástico",
       "gif": "hablaConMate"
+    },
+    {
+      "intencion": "carnada_para_bagre",
+      "activadores": [
+        "bagre",
+        "carnada para bagre"
+      ],
+      "respuesta_limpia": "Lombriz y masa son buenas opciones",
+      "gif": "hablaConMate"
     }
   ]
 }
