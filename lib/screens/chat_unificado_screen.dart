@@ -251,6 +251,54 @@ class _ChatUnificadoScreenState extends State<ChatUnificadoScreen>
               ],
             ),
           ),
+          // Interruptor de modo Online/Local (Premium)
+          ValueListenableBuilder<bool>(
+            valueListenable: IARouterState.modoOnline,
+            builder: (context, online, _) {
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    online ? 'ONLINE' : 'LOCAL',
+                    style: TextStyle(
+                      color: online ? const Color(0xFF00E676) : Colors.white38,
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Transform.scale(
+                    scale: 0.7,
+                    child: Switch(
+                      value: online,
+                      activeColor: const Color(0xFF00E676),
+                      activeTrackColor: const Color(0xFF00E676).withOpacity(0.3),
+                      inactiveThumbColor: Colors.white38,
+                      inactiveTrackColor: Colors.white10,
+                      onChanged: (value) {
+                        IARouterState.modoOnline.value = value;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              value 
+                                  ? '🟢 Buscando señal de red... Conectando El Guía Online.' 
+                                  : '🟡 El Guía desconectado de la nube. Trabajando en modo Local/Offline.',
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            backgroundColor: const Color(0xFF001F3F),
+                            behavior: SnackBarBehavior.floating,
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(width: 4),
           // Botón de silenciar voz
           ValueListenableBuilder<bool>(
             valueListenable: GuiaOverlayController.silenciado,

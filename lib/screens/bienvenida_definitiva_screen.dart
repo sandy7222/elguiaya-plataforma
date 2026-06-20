@@ -461,17 +461,108 @@ class _BienvenidaDefinitivaScreenState extends State<BienvenidaDefinitivaScreen>
 
 
   Widget _buildHeader() {
+    // Si hay un logo de base de datos personalizado subido por el administrador,
+    // respetamos el comportamiento y mostramos ese logo y el título normal.
+    if (_logoUrl != null && _logoUrl!.isNotEmpty) {
+      return _buildGlassContainer(
+        padding: 28,
+        child: Column(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(
+                _logoUrl!,
+                height: 100,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) => Image.asset('assets/images/logo_elguiaya.png', height: 100),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'welcome_title'.t(),
+              style: TextStyle(color: _blancoPuro, fontSize: 36, fontWeight: FontWeight.bold, letterSpacing: 3.5),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'welcome_subtitle'.t(),
+              textAlign: TextAlign.center,
+              style: TextStyle(color: _blancoPuro.withOpacity(0.85), fontSize: 16, fontStyle: FontStyle.italic),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Si no hay logo personalizado en la base de datos (por defecto),
+    // mostramos la versión quirúrgica con el formato de texto y gradientes de la segunda imagen.
     return _buildGlassContainer(
       padding: 28,
       child: Column(
         children: [
-          _logoUrl != null && _logoUrl!.isNotEmpty
-              ? ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.network(_logoUrl!, height: 100, fit: BoxFit.contain, errorBuilder: (context, error, stackTrace) => Image.asset('assets/images/logo_elguiaya.png', height: 100)))
-              : Image.asset('assets/images/logo_elguiaya.png', height: 100),
-          const SizedBox(height: 16),
-          Text('welcome_title'.t(), style: TextStyle(color: _blancoPuro, fontSize: 36, fontWeight: FontWeight.bold, letterSpacing: 3.5)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'El ',
+                style: TextStyle(
+                  color: _blancoPuro,
+                  fontSize: 38,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              ShaderMask(
+                shaderCallback: (bounds) => const LinearGradient(
+                  colors: [
+                    Color(0xFF00E676), // Verde/Mint brillante de la segunda imagen
+                    Color(0xFF00E5FF), // Cyan/Turquesa
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ).createShader(bounds),
+                child: const Text(
+                  'Guía ',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 38,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+              ),
+              ShaderMask(
+                shaderCallback: (bounds) => const LinearGradient(
+                  colors: [
+                    Color(0xFF00B0FF), // Celeste/Cyan brillante
+                    Color(0xFF2979FF), // Azul vibrante de la segunda imagen
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ).createShader(bounds),
+                child: const Text(
+                  'YA',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 38,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 12),
-          Text('welcome_subtitle'.t(), textAlign: TextAlign.center, style: TextStyle(color: _blancoPuro.withOpacity(0.85), fontSize: 16, fontStyle: FontStyle.italic)),
+          Text(
+            'welcome_subtitle'.t(),
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Color(0xFF00E676), // Color verde/mint a juego de la segunda imagen
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.0,
+            ),
+          ),
         ],
       ),
     );

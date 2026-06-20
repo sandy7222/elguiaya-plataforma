@@ -577,15 +577,68 @@ class _BrandingEditorScreenState extends State<BrandingEditorScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (_logoUrl != null && _logoUrl!.isNotEmpty)
-                            Image.network(_logoUrl!, height: 50)
-                          else
-                            Image.asset('assets/images/logo_elguiaya.png', height: 50),
-                          const SizedBox(height: 12),
-                          const Text(
-                            'EL GUIA YA',
-                            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 2),
-                          ),
+                          if (_logoUrl != null && _logoUrl!.isNotEmpty) ...[
+                            Image.network(_logoUrl!, height: 50),
+                            const SizedBox(height: 12),
+                            const Text(
+                              'EL GUIA YA',
+                              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 2),
+                            ),
+                          ] else ...[
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Text(
+                                  'El ',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                                ShaderMask(
+                                  shaderCallback: (bounds) => const LinearGradient(
+                                    colors: [
+                                      Color(0xFF00E676),
+                                      Color(0xFF00E5FF),
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ).createShader(bounds),
+                                  child: const Text(
+                                    'Guía ',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: -0.5,
+                                    ),
+                                  ),
+                                ),
+                                ShaderMask(
+                                  shaderCallback: (bounds) => const LinearGradient(
+                                    colors: [
+                                      Color(0xFF00B0FF),
+                                      Color(0xFF2979FF),
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ).createShader(bounds),
+                                  child: const Text(
+                                    'YA',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: -0.5,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                           const SizedBox(height: 20),
                           Container(
                             height: 35,
