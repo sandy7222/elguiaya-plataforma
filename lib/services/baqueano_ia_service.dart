@@ -272,7 +272,7 @@ class BaqueanoIAService {
     debugPrint('[BaqueanoRouter] intent=$intencionPrincipal | offline_count=$_consultasOffline');
 
     // ── TIER 2: Groq Cloud ───────────────────────────────────
-    if (ConnectivityBridge.estaConectado && GroqConfig.tieneApiKey) {
+    if (IARouterState.modoOnline.value && ConnectivityBridge.estaConectado && GroqConfig.tieneApiKey) {
       try {
         debugPrint('[BaqueanoRouter] → GROQ ONLINE');
         final contextoExtra = await CapacitacionService.getContextoContextual(pregunta);

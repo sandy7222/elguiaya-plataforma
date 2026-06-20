@@ -634,6 +634,23 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
         ),
         actions: [
           TextButton(
+            onPressed: () async {
+              await prefs.remove('panic_contact_phone');
+              await prefs.remove('panic_contact_name');
+              await prefs.remove('panic_custom_message');
+              if (context.mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('🗑️ Datos del contacto eliminados.'),
+                    backgroundColor: Colors.redAccent,
+                  ),
+                );
+              }
+            },
+            child: const Text('ELIMINAR', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+          ),
+          TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('CANCELAR', style: TextStyle(color: Colors.white54)),
           ),

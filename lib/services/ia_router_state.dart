@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../config/groq_config.dart';
 import 'connectivity_bridge.dart';
 import 'audio_service.dart';
@@ -32,6 +33,7 @@ enum IAEstado {
 /// El [BaqueanoIAService] actualiza este estado antes de cada llamada.
 class IARouterState {
   static final ValueNotifier<IAEstado> estado = ValueNotifier(IAEstado.offline);
+  static final ValueNotifier<bool> modoOnline = ValueNotifier(true);
   static StreamSubscription<bool>? _sub;
 
   /// Indicadores globales de salud de los servicios de soporte
@@ -62,6 +64,12 @@ class IARouterState {
     // Inicializar AudioService TTS al arrancar
     AudioService().inicializar();
 
+    // Cargar preferencia persistente de modo online
+    SharedPreferences.getInstance().then((prefs) {
+      modoOnline.value = prefs.getBool('guia_modo_online') ?? true;
+      _recalcular();
+    });
+
     // Estado inicial basado en la conectividad actual
     _recalcular();
 
@@ -72,6 +80,16 @@ class IARouterState {
     // Escuchar cambios en la salud de Supabase para activar el Failsafe
     supabaseSano.removeListener(_onSupabaseHealthChanged);
     supabaseSano.addListener(_onSupabaseHealthChanged);
+
+    // Guardar preferencia persistente al cambiar modoOnline
+    modoOnline.removeListener(_onModoOnlineChanged);
+    modoOnline.addListener(_onModoOnlineChanged);
+  }
+
+  static void _onModoOnlineChanged() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('guia_modo_online', modoOnline.value);
+    _recalcular();
   }
 
   static void _onSupabaseHealthChanged() {
@@ -98,10 +116,10 @@ class IARouterState {
 
   /// Recalcula el estado según conectividad + disponibilidad de API key.
   static void _recalcular() {
-    if (ConnectivityBridge.estaConectado && GroqConfig.tieneApiKey) {
+    if (modoOnline.value && ConnectivityBridge.estaConectado && GroqConfig.tieneApiKey) {
       estado.value = IAEstado.cloud;
     } else {
-      // Sin API key de Groq, caemos directamente a la base de reglas offline
+      // Sin API key de Groq, o modo local forzado, caemos directamente a la base de reglas offline
       estado.value = IAEstado.offline;
     }
   }
@@ -115,5 +133,6 @@ class IARouterState {
   static void dispose() {
     _sub?.cancel();
     supabaseSano.removeListener(_onSupabaseHealthChanged);
+    modoOnline.removeListener(_onModoOnlineChanged);
   }
 }
