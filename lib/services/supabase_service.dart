@@ -397,6 +397,18 @@ class SupabaseService {
     }
   }
 
+  /// Obtener cantidad total de descargas de la app
+  static Future<int> getContadorDescargas() async {
+    try {
+      final supabase = Supabase.instance.client;
+      final response = await supabase.from('descargas_app').select('id');
+      return (response as List).length;
+    } catch (e) {
+      print('Error al contar descargas: $e');
+      return 0;
+    }
+  }
+
   /// Aprobar o rechazar documentación de capitán y traspasar a tablas legadas
   static Future<void> actualizarEstadoSocio(String userId, String estado, {String? expediente}) async {
     try {

@@ -1,4 +1,4 @@
-﻿import 'dart:ui';
+import 'dart:ui';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -149,6 +149,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       
       // NUEVO: Cotizaciones Reales
       final totalCotizaciones = await SupabaseService.getContadorCotizaciones();
+      final totalDescargas = await SupabaseService.getContadorDescargas();
 
       setState(() {
         _kpis = {
@@ -189,6 +190,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
             valor: capitanesActivos.toDouble(),
             icono: Icons.anchor,
             color: const Color(0xFF0D47A1),
+          ),
+          'descargas': KPIData.invitadosHoy.copyWith(
+            titulo: 'Descargas App',
+            valor: totalDescargas.toDouble(),
+            icono: Icons.download_rounded,
+            color: Colors.teal,
+            descripcion: 'Total de descargas registradas',
           ),
         };
       });
@@ -522,6 +530,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                     GestureDetector(
                       onTap: () => _tabController.animateTo(6), // Tab SOLICITUDES
                       child: _buildKPICard(_kpis['cotizaciones']!),
+                    ),
+                    GestureDetector(
+                      onTap: () => _tabController.animateTo(10), // Tab LOGS (Descargas App)
+                      child: _buildKPICard(_kpis['descargas']!),
                     ),
                   ],
                 );
