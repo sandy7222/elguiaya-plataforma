@@ -22,13 +22,14 @@ class _AdminLogsScreenState extends State<AdminLogsScreen>
   List<Map<String, dynamic>> _systemLogs = [];
   List<Map<String, dynamic>> _commissionLogs = [];
   List<Map<String, dynamic>> _adminLogs = [];
+  List<Map<String, dynamic>> _downloadLogs = [];
   
   String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _cargarTodosLosLogs();
   }
 
@@ -45,6 +46,7 @@ class _AdminLogsScreenState extends State<AdminLogsScreen>
     dynamic sysLogsRes = [];
     dynamic commLogsRes = [];
     dynamic adminLogsRes = [];
+    dynamic downloadLogsRes = [];
     
     try {
       final supabase = Supabase.instance.client;
@@ -78,11 +80,23 @@ class _AdminLogsScreenState extends State<AdminLogsScreen>
         debugPrint('Error al cargar admin_logs: $e');
       }
 
+      // 4. Fetch descargas_app
+      try {
+        downloadLogsRes = await supabase
+            .from('descargas_app')
+            .select('*')
+            .order('creado_at', ascending: false)
+            .limit(100);
+      } catch (e) {
+        debugPrint('Error al cargar descargas_app: $e');
+      }
+
       if (mounted) {
         setState(() {
           _systemLogs = List<Map<String, dynamic>>.from(sysLogsRes);
           _commissionLogs = List<Map<String, dynamic>>.from(commLogsRes);
           _adminLogs = List<Map<String, dynamic>>.from(adminLogsRes);
+          _downloadLogs = List<Map<String, dynamic>>.from(downloadLogsRes);
           _isLoading = false;
         });
       }
@@ -247,6 +261,7 @@ class _AdminLogsScreenState extends State<AdminLogsScreen>
                   Tab(text: 'Sistema', icon: Icon(Icons.dns_rounded)),
                   Tab(text: 'Comisiones', icon: Icon(Icons.monetization_on_rounded)),
                   Tab(text: 'Actividad Admin', icon: Icon(Icons.admin_panel_settings_rounded)),
+                  Tab(text: 'Descargas App', icon: Icon(Icons.download_rounded)),
                 ],
               ),
 
@@ -260,6 +275,7 @@ class _AdminLogsScreenState extends State<AdminLogsScreen>
                     _buildSystemLogsTab(),
                     _buildCommissionLogsTab(),
                     _buildAdminLogsTab(),
+                    _buildDownloadLogsTab(),
                   ],
                 ),
               ),
@@ -487,6 +503,83 @@ class _AdminLogsScreenState extends State<AdminLogsScreen>
                 Text(
                   'Admin UUID: ${adminId.isNotEmpty && adminId.length > 8 ? adminId.substring(0, 8) : adminId}',
                   style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 11),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  fecha,
+                  style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 10),
+                ),
+              ],
+            ),
+            trailing: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white24, size: 14),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDownloadLogsTab() {
+    final filtered = _filtrar(_downloadLogs, ['origen', 'dispositivo']);
+    if (filtered.isEmpty) {
+      return const Center(child: Text('No hay registros de descargas.', style: TextStyle(color: Colors.white70)));
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      itemCount: filtered.length,
+      itemBuilder: (context, index) {
+        final log = filtered[index];
+        final origen = log['origen']?.toString() ?? 'DESCARGA';
+        final dispositivo = log['dispositivo']?.toString() ?? 'Otro';
+        final fecha = _formatFecha(log['creado_at']);
+
+        Color logColor = const Color(0xFF00E676);
+        IconData logIcon = Icons.download_done_rounded;
+
+        if (dispositivo.toLowerCase() == 'ios') {
+          logColor = Colors.lightBlueAccent;
+          logIcon = Icons.phone_iphone_rounded;
+        } else if (dispositivo.toLowerCase() == 'android') {
+          logColor = Colors.greenAccent;
+          logIcon = Icons.phone_android_rounded;
+        }
+
+        String sourceText = 'Enlace directo';
+        if (origen.toLowerCase() == 'qr') {
+          sourceText = 'Código QR';
+        } else if (origen.toLowerCase() == 'boton') {
+          sourceText = 'Botón de descarga';
+        } else if (origen.toLowerCase() == 'direct_url') {
+          sourceText = 'URL Directa (/descarga)';
+        }
+
+        return Card(
+          color: const Color(0xFF001F3F).withOpacity(0.4),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: logColor.withOpacity(0.2)),
+          ),
+          margin: const EdgeInsets.only(bottom: 12),
+          child: ListTile(
+            onTap: () => _verDetallesLog(log, 'Detalle de Descarga'),
+            leading: CircleAvatar(
+              backgroundColor: logColor.withOpacity(0.12),
+              child: Icon(logIcon, color: logColor),
+            ),
+            title: Text(
+              'Descarga - $sourceText',
+              style: GoogleFonts.outfit(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 4),
+                Text(
+                  'Dispositivo: $dispositivo',
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
                 ),
                 const SizedBox(height: 4),
                 Text(
