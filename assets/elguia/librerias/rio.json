@@ -75,10 +75,19 @@
     {
       "intencion": "recordar_nombre_usuario",
       "activadores": [
-        "identidad del pescador",
+        "cómo me llamo",
+        "mi nombre es"
+      ],
+      "respuesta_limpia": "Sebastián",
+      "gif": "saludo"
+    },
+    {
+      "intencion": "nombre_usuario",
+      "activadores": [
+        "Sebastián",
         "nombre del usuario"
       ],
-      "respuesta_limpia": "Me alegra recordar tu nombre",
+      "respuesta_limpia": "Sebastián",
       "gif": "saludo"
     }
   ]

@@ -209,6 +209,26 @@
       ],
       "respuesta_limpia": "Dispositivo para sujetar y manipular peces capturados",
       "gif": "hablaConMate"
+    },
+    {
+      "intencion": "conocer_peces_argentinos",
+      "activadores": [
+        "cuchara",
+        "cuchilleta",
+        "pez cuchara"
+      ],
+      "respuesta_limpia": "Pez cuchara",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "carneada_para_surubi",
+      "activadores": [
+        "cascarudo",
+        "carneada para surubí",
+        "carneada para dorado"
+      ],
+      "respuesta_limpia": "Cascarudo, carnada resistente para surubí y dorado",
+      "gif": "exito"
     }
   ]
 }
