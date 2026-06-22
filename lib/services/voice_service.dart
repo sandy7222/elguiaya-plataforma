@@ -12,16 +12,8 @@ class VoiceService {
   final FlutterTts _flutterTts = FlutterTts();
   final stt.SpeechToText _speech = stt.SpeechToText();
 
-  // STT secundario exclusivo para el VAD (Voice Activity Detection).
-  final stt.SpeechToText _vadSpeech = stt.SpeechToText();
-
-  // STT terciario exclusivo para el Wake Word listener.
-  final stt.SpeechToText _wakeWordSpeech = stt.SpeechToText();
-
   bool _isTtsInitialized = false;
   bool _isSttInitialized = false;
-  bool _isVadInitialized = false;
-  bool _isWakeWordInitialized = false;
 
   // Notificador del estado de escucha activa para sincronizar la UI
   final ValueNotifier<bool> isListeningNotifier = ValueNotifier<bool>(false);
@@ -79,6 +71,7 @@ class VoiceService {
   }
 
   Future<void> _initStt() async {
+    if (_isSttInitialized) return;
     try {
       // Solo inicializa el motor. El permiso de micrófono se pide en startListening,
       // cuando el usuario toca el botón del mic — nunca al arrancar la app.
@@ -89,6 +82,9 @@ class VoiceService {
         },
         onStatus: (val) {
           debugPrint('Status STT: $val');
+          if (_isVadListening || _isWakeWordListening) {
+            return;
+          }
           if (val == 'listening') {
             isListeningNotifier.value = true;
           } else if (val == 'notListening' || val == 'done') {
@@ -106,29 +102,9 @@ class VoiceService {
   /// usuario activa los comandos de voz y ya tiene el permiso concedido).
   Future<void> initStt() => _initStt();
 
-  Future<void> _initVad() async {
-    if (_isVadInitialized) return;
-    try {
-      _isVadInitialized = await _vadSpeech.initialize(
-        onError: (val) => debugPrint('Error VAD: ${val.errorMsg}'),
-        onStatus: (val) => debugPrint('Status VAD: $val'),
-      );
-    } catch (e) {
-      debugPrint('Error inicializando VAD: $e');
-    }
-  }
+  Future<void> _initVad() => _initStt();
 
-  Future<void> _initWakeWord() async {
-    if (_isWakeWordInitialized) return;
-    try {
-      _isWakeWordInitialized = await _wakeWordSpeech.initialize(
-        onError: (val) => debugPrint('Error WakeWord: ${val.errorMsg}'),
-        onStatus: (val) => debugPrint('Status WakeWord: $val'),
-      );
-    } catch (e) {
-      debugPrint('Error inicializando WakeWord: $e');
-    }
-  }
+  Future<void> _initWakeWord() => _initStt();
 
   Future<void> speak(String text) async {
     if (!_isTtsInitialized) await _initTts();
@@ -257,11 +233,11 @@ class VoiceService {
     await stopWakeWordListener();
 
     await _initVad();
-    if (!_isVadInitialized) return;
+    if (!_isSttInitialized) return;
 
     try {
       _isVadListening = true;
-      await _vadSpeech.listen(
+      await _speech.listen(
         onResult: (result) {
           // Si el STT retornó palabras, el usuario habló → interrupción
           if (result.recognizedWords.trim().isNotEmpty) {
@@ -292,7 +268,7 @@ class VoiceService {
     if (!_isVadListening) return;
     _isVadListening = false;
     try {
-      await _vadSpeech.stop();
+      await _speech.stop();
     } catch (e) {
       debugPrint('Error deteniendo VAD: $e');
     }
@@ -311,15 +287,15 @@ class VoiceService {
     await stopVADListener();
 
     await _initWakeWord();
-    if (!_isWakeWordInitialized) return;
+    if (!_isSttInitialized) return;
     _isWakeWordListening = true;
     _runWakeWordBurst(onWake);
   }
 
   void _runWakeWordBurst(Function() onWake) async {
-    if (!_isWakeWordListening || !_isWakeWordInitialized) return;
+    if (!_isWakeWordListening || !_isSttInitialized) return;
     try {
-      await _wakeWordSpeech.listen(
+      await _speech.listen(
         onResult: (result) {
           if (!_isWakeWordListening) return;
           final text = result.recognizedWords.toLowerCase();
@@ -352,7 +328,7 @@ class VoiceService {
     _wakeWordTimer?.cancel();
     _wakeWordTimer = null;
     try {
-      await _wakeWordSpeech.stop();
+      await _speech.stop();
     } catch (e) {
       debugPrint('Error deteniendo WakeWord: $e');
     }
