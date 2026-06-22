@@ -16,20 +16,20 @@ import 'guia_copilot_brain.dart';
 import 'copilot_action_service.dart';
 import 'copilot_channel.dart';
 
-
 /// BaqueanoIAService — Router hibrido online/offline.
 ///
 /// Decide en cada consulta si usar el motor local Ollama como cerebro principal
 /// o el motor local offline (cualquier otra condicion o en caso de fallo).
 /// El widget guia_overlay.dart no cambia.
 class BaqueanoIAService {
-  static const String nombre    = 'El Guia';
-  static const String identidad = 'Experto pescador argentino, servicial y conocedor de rios y mares';
+  static const String nombre = 'El Guia';
+  static const String identidad =
+      'Experto pescador argentino, servicial y conocedor de rios y mares';
 
-  static final ElGuiaEngine   _motorLocal    = ElGuiaEngine();
+  static final ElGuiaEngine _motorLocal = ElGuiaEngine();
 
-  static List<Producto> _catalogo    = [];
-  static DateTime?      _ultimaCarga;
+  static List<Producto> _catalogo = [];
+  static DateTime? _ultimaCarga;
 
   // Lógica del modo cómico: El Guía Recalentado / Furioso
   static int _nivelFrustracion = 0;
@@ -56,74 +56,81 @@ class BaqueanoIAService {
   }
 
   static final List<String> _respuestasImpaciencia = [
-    "¡Eeeh chamigo! No soy lancha con nitro 😤 Dame un segundo.",
-    "Pará un cachito que estoy acomodando las boyas mentales 💢",
-    "¡Ya va! Más rápido que tararira nerviosa tampoco 😤"
+    "¡Eeeh chamigo! No soy lancha con nitro. Dame un segundo.",
+    "Pará un cachito que estoy acomodando las boyas mentales",
+    "¡Ya va! Más rápido que tararira nerviosa tampoco",
   ];
 
   static final List<String> _respuestasBugs = [
-    "¡La señal anda peor que motor sin nafta! 😤 Vamos con modo río nomás.",
-    "Mmm… hoy los satélites vinieron a pescar también 💢",
-    "Se me cruzaron los cables del Paraná, pero seguimos chamigo."
+    "¡La señal anda peor que motor sin nafta! Vamos con modo río nomás.",
+    "Mmm… hoy los satélites vinieron a pescar también",
+    "Se me cruzaron los cables del Paraná, pero seguimos chamigo.",
   ];
 
   static final List<String> _respuestasAbsurdas = [
-    "😤 Pará chamigo… ¿un tiburón en Chascomús? ¡Ni el pejerrey te cree esa!",
-    "Mmm… me parece que me estás cargando más que boga mañera 💢",
-    "¡Esa pregunta me dejó recalculando el GPS del río! 😤"
+    "Pará chamigo… ¿un tiburón en Chascomús? ¡Ni el pejerrey te cree esa!",
+    "Mmm… me parece que me estás cargando más que boga mañera",
+    "¡Esa pregunta me dejó recalculando el GPS del río!",
   ];
 
   static final List<String> _respuestasProtector = [
-    "¡Eeeh no seas animal, chamigo! 😤 El río no perdona.",
-    "No me hagás renegar 😠 Si hay tormenta fuerte, se espera.",
-    "Una pesca se reprograma. Un susto grande no se arregla tan fácil."
+    "¡Eeeh no seas animal, chamigo!El río no perdona.",
+    "No me hagás renegar Si hay tormenta fuerte, se espera.",
+    "Una pesca se reprograma. Un susto grande no se arregla tan fácil.",
   ];
 
   static final List<String> _respuestasCancelacion = [
-    "😤 Uff… eso suele complicar al capitán, chamigo.",
-    "Pará que revisamos la política, porque al baqueano ya lo dejaste cebando mate solo 💢",
-    "Veamos si todavía entra cancelación, no me hagás renegaaaaar 😤"
+    "Uff… eso suele complicar al capitán, chamigo.",
+    "Pará que revisamos la política, porque al baqueano ya lo dejaste cebando mate solo",
+    "Veamos si todavía entra cancelación, no me hagás renegaaaaar",
   ];
 
   static final List<String> _respuestasMalaSuerte = [
-    "😤 ¡Y bueno! Hay días que los peces hacen paro.",
-    "Mirá… hoy hasta yo le gritaría al río 💢",
-    "No siempre se gana, chamigo. Hoy los peces estaban idos a estudiar psicología."
+    "¡Y bueno! Hay días que los peces hacen paro.",
+    "Mirá… hoy hasta yo le gritaría al río",
+    "No siempre se gana, chamigo. Hoy los peces estaban idos a estudiar psicología.",
   ];
 
   static final List<String> _respuestasCancelado = [
-    "Uff… qué macana, chamigo 😞 Ya me había hecho ilusión de salir al río.",
+    "Uff… qué macana, chamigo Ya me había hecho ilusión de salir al río.",
     "Bueno… no pasa nada. El Paraná sigue ahí esperando.",
-    "Mmm… día triste pa’ pescar 😔 Pero ya vamos a rearmar otra salida."
+    "Mmm… día triste pa’ pescar.Pero ya vamos a rearmar otra salida.",
   ];
 
   static final List<String> _respuestasMalaPescaTriste = [
-    "😔 Hay días así, chamigo… el río también tiene sus silencios.",
+    "Hay días así, chamigo… el río también tiene sus silencios.",
     "No siempre se vuelve con pescado… a veces uno vuelve con la historia.",
-    "Hoy los peces ganaron 😞 Pero no te bajonees, la revancha siempre aparece."
+    "Hoy los peces ganaron.Pero no te bajonees, la revancha siempre aparece.",
   ];
 
   static final List<String> _respuestasUsuarioTriste = [
-    "Eh chamigo… vení, no aflojemos 😔",
+    "Eh chamigo… vení, no aflojemos",
     "A veces el río se pone oscuro, pero después baja manso otra vez.",
-    "No sé bien qué pasó… pero te acompaño un rato si querés."
+    "No sé bien qué pasó… pero te acompaño un rato si querés.",
   ];
 
   static final List<String> _respuestasNoPescoMas = [
-    "😔 Uff… esa me pegó medio fuerte.",
-    "Aunque sea volvé a mirar el río cada tanto, chamigo."
+    "Uff… esa me pegó medio fuerte.",
+    "Aunque sea volvé a mirar el río cada tanto, chamigo.",
   ];
 
   static final List<String> _respuestasQueTePasa = [
-    "Nada grave, chamigo… ando medio bajón nomás 😔",
+    "Nada grave, chamigo… ando medio bajón nomás",
     "Hay días que hasta los tornillos hacen ruido distinto…",
-    "Capaz necesitaba un rato de río 😞",
-    "Se me enredó el anzuelo emocional 💔🎣"
+    "Capaz necesitaba un rato de río",
+    "Se me enredó el anzuelo emocional",
   ];
 
   static const List<String> _temasProhibidos = [
-    'reintegro', 'reembolso', 'devolucion', 'dinero', 'factura',
-    'cbu', 'transferencia', 'cuenta', 'banco',
+    'reintegro',
+    'reembolso',
+    'devolucion',
+    'dinero',
+    'factura',
+    'cbu',
+    'transferencia',
+    'cuenta',
+    'banco',
   ];
 
   static Future<void> inicializar() async {
@@ -137,8 +144,9 @@ class BaqueanoIAService {
     }
     // Timeout de 5s: Supabase lento no bloquea el arranque
     try {
-      _catalogo = await SupabaseService.getProductos()
-          .timeout(const Duration(seconds: 5));
+      _catalogo = await SupabaseService.getProductos().timeout(
+        const Duration(seconds: 5),
+      );
       _ultimaCarga = DateTime.now();
     } catch (_) {}
   }
@@ -237,7 +245,9 @@ class BaqueanoIAService {
     );
     if (copilotAction != null) {
       IARouterState.reportarEstado(IAEstado.accionDirecta);
-      debugPrint('[BaqueanoRouter] → TIER 0 ACCIÓN DIRECTA: ${copilotAction.tipo} en ${brain.pantallaActiva.value.name}');
+      debugPrint(
+        '[BaqueanoRouter] → TIER 0 ACCIÓN DIRECTA: ${copilotAction.tipo} en ${brain.pantallaActiva.value.name}',
+      );
       // Delegar la acción a la pantalla activa vía CopilotChannel
       if (copilotAction.payload != null) {
         CopilotChannel.delegar(copilotAction.payload!);
@@ -269,13 +279,19 @@ class BaqueanoIAService {
     // LÓGICA: Groq (en la nube) es el cerebro principal en línea.
     // Si no hay conexión, falla o está offline total, cae al motor offline de manera sutil.
     final intencionPrincipal = _motorLocal.obtenerIntencionPrincipal(pq);
-    debugPrint('[BaqueanoRouter] intent=$intencionPrincipal | offline_count=$_consultasOffline');
+    debugPrint(
+      '[BaqueanoRouter] intent=$intencionPrincipal | offline_count=$_consultasOffline',
+    );
 
     // ── TIER 2: Groq Cloud ───────────────────────────────────
-    if (IARouterState.modoOnline.value && ConnectivityBridge.estaConectado && GroqConfig.tieneApiKey) {
+    if (IARouterState.modoOnline.value &&
+        ConnectivityBridge.estaConectado &&
+        GroqConfig.tieneApiKey) {
       try {
         debugPrint('[BaqueanoRouter] → GROQ ONLINE');
-        final contextoExtra = await CapacitacionService.getContextoContextual(pregunta);
+        final contextoExtra = await CapacitacionService.getContextoContextual(
+          pregunta,
+        );
         final copiaHistorial = List<Map<String, String>>.from(_historialSesion);
         final resp = await GroqService().responder(
           pregunta,
@@ -283,13 +299,22 @@ class BaqueanoIAService {
           historial: copiaHistorial,
         );
         IARouterState.reportarEstado(IAEstado.cloud);
-        final finalResp = _agregarRuta(resp, _obtenerRutaParaIntencion(intencionPrincipal));
+        final finalResp = _agregarRuta(
+          resp,
+          _obtenerRutaParaIntencion(intencionPrincipal),
+        );
         final analizado = _analizarSentimientoYEnriquecer(finalResp);
-        GeminiLearner.evaluarYGuardar(pregunta, analizado.texto, exito: analizado.exito);
+        GeminiLearner.evaluarYGuardar(
+          pregunta,
+          analizado.texto,
+          exito: analizado.exito,
+        );
         _actualizarHistorial(pregunta, analizado.texto);
         return analizado;
       } catch (e) {
-        debugPrint('[BaqueanoRouter] → GROQ ONLINE falló: $e. Cayendo al motor offline...');
+        debugPrint(
+          '[BaqueanoRouter] → GROQ ONLINE falló: $e. Cayendo al motor offline...',
+        );
       }
     }
 
@@ -306,28 +331,49 @@ class BaqueanoIAService {
 
       if (respuestaLocal.gifSugerido == 'duda' &&
           _cacheRespuestas.containsKey(intencionPrincipal)) {
-        debugPrint('[BaqueanoRouter] → Usando caché de respuesta online para $intencionPrincipal');
+        debugPrint(
+          '[BaqueanoRouter] → Usando caché de respuesta online para $intencionPrincipal',
+        );
         final cachedResp = _cacheRespuestas[intencionPrincipal]!;
-        final finalResp = _agregarRuta(cachedResp, _obtenerRutaParaIntencion(intencionPrincipal));
+        final finalResp = _agregarRuta(
+          cachedResp,
+          _obtenerRutaParaIntencion(intencionPrincipal),
+        );
         final analizado = _analizarSentimientoYEnriquecer(finalResp);
-        GeminiLearner.evaluarYGuardar(pregunta, analizado.texto, exito: analizado.exito);
+        GeminiLearner.evaluarYGuardar(
+          pregunta,
+          analizado.texto,
+          exito: analizado.exito,
+        );
         _actualizarHistorial(pregunta, analizado.texto);
         return analizado;
       }
 
-      final finalResp = _agregarRuta(respuestaLocal, _obtenerRutaParaIntencion(intencionPrincipal));
+      final finalResp = _agregarRuta(
+        respuestaLocal,
+        _obtenerRutaParaIntencion(intencionPrincipal),
+      );
       final analizado = _analizarSentimientoYEnriquecer(finalResp);
-      GeminiLearner.evaluarYGuardar(pregunta, analizado.texto, exito: analizado.exito);
+      GeminiLearner.evaluarYGuardar(
+        pregunta,
+        analizado.texto,
+        exito: analizado.exito,
+      );
       _actualizarHistorial(pregunta, analizado.texto);
       return analizado;
     } catch (e) {
       debugPrint('[BaqueanoRouter] → Motor local offline falló: $e');
       final errorResp = const ElGuiaRespuesta(
-        texto: 'Chamigo, me trabé un segundo. ¿Me repetís la pregunta con otras palabras?',
+        texto:
+            'Chamigo, me trabé un segundo. ¿Me repetís la pregunta con otras palabras?',
         gifSugerido: 'piensaLeve',
         exito: false,
       );
-      GeminiLearner.evaluarYGuardar(pregunta, errorResp.texto, exito: errorResp.exito);
+      GeminiLearner.evaluarYGuardar(
+        pregunta,
+        errorResp.texto,
+        exito: errorResp.exito,
+      );
       return errorResp;
     }
   }
@@ -369,12 +415,15 @@ class BaqueanoIAService {
     );
   }
 
-  static ElGuiaRespuesta _analizarSentimientoYEnriquecer(ElGuiaRespuesta original) {
+  static ElGuiaRespuesta _analizarSentimientoYEnriquecer(
+    ElGuiaRespuesta original,
+  ) {
     final text = original.texto.toLowerCase();
     String nuevoGif = original.gifSugerido;
 
     // Solo refinamos el GIF si viene con el valor genérico por defecto
-    if (original.gifSugerido == 'hablaConMate' || original.gifSugerido == 'explica') {
+    if (original.gifSugerido == 'hablaConMate' ||
+        original.gifSugerido == 'explica') {
       // 1. Peligro, advertencia o clima hostil
       if (text.contains('cuidado') ||
           text.contains('peligro') ||
@@ -482,15 +531,15 @@ class BaqueanoIAService {
 
     for (final p in _catalogo) {
       final nombreL = p.nombre.toLowerCase();
-      final descL   = p.descripcion.toLowerCase();
-      final rubroL  = p.rubro.toLowerCase();
+      final descL = p.descripcion.toLowerCase();
+      final rubroL = p.rubro.toLowerCase();
       int coincidencias = 0;
 
       for (final token in tokens) {
         if (token.length <= 2) continue;
         if (nombreL.contains(token)) coincidencias += 3;
-        if (descL.contains(token))   coincidencias += 1;
-        if (rubroL.contains(token))  coincidencias += 2;
+        if (descL.contains(token)) coincidencias += 1;
+        if (rubroL.contains(token)) coincidencias += 2;
       }
 
       if (coincidencias > maxCoincidencias) {
@@ -502,22 +551,32 @@ class BaqueanoIAService {
   }
 
   static String _respuestaProducto(Producto p, String pq) {
-    final quiereStock  = pq.contains('stock') || pq.contains('quedan') ||
-        pq.contains('hay') || pq.contains('disponib');
-    final quierePrecio = pq.contains('precio') || pq.contains('cuesta') ||
-        pq.contains('cuanto') || pq.contains('valor');
+    final quiereStock =
+        pq.contains('stock') ||
+        pq.contains('quedan') ||
+        pq.contains('hay') ||
+        pq.contains('disponib');
+    final quierePrecio =
+        pq.contains('precio') ||
+        pq.contains('cuesta') ||
+        pq.contains('cuanto') ||
+        pq.contains('valor');
 
     String respuesta;
     if (quiereStock && !quierePrecio) {
-      respuesta = 'Del ${p.nombre} nos quedan ${p.stock} unidades en la tienda.';
+      respuesta =
+          'Del ${p.nombre} nos quedan ${p.stock} unidades en la tienda.';
     } else if (quierePrecio && !quiereStock) {
       respuesta = 'El ${p.nombre} está a \$${p.precio.toStringAsFixed(0)}.';
     } else {
-      respuesta = 'Del ${p.nombre} nos quedan ${p.stock} unidades a \$${p.precio.toStringAsFixed(0)}.';
+      respuesta =
+          'Del ${p.nombre} nos quedan ${p.stock} unidades a \$${p.precio.toStringAsFixed(0)}.';
     }
 
     if (p.stock <= 3 && p.stock > 0) {
-      debugPrint('[BaqueanoRouter] stock_limit_warning: producto=${p.nombre}, stock=${p.stock}');
+      debugPrint(
+        '[BaqueanoRouter] stock_limit_warning: producto=${p.nombre}, stock=${p.stock}',
+      );
       respuesta += ' ¡Quedan las últimas!';
     } else if (p.stock == 0) {
       respuesta += ' Se nos agotó el stock por ahora.';
@@ -531,11 +590,30 @@ class BaqueanoIAService {
   // ── Diagnóstico verbal ─────────────────────────────────────────────────────
 
   static const List<String> _triggersEstado = [
-    'conectado', 'conexion', 'conexión', 'estas online', 'estas en linea',
-    'estas en línea', 'estás online', 'estás en linea', 'estás en línea',
-    'sos ia', 'eres ia', 'modo ia', 'que motor', 'que modelo', 'qué motor', 'qué modelo',
-    'funcionas', 'funcionas con', 'con que trabajas', 'con qué trabajas',
-    'estado del sistema', 'estado sistema', 'modo offline', 'modo online',
+    'conectado',
+    'conexion',
+    'conexión',
+    'estas online',
+    'estas en linea',
+    'estas en línea',
+    'estás online',
+    'estás en linea',
+    'estás en línea',
+    'sos ia',
+    'eres ia',
+    'modo ia',
+    'que motor',
+    'que modelo',
+    'qué motor',
+    'qué modelo',
+    'funcionas',
+    'funcionas con',
+    'con que trabajas',
+    'con qué trabajas',
+    'estado del sistema',
+    'estado sistema',
+    'modo offline',
+    'modo online',
   ];
 
   static bool _esConsultaEstado(String pq) =>
@@ -545,29 +623,40 @@ class BaqueanoIAService {
     if (ConnectivityBridge.estaConectado && GroqConfig.tieneApiKey) {
       try {
         final svc = GroqService();
-        final respuesta = await svc.probarConexion(GroqConfig.apiKey).timeout(const Duration(seconds: 4));
+        final respuesta = await svc
+            .probarConexion(GroqConfig.apiKey)
+            .timeout(const Duration(seconds: 4));
         if (respuesta.contains('operativo') || respuesta.isNotEmpty) {
           return const ElGuiaRespuesta(
-            texto: '¡Todo listo, chamigo! Estoy conectado a mi motor de IA en la nube (Groq Llama 3.3). Las respuestas serán instantáneas y súper completas.',
+            texto:
+                '¡Todo listo, chamigo! Estoy conectado a mi motor de IA en la nube (Groq Llama 3.3). Las respuestas serán instantáneas y súper completas.',
             gifSugerido: 'exito',
           );
         }
       } catch (e) {
         debugPrint('[BaqueanoRouter] Error de ping con Groq: $e');
         return ElGuiaRespuesta(
-          texto: 'Tengo conexión y clave de Groq configurada, pero falló la prueba de comunicación: $e. Intentemos verificar la validez de la clave.',
+          texto:
+              'Tengo conexión y clave de Groq configurada, pero falló la prueba de comunicación: $e. Intentemos verificar la validez de la clave.',
           gifSugerido: 'duda',
         );
       }
-    }    return const ElGuiaRespuesta(
-      texto: '¡Todo listo, chamigo! Estoy operativo en modo local de contingencia, resolviendo tus consultas directamente con mis cartas náuticas offline.',
+    }
+    return const ElGuiaRespuesta(
+      texto:
+          '¡Todo listo, chamigo! Estoy operativo en modo local de contingencia, resolviendo tus consultas directamente con mis cartas náuticas offline.',
       gifSugerido: 'hablaConMate',
     );
   }
 
   // Intenciones que devuelven datos dinámicos: no se bloquean por repetición
   static const Set<String> _intentsDinamicos = {
-    'hora', 'clima', 'gps', 'solunar', 'notificaciones', 'carrito',
+    'hora',
+    'clima',
+    'gps',
+    'solunar',
+    'notificaciones',
+    'carrito',
   };
 
   static ElGuiaRespuesta? _detectarTriggersEnojo(String pq) {
@@ -591,52 +680,103 @@ class BaqueanoIAService {
 
     if (!esDinamico && _coincidenciasPregunta >= 3) {
       _nivelFrustracion = (_nivelFrustracion + 1).clamp(0, 3);
-      if (pq.contains('no anda') || pq.contains('no funciona') || pq.contains('error') || pq.contains('no responde')) {
+      if (pq.contains('no anda') ||
+          pq.contains('no funciona') ||
+          pq.contains('error') ||
+          pq.contains('no responde')) {
         return ElGuiaRespuesta(
-          texto: '😤 Pará amigo… si seguimos apretando todo junto hacemos llorar al robot.',
+          texto:
+              'Pará amigo… si seguimos apretando todo junto hacemos llorar al robot.',
           gifSugerido: 'enojado',
         );
       }
     }
 
     // 2. Impaciencia
-    if (pq.contains('dale') || pq.contains('apúrate') || pq.contains('apurate') || 
-        pq.contains('hace rato espero') || pq.contains('rapido') || pq.contains('rápido') ||
-        pq.contains('pura') || pq.contains('apuras') || pq.contains('apure')) {
+    if (pq.contains('dale') ||
+        pq.contains('apúrate') ||
+        pq.contains('apurate') ||
+        pq.contains('hace rato espero') ||
+        pq.contains('rapido') ||
+        pq.contains('rápido') ||
+        pq.contains('pura') ||
+        pq.contains('apuras') ||
+        pq.contains('apure')) {
       _nivelFrustracion = (_nivelFrustracion + 1).clamp(0, 3);
-      final lista = _obtenerListaLibreria('emociones_pescador', 'respuestas_impaciencia', _respuestasImpaciencia);
+      final lista = _obtenerListaLibreria(
+        'emociones_pescador',
+        'respuestas_impaciencia',
+        _respuestasImpaciencia,
+      );
       final texto = lista[Random().nextInt(lista.length)];
       return ElGuiaRespuesta(texto: texto, gifSugerido: 'enojado');
     }
 
     // 3. Preguntas absurdas (tiburón en Chascomús, etc.)
-    if ((pq.contains('tiburon') || pq.contains('tiburón')) && (pq.contains('chascomus') || pq.contains('chascomús') || pq.contains('laguna'))) {
+    if ((pq.contains('tiburon') || pq.contains('tiburón')) &&
+        (pq.contains('chascomus') ||
+            pq.contains('chascomús') ||
+            pq.contains('laguna'))) {
       _nivelFrustracion = (_nivelFrustracion + 1).clamp(0, 3);
-      final lista = _obtenerListaLibreria('emociones_pescador', 'respuestas_absurdas', _respuestasAbsurdas);
+      final lista = _obtenerListaLibreria(
+        'emociones_pescador',
+        'respuestas_absurdas',
+        _respuestasAbsurdas,
+      );
       final texto = lista[Random().nextInt(lista.length)];
       return ElGuiaRespuesta(texto: texto, gifSugerido: 'enojado');
     }
 
     // 4. Furioso protector (tormenta peligrosa)
-    if (pq.contains('tormenta') && (pq.contains('salgo') || pq.contains('pesco') || pq.contains('navego') || pq.contains('igual') || pq.contains('embarco'))) {
+    if (pq.contains('tormenta') &&
+        (pq.contains('salgo') ||
+            pq.contains('pesco') ||
+            pq.contains('navego') ||
+            pq.contains('igual') ||
+            pq.contains('embarco'))) {
       _nivelFrustracion = (_nivelFrustracion + 1).clamp(0, 3);
-      final lista = _obtenerListaLibreria('reacciones_clima', 'respuestas_protector', _respuestasProtector);
+      final lista = _obtenerListaLibreria(
+        'reacciones_clima',
+        'respuestas_protector',
+        _respuestasProtector,
+      );
       final texto = lista[Random().nextInt(lista.length)];
       return ElGuiaRespuesta(texto: texto, gifSugerido: 'enojado');
     }
 
     // 5. Cancelaciones de último momento
-    if (pq.contains('cancelar') && (pq.contains('media hora') || pq.contains('30 min') || pq.contains('ahora') || pq.contains('ultimo momento') || pq.contains('último momento') || pq.contains('antes'))) {
+    if (pq.contains('cancelar') &&
+        (pq.contains('media hora') ||
+            pq.contains('30 min') ||
+            pq.contains('ahora') ||
+            pq.contains('ultimo momento') ||
+            pq.contains('último momento') ||
+            pq.contains('antes'))) {
       _nivelFrustracion = (_nivelFrustracion + 1).clamp(0, 3);
-      final lista = _obtenerListaLibreria('emociones_pescador', 'respuestas_cancelacion', _respuestasCancelacion);
+      final lista = _obtenerListaLibreria(
+        'emociones_pescador',
+        'respuestas_cancelacion',
+        _respuestasCancelacion,
+      );
       final texto = lista[Random().nextInt(lista.length)];
       return ElGuiaRespuesta(texto: texto, gifSugerido: 'enojado');
     }
 
     // 6. Mala suerte pescadora
-    if (pq.contains('no pico') || pq.contains('no picó') || pq.contains('no pesque') || pq.contains('no pesqué') || pq.contains('sin pique') || pq.contains('nada de pique') || pq.contains('no pesco nada') || pq.contains('no pescó nada')) {
+    if (pq.contains('no pico') ||
+        pq.contains('no picó') ||
+        pq.contains('no pesque') ||
+        pq.contains('no pesqué') ||
+        pq.contains('sin pique') ||
+        pq.contains('nada de pique') ||
+        pq.contains('no pesco nada') ||
+        pq.contains('no pescó nada')) {
       _nivelFrustracion = (_nivelFrustracion + 1).clamp(0, 3);
-      final lista = _obtenerListaLibreria('emociones_pescador', 'respuestas_mala_suerte', _respuestasMalaSuerte);
+      final lista = _obtenerListaLibreria(
+        'emociones_pescador',
+        'respuestas_mala_suerte',
+        _respuestasMalaSuerte,
+      );
       final texto = lista[Random().nextInt(lista.length)];
       return ElGuiaRespuesta(texto: texto, gifSugerido: 'enojado');
     }
@@ -654,62 +794,104 @@ class BaqueanoIAService {
     }
     if (pq == '¿por qué?' || pq == 'por que' || pq == 'por qué') {
       return const ElGuiaRespuesta(
-        texto: "Capaz porque hoy nadie pescó 😔 O porque el mate salió lavado…",
+        texto: "Capaz porque hoy nadie pescó. O porque el mate salió lavado…",
         gifSugerido: 'triste',
       );
     }
     if (pq.contains('no estés triste') || pq.contains('no estes triste')) {
       return const ElGuiaRespuesta(
-        texto: "Bueno… gracias chamigo 😌 Ya me acomodaste un tornillo del ánimo.",
+        texto:
+            "Bueno… gracias chamigo. Ya me acomodaste un tornillo del ánimo.",
         gifSugerido: 'exito',
       );
     }
-    if (pq == '¿qué te pasa?' || pq == 'que te pasa' || pq == 'como andas' || pq == '¿cómo andás?') {
-      final lista = _obtenerListaLibreria('emociones_pescador', 'respuestas_que_te_pasa', _respuestasQueTePasa);
+    if (pq == '¿qué te pasa?' ||
+        pq == 'que te pasa' ||
+        pq == 'como andas' ||
+        pq == '¿cómo andás?') {
+      final lista = _obtenerListaLibreria(
+        'emociones_pescador',
+        'respuestas_que_te_pasa',
+        _respuestasQueTePasa,
+      );
       final texto = lista[Random().nextInt(lista.length)];
       return ElGuiaRespuesta(texto: texto, gifSugerido: 'triste');
     }
 
     // 2. Viaje cancelado
-    if (pq.contains('cancelar viaje') || pq.contains('no puedo ir') || 
-        pq.contains('se suspendió') || pq.contains('se suspendio') || 
-        pq.contains('capitán canceló') || pq.contains('capitan cancelo') ||
+    if (pq.contains('cancelar viaje') ||
+        pq.contains('no puedo ir') ||
+        pq.contains('se suspendió') ||
+        pq.contains('se suspendio') ||
+        pq.contains('capitán canceló') ||
+        pq.contains('capitan cancelo') ||
         pq.contains('mal clima')) {
-      final lista = _obtenerListaLibreria('emociones_pescador', 'respuestas_cancelado', _respuestasCancelado);
+      final lista = _obtenerListaLibreria(
+        'emociones_pescador',
+        'respuestas_cancelado',
+        _respuestasCancelado,
+      );
       final texto = lista[Random().nextInt(lista.length)];
       return ElGuiaRespuesta(texto: texto, gifSugerido: 'triste');
     }
 
     // 3. Mala pesca (tristeza/empatía)
-    if (pq.contains('no picó nada') || pq.contains('no pico nada') || 
-        pq.contains('volví sin pescar') || pq.contains('volvi sin pescar') || 
-        pq.contains('un desastre') || pq.contains('sin pique') || pq.contains('nada de pique')) {
-      final lista = _obtenerListaLibreria('emociones_pescador', 'respuestas_mala_pesca_triste', _respuestasMalaPescaTriste);
+    if (pq.contains('no picó nada') ||
+        pq.contains('no pico nada') ||
+        pq.contains('volví sin pescar') ||
+        pq.contains('volvi sin pescar') ||
+        pq.contains('un desastre') ||
+        pq.contains('sin pique') ||
+        pq.contains('nada de pique')) {
+      final lista = _obtenerListaLibreria(
+        'emociones_pescador',
+        'respuestas_mala_pesca_triste',
+        _respuestasMalaPescaTriste,
+      );
       final texto = lista[Random().nextInt(lista.length)];
       return ElGuiaRespuesta(texto: texto, gifSugerido: 'triste');
     }
 
     // 4. Usuario triste o frustrado
-    if (pq.contains('estoy mal') || pq.contains('me fue horrible') || 
-        pq.contains('estoy triste') || pq.contains('salió todo mal') || 
-        pq.contains('salio todo mal') || pq.contains('me quiero ir') || 
-        pq.contains('me peleé') || pq.contains('me pelee') || pq.contains('me siento solo')) {
-      final lista = _obtenerListaLibreria('emociones_pescador', 'respuestas_usuario_triste', _respuestasUsuarioTriste);
+    if (pq.contains('estoy mal') ||
+        pq.contains('me fue horrible') ||
+        pq.contains('estoy triste') ||
+        pq.contains('salió todo mal') ||
+        pq.contains('salio todo mal') ||
+        pq.contains('me quiero ir') ||
+        pq.contains('me peleé') ||
+        pq.contains('me pelee') ||
+        pq.contains('me siento solo')) {
+      final lista = _obtenerListaLibreria(
+        'emociones_pescador',
+        'respuestas_usuario_triste',
+        _respuestasUsuarioTriste,
+      );
       final texto = lista[Random().nextInt(lista.length)];
       return ElGuiaRespuesta(texto: texto, gifSugerido: 'triste');
     }
 
     // 5. Deja de pescar
-    if (pq.contains('no pesco más') || pq.contains('no pesco mas') || pq.contains('dejo de pescar') || pq.contains('no voy a pescar más')) {
-      final lista = _obtenerListaLibreria('emociones_pescador', 'respuestas_no_pesco_mas', _respuestasNoPescoMas);
+    if (pq.contains('no pesco más') ||
+        pq.contains('no pesco mas') ||
+        pq.contains('dejo de pescar') ||
+        pq.contains('no voy a pescar más')) {
+      final lista = _obtenerListaLibreria(
+        'emociones_pescador',
+        'respuestas_no_pesco_mas',
+        _respuestasNoPescoMas,
+      );
       final texto = lista[Random().nextInt(lista.length)];
       return ElGuiaRespuesta(texto: texto, gifSugerido: 'triste');
     }
 
     // 6. Mucho tiempo sin usar la app (simulado)
-    if (pq.contains('hace mucho') || pq.contains('tanto tiempo') || pq.contains('volví') || pq.contains('volvi')) {
+    if (pq.contains('hace mucho') ||
+        pq.contains('tanto tiempo') ||
+        pq.contains('volví') ||
+        pq.contains('volvi')) {
       return const ElGuiaRespuesta(
-        texto: "Te extrañé un poco… las boyas estaban juntando polvo 😔",
+        texto: "Te extrañé un poco… las boyas estaban juntando polvo",
         gifSugerido: 'triste',
       );
     }
@@ -720,11 +902,15 @@ class BaqueanoIAService {
   static List<Producto> getProductosEscasos() =>
       _catalogo.where((p) => p.activo && p.stock > 0 && p.stock <= 3).toList();
 
-  static List<Producto> getCatalogo()    => List.unmodifiable(_catalogo);
-  static int get totalProductos          => _catalogo.where((p) => p.activo).length;
-  static ElGuiaEngine get motor          => _motorLocal;
+  static List<Producto> getCatalogo() => List.unmodifiable(_catalogo);
+  static int get totalProductos => _catalogo.where((p) => p.activo).length;
+  static ElGuiaEngine get motor => _motorLocal;
 
-  static List<String> _obtenerListaLibreria(String libName, String key, List<String> fallback) {
+  static List<String> _obtenerListaLibreria(
+    String libName,
+    String key,
+    List<String> fallback,
+  ) {
     try {
       final libData = _motorLocal.obtenerLibreria(libName);
       if (libData != null && libData.containsKey(key)) {

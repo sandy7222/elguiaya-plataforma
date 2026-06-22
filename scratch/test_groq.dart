@@ -1,41 +1,45 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-void main() async {
-  final apiKey = const String.fromEnvironment('GROQ_API_KEY');
-  final model = 'llama-3.3-70b-versatile';
-  final baseUrl = 'https://api.groq.com/openai/v1/chat/completions';
+Future<void> main() async {
+  const String baseUrl = 'https://api.groq.com/openai/v1/chat/completions';
+  const String apiKeyGuia = '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';
+  const String apiKeyCentralita = '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';
 
-  print('=== PROBANDO CONEXIÓN A GROQ ===');
-  print('API Key: ${apiKey.isNotEmpty ? "${apiKey.substring(0, 8)}..." : "Vacia"}');
-  print('Model: $model');
+  print('=== DIAGNÓSTICO DE CONEXIÓN A GROQ ===\n');
 
+  await testKey('El Guía (Key Guia)', apiKeyGuia, baseUrl);
+  await testKey('Centralita (Key Centralita)', apiKeyCentralita, baseUrl);
+}
+
+Future<void> testKey(String name, String key, String url) async {
+  print('Probando clave de $name...');
   try {
     final response = await http.post(
-      Uri.parse(baseUrl),
+      Uri.parse(url),
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
-        'Authorization': 'Bearer $apiKey',
+        'Authorization': 'Bearer $key',
       },
       body: jsonEncode({
-        'model': model,
+        'model': 'llama-3.3-70b-versatile',
         'messages': [
-          {'role': 'user', 'content': 'Respond strictly with: "Groq Llama 3.3 operativo y funcionando!"'},
+          {'role': 'user', 'content': 'Responde estrictamente con la palabra: OK'},
         ],
         'temperature': 0.1,
       }),
     ).timeout(const Duration(seconds: 8));
 
+    print('Status Code: ${response.statusCode}');
     if (response.statusCode == 200) {
       final data = jsonDecode(utf8.decode(response.bodyBytes));
       final content = data['choices']?[0]?['message']?['content'] ?? '';
-      print('\n[ÉXITO] Status 200 OK');
-      print('Respuesta recibida: $content');
+      print('Respuesta de Groq: "$content"');
+      print('✅ CLAVE OPERATIVA Y CONECTADA.\n');
     } else {
-      print('\n[FALLO] Código de estado: ${response.statusCode}');
-      print('Cuerpo del error: ${response.body}');
+      print('❌ ERROR EN LA CLAVE (Status ${response.statusCode}): ${response.body}\n');
     }
   } catch (e) {
-    print('\n[ERROR] Ocurrió una excepción al conectar con Groq: $e');
+    print('❌ ERROR DE RED O TIMEOUT: $e\n');
   }
 }

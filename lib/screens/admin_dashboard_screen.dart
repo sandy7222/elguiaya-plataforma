@@ -1568,6 +1568,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                             TileLayer(
                               urlTemplate: 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
                               subdomains: const ['a', 'b', 'c'],
+                              userAgentPackageName: 'com.example.El Guia YA',
                             ),
                             if (track != null)
                               PolylineLayer(

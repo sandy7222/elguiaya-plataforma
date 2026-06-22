@@ -574,109 +574,159 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
     final messageController = TextEditingController(
       text: prefs.getString('panic_custom_message') ?? 'Estoy navegando y sufrí un inconveniente, por favor contactame.'
     );
+    final bool incluirGps = prefs.getBool('panic_incluir_gps') ?? true;
 
     showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF0A192F),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
-          children: [
-            Icon(Icons.contact_phone_outlined, color: Color(0xFF00E676)),
-            SizedBox(width: 10),
-            Text('Contacto de Confianza', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-          ],
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Configurá la persona a la que le llegará la alerta en caso de emergencia:',
-                style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.4),
+      builder: (context) {
+        bool localIncluirGps = incluirGps;
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF0A192F),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Row(
+                children: [
+                  Icon(Icons.contact_phone_outlined, color: Color(0xFF00E676)),
+                  SizedBox(width: 10),
+                  Text('Contacto de Confianza', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                ],
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: nameController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Nombre del Contacto',
-                  labelStyle: TextStyle(color: Colors.white60, fontSize: 13),
-                  focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF00E676))),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Configurá la persona a la que le llegará la alerta en caso de emergencia:',
+                      style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.4),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: nameController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        labelText: 'Nombre del Contacto',
+                        labelStyle: TextStyle(color: Colors.white60, fontSize: 13),
+                        focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF00E676))),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: phoneController,
+                      style: const TextStyle(color: Colors.white),
+                      keyboardType: TextInputType.phone,
+                      decoration: const InputDecoration(
+                        labelText: 'Número (con código de país, ej: +54911...)',
+                        labelStyle: TextStyle(color: Colors.white60, fontSize: 13),
+                        focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF00E676))),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: messageController,
+                      style: const TextStyle(color: Colors.white),
+                      maxLines: 2,
+                      decoration: const InputDecoration(
+                        labelText: 'Mensaje Pregrabado',
+                        labelStyle: TextStyle(color: Colors.white60, fontSize: 13),
+                        focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF00E676))),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SwitchListTile(
+                      title: const Text('Enviar posicionamiento GPS', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                      subtitle: const Text('Adjunta un link de Google Maps con tu ubicación actual', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                      value: localIncluirGps,
+                      activeColor: const Color(0xFF00E676),
+                      contentPadding: EdgeInsets.zero,
+                      onChanged: (val) {
+                        setDialogState(() {
+                          localIncluirGps = val;
+                        });
+                      },
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: phoneController,
-                style: const TextStyle(color: Colors.white),
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(
-                  labelText: 'Número (con código de país, ej: +54911...)',
-                  labelStyle: TextStyle(color: Colors.white60, fontSize: 13),
-                  focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF00E676))),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    await prefs.remove('panic_contact_phone');
+                    await prefs.remove('panic_contact_name');
+                    await prefs.remove('panic_custom_message');
+                    await prefs.remove('panic_incluir_gps');
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('🗑️ Configuración de emergencia eliminada.'),
+                          backgroundColor: Colors.redAccent,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  },
+                  child: const Text('ELIMINAR', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
                 ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: messageController,
-                style: const TextStyle(color: Colors.white),
-                maxLines: 2,
-                decoration: const InputDecoration(
-                  labelText: 'Mensaje Pregrabado',
-                  labelStyle: TextStyle(color: Colors.white60, fontSize: 13),
-                  focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF00E676))),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('CANCELAR', style: TextStyle(color: Colors.white54)),
                 ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              await prefs.remove('panic_contact_phone');
-              await prefs.remove('panic_contact_name');
-              await prefs.remove('panic_custom_message');
-              if (context.mounted) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('🗑️ Datos del contacto eliminados.'),
-                    backgroundColor: Colors.redAccent,
+                ElevatedButton(
+                  onPressed: () async {
+                    final String phoneText = phoneController.text.trim();
+                    final String nameText = nameController.text.trim();
+
+                    // Si borra el número o nombre, interpretamos que desea limpiar la configuración
+                    if (phoneText.isEmpty || nameText.isEmpty) {
+                      await prefs.remove('panic_contact_phone');
+                      await prefs.remove('panic_contact_name');
+                      await prefs.remove('panic_custom_message');
+                      await prefs.remove('panic_incluir_gps');
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('🗑️ Configuración de emergencia eliminada.'),
+                            backgroundColor: Colors.redAccent,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
+                      return;
+                    }
+
+                    await prefs.setString('panic_contact_phone', phoneText);
+                    await prefs.setString('panic_contact_name', nameText);
+                    await prefs.setString('panic_custom_message', messageController.text.trim());
+                    await prefs.setBool('panic_incluir_gps', localIncluirGps);
+                    
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('💾 Contacto de confianza guardado con éxito.'),
+                          backgroundColor: Color(0xFF00E676),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                    if (onSaved != null) onSaved();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF00E676),
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
-                );
-              }
-            },
-            child: const Text('ELIMINAR', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('CANCELAR', style: TextStyle(color: Colors.white54)),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (phoneController.text.trim().isEmpty || nameController.text.trim().isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Por favor, completa todos los campos.')),
-                );
-                return;
-              }
-              await prefs.setString('panic_contact_phone', phoneController.text.trim());
-              await prefs.setString('panic_contact_name', nameController.text.trim());
-              await prefs.setString('panic_custom_message', messageController.text.trim());
-              Navigator.pop(context);
-              if (onSaved != null) onSaved();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF00E676),
-              foregroundColor: Colors.black,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            child: const Text('GUARDAR', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
+                  child: const Text('GUARDAR', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -751,14 +801,20 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
 
   Future<void> _sendPanicAlert(String phone, String name, String customMsg) async {
     try {
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
+      final prefs = await SharedPreferences.getInstance();
+      final bool incluirGps = prefs.getBool('panic_incluir_gps') ?? true;
+
+      String fullMessage = '🚨 AVISO DE EMERGENCIA PERSONAL de ${_perfilNombre ?? "Usuario"}.\n';
       
-      final String mapUrl = 'https://maps.google.com/?q=${position.latitude},${position.longitude}';
-      final String fullMessage = 
-          '🚨 AVISO DE EMERGENCIA PERSONAL de ${_perfilNombre ?? "Usuario"}.\n'
-          'Ubicación GPS: $mapUrl\n'
+      if (incluirGps) {
+        Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+        );
+        final String mapUrl = 'https://maps.google.com/?q=${position.latitude},${position.longitude}';
+        fullMessage += 'Ubicación GPS: $mapUrl\n';
+      }
+
+      fullMessage += 
           'Mensaje pregrabado: "$customMsg"\n'
           'Por favor, comunícate a la brevedad y gestiona el encuentro/rescate con Prefectura.';
 

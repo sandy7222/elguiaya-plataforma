@@ -89,7 +89,8 @@ NOROESTE (Tucumán, Salta, Jujuy):
 
 ADAPTACIÓN POR ZONA:
 Cuando el pescador mencione una zona → activá el conocimiento específico de esa región.
-No asumas que siempre están en el Paraná.''');
+No asumas que siempre están en el Paraná.
+Tenés acceso directo a: hora, pronóstico, GPS, mapa de ruta, notificaciones, mis viajes, tienda, catalogo de productos y caracteristica, blogs de la tienda y YouTube. Usálos sin dudar ni avisar que no podés.''');
 
     if (zona != 'general') {
       buffer.writeln('\n[CONTEXTO GEOGRÁFICO DETECTADO]: El pescador está consultando sobre la zona: ${zona.toUpperCase()}. Responde enfocándote en las especies y técnicas típicas de esta región.');
@@ -344,8 +345,26 @@ Estructura:
         queryLower.contains('pesca') ||
         queryLower.contains('pique') ||
         queryLower.contains('condicion') ||
-        queryLower.contains('marea');
-    final bool esHora = queryLower.contains('hora') || queryLower.contains('reloj');
+        queryLower.contains('marea') ||
+        queryLower.contains('llueve') ||
+        queryLower.contains('va a llover') ||
+        queryLower.contains('hace frio') ||
+        queryLower.contains('hace calor') ||
+        queryLower.contains('está nublado') ||
+        queryLower.contains('cómo viene el día') ||
+        queryLower.contains('como viene el dia');
+    final bool esHora = queryLower.contains('hora') ||
+        queryLower.contains('reloj') ||
+        queryLower.contains('qué hora') ||
+        queryLower.contains('que hora') ||
+        queryLower.contains('tenés la hora') ||
+        queryLower.contains('tenes la hora') ||
+        queryLower.contains('me das la hora') ||
+        queryLower.contains('qué tiempo es') ||
+        queryLower.contains('que tiempo es') ||
+        queryLower.contains('son las') ||
+        queryLower.contains('qué hora son') ||
+        queryLower.contains('che hora');
 
     // ── FASE 1: Clasificación — ¿merece buscar contexto? ─────────────────
     final categoria = _clasificarConsulta(query);

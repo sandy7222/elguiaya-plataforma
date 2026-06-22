@@ -391,7 +391,7 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> with SingleTick
             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('❌ Error: Debes subir una imagen')));
           }
         } else {
-          await _updateExistingBanner(existingBanner!, titulo, subtitulo, tituloSeccion, selectedProductId, selectedCategoriaId, velocity: velocidad, bgColor: bgColorHex, txtColor: txtColorHex);
+          await _updateExistingBanner(existingBanner, titulo, subtitulo, tituloSeccion, selectedProductId, selectedCategoriaId, velocity: velocidad, bgColor: bgColorHex, txtColor: txtColorHex);
         }
       }
     });
@@ -954,7 +954,7 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> with SingleTick
                 ),
                 const SizedBox(height: 10),
                 DropdownButtonFormField<String>(
-                  value: ['Pesca', 'Camping', 'Náutica'].contains(rubro) ? rubro : 'Pesca',
+                  initialValue: ['Pesca', 'Camping', 'Náutica'].contains(rubro) ? rubro : 'Pesca',
                   dropdownColor: const Color(0xFF1A1A1A),
                   decoration: _inputDecoration('Rubro'),
                   style: const TextStyle(color: Colors.white, fontSize: 13),
@@ -969,7 +969,7 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> with SingleTick
                 ),
                 const SizedBox(height: 10),
                 DropdownButtonFormField<String>(
-                  value: (categoriaId.isNotEmpty && _categorias.any((c) => c.id == categoriaId)) ? categoriaId : null,
+                  initialValue: (categoriaId.isNotEmpty && _categorias.any((c) => c.id == categoriaId)) ? categoriaId : null,
                   dropdownColor: const Color(0xFF1A1A1A),
                   decoration: _inputDecoration('Categoría'),
                   style: const TextStyle(color: Colors.white, fontSize: 13),
@@ -983,7 +983,7 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> with SingleTick
                   title: const Text('Producto Activo', style: TextStyle(color: Colors.white, fontSize: 14)),
                   subtitle: const Text('Visible en la tienda', style: TextStyle(color: Colors.white54, fontSize: 11)),
                   value: activo,
-                  activeColor: Colors.orangeAccent,
+                  activeThumbColor: Colors.orangeAccent,
                   contentPadding: EdgeInsets.zero,
                   onChanged: (v) => setDialogState(() => activo = v),
                 ),
@@ -991,7 +991,7 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> with SingleTick
                   title: const Text('Producto Destacado', style: TextStyle(color: Colors.white, fontSize: 14)),
                   subtitle: const Text('Aparece en novedades', style: TextStyle(color: Colors.white54, fontSize: 11)),
                   value: destacado,
-                  activeColor: Colors.orangeAccent,
+                  activeThumbColor: Colors.orangeAccent,
                   contentPadding: EdgeInsets.zero,
                   onChanged: (v) => setDialogState(() => destacado = v),
                 ),

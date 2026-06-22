@@ -4053,6 +4053,8 @@ class SupabaseService {
         'localidad_destino': datos['localidad_destino'],
         'provincia_destino': datos['provincia_destino'],
         'lugar_encuentro': datos['lugar_encuentro'],
+        'distancia_km': datos['distancia_km'],
+        'distancia_millas': (datos['distancia_km'] as num?) != null ? (datos['distancia_km'] as num).toDouble() * 0.621371 : null,
         'fecha_ida': datos['fecha_ida'],
         'fecha_vuelta': datos['fecha_vuelta'],
         'hora_encuentro': datos['hora_encuentro'],
@@ -6033,7 +6035,6 @@ class SupabaseService {
             profiles!inner(
               user_id,
               nombre
-              -- NOTA: No incluimos apellido ni telefono del pescador
             )
           ''')
           .eq('id', cotizacionId)

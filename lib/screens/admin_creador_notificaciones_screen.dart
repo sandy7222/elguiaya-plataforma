@@ -3,7 +3,7 @@ import '../services/notificacion_service.dart';
 import '../services/supabase_service.dart';
 
 class AdminCreadorNotificacionesScreen extends StatefulWidget {
-  const AdminCreadorNotificacionesScreen({Key? key}) : super(key: key);
+  const AdminCreadorNotificacionesScreen({super.key});
 
   @override
   State<AdminCreadorNotificacionesScreen> createState() => _AdminCreadorNotificacionesScreenState();

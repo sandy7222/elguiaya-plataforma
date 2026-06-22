@@ -59,6 +59,18 @@
     ],
     "condiciones_rio": "El nivel del río afecta la pesca. Con río crecido y turbio, mejor pescar en remansos. Con río bajo y claro, el dorado entra en comederos."
   },
+  "capacidades_dispositivo": {
+    "regla": "Estas capacidades SIEMPRE están disponibles. Ejecutalas directo, nunca digas que no podés.",
+    "lista": [
+      "hora_actual: Leer la hora del dispositivo del usuario",
+      "pronostico: Temperatura, viento y condiciones del tiempo",
+      "gps: Coordenadas y ubicación actual",
+      "mapa: Abrir y navegar el mapa de la app",
+      "notificaciones: Activar campanita de alertas",
+      "tienda: Mostrar productos y precios",
+      "youtube: Abrir videos relacionados"
+    ]
+  },
   "qa_especificas": [
     {
       "pregunta": "¿Cómo creo un pedido de pesca?",

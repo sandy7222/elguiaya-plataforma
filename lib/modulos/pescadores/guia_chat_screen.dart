@@ -413,7 +413,7 @@ class _GuiaChatScreenState extends State<GuiaChatScreen>
                       if (msg.generando && msg.texto.isNotEmpty)
                         AnimatedBuilder(
                           animation: _cursorAnim,
-                          builder: (_, __) => Opacity(
+                          builder: (context, child) => Opacity(
                             opacity: _cursorAnim.value,
                             child: Container(
                               margin: const EdgeInsets.only(left: 2, bottom: 1),
@@ -479,7 +479,7 @@ class _GuiaChatScreenState extends State<GuiaChatScreen>
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: _chips.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (context, index) => const SizedBox(width: 8),
         itemBuilder: (_, i) {
           final chip = _chips[i];
           return ActionChip(

@@ -11,6 +11,7 @@ import '../services/supabase_service.dart';
 import '../services/branding_service.dart';
 import '../services/ia_router_state.dart';
 import '../widgets/notification_quick_view.dart';
+import 'capitan_tracker_screen.dart';
 
 class PortalPescadorScreen extends StatefulWidget {
   const PortalPescadorScreen({super.key});
@@ -286,45 +287,162 @@ class _MapSectionState extends State<_MapSection> {
   Map<String, dynamic>? _destino;
   List<Map<String, dynamic>> _trackLog = [];
   double _distancia = 0.0;
+  int _selectedSubTab = 0; // 0 = Trazar Ruta (MapSelectorWidget), 1 = GPS Tracker (CapitanTrackerScreen)
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
+    return Column(
       children: [
-        MapSelectorWidget(
-          onRouteSelected: (p0, p1, p2) {
-            setState(() {
-              _partida = p0;
-              _destino = p1;
-              _trackLog = p2;
-            });
-          },
-          onDistanceChanged: (dist) {
-            setState(() {
-              _distancia = dist;
-            });
-          },
-        ),
-        if (_partida != null && _destino != null)
-          Positioned(
-            bottom: 80,
-            left: 20,
-            right: 20,
-            child: ElevatedButton.icon(
-              onPressed: () {
-                widget.onRequestQuote(_partida!, _destino!, _trackLog, _distancia);
-              },
-              icon: const Icon(Icons.request_quote),
-              label: const Text('PEDIR PRESUPUESTO AHORA'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF00E676),
-                foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                elevation: 8,
-              ),
+        // Sub-tabs deslizantes premium estilo glassmorphism
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+          child: Container(
+            height: 44,
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.04),
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: Colors.white.withOpacity(0.08), width: 1.2),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _selectedSubTab = 0),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      decoration: BoxDecoration(
+                        color: _selectedSubTab == 0 ? const Color(0xFF00E676) : Colors.transparent,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: _selectedSubTab == 0
+                            ? [
+                                BoxShadow(
+                                  color: const Color(0xFF00E676).withOpacity(0.3),
+                                  blurRadius: 10,
+                                  spreadRadius: 1,
+                                )
+                              ]
+                            : [],
+                      ),
+                      alignment: Alignment.center,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.explore_outlined,
+                            size: 16,
+                            color: _selectedSubTab == 0 ? Colors.black : Colors.white70,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'TRAZAR RUTA',
+                            style: TextStyle(
+                              color: _selectedSubTab == 0 ? Colors.black : Colors.white70,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 11,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _selectedSubTab = 1),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      decoration: BoxDecoration(
+                        color: _selectedSubTab == 1 ? const Color(0xFF00E676) : Colors.transparent,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: _selectedSubTab == 1
+                            ? [
+                                BoxShadow(
+                                  color: const Color(0xFF00E676).withOpacity(0.3),
+                                  blurRadius: 10,
+                                  spreadRadius: 1,
+                                )
+                              ]
+                            : [],
+                      ),
+                      alignment: Alignment.center,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.radar_rounded,
+                            size: 16,
+                            color: _selectedSubTab == 1 ? Colors.black : Colors.white70,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'GPS TRACKER',
+                            style: TextStyle(
+                              color: _selectedSubTab == 1 ? Colors.black : Colors.white70,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 11,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
+        ),
+        // Contenido utilizando IndexedStack para preservar el estado de ambos mapas
+        Expanded(
+          child: IndexedStack(
+            index: _selectedSubTab,
+            children: [
+              // Sub-pestaña 0: Trazado de ruta
+              Stack(
+                children: [
+                  MapSelectorWidget(
+                    onRouteSelected: (p0, p1, p2) {
+                      setState(() {
+                        _partida = p0;
+                        _destino = p1;
+                        _trackLog = p2;
+                      });
+                    },
+                    onDistanceChanged: (dist) {
+                      setState(() {
+                        _distancia = dist;
+                      });
+                    },
+                  ),
+                  if (_partida != null && _destino != null)
+                    Positioned(
+                      bottom: 90,
+                      left: 20,
+                      right: 20,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          widget.onRequestQuote(_partida!, _destino!, _trackLog, _distancia);
+                        },
+                        icon: const Icon(Icons.request_quote),
+                        label: const Text('PEDIR PRESUPUESTO AHORA'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF00E676),
+                          foregroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          elevation: 8,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              // Sub-pestaña 1: GPS Tracker del Pescador
+              const CapitanTrackerScreen(esCapitan: false),
+            ],
+          ),
+        ),
       ],
     );
   }
