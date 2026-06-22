@@ -203,8 +203,8 @@ class VoiceService {
           seconds: 40,
         ), // Aumentado a 40s para que no se corte al formular preguntas largas
         pauseFor: const Duration(
-          milliseconds: 1000,
-        ), // Reducido a 1.0s para mayor velocidad de respuesta
+          seconds: 3,
+        ), // Aumentado a 3s para evitar que se corte inmediatamente en Android/iOS
         cancelOnError: false,
       );
       return true;
