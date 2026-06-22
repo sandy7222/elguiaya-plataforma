@@ -56,6 +56,9 @@ class GuiaMemoriaService {
     final List<String> zonas = _prefs!.getStringList('${prefix}zonas') ?? [];
     final String? nivel = _prefs!.getString('${prefix}nivel');
     final String? ultimoTema = _prefs!.getString('${prefix}ultimo_tema');
+    final String? conQuienVive = _prefs!.getString('${prefix}con_quien_vive');
+    final String? comoVive = _prefs!.getString('${prefix}como_vive');
+    final String? ultimaVivenciaPesca = _prefs!.getString('${prefix}ultima_vivencia_pesca');
     
     // Actualizar la fecha de última sesión
     final ahora = DateTime.now().toIso8601String();
@@ -64,7 +67,14 @@ class GuiaMemoriaService {
     // Ejecutar el backup en segundo plano para actualizar la fecha en Supabase
     _backupToSupabase();
 
-    if (nombre == null && especies.isEmpty && zonas.isEmpty && nivel == null && ultimoTema == null) {
+    if (nombre == null &&
+        especies.isEmpty &&
+        zonas.isEmpty &&
+        nivel == null &&
+        ultimoTema == null &&
+        conQuienVive == null &&
+        comoVive == null &&
+        ultimaVivenciaPesca == null) {
       return null;
     }
 
@@ -85,6 +95,15 @@ class GuiaMemoriaService {
     }
     if (ultimoTema != null && ultimoTema.isNotEmpty) {
       lines.add('Último tema: $ultimoTema.');
+    }
+    if (conQuienVive != null && conQuienVive.isNotEmpty) {
+      lines.add('Con quién vive: $conQuienVive');
+    }
+    if (comoVive != null && comoVive.isNotEmpty) {
+      lines.add('Cómo vive: $comoVive');
+    }
+    if (ultimaVivenciaPesca != null && ultimaVivenciaPesca.isNotEmpty) {
+      lines.add('Última vivencia/pesca: $ultimaVivenciaPesca');
     }
 
     if (lines.isEmpty) return null;
@@ -232,6 +251,104 @@ class GuiaMemoriaService {
       }
     }
 
+    // 6. EXTRAER CON QUIEN VIVE
+    // Se pisa si cambia o si hay alguna corrección / novedad
+    String? conQuienVive;
+    
+    // Términos de compañía / familia / mascotas
+    final RegExp companiaRegExp = RegExp(
+      r'\b(?:la señora|la vieja|los pibes|los gurises|la familia|mi viejo|el nene|la nena|mi señora|mi vieja|mi esposo|mi esposa|mi marido|mi mujer|mi novio|mi novia|mi pareja|mi hijo|mi hija|mis hijos|mi hermano|mi hermana|mis hermanos|el pichicho|la perra|los cachorros|los canes|canes|can|pichicho|pichichos|el pichico|pichico|pichicos|mascota|mascotas|gato|gata|gatos|gatas|perro|perros)\b',
+      caseSensitive: false,
+    );
+
+    final RegExp correccionRegExp = RegExp(
+      r'\b(?:se murió|se murio|murió|murio|se me murió|se me murio|falleció|fallecio|ya no tengo|se me fue|se fue|perdí|perdi|regalé|regale)\b',
+      caseSensitive: false,
+    );
+
+    final RegExp vivoConRegExp = RegExp(
+      r'\b(?:vivo con|comparto casa con|vivo solo con|vivo sola con)\s+([^.,!?\n]+)',
+      caseSensitive: false,
+    );
+    
+    final matchVivo = vivoConRegExp.firstMatch(pq);
+    if (matchVivo != null) {
+      final detalle = matchVivo.group(1)!.trim();
+      if (detalle.isNotEmpty) {
+        conQuienVive = 'Vivo con $detalle.';
+      }
+    }
+
+    final oraciones = pregunta.split(RegExp(r'[.,!?\n]'));
+    for (final oracion in oraciones) {
+      final oracionLower = oracion.toLowerCase();
+      final tieneCompania = companiaRegExp.hasMatch(oracionLower);
+      final tieneCorreccion = correccionRegExp.hasMatch(oracionLower);
+      
+      if (tieneCompania || tieneCorreccion) {
+        final detalleTexto = oracion.trim();
+        if (detalleTexto.isNotEmpty && detalleTexto.length > 5) {
+          if (tieneCorreccion) {
+            conQuienVive = 'Corrección/Novedad: $detalleTexto.';
+          } else {
+            conQuienVive = 'Compañía: $detalleTexto.';
+          }
+        }
+      }
+    }
+
+    if (conQuienVive != null) {
+      final currentConQuien = _prefs!.getString('${prefix}con_quien_vive');
+      if (currentConQuien != conQuienVive) {
+        await _prefs!.setString('${prefix}con_quien_vive', conQuienVive);
+        huboCambio = true;
+      }
+    }
+
+    // 7. EXTRAER COMO VIVE (Lugar, situación)
+    // Se pisa si cambia o se corrige
+    String? comoVive;
+    final RegExp comoViveRegExp = RegExp(
+      r'\b(?:vivo en|resido en|mi casa es|mi rancho es|tengo casa en|mi hogar es)\s+([^.,!?\n]+)',
+      caseSensitive: false,
+    );
+    final matchComo = comoViveRegExp.firstMatch(pq);
+    if (matchComo != null) {
+      final detalle = matchComo.group(1)!.trim();
+      if (detalle.isNotEmpty) {
+        comoVive = 'Vive en $detalle.';
+      }
+    }
+
+    if (comoVive != null) {
+      final currentComo = _prefs!.getString('${prefix}como_vive');
+      if (currentComo != comoVive) {
+        await _prefs!.setString('${prefix}como_vive', comoVive);
+        huboCambio = true;
+      }
+    }
+
+    // 8. EXTRAER ÚLTIMA VIVENCIA / PESCA
+    // Se pisa siempre con la más reciente
+    final RegExp vivenciaRegExp = RegExp(
+      r'\b(?:última pesca|ultima pesca|última salida|ultima salida|la última vez|la ultima vez|el finde pasado|el fin de semana pasado|el otro día|el otro dia|ayer fui|fui a pescar)\b',
+      caseSensitive: false,
+    );
+    if (vivenciaRegExp.hasMatch(pq)) {
+      for (final oracion in oraciones) {
+        final oracionLower = oracion.toLowerCase();
+        if (vivenciaRegExp.hasMatch(oracionLower)) {
+          final vivenciaTexto = oracion.trim();
+          if (vivenciaTexto.length > 5) {
+            final formatted = vivenciaTexto[0].toUpperCase() + vivenciaTexto.substring(1);
+            await _prefs!.setString('${prefix}ultima_vivencia_pesca', formatted);
+            huboCambio = true;
+            break;
+          }
+        }
+      }
+    }
+
     // Si detectamos cambios en SharedPreferences, sincronizamos con Supabase de forma asíncrona
     if (huboCambio) {
       _backupToSupabase();
@@ -264,6 +381,9 @@ class GuiaMemoriaService {
             if (memory['nivel'] != null) await _prefs!.setString('${prefix}nivel', memory['nivel']);
             if (memory['ultimo_tema'] != null) await _prefs!.setString('${prefix}ultimo_tema', memory['ultimo_tema']);
             if (memory['fecha_sesion'] != null) await _prefs!.setString('${prefix}fecha_sesion', memory['fecha_sesion']);
+            if (memory['con_quien_vive'] != null) await _prefs!.setString('${prefix}con_quien_vive', memory['con_quien_vive']);
+            if (memory['como_vive'] != null) await _prefs!.setString('${prefix}como_vive', memory['como_vive']);
+            if (memory['ultima_vivencia_pesca'] != null) await _prefs!.setString('${prefix}ultima_vivencia_pesca', memory['ultima_vivencia_pesca']);
           }
         }
       }
@@ -285,6 +405,9 @@ class GuiaMemoriaService {
       final String? nivel = _prefs!.getString('${prefix}nivel');
       final String? ultimoTema = _prefs!.getString('${prefix}ultimo_tema');
       final String? fechaSesion = _prefs!.getString('${prefix}fecha_sesion');
+      final String? conQuienVive = _prefs!.getString('${prefix}con_quien_vive');
+      final String? comoVive = _prefs!.getString('${prefix}como_vive');
+      final String? ultimaVivenciaPesca = _prefs!.getString('${prefix}ultima_vivencia_pesca');
 
       final memoryMap = {
         if (nombre != null) 'nombre': nombre,
@@ -293,6 +416,9 @@ class GuiaMemoriaService {
         if (nivel != null) 'nivel': nivel,
         if (ultimoTema != null) 'ultimo_tema': ultimoTema,
         if (fechaSesion != null) 'fecha_sesion': fechaSesion,
+        if (conQuienVive != null) 'con_quien_vive': conQuienVive,
+        if (comoVive != null) 'como_vive': comoVive,
+        if (ultimaVivenciaPesca != null) 'ultima_vivencia_pesca': ultimaVivenciaPesca,
       };
 
       if (memoryMap.isEmpty) return;

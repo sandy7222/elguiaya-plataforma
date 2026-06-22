@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -32,7 +31,6 @@ import 'package:capitanya_master/screens/portal_capitan_screen.dart';
 import 'package:capitanya_master/screens/portal_pescador_screen.dart';
 import 'package:capitanya_master/screens/cart_screen.dart';
 import 'package:capitanya_master/screens/notificaciones_screen.dart';
-import 'package:capitanya_master/screens/chat_asistido_screen.dart'; // 🚀 Importado el asistido inteligente
 import 'package:capitanya_master/services/mercado_pago_service.dart';
 import 'package:capitanya_master/services/dynamic_skill_system.dart';
 import 'package:capitanya_master/services/afip_billing_skill.dart';
@@ -137,7 +135,7 @@ class MyApp extends StatelessWidget {
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             elevation: 8,
-            shadowColor: Colors.blue.withOpacity(0.5),
+            shadowColor: Colors.blue.withValues(alpha: 0.5),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15),
             ),
@@ -362,8 +360,9 @@ class _SessionWrapperState extends State<SessionWrapper> {
       final bool esCapitan = perfil['es_capitan'] == true;
       final String estado = perfil['estado'] ?? 'pendiente';
 
-      if (esCapitan && estado == 'pendiente')
+      if (esCapitan && estado == 'pendiente') {
         return const BienvenidaDefinitivaScreen();
+      }
 
       if (esCapitan) return const PortalCapitanScreen();
       return const PortalPescadorScreen();

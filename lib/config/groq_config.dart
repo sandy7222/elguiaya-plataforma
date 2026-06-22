@@ -18,15 +18,26 @@ class GroqConfig {
 
   // ── Clave legada (para migración automática) ──────────────────────────────
   static const String _keyLegado     = 'groq_api_key';
+  static const String _fallbackGuia = 'gsk_[REDACTED]';
+  static const String _fallbackCentralita = 'gsk_[REDACTED]';
 
   static const String defaultModel = 'llama-3.3-70b-versatile';
 
   // ── Estado interno ────────────────────────────────────────────────────────
-  // Prioridad: variable específica → variable legada → vacío
-  static String _apiKeyGuia       = const String.fromEnvironment('GROQ_API_KEY_GUIA',
-      defaultValue: String.fromEnvironment('GROQ_API_KEY'));
-  static String _apiKeyCentralita = const String.fromEnvironment('GROQ_API_KEY_CENTRALITA',
-      defaultValue: String.fromEnvironment('GROQ_API_KEY'));
+  // Prioridad: variable específica → variable legada → fallback
+  static String _apiKeyGuia = const String.fromEnvironment('GROQ_API_KEY_GUIA',
+              defaultValue: String.fromEnvironment('GROQ_API_KEY'))
+          .isNotEmpty
+      ? const String.fromEnvironment('GROQ_API_KEY_GUIA',
+          defaultValue: String.fromEnvironment('GROQ_API_KEY'))
+      : _fallbackGuia;
+  static String _apiKeyCentralita = const String.fromEnvironment(
+              'GROQ_API_KEY_CENTRALITA',
+              defaultValue: String.fromEnvironment('GROQ_API_KEY'))
+          .isNotEmpty
+      ? const String.fromEnvironment('GROQ_API_KEY_CENTRALITA',
+          defaultValue: String.fromEnvironment('GROQ_API_KEY'))
+      : _fallbackCentralita;
   static String _modelo           = defaultModel;
 
 
@@ -56,11 +67,19 @@ class GroqConfig {
       final keyLegada = prefs.getString(_keyLegado) ?? '';
       final keyEnv    = const String.fromEnvironment('GROQ_API_KEY');
 
-      _apiKeyGuia = prefs.getString(_keyGuia)
-          ?? (keyLegada.isNotEmpty ? keyLegada : keyEnv);
+      _apiKeyGuia = prefs.getString(_keyGuia) ?? '';
+      if (_apiKeyGuia.isEmpty) {
+        _apiKeyGuia = keyLegada.isNotEmpty
+            ? keyLegada
+            : (keyEnv.isNotEmpty ? keyEnv : _fallbackGuia);
+      }
 
-      _apiKeyCentralita = prefs.getString(_keyCentralita)
-          ?? (keyLegada.isNotEmpty ? keyLegada : keyEnv);
+      _apiKeyCentralita = prefs.getString(_keyCentralita) ?? '';
+      if (_apiKeyCentralita.isEmpty) {
+        _apiKeyCentralita = keyLegada.isNotEmpty
+            ? keyLegada
+            : (keyEnv.isNotEmpty ? keyEnv : _fallbackCentralita);
+      }
 
       _modelo = prefs.getString(_keyModel) ?? defaultModel;
 

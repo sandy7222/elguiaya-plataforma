@@ -451,7 +451,7 @@ class _AdminCentroComputosScreenState extends State<AdminCentroComputosScreen> {
               ),
               Switch(
                 value: _autoSuspensionEngine,
-                activeColor: const Color(0xFF00E676),
+                activeThumbColor: const Color(0xFF00E676),
                 onChanged: (value) {
                   setState(() {
                     _autoSuspensionEngine = value;

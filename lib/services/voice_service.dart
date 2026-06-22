@@ -23,6 +23,9 @@ class VoiceService {
   bool _isVadInitialized = false;
   bool _isWakeWordInitialized = false;
 
+  // Notificador del estado de escucha activa para sincronizar la UI
+  final ValueNotifier<bool> isListeningNotifier = ValueNotifier<bool>(false);
+
   /// true mientras el GuIA está hablando (TTS activo)
   bool _isSpeaking = false;
   bool get isSpeaking => _isSpeaking;
@@ -37,8 +40,14 @@ class VoiceService {
   // Frases trigger aceptadas para activar el GuIA por voz.
   // Se detectan por contains() en minúsculas — tolerante a variaciones.
   static const List<String> _wakeWordTriggers = [
-    'guía', 'guia', 'chamigo', 'pregunta guía', 'pregunta guia',
-    'oye guía', 'oye guia', 'una pregunta',
+    'guía',
+    'guia',
+    'chamigo',
+    'pregunta guía',
+    'pregunta guia',
+    'oye guía',
+    'oye guia',
+    'una pregunta',
   ];
 
   Future<void> init() async {
@@ -52,7 +61,9 @@ class VoiceService {
   Future<void> _initTts() async {
     try {
       await _flutterTts.setLanguage("es-AR");
-      await _flutterTts.setSpeechRate(kIsWeb ? 0.9 : 0.45); // Adaptar velocidad según plataforma (0.9 en Web, 0.45 en móvil)
+      await _flutterTts.setSpeechRate(
+        kIsWeb ? 0.9 : 0.45,
+      ); // Adaptar velocidad según plataforma (0.9 en Web, 0.45 en móvil)
       await _flutterTts.setVolume(1.0);
       await _flutterTts.setPitch(0.9); // Tono ligeramente más grave
       try {
@@ -72,11 +83,22 @@ class VoiceService {
       // Solo inicializa el motor. El permiso de micrófono se pide en startListening,
       // cuando el usuario toca el botón del mic — nunca al arrancar la app.
       _isSttInitialized = await _speech.initialize(
-        onError: (val) => debugPrint('Error STT: ${val.errorMsg}'),
-        onStatus: (val) => debugPrint('Status STT: $val'),
+        onError: (val) {
+          debugPrint('Error STT: ${val.errorMsg}');
+          isListeningNotifier.value = false;
+        },
+        onStatus: (val) {
+          debugPrint('Status STT: $val');
+          if (val == 'listening') {
+            isListeningNotifier.value = true;
+          } else if (val == 'notListening' || val == 'done') {
+            isListeningNotifier.value = false;
+          }
+        },
       );
     } catch (e) {
       debugPrint('Error inicializando STT: $e');
+      isListeningNotifier.value = false;
     }
   }
 
@@ -112,7 +134,10 @@ class VoiceService {
     if (!_isTtsInitialized) await _initTts();
 
     // Corregir la pronunciación del asistente "Gu-IA" para que suene como "el Guía"
-    String cleanText = text.replaceAll(RegExp(r'Gu-IA', caseSensitive: false), 'el Guía');
+    String cleanText = text.replaceAll(
+      RegExp(r'Gu-IA', caseSensitive: false),
+      'el Guía',
+    );
 
     // Limpiar markdown y caracteres no pronunciables como emojis
     cleanText = cleanText.replaceAll('\$', ' pesos ');
@@ -121,7 +146,10 @@ class VoiceService {
     cleanText = cleanText.replaceAll('#', '');
 
     // Eliminar emojis y caracteres no pronunciables (conserva letras, números, acentos y puntuación básica)
-    cleanText = cleanText.replaceAll(RegExp(r'[^\w\sáéíóúÁÉÍÓÚñÑüÜ.,;:!?()¡¿\-]', unicode: true), '');
+    cleanText = cleanText.replaceAll(
+      RegExp(r'[^\w\sáéíóúÁÉÍÓÚñÑüÜ.,;:!?()¡¿\-]', unicode: true),
+      '',
+    );
 
     // Colapsar múltiples espacios
     cleanText = cleanText.replaceAll(RegExp(r'\s+'), ' ').trim();
@@ -171,35 +199,47 @@ class VoiceService {
 
   bool get isListening => _speech.isListening;
 
-  Future<void> startListening(Function(String, bool) onResult) async {
+  Future<bool> startListening(Function(String, bool) onResult) async {
     // Detener otros reconocedores para liberar el recurso nativo de audio
     await stopVADListener();
     await stopWakeWordListener();
 
     // Pedir permiso de micrófono aquí, solo cuando el usuario lo necesita
     if (!_isSttInitialized) {
-      final status = await Permission.microphone.request();
-      if (!status.isGranted) {
-        debugPrint('Permiso de micrófono denegado.');
-        return;
+      if (!kIsWeb) {
+        final status = await Permission.microphone.request();
+        if (!status.isGranted) {
+          debugPrint('Permiso de micrófono denegado.');
+          isListeningNotifier.value = false;
+          return false;
+        }
       }
       await _initStt();
     }
     if (_isSttInitialized) {
+      isListeningNotifier.value = true;
       await _speech.listen(
         onResult: (result) {
           onResult(result.recognizedWords, result.finalResult);
         },
         localeId: "es_AR",
-        listenFor: const Duration(seconds: 40),  // Aumentado a 40s para que no se corte al formular preguntas largas
-        pauseFor: const Duration(seconds: 4),   // Aumentado a 4s para tolerar pausas cortas al pensar/respirar
+        listenFor: const Duration(
+          seconds: 40,
+        ), // Aumentado a 40s para que no se corte al formular preguntas largas
+        pauseFor: const Duration(
+          milliseconds: 1000,
+        ), // Reducido a 1.0s para mayor velocidad de respuesta
         cancelOnError: false,
       );
+      return true;
     }
+    isListeningNotifier.value = false;
+    return false;
   }
 
   Future<void> stopListening() async {
     await _speech.stop();
+    isListeningNotifier.value = false;
   }
 
   // ── VAD (Voice Activity Detection) ──────────────────────────────────────
@@ -208,7 +248,9 @@ class VoiceService {
   // Usa onDevice:true para poder correr en paralelo al TTS sin conflicto de audio.
 
   /// Inicia la escucha VAD. Llama [onInterrupcion] con el texto parcial detectado.
-  Future<void> startVADListener(Function(String textoDetectado) onInterrupcion) async {
+  Future<void> startVADListener(
+    Function(String textoDetectado) onInterrupcion,
+  ) async {
     if (_isVadListening) return;
     // Detener otros reconocedores para liberar el recurso nativo de audio
     await stopListening();
@@ -229,8 +271,12 @@ class VoiceService {
           }
         },
         localeId: 'es_AR',
-        listenFor: const Duration(seconds: 60), // escucha larga mientras el GuIA habla
-        pauseFor: const Duration(seconds: 2),   // reacciona rápido (2s de silencio)
+        listenFor: const Duration(
+          seconds: 60,
+        ), // escucha larga mientras el GuIA habla
+        pauseFor: const Duration(
+          milliseconds: 1500,
+        ), // reacciona rápido (1.5s de silencio)
         cancelOnError: true,
         onDevice: true, // clave: permite correr en paralelo al TTS en Android
         partialResults: true, // detecta apenas el usuario empieza a hablar
@@ -255,7 +301,7 @@ class VoiceService {
   // ── Wake Word Listener ───────────────────────────────────────────────────
   // Escucha en bursts periódicos buscando la frase de activación mientras
   // el GuIA duerme. Sin dependencias nuevas — usa el STT del sistema.
-  // Burst: 4s de escucha → 2s de pausa → repite hasta detectar o parar.
+  // Burst: 4s de escucha → 1.5s de pausa → repite hasta detectar o parar.
 
   /// Inicia el listener de wake word. Llama [onWake] al detectar la frase.
   Future<void> startWakeWordListener(Function() onWake) async {
@@ -286,14 +332,15 @@ class VoiceService {
         listenFor: const Duration(seconds: 4),
         pauseFor: const Duration(seconds: 2),
         cancelOnError: false,
-        onDevice: true,      // bajo consumo, sin red
+        onDevice: true, // bajo consumo, sin red
         partialResults: true, // detecta apenas empieza a decir la frase
       );
     } catch (e) {
       debugPrint('Error en burst wake word: $e');
     }
-    // Después del burst, espera 2s y repite si sigue activo
-    _wakeWordTimer = Timer(const Duration(seconds: 2), () {
+    // Después del burst (4s de escucha + 1.5s de pausa de descanso), espera 6s y repite si sigue activo.
+    // Esto evita llamadas listen() superpuestas en el mismo reconocedor.
+    _wakeWordTimer = Timer(const Duration(seconds: 6), () {
       if (_isWakeWordListening) _runWakeWordBurst(onWake);
     });
   }

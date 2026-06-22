@@ -331,6 +331,38 @@ class Cotizacion {
   
   double? get longitudDestino => puntoDestino?['lon'] != null ? (puntoDestino!['lon'] as num).toDouble() : null;
   
+  String? get staticMapUrl {
+    if (latitudPartida == null || longitudPartida == null || latitudDestino == null || longitudDestino == null) {
+      return null;
+    }
+    final partidaStr = '$longitudPartida,$latitudPartida,pm2gnm'; // Verde
+    final destinoStr = '$longitudDestino,$latitudDestino,pm2rdm'; // Rojo
+    
+    String url = 'https://static-maps.yandex.ru/1.x/?l=sat&size=450,150&pt=$partidaStr~$destinoStr';
+    
+    if (trackLog != null && trackLog!.isNotEmpty) {
+      final points = <String>[];
+      final step = (trackLog!.length / 15).clamp(1, double.infinity).ceil();
+      for (int i = 0; i < trackLog!.length; i += step) {
+        final pt = trackLog![i];
+        final lat = pt['lat'];
+        final lon = pt['lon'];
+        if (lat != null && lon != null) {
+          points.add('$lon,$lat');
+        }
+      }
+      final lastPt = trackLog!.last;
+      if (lastPt['lat'] != null && lastPt['lon'] != null) {
+        points.add('${lastPt['lon']},${lastPt['lat']}');
+      }
+      
+      if (points.isNotEmpty) {
+        url += '&pl=color:0000ff80,width:4,${points.join(',')}';
+      }
+    }
+    return url;
+  }
+  
   String get distanciaFormateada {
     if (distanciaKm == null) return 'Distancia no calculada';
     return '${distanciaKm!.toStringAsFixed(2)} km';

@@ -1,7 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../widgets/reputacion_badge_widget.dart';
 
 /// Panel de calificaciones para el administrador.
 /// Muestra ranking de capitanes y pescadores por reputación, 

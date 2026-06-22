@@ -1,4 +1,4 @@
-﻿
+
 
 import 'dart:async';
 
@@ -24,7 +24,6 @@ class _AdminAlertasSeguridadScreenState extends State<AdminAlertasSeguridadScree
   static const Color _verdeExito = Color(0xFF10B981);
   static const Color _naranjaAlerta = Color(0xFFF59E0B);
   static const Color _rojoProblema = Color(0xFFEF4444);
-  static const Color _grisDescanso = Color(0xFF64748B);
 
   @override
   bool get wantKeepAlive => true;
@@ -382,9 +381,9 @@ class _AdminAlertasSeguridadScreenState extends State<AdminAlertasSeguridadScree
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: _rojoProblema.withOpacity(0.1),
+                color: _rojoProblema.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: _rojoProblema.withOpacity(0.3)),
+                border: Border.all(color: _rojoProblema.withValues(alpha: 0.3)),
               ),
               child: Text(
                 alerta['texto_detectado'] ?? 'Sin texto detectado',
@@ -498,7 +497,7 @@ class _AdminAlertasSeguridadScreenState extends State<AdminAlertasSeguridadScree
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: _verdeExito.withOpacity(0.1),
+              color: _verdeExito.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -553,7 +552,7 @@ class _AdminAlertasSeguridadScreenState extends State<AdminAlertasSeguridadScree
             label,
             style: TextStyle(
               fontSize: 10,
-              color: color.withOpacity(0.9),
+              color: color.withValues(alpha: 0.9),
             ),
           ),
         ],
@@ -578,7 +577,7 @@ class _AdminAlertasSeguridadScreenState extends State<AdminAlertasSeguridadScree
         border: Border.all(color: Colors.grey[300]!),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -596,7 +595,7 @@ class _AdminAlertasSeguridadScreenState extends State<AdminAlertasSeguridadScree
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: _azulNautico.withOpacity(0.1),
+                    color: _azulNautico.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                     border: Border.all(color: _azulNautico, width: 2),
                   ),
@@ -640,9 +639,9 @@ class _AdminAlertasSeguridadScreenState extends State<AdminAlertasSeguridadScree
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: severidadColor.withOpacity(0.1),
+                    color: severidadColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: severidadColor.withOpacity(0.3)),
+                    border: Border.all(color: severidadColor.withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,

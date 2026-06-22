@@ -1,4 +1,4 @@
-﻿import 'dart:ui';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -90,6 +90,89 @@ class _SolicitudDetalleScreenState extends State<SolicitudDetalleScreen>
     }
 
     return [];
+  }
+
+  String? get _staticMapUrl {
+    if (_partida == null || _destino == null) return null;
+    final lat1 = _partida!['lat'];
+    final lon1 = _partida!['lon'];
+    final lat2 = _destino!['lat'];
+    final lon2 = _destino!['lon'];
+    if (lat1 == null || lon1 == null || lat2 == null || lon2 == null) return null;
+
+    final partidaStr = '$lon1,$lat1,pm2gnm';
+    final destinoStr = '$lon2,$lat2,pm2rdm';
+    
+    String url = 'https://static-maps.yandex.ru/1.x/?l=sat&size=450,220&pt=$partidaStr~$destinoStr';
+    
+    final points = _routePoints;
+    if (points.isNotEmpty) {
+      final polyPoints = <String>[];
+      final step = (points.length / 15).clamp(1, double.infinity).ceil();
+      for (int i = 0; i < points.length; i += step) {
+        polyPoints.add('${points[i].longitude},${points[i].latitude}');
+      }
+      polyPoints.add('${points.last.longitude},${points.last.latitude}');
+      url += '&pl=color:0000ff80,width:4,${polyPoints.join(',')}';
+    }
+    return url;
+  }
+
+  Widget _buildInteractiveMap() {
+    final points = _routePoints;
+    final hasRoute = points.length >= 2;
+    return FlutterMap(
+      options: MapOptions(
+        initialCameraFit: hasRoute 
+          ? CameraFit.bounds(
+              bounds: LatLngBounds.fromPoints(points),
+              padding: const EdgeInsets.all(40),
+            )
+          : null,
+        initialCenter: !hasRoute ? _mapCenter : points.first,
+        initialZoom: !hasRoute ? 12.0 : 13.0,
+      ),
+      children: [
+        TileLayer(
+          urlTemplate:
+              'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+          subdomains: const ['a', 'b', 'c'],
+          userAgentPackageName: 'com.example.El Guia YA',
+        ),
+        PolylineLayer(
+          polylines: [
+            Polyline(
+              points: points,
+              strokeWidth: 10.0,
+              color: Colors.blueAccent.withOpacity(0.3),
+            ),
+            Polyline(
+              points: points,
+              strokeWidth: 5.0,
+              color: Colors.blueAccent,
+              borderColor: Colors.white.withOpacity(0.7),
+              borderStrokeWidth: 1.0,
+            ),
+          ],
+        ),
+        MarkerLayer(
+          markers: [
+            Marker(
+              point: points.first,
+              width: 36,
+              height: 36,
+              child: _mapPin(Colors.green, Icons.anchor),
+            ),
+            Marker(
+              point: points.last,
+              width: 36,
+              height: 36,
+              child: _mapPin(Colors.red, Icons.flag_rounded),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   /// Decodificador simple del algoritmo de polilíneas de Google
@@ -387,66 +470,82 @@ class _SolicitudDetalleScreenState extends State<SolicitudDetalleScreen>
           _sectionLabel(Icons.route_rounded, 'TRAZADO DE RUTA'),
           const SizedBox(height: 12),
           if (hasRoute)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: SizedBox(
-                height: 220,
-                child: FlutterMap(
-                  options: MapOptions(
-                    initialCameraFit: hasRoute 
-                      ? CameraFit.bounds(
-                          bounds: LatLngBounds.fromPoints(points),
-                          padding: const EdgeInsets.all(40),
-                        )
-                      : null,
-                    initialCenter: !hasRoute ? _mapCenter : points.first,
-                    initialZoom: !hasRoute ? 12.0 : 13.0,
-                  ),
-                  children: [
-                    TileLayer(
-                      urlTemplate:
-                          'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
-                      subdomains: const ['a', 'b', 'c'],
-                      userAgentPackageName: 'com.example.El Guia YA',
+            () {
+              bool showInteractive = false;
+              return StatefulBuilder(
+                builder: (context, setMapState) {
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: SizedBox(
+                      height: 220,
+                      child: Stack(
+                        children: [
+                          Positioned.fill(
+                            child: showInteractive || _staticMapUrl == null
+                                ? _buildInteractiveMap()
+                                : Image.network(
+                                    _staticMapUrl!,
+                                    fit: BoxFit.cover,
+                                    loadingBuilder: (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return const Center(
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.blueAccent,
+                                        ),
+                                      );
+                                    },
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return _buildInteractiveMap();
+                                    },
+                                  ),
+                          ),
+                          if (_staticMapUrl != null)
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: GestureDetector(
+                                onTap: () {
+                                  setMapState(() {
+                                    showInteractive = !showInteractive;
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.7),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.white24),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        showInteractive ? Icons.satellite_alt_rounded : Icons.map_rounded,
+                                        color: const Color(0xFF00E676),
+                                        size: 12,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        showInteractive ? 'VER SATÉLITE' : 'VER INTERACTIVO',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
-                    PolylineLayer(
-                      polylines: [
-                        // Capa de Brillo (Glow Exterior) para estética premium
-                        Polyline(
-                          points: points,
-                          strokeWidth: 10.0,
-                          color: Colors.blueAccent.withOpacity(0.3),
-                        ),
-                        // Línea Principal según especificación exacta
-                        Polyline(
-                          points: points,
-                          strokeWidth: 5.0,
-                          color: Colors.blueAccent,
-                          borderColor: Colors.white.withOpacity(0.7),
-                          borderStrokeWidth: 1.0,
-                        ),
-                      ],
-                    ),
-                    MarkerLayer(
-                      markers: [
-                        Marker(
-                          point: points.first,
-                          width: 36,
-                          height: 36,
-                          child: _mapPin(Colors.green, Icons.anchor),
-                        ),
-                        Marker(
-                          point: points.last,
-                          width: 36,
-                          height: 36,
-                          child: _mapPin(Colors.red, Icons.flag_rounded),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            )
+                  );
+                },
+              );
+            }()
           else
             Container(
               height: 100,

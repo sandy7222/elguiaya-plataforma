@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/articulo_blog.dart';
@@ -6,7 +6,7 @@ import '../models/producto.dart';
 import '../services/news_compiler_service.dart';
 import '../services/supabase_service.dart';
 import '../services/storage_service.dart';
-import '../services/speech_service.dart';
+import '../services/voice_service.dart';
 import '../services/groq_service.dart';
 import 'package:intl/intl.dart';
 
@@ -1130,7 +1130,7 @@ class _AdminBlogScreenState extends State<AdminBlogScreen> with SingleTickerProv
                                         child: Image.network(
                                           imageUrl,
                                           fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported_outlined, color: Colors.white24),
+                                          errorBuilder: (context, error, stackTrace) => const Icon(Icons.image_not_supported_outlined, color: Colors.white24),
                                         ),
                                       ),
                                     ),
@@ -1370,7 +1370,6 @@ class _ModalSalidaPesca extends StatefulWidget {
 
 class _ModalSalidaPescaState extends State<_ModalSalidaPesca> {
   int _pasoActual = 1;
-  final SpeechService _speechService = SpeechService();
   bool _isListening = false;
   final TextEditingController _transcripcionCtrl = TextEditingController();
 
@@ -1389,7 +1388,6 @@ class _ModalSalidaPescaState extends State<_ModalSalidaPesca> {
   @override
   void initState() {
     super.initState();
-    _speechService.inicializar();
   }
 
   @override
@@ -1581,7 +1579,7 @@ class _ModalSalidaPescaState extends State<_ModalSalidaPesca> {
         GestureDetector(
           onTap: () async {
             if (_isListening) {
-              await _speechService.detener();
+              await VoiceService().stopListening();
               setState(() {
                 _isListening = false;
               });
@@ -1590,13 +1588,22 @@ class _ModalSalidaPescaState extends State<_ModalSalidaPesca> {
                 _isListening = true;
               });
               try {
-                await _speechService.escuchar(
-                  alResultado: (texto) {
+                final success = await VoiceService().startListening((texto, isFinal) {
+                  setState(() {
+                    _transcripcionCtrl.text = texto;
+                  });
+                  if (isFinal) {
                     setState(() {
-                      _transcripcionCtrl.text = texto;
+                      _isListening = false;
                     });
-                  },
-                );
+                  }
+                });
+                if (!success) {
+                  setState(() {
+                    _isListening = false;
+                  });
+                  _mostrarMensaje('Error al activar el micrófono: Servicio no disponible.', esError: true);
+                }
               } catch (e) {
                 setState(() {
                   _isListening = false;
@@ -1910,7 +1917,7 @@ class _ModalSalidaPescaState extends State<_ModalSalidaPesca> {
                   ),
                 ],
               );
-            }).toList(),
+            }),
             if (_fotosSubidas.length < 5)
               GestureDetector(
                 onTap: _subiendoFotos ? null : () async {

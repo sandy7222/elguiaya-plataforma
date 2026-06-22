@@ -136,8 +136,8 @@ class _CapitanAsistenteState extends State<CapitanAsistente> {
         _currentGif = 'assets/gifs/se_despierte_y_queda_de_pie.gif';
       });
 
-      // Después de 8.1 segundos (duración del GIF de despertar), mostramos la acción pendiente
-      _transitionTimer = Timer(const Duration(milliseconds: 8100), () {
+      // Después de 1.2 segundos (duración reducida para respuesta ágil), mostramos la acción pendiente
+      _transitionTimer = Timer(const Duration(milliseconds: 1200), () {
         if (mounted) {
           final nextGif = _getDefaultGifPath(_pendingState ?? state);
           _precacheGif(nextGif);

@@ -858,6 +858,49 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
     }
   }
 
+  Widget _buildInteractiveMap(Cotizacion cot) {
+    return FlutterMap(
+      options: MapOptions(
+        initialCenter: LatLng(cot.latitudPartida!, cot.longitudPartida!),
+        initialZoom: 11.0,
+        interactionOptions: const InteractionOptions(flags: InteractiveFlag.all),
+      ),
+      children: [
+        TileLayer(
+          urlTemplate: 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+          subdomains: const ['a', 'b', 'c'],
+          userAgentPackageName: 'com.example.El Guia YA',
+        ),
+        if (cot.trackLog != null && cot.trackLog!.isNotEmpty)
+          PolylineLayer(
+            polylines: [
+              Polyline(
+                points: cot.trackLog!.map((pt) => LatLng((pt['lat'] as num).toDouble(), (pt['lon'] as num).toDouble())).toList(),
+                strokeWidth: 3.5,
+                color: Colors.blueAccent,
+              ),
+            ],
+          ),
+        MarkerLayer(
+          markers: [
+            Marker(
+              point: LatLng(cot.latitudPartida!, cot.longitudPartida!),
+              width: 24,
+              height: 24,
+              child: const Icon(Icons.location_pin, color: Colors.greenAccent, size: 20),
+            ),
+            Marker(
+              point: LatLng(cot.latitudDestino!, cot.longitudDestino!),
+              width: 24,
+              height: 24,
+              child: const Icon(Icons.location_pin, color: Colors.redAccent, size: 20),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildCotizacionDetalles(Cotizacion cot) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1018,56 +1061,87 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
           const SizedBox(height: 8),
           
           // Mapa de trayectoria
-          Container(
-            height: 140,
-            margin: const EdgeInsets.only(top: 6, bottom: 20),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white10),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: FlutterMap(
-                options: MapOptions(
-                  initialCenter: LatLng(cot.latitudPartida!, cot.longitudPartida!),
-                  initialZoom: 11.0,
-                  interactionOptions: const InteractionOptions(flags: InteractiveFlag.all),
-                ),
-                children: [
-                  TileLayer(
-                    urlTemplate: 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
-                    subdomains: const ['a', 'b', 'c'],
+          () {
+            bool showInteractive = false;
+            return StatefulBuilder(
+              builder: (context, setMapState) {
+                return Container(
+                  height: 140,
+                  margin: const EdgeInsets.only(top: 6, bottom: 20),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white10),
                   ),
-                  if (cot.trackLog != null && cot.trackLog!.isNotEmpty)
-                    PolylineLayer(
-                      polylines: [
-                        Polyline(
-                          points: cot.trackLog!.map((pt) => LatLng((pt['lat'] as num).toDouble(), (pt['lon'] as num).toDouble())).toList(),
-                          strokeWidth: 3.5,
-                          color: Colors.blueAccent,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: showInteractive || cot.staticMapUrl == null
+                              ? _buildInteractiveMap(cot)
+                              : Image.network(
+                                  cot.staticMapUrl!,
+                                  fit: BoxFit.cover,
+                                  loadingBuilder: (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return const Center(
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.blueAccent,
+                                      ),
+                                    );
+                                  },
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return _buildInteractiveMap(cot);
+                                  },
+                                ),
                         ),
+                        if (cot.staticMapUrl != null)
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: GestureDetector(
+                              onTap: () {
+                                setMapState(() {
+                                  showInteractive = !showInteractive;
+                                });
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.7),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: Colors.white24),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      showInteractive ? Icons.satellite_alt_rounded : Icons.map_rounded,
+                                      color: const Color(0xFF00E676),
+                                      size: 12,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      showInteractive ? 'VER SATÉLITE' : 'VER INTERACTIVO',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
                       ],
                     ),
-                  MarkerLayer(
-                    markers: [
-                      Marker(
-                        point: LatLng(cot.latitudPartida!, cot.longitudPartida!),
-                        width: 24,
-                        height: 24,
-                        child: const Icon(Icons.location_pin, color: Colors.greenAccent, size: 20),
-                      ),
-                      Marker(
-                        point: LatLng(cot.latitudDestino!, cot.longitudDestino!),
-                        width: 24,
-                        height: 24,
-                        child: const Icon(Icons.location_pin, color: Colors.redAccent, size: 20),
-                      ),
-                    ],
                   ),
-                ],
-              ),
-            ),
-          ),
+                );
+              },
+            );
+          }(),
         ],
       ],
     );
