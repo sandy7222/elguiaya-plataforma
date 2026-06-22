@@ -1,4 +1,4 @@
-﻿
+
 
 import 'package:flutter/material.dart';
 
@@ -39,14 +39,24 @@ class _AsistenteChatScreenState extends State<AsistenteChatScreen> {
     VoiceService().init();
     _inicializarConversacion();
     _iniciarMonitoreoSeguridad();
+    VoiceService().isListeningNotifier.addListener(_onVoiceListeningChanged);
   }
 
   @override
   void dispose() {
     VoiceService().stop();
+    VoiceService().isListeningNotifier.removeListener(_onVoiceListeningChanged);
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onVoiceListeningChanged() {
+    if (mounted) {
+      setState(() {
+        _isListening = VoiceService().isListeningNotifier.value;
+      });
+    }
   }
 
   Future<void> _inicializarConversacion() async {
@@ -85,6 +95,10 @@ class _AsistenteChatScreenState extends State<AsistenteChatScreen> {
   Future<void> _sendMessage() async {
     final message = _messageController.text.trim();
     if (message.isEmpty) return;
+
+    if (_isListening) {
+      await VoiceService().stopListening();
+    }
 
     // Limpiar campo de texto
     _messageController.clear();
@@ -656,14 +670,24 @@ class _AsistenteChatScreenState extends State<AsistenteChatScreen> {
                     onPressed: () async {
                       if (_isListening) {
                         await VoiceService().stopListening();
-                        setState(() { _isListening = false; });
                       } else {
-                        setState(() { _isListening = true; });
-                        await VoiceService().startListening((text, isFinal) {
+                        final success = await VoiceService().startListening((text, isFinal) {
                           setState(() {
                             _messageController.text = text;
                           });
                         });
+                        if (!success && mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                '⚠️ El servicio de reconocimiento de voz no está disponible en este celular. Asegúrate de tener activada la búsqueda por voz de Google.',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              backgroundColor: Colors.redAccent,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
                       }
                     },
                     icon: Icon(_isListening ? Icons.mic_off : Icons.mic, color: _blancoPuro),
