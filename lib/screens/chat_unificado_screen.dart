@@ -47,6 +47,8 @@ class _ChatUnificadoScreenState extends State<ChatUnificadoScreen>
       isUser: false,
       timestamp: DateTime.now(),
     ));
+
+    VoiceService().isListeningNotifier.addListener(_onVoiceListeningChanged);
   }
 
   @override
@@ -54,10 +56,19 @@ class _ChatUnificadoScreenState extends State<ChatUnificadoScreen>
     _inputController.dispose();
     _scrollController.dispose();
     _micPulseController.dispose();
+    VoiceService().isListeningNotifier.removeListener(_onVoiceListeningChanged);
     if (_isListening) {
       VoiceService().stopListening();
     }
     super.dispose();
+  }
+
+  void _onVoiceListeningChanged() {
+    if (mounted) {
+      setState(() {
+        _isListening = VoiceService().isListeningNotifier.value;
+      });
+    }
   }
 
   void _scrollToBottom() {
@@ -86,7 +97,6 @@ class _ChatUnificadoScreenState extends State<ChatUnificadoScreen>
     // Detener escucha si estaba activa
     if (_isListening) {
       await VoiceService().stopListening();
-      setState(() => _isListening = false);
     }
 
     try {
@@ -142,16 +152,26 @@ class _ChatUnificadoScreenState extends State<ChatUnificadoScreen>
 
     if (_isListening) {
       await VoiceService().stopListening();
-      setState(() => _isListening = false);
     } else {
-      setState(() => _isListening = true);
-      await VoiceService().startListening((recognizedText, isFinal) {
+      final success = await VoiceService().startListening((recognizedText, isFinal) {
         if (!mounted) return;
         setState(() => _inputController.text = recognizedText);
         if (isFinal && recognizedText.trim().isNotEmpty) {
           _enviarMensaje(recognizedText);
         }
       });
+      if (!success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              '⚠️ El servicio de reconocimiento de voz no está disponible en este celular. Asegúrate de tener activada la búsqueda por voz de Google.',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 

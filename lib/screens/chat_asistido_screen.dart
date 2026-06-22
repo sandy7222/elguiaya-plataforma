@@ -29,6 +29,7 @@ class _ChatAsistidoScreenState extends State<ChatAsistidoScreen> {
     super.initState();
     VoiceService().init();
     _limpiarHistorialBaseDatos();
+    VoiceService().isListeningNotifier.addListener(_onVoiceListeningChanged);
   }
 
   Future<void> _limpiarHistorialBaseDatos() async {
@@ -48,15 +49,28 @@ class _ChatAsistidoScreenState extends State<ChatAsistidoScreen> {
   @override
   void dispose() {
     _messageController.dispose();
+    VoiceService().isListeningNotifier.removeListener(_onVoiceListeningChanged);
     VoiceService().stop();
     VoiceService().stopListening();
     super.dispose();
+  }
+
+  void _onVoiceListeningChanged() {
+    if (mounted) {
+      setState(() {
+        _isListening = VoiceService().isListeningNotifier.value;
+      });
+    }
   }
  
   Future<void> _enviarMensaje() async {
     final texto = _messageController.text.trim();
     if (texto.isEmpty || _isSending) return;
  
+    if (_isListening) {
+      await VoiceService().stopListening();
+    }
+
     setState(() => _isSending = true);
     final miId =
         Supabase.instance.client.auth.currentUser?.id ?? 'usuario_desconocido';
@@ -180,16 +194,25 @@ class _ChatAsistidoScreenState extends State<ChatAsistidoScreen> {
                     onPressed: () async {
                       if (_isListening) {
                         await VoiceService().stopListening();
-                        setState(() => _isListening = false);
                       } else {
-                        setState(() => _isListening = true);
-                        await VoiceService().startListening((t, isFinal) {
+                        final success = await VoiceService().startListening((t, isFinal) {
                           if (isFinal) {
                             _messageController.text = t;
                             _enviarMensaje();
-                            setState(() => _isListening = false);
                           }
                         });
+                        if (!success && mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                '⚠️ El servicio de reconocimiento de voz no está disponible en este celular. Asegúrate de tener activada la búsqueda por voz de Google.',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              backgroundColor: Colors.redAccent,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
                       }
                     },
                   ),

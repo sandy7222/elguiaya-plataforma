@@ -12,8 +12,6 @@ import '../services/intent_service.dart';
 import '../screens/pescador_perfil_edit_screen.dart';
 import 'package:capitanya_master/main.dart';
 
-
-
 /// Notifier global — cualquier parte de la app puede activar/desactivar el Guía
 /// sin necesidad de pasar callbacks. Leer/escribir con GuiaOverlayController.
 class GuiaOverlayController {
@@ -59,19 +57,22 @@ class GuiaOverlayController {
     final user = Supabase.instance.client.auth.currentUser;
     final prefs = await SharedPreferences.getInstance();
     if (user != null) {
-      activo.value    = prefs.getBool('guia_activo_${user.id}')
-                     ?? prefs.getBool('guia_activo')
-                     ?? false;
-      silenciado.value = prefs.getBool('guia_silenciado_${user.id}')
-                      ?? prefs.getBool('guia_silenciado')
-                      ?? false;
-      micActivo.value  = prefs.getBool('guia_mic_activo_${user.id}')
-                     ?? prefs.getBool('guia_mic_activo')
-                     ?? true;
+      activo.value =
+          prefs.getBool('guia_activo_${user.id}') ??
+          prefs.getBool('guia_activo') ??
+          false;
+      silenciado.value =
+          prefs.getBool('guia_silenciado_${user.id}') ??
+          prefs.getBool('guia_silenciado') ??
+          false;
+      micActivo.value =
+          prefs.getBool('guia_mic_activo_${user.id}') ??
+          prefs.getBool('guia_mic_activo') ??
+          true;
     } else {
-      activo.value    = false;
+      activo.value = false;
       silenciado.value = false;
-      micActivo.value  = true;
+      micActivo.value = true;
     }
   }
 }
@@ -126,7 +127,8 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
 
     // Saludo inicial (solo una vez)
     _chatHistory.add({
-      'text': '¡Hola amigo! Soy el Guía, tu compañero. Preguntame lo que quieras sobre la pesca o tocá el micrófono para charlar.',
+      'text':
+          '¡Hola amigo!. Preguntame lo que quieras sobre la pesca o tocá el micrófono para charlar.',
       'isUser': 'false',
     });
 
@@ -134,6 +136,7 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
     GuiaOverlayController.activo.addListener(_onActivoChanged);
     GuiaOverlayController.silenciado.addListener(_onSilenciadoChanged);
     GuiaOverlayController.micActivo.addListener(_onMicActivoChanged);
+    VoiceService().isListeningNotifier.addListener(_onVoiceListeningChanged);
 
     _isMuted = GuiaOverlayController.silenciado.value;
 
@@ -143,19 +146,74 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
       if (mounted) setState(() => _haySenal = conectado);
     });
 
-    // Loop de conversación: después de que termina de hablar, vuelve a escuchar (solo si el modo voz está activo)
+    // Loop de conversación: después de que termina de hablar, vuelve a escuchar o pasa a reposo según el estado
     VoiceService().setCompletionHandler(() {
-      if (mounted && _mostrarGuia && !_isMuted && _permiteInteractuar && _modoConversacionVoz && !_isListening) {
+      if (!mounted) return;
+
+      final bool micActivo = GuiaOverlayController.micActivo.value;
+
+      // Caso A: Estaba saludando al arrancar la app -> activar micrófono si es posible
+      if (_estadoGuia == CapitanState.saludo) {
+        if (!_isMuted && micActivo) {
+          setState(() {
+            _permiteInteractuar = true;
+            _modoConversacionVoz = true;
+          });
+          Future.delayed(const Duration(milliseconds: 800), () {
+            if (mounted &&
+                _mostrarGuia &&
+                !_isMuted &&
+                _permiteInteractuar &&
+                _modoConversacionVoz &&
+                !_isListening) {
+              _iniciarEscuchaAutomatica();
+            }
+          });
+        } else {
+          setState(() {
+            _permiteInteractuar = true;
+            _estadoGuia = CapitanState.tomaMate;
+          });
+          _reiniciarTemporizadorInactividad();
+          _verificarWakeWord();
+        }
+        return;
+      }
+
+      // Caso B: Loop de conversación (si el modo voz está activo, no silenciado y el mic está habilitado)
+      if (_mostrarGuia &&
+          !_isMuted &&
+          _permiteInteractuar &&
+          _modoConversacionVoz &&
+          micActivo &&
+          !_isListening) {
         Future.delayed(const Duration(milliseconds: 800), () {
-          if (mounted && _mostrarGuia && !_isMuted && _permiteInteractuar && _modoConversacionVoz && !_isListening) {
+          if (mounted &&
+              _mostrarGuia &&
+              !_isMuted &&
+              _permiteInteractuar &&
+              _modoConversacionVoz &&
+              !_isListening) {
             _iniciarEscuchaAutomatica();
           }
         });
+      } else {
+        // Fallback: Si terminó de hablar y no va a escuchar (por estar silenciado,
+        // mic deshabilitado o modo voz inactivo), y NO está escuchando, volver a reposo/despierto
+        if (_mostrarGuia && _estadoGuia != CapitanState.durmiendo && !_isListening) {
+          setState(() {
+            _estadoGuia = CapitanState.tomaMate;
+          });
+          _reiniciarTemporizadorInactividad();
+          _verificarWakeWord();
+        }
       }
     });
 
     // Escuchar cambios de autenticación para resetear/verificar roles
-    _authSub = Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
+    _authSub = Supabase.instance.client.auth.onAuthStateChange.listen((
+      data,
+    ) async {
       if (!mounted) return;
       final session = data.session;
       setState(() {
@@ -185,6 +243,7 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
     GuiaOverlayController.activo.removeListener(_onActivoChanged);
     GuiaOverlayController.silenciado.removeListener(_onSilenciadoChanged);
     GuiaOverlayController.micActivo.removeListener(_onMicActivoChanged);
+    VoiceService().isListeningNotifier.removeListener(_onVoiceListeningChanged);
     _authSub?.cancel();
     _chatController.dispose();
     _avatarTimer?.cancel();
@@ -196,10 +255,35 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
     super.dispose();
   }
 
+  void _onVoiceListeningChanged() {
+    if (!mounted) return;
+    final listening = VoiceService().isListeningNotifier.value;
+    if (listening != _isListening) {
+      setState(() {
+        _isListening = listening;
+        if (listening) {
+          _estadoGuia = CapitanState.escuchando;
+        } else {
+          // Si paró de escuchar (por silencio o manual) y el TTS no está hablando, queda cebando mate despierto
+          if (!VoiceService().isSpeaking) {
+            _estadoGuia = CapitanState.tomaMate;
+            _reiniciarTemporizadorInactividad();
+          }
+        }
+      });
+    }
+  }
+
   Future<void> _verificarRolUsuario(String userId) async {
-    final email = Supabase.instance.client.auth.currentSession?.user.email ?? '';
-    final bool isHardcodedAdmin = email.toLowerCase().trim() == 'admin@capitanya.com';
-    final bool isMetadataAdmin = Supabase.instance.client.auth.currentSession?.user.userMetadata?['rol']?.toString().toLowerCase() == 'admin';
+    final email =
+        Supabase.instance.client.auth.currentSession?.user.email ?? '';
+    final bool isHardcodedAdmin =
+        email.toLowerCase().trim() == 'admin@capitanya.com';
+    final bool isMetadataAdmin =
+        Supabase.instance.client.auth.currentSession?.user.userMetadata?['rol']
+            ?.toString()
+            .toLowerCase() ==
+        'admin';
 
     if (isHardcodedAdmin || isMetadataAdmin) {
       if (mounted) {
@@ -283,8 +367,9 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
       if (!GuiaOverlayController.micActivo.value && _isListening) {
         VoiceService().stopListening();
         _isListening = false;
-        _estadoGuia = CapitanState.durmiendo;
+        _estadoGuia = CapitanState.tomaMate;
         _modoConversacionVoz = false;
+        _reiniciarTemporizadorInactividad();
       }
     });
     // Si el mic se desactivó, para el wake word; si se activó y está durmiendo, lo arranca
@@ -307,7 +392,8 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
   void _encenderGuia() {
     final session = Supabase.instance.client.auth.currentSession;
     if (session == null) return; // ✅ Evita iniciar o hablar antes de loguearse
-    if (_rolVerificado && _esCapitanOAdmin) return; // ✅ Evita encender para capitán/admin
+    if (_rolVerificado && _esCapitanOAdmin)
+      return; // ✅ Evita encender para capitán/admin
 
     BaqueanoIAService.inicializar();
 
@@ -339,16 +425,18 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
       setState(() => _estadoGuia = CapitanState.saludo);
       if (!_isMuted && _chatHistory.isNotEmpty) {
         VoiceService().speak(_chatHistory.first['text']!);
-      }
-      _avatarTimer = Timer(const Duration(seconds: 4), () {
-        if (!mounted || !_mostrarGuia) return;
-        setState(() {
-          _permiteInteractuar = true;
-          _estadoGuia = CapitanState.durmiendo;
+      } else {
+        // Si está silenciado, esperamos 4s en el estado de saludo visual y luego va a dormir
+        _avatarTimer = Timer(const Duration(seconds: 4), () {
+          if (!mounted || !_mostrarGuia) return;
+          setState(() {
+            _permiteInteractuar = true;
+            _estadoGuia = CapitanState.tomaMate;
+          });
+          _reiniciarTemporizadorInactividad();
+          _verificarWakeWord();
         });
-        _reiniciarTemporizadorInactividad();
-        _verificarWakeWord(); // arranca el wake word listener al entrar en reposo
-      });
+      }
     });
   }
 
@@ -391,7 +479,8 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
   /// Debe llamarse cada vez que el estado del GuIA o el mic cambian.
   void _verificarWakeWord() {
     if (!mounted) return;
-    final debeEscuchar = _mostrarGuia &&
+    final debeEscuchar =
+        _mostrarGuia &&
         _permiteInteractuar &&
         _estadoGuia == CapitanState.durmiendo &&
         !_isListening &&
@@ -413,22 +502,49 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
     VoiceService().stopWakeWordListener();
     _reiniciarTemporizadorInactividad();
     setState(() {
-      _estadoGuia = CapitanState.despierta;  // animación de despertar (8.1s)
-      _modoConversacionVoz = true;           // activa el loop: al terminar TTS → escucha
+      _estadoGuia = CapitanState.despierta; // animación de despertar (5.0s)
+      _modoConversacionVoz = true; // activa el loop: al terminar TTS → escucha
     });
     // La frase suena mientras el GuIA hace la animación de despertar.
     // Al terminar de hablar, el setCompletionHandler de initState() auto-arranca
     // _iniciarEscuchaAutomatica() porque _modoConversacionVoz == true.
-    const fraseActivacion = 'Sí, dígame chamigo, ¿en qué lo puedo ayudar?';
-    if (!_isMuted) VoiceService().speak(fraseActivacion);
+    const fraseActivacion = '¿Sí, chamigo?';
+    if (!_isMuted) {
+      VoiceService().speak(fraseActivacion);
+    } else {
+      // Si está silenciado, abrimos el micrófono inmediatamente
+      _iniciarEscuchaAutomatica();
+    }
+  }
+
+  void _mostrarErrorMic() {
+    if (!mounted) return;
+    setState(() {
+      _isListening = false;
+      _estadoGuia = CapitanState.tomaMate;
+      _modoConversacionVoz = false;
+    });
+    _reiniciarTemporizadorInactividad();
+    _verificarWakeWord();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          '⚠️ El servicio de reconocimiento de voz no está disponible. Verifica los permisos de micrófono y que los Servicios de Voz de Google estén instalados.',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+        ),
+        backgroundColor: Colors.redAccent,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   // ── Interrupción ─────────────────────────────────────────────────────────
-  void _interrumpir({String textoInicial = ''}) {
+  void _interrumpir({String textoInicial = ''}) async {
     if (!mounted || !_mostrarGuia || !_permiteInteractuar) return;
     VoiceService().stop();
     VoiceService().stopVADListener();
-    VoiceService().stopWakeWordListener(); // nunca deben correr dos listeners a la vez
+    VoiceService()
+        .stopWakeWordListener(); // nunca deben correr dos listeners a la vez
     _reiniciarTemporizadorInactividad();
     setState(() {
       _isListening = true;
@@ -439,12 +555,15 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
     });
     // Arranca el STT principal para capturar el resto de la pregunta.
     // Combina el texto inicial del VAD con lo que el STT capture a continuación.
-    VoiceService().startListening((recognizedText, isFinal) {
+    final success = await VoiceService().startListening((recognizedText, isFinal) {
       if (!mounted) return;
       // Combinar: si el STT ya incluye las palabras del VAD, usarlo solo;
       // si no, anteponemos el texto inicial para no perder las primeras palabras.
-      final textoCompleto = (textoInicial.isNotEmpty &&
-              !recognizedText.toLowerCase().contains(textoInicial.toLowerCase()))
+      final textoCompleto =
+          (textoInicial.isNotEmpty &&
+              !recognizedText.toLowerCase().contains(
+                textoInicial.toLowerCase(),
+              ))
           ? '$textoInicial $recognizedText'.trim()
           : recognizedText;
       setState(() => _chatController.text = textoCompleto);
@@ -453,24 +572,30 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
         _enviarMensaje(textoCompleto);
       }
     });
+    if (!success && mounted) {
+      _mostrarErrorMic();
+    }
   }
 
   // â”€â”€ Voz â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   void _iniciarEscuchaAutomatica() async {
-    if (!mounted || !_mostrarGuia || _isMuted || !_permiteInteractuar) return;
+    if (!mounted || !_mostrarGuia || !_permiteInteractuar) return;
     _reiniciarTemporizadorInactividad();
     setState(() {
       _isListening = true;
       _estadoGuia = CapitanState.escuchando;
     });
-    await VoiceService().startListening((recognizedText, isFinal) {
+    final success = await VoiceService().startListening((recognizedText, isFinal) {
       if (!mounted) return;
       setState(() => _chatController.text = recognizedText);
       if (isFinal && recognizedText.trim().isNotEmpty) {
         _enviarMensaje(recognizedText);
       }
     });
+    if (!success && mounted) {
+      _mostrarErrorMic();
+    }
   }
 
   void _enviarMensaje(String text) async {
@@ -481,7 +606,13 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
     final tLower = cleanText.toLowerCase();
 
     // Verbal mute/unmute triggers
-    final muteTriggers = ['silenciar', 'callate', 'cállate', 'no hables', 'mudo'];
+    final muteTriggers = [
+      'silenciar',
+      'callate',
+      'cállate',
+      'no hables',
+      'mudo',
+    ];
     final unmuteTriggers = ['habla', 'hablá', 'desmutear', 'activar voz'];
 
     if (muteTriggers.any((trigger) => tLower.contains(trigger))) {
@@ -509,7 +640,14 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
     }
 
     // Despedida verbal
-    if (['chau', 'adios', 'adiós', 'apagar', 'apagate', 'apágate'].contains(tLower)) {
+    if ([
+      'chau',
+      'adios',
+      'adiós',
+      'apagar',
+      'apagate',
+      'apágate',
+    ].contains(tLower)) {
       setState(() => _chatHistory.add({'text': cleanText, 'isUser': 'true'}));
       const despedida = '¡Nos vemos, amigo! Buenas pescas...';
       setState(() => _chatHistory.add({'text': despedida, 'isUser': 'false'}));
@@ -551,11 +689,16 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
       // Reiniciar el ciclo de voz después de navegar
       Future.delayed(const Duration(milliseconds: 1200), () {
         if (mounted && _mostrarGuia && _modoConversacionVoz) {
-          setState(() {
-            _estadoGuia = CapitanState.durmiendo;
-            _isListening = false;
-          });
-          _verificarWakeWord();
+          if (_isMuted) {
+            setState(() {
+              _estadoGuia = CapitanState.tomaMate;
+              _isListening = false;
+            });
+            _verificarWakeWord();
+          } else {
+            // Si no está silenciado, la escucha activa continuará
+            // a través del TTS completion handler al finalizar de hablar.
+          }
           _reiniciarTemporizadorInactividad();
         }
       });
@@ -585,11 +728,14 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
     // que puede responder sobre pesca, nudos, carnadas, etc. sin internet.
     // La respuesta Trinchera solo sale si el motor falla completamente.
     try {
-      final ElGuiaRespuesta respuesta = await BaqueanoIAService.responder(cleanText);
+      final ElGuiaRespuesta respuesta = await BaqueanoIAService.responder(
+        cleanText,
+      );
       responseText = respuesta.texto;
       nuevoEstado = _gifToState(respuesta.gifSugerido);
 
-      if (respuesta.rutaNavegacion != null && GuiaOverlayController.micActivo.value) {
+      if (respuesta.rutaNavegacion != null &&
+          GuiaOverlayController.micActivo.value) {
         Future.delayed(const Duration(milliseconds: 1000), () {
           if (mounted) {
             navigatorKey.currentState?.pushNamed(respuesta.rutaNavegacion!);
@@ -611,8 +757,9 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
       });
       if (!_isMuted) {
         VoiceService().speak(responseText);
-        // Opción 1: VAD — escucha en paralelo mientras el GuIA habla.
-        // El callback recibe las palabras ya capturadas para no perderlas.
+        // VAD automático desactivado debido a conflictos de foco de audio con TTS en móviles.
+        // Se prefiere la interrupción manual robusta tocando al avatar (ya implementado).
+        /*
         if (_modoConversacionVoz && GuiaOverlayController.micActivo.value) {
           VoiceService().startVADListener((textoDetectado) {
             if (mounted && _mostrarGuia && _permiteInteractuar) {
@@ -620,11 +767,12 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
             }
           });
         }
+        */
       } else {
         _avatarTimer?.cancel();
         _avatarTimer = Timer(const Duration(seconds: 3), () {
           if (mounted && _mostrarGuia) {
-            setState(() => _estadoGuia = CapitanState.durmiendo);
+            setState(() => _estadoGuia = CapitanState.tomaMate);
             _verificarWakeWord(); // vuelve al reposo → activa wake word
           }
         });
@@ -635,21 +783,36 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
 
   CapitanState _gifToState(String gif) {
     switch (gif) {
-      case 'saludo':         return CapitanState.saludo;
-      case 'chiste':         return CapitanState.chiste;
-      case 'rieGana':        return CapitanState.rieGana;
-      case 'hablaConMate':   return CapitanState.hablaConMate;
-      case 'tomaMate':       return CapitanState.tomaMate;
-      case 'explica':        return CapitanState.explica;
-      case 'exito':          return CapitanState.exito;
-      case 'piensaLeve':     return CapitanState.piensaLeve;
-      case 'piensaProfundo': return CapitanState.piensaProfundo;
-      case 'escuchando':     return CapitanState.escuchando;
-      case 'soloEscucha':    return CapitanState.soloEscucha;
-      case 'duda':           return CapitanState.duda;
-      case 'enojado':        return CapitanState.enojado;
-      case 'triste':         return CapitanState.triste;
-      default:               return CapitanState.hablaConMate;
+      case 'saludo':
+        return CapitanState.saludo;
+      case 'chiste':
+        return CapitanState.chiste;
+      case 'rieGana':
+        return CapitanState.rieGana;
+      case 'hablaConMate':
+        return CapitanState.hablaConMate;
+      case 'tomaMate':
+        return CapitanState.tomaMate;
+      case 'explica':
+        return CapitanState.explica;
+      case 'exito':
+        return CapitanState.exito;
+      case 'piensaLeve':
+        return CapitanState.piensaLeve;
+      case 'piensaProfundo':
+        return CapitanState.piensaProfundo;
+      case 'escuchando':
+        return CapitanState.escuchando;
+      case 'soloEscucha':
+        return CapitanState.soloEscucha;
+      case 'duda':
+        return CapitanState.duda;
+      case 'enojado':
+        return CapitanState.enojado;
+      case 'triste':
+        return CapitanState.triste;
+      default:
+        return CapitanState.hablaConMate;
     }
   }
 
@@ -680,9 +843,14 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
 
     // Si hay sesión y el guia debe estar activo pero no se muestra, lo encendemos reactivamente
     // SOLO si el usuario lo activó explicitamente (la key fue guardada en SharedPreferences)
-    if (GuiaOverlayController.activo.value && !_mostrarGuia && !(_rolVerificado && _esCapitanOAdmin)) {
+    if (GuiaOverlayController.activo.value &&
+        !_mostrarGuia &&
+        !(_rolVerificado && _esCapitanOAdmin)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && GuiaOverlayController.activo.value && !_mostrarGuia && !(_rolVerificado && _esCapitanOAdmin)) {
+        if (mounted &&
+            GuiaOverlayController.activo.value &&
+            !_mostrarGuia &&
+            !(_rolVerificado && _esCapitanOAdmin)) {
           _encenderGuia();
         }
       });
@@ -696,7 +864,9 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
     // ── Posición inicial: esquina inferior derecha con margen seguro
     // Ancho robot ~240 visible, alto ~300. Se ubica a 1/4 desde abajo.
     if (_robotX < 0) {
-      _robotX = screenSize.width - 260; // Ajustado por tamaño x1.5 (240 + 20px de margen)
+      _robotX =
+          screenSize.width -
+          260; // Ajustado por tamaño x1.5 (240 + 20px de margen)
       // Quedamos a ~60% de la pantalla de alto para que no tape la barra inferior
       _robotY = screenSize.height * 0.55;
     }
@@ -736,12 +906,12 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
                         return;
                       }
                       // 2) Si el GuIA está durmiendo/en reposo → despertar (NUEVO)
-                      if (_estadoGuia == CapitanState.durmiendo && _permiteInteractuar) {
+                      if (_estadoGuia == CapitanState.durmiendo &&
+                          _permiteInteractuar) {
                         _despertarGuia();
                         return;
                       }
                       // 3) Si está activo/conversando → no hace nada (Ollama local removido)
-
                     },
                     child: CapitanAsistente(
                       estado: _estadoGuia,
@@ -762,13 +932,17 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
                     icono: !_permiteInteractuar
                         ? Icons.mic_rounded
                         : _isListening
-                            ? Icons.mic_off_rounded
-                            : Icons.mic_rounded,
+                        ? Icons.mic_off_rounded
+                        : Icons.mic_rounded,
                     color: !_permiteInteractuar
-                        ? Colors.white24          // Gris: GuIA presentando, esperar
+                        ? Colors
+                              .white24 // Gris: GuIA presentando, esperar
                         : _isListening
-                            ? Colors.redAccent    // Rojo: grabando, toca para detener
-                            : const Color(0xFF00E676), // Verde: libre, toca para hablar
+                        ? Colors
+                              .redAccent // Rojo: grabando, toca para detener
+                        : const Color(
+                            0xFF00E676,
+                          ), // Verde: libre, toca para hablar
                     pulsa: _isListening,
                     onTap: () async {
                       // Si el GuIA aún está presentando, no hacer nada
@@ -782,7 +956,11 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
                           SnackBar(
                             content: const Text(
                               '🤖 Chamigo, tenés que activar los Comandos por Voz en tus Ajustes de Perfil.',
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
                             ),
                             backgroundColor: const Color(0xFF001F3F),
                             behavior: SnackBarBehavior.floating,
@@ -808,7 +986,7 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
                         await VoiceService().stopListening();
                         setState(() {
                           _isListening = false;
-                          _estadoGuia = CapitanState.durmiendo;
+                          _estadoGuia = CapitanState.tomaMate;
                           _modoConversacionVoz = false;
                         });
                       } else {
@@ -818,13 +996,19 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
                           _estadoGuia = CapitanState.soloEscucha;
                           _modoConversacionVoz = true;
                         });
-                        await VoiceService().startListening((recognizedText, isFinal) {
+                        final success = await VoiceService().startListening((
+                          recognizedText,
+                          isFinal,
+                        ) {
                           if (!mounted) return;
                           setState(() => _chatController.text = recognizedText);
                           if (isFinal && recognizedText.trim().isNotEmpty) {
                             _enviarMensaje(recognizedText);
                           }
                         });
+                        if (!success && mounted) {
+                          _mostrarErrorMic();
+                        }
                       }
                     },
                   ),
@@ -873,4 +1057,3 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
     );
   }
 }
-
