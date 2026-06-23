@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'package:capitanya_master/services/storage_service.dart';
 import 'package:capitanya_master/services/supabase_service.dart';
@@ -34,6 +36,7 @@ class _RegistroCapitanScreenState extends State<RegistroCapitanScreen> {
   Uint8List? _avatarBytes, _dniBytes, _carnetBytes, _seguroBytes, _embarcacionBytes;
   
   bool _isSaving = false;
+  bool _recortarActivo = true;
 
   DateTime? _vencimientoSeguro;
   DateTime? _vencimientoCarnet;
@@ -95,41 +98,63 @@ class _RegistroCapitanScreenState extends State<RegistroCapitanScreen> {
       context: context,
       backgroundColor: _capitanAzul,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text('SELECCIONAR ORIGEN', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            ),
-            ListTile(
-              leading: const Icon(Icons.camera_alt, color: _capitanNaranja),
-              title: const Text('Cámara (Sacar foto ahora)', style: TextStyle(color: Colors.white)),
-              onTap: () async {
-                Navigator.pop(context);
-                final XFile? photo = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => CustomCameraScreen(
-                      title: 'Capturar ${tipo.toUpperCase()}',
-                      isDocument: tipo != 'avatar',
-                    ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          return SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text('SELECCIONAR ORIGEN', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+                SwitchListTile(
+                  title: const Text(
+                    'Recortar/Encuadrar imagen',
+                    style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
                   ),
-                );
-                if (photo != null) {
-                  _procesarFotoCapturada(tipo, photo);
-                }
-              },
+                  subtitle: const Text('Permite encuadrar la imagen antes de subirla', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                  value: _recortarActivo,
+                  activeColor: _capitanNaranja,
+                  onChanged: (bool value) {
+                    setModalState(() {
+                      _recortarActivo = value;
+                    });
+                    setState(() {
+                      _recortarActivo = value;
+                    });
+                  },
+                ),
+                const Divider(color: _glassBorder),
+                ListTile(
+                  leading: const Icon(Icons.camera_alt, color: _capitanNaranja),
+                  title: const Text('Cámara (Sacar foto ahora)', style: TextStyle(color: Colors.white)),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    final XFile? photo = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CustomCameraScreen(
+                          title: 'Capturar ${tipo.toUpperCase()}',
+                          isDocument: tipo != 'avatar',
+                        ),
+                      ),
+                    );
+                    if (photo != null) {
+                      _procesarFotoCapturada(tipo, photo);
+                    }
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.photo_library, color: _capitanAzulClaro),
+                  title: const Text('Galería (Elegir de fotos)', style: TextStyle(color: Colors.white)),
+                  onTap: () => Navigator.pop(context, ImageSource.gallery),
+                ),
+                const SizedBox(height: 20),
+              ],
             ),
-            ListTile(
-              leading: const Icon(Icons.photo_library, color: _capitanAzulClaro),
-              title: const Text('Galería (Elegir de fotos)', style: TextStyle(color: Colors.white)),
-              onTap: () => Navigator.pop(context, ImageSource.gallery),
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
+          );
+        }
       ),
     );
 
@@ -153,6 +178,34 @@ class _RegistroCapitanScreenState extends State<RegistroCapitanScreen> {
   }
 
   Future<void> _procesarFotoCapturada(String tipo, XFile image) async {
+    if (!_recortarActivo) {
+      setState(() {
+        switch (tipo) {
+          case 'avatar':
+            _avatarFile = image;
+            _avatarBytes = null;
+            break;
+          case 'dni':
+            _dniFile = image;
+            _dniBytes = null;
+            break;
+          case 'carnet':
+            _carnetFile = image;
+            _carnetBytes = null;
+            break;
+          case 'seguro':
+            _seguroFile = image;
+            _seguroBytes = null;
+            break;
+          case 'embarcacion':
+            _embarcacionFile = image;
+            _embarcacionBytes = null;
+            break;
+        }
+      });
+      return;
+    }
+
     final Uint8List imageBytes = await image.readAsBytes();
 
     // 1. Recorte Personalizado (100% Flutter)
@@ -168,26 +221,32 @@ class _RegistroCapitanScreenState extends State<RegistroCapitanScreen> {
 
     if (croppedData == null) return;
 
+    // Guardar a archivo temporal para subir y previsualizar la versión recortada
+    final tempDir = await getTemporaryDirectory();
+    final tempFile = File('${tempDir.path}/${tipo}_cropped_${DateTime.now().millisecondsSinceEpoch}.jpg');
+    await tempFile.writeAsBytes(croppedData);
+    final croppedXFile = XFile(tempFile.path);
+
     setState(() {
       switch (tipo) {
         case 'avatar':
-          _avatarFile = image;
+          _avatarFile = croppedXFile;
           _avatarBytes = croppedData;
           break;
         case 'dni':
-          _dniFile = image;
+          _dniFile = croppedXFile;
           _dniBytes = croppedData;
           break;
         case 'carnet':
-          _carnetFile = image;
+          _carnetFile = croppedXFile;
           _carnetBytes = croppedData;
           break;
         case 'seguro':
-          _seguroFile = image;
+          _seguroFile = croppedXFile;
           _seguroBytes = croppedData;
           break;
         case 'embarcacion':
-          _embarcacionFile = image;
+          _embarcacionFile = croppedXFile;
           _embarcacionBytes = croppedData;
           break;
       }
@@ -697,7 +756,7 @@ class _RegistroCapitanScreenState extends State<RegistroCapitanScreen> {
       }
     } else {
       if (file != null) {
-        return ClipRRect(borderRadius: BorderRadius.circular(10), child: Image.network(file.path, fit: BoxFit.cover));
+        return ClipRRect(borderRadius: BorderRadius.circular(10), child: Image.file(File(file.path), fit: BoxFit.cover));
       }
     }
     return const Icon(Icons.image, color: Colors.white24);

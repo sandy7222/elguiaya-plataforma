@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'supabase_service.dart';
+import '../models/producto.dart';
+import '../models/categoria.dart';
 
 /// Resultado de un comando de navegación detectado.
 class NavIntencion {
@@ -40,11 +43,115 @@ class IntentService {
     }
   }
 
+  static String _normalizar(String texto) {
+    return texto
+        .toLowerCase()
+        .replaceAll(RegExp(r'[áàäâ]'), 'a')
+        .replaceAll(RegExp(r'[éèëê]'), 'e')
+        .replaceAll(RegExp(r'[íìïî]'), 'i')
+        .replaceAll(RegExp(r'[óòöô]'), 'o')
+        .replaceAll(RegExp(r'[úùüû]'), 'u')
+        .trim();
+  }
+
+  static String _quitarPlural(String palabra) {
+    if (palabra.length <= 3) return palabra;
+    if (palabra.endsWith('es')) return palabra.substring(0, palabra.length - 2);
+    if (palabra.endsWith('s')) return palabra.substring(0, palabra.length - 1);
+    return palabra;
+  }
+
+  static Categoria? _buscarCategoriaPorFrase(String fraseNorm) {
+    final categorias = SupabaseService.cachedCategorias;
+    if (categorias.isEmpty) return null;
+    
+    final palabrasFrase = fraseNorm.split(RegExp(r'\s+')).map((w) => _quitarPlural(w)).toList();
+
+    for (final cat in categorias) {
+      final nombreNorm = _normalizar(cat.nombre);
+      final palabrasCat = nombreNorm.split(RegExp(r'\s+')).map((w) => _quitarPlural(w)).toList();
+      
+      // Si alguna palabra de la categoría coincide con alguna palabra de la frase
+      for (final pCat in palabrasCat) {
+        if (pCat.length <= 2) continue;
+        for (final pFrase in palabrasFrase) {
+          if (pFrase.length <= 2) continue;
+          if (pCat == pFrase || pCat.contains(pFrase) || pFrase.contains(pCat)) {
+            return cat;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  static Producto? _buscarProductoPorFrase(String fraseNorm) {
+    final productos = SupabaseService.cachedProductos;
+    if (productos.isEmpty) return null;
+
+    final palabrasFrase = fraseNorm.split(RegExp(r'\s+')).map((w) => _quitarPlural(w)).toList();
+    
+    Producto? mejorMatch;
+    int maxCoincidencias = 0;
+
+    for (final prod in productos) {
+      final nombreNorm = _normalizar(prod.nombre);
+      final palabrasProd = nombreNorm.split(RegExp(r'\s+')).map((w) => _quitarPlural(w)).toList();
+      
+      int coincidencias = 0;
+      for (final pProd in palabrasProd) {
+        if (pProd.length <= 2) continue;
+        for (final pFrase in palabrasFrase) {
+          if (pFrase.length <= 2) continue;
+          if (pProd == pFrase || pProd.contains(pFrase) || pFrase.contains(pProd)) {
+            coincidencias++;
+          }
+        }
+      }
+      
+      if (coincidencias > maxCoincidencias) {
+        maxCoincidencias = coincidencias;
+        mejorMatch = prod;
+      }
+    }
+
+    if (maxCoincidencias >= 2) {
+      return mejorMatch;
+    } else if (maxCoincidencias == 1 && mejorMatch != null) {
+      return mejorMatch;
+    }
+
+    return null;
+  }
+
   /// Detecta si la frase es un comando de navegación.
   /// Retorna [NavIntencion] con ruta + frase de confirmación, o null si no es navegación.
   static NavIntencion? detectarNavegacion(String fraseUsuario) {
     final f = fraseUsuario.toLowerCase().trim();
-    final nav = _esComandoNavegar(f);
+    final fNorm = _normalizar(f);
+    final nav = _esComandoNavegar(fNorm);
+
+    // 1. Intentar buscar coincidencia con un producto específico primero (si hay intención de ver/ir/comprar)
+    if (nav || fNorm.contains('producto') || fNorm.contains('buscar') || fNorm.contains('ver') || fNorm.contains('comprar') || fNorm.contains('tienda')) {
+      final producto = _buscarProductoPorFrase(fNorm);
+      if (producto != null) {
+        return NavIntencion(
+          '/producto/${producto.id}',
+          'Dale compañero, te llevo a ver ${producto.nombre}.',
+        );
+      }
+    }
+
+    // 2. Intentar buscar coincidencia con una categoría o subcategoría específica
+    if (nav || fNorm.contains('categoria') || fNorm.contains('subcategoria') || fNorm.contains('seccion') || fNorm.contains('ver') || fNorm.contains('comprar') || fNorm.contains('tienda')) {
+      final categoria = _buscarCategoriaPorFrase(fNorm);
+      if (categoria != null) {
+        return NavIntencion(
+          '/categoria/${categoria.id}',
+          'Dale chamigo, te muestro la categoría ${categoria.nombre}.',
+        );
+      }
+    }
 
     // ── TIENDA / COMPRAS ──────────────────────────────────────────────────
     if (f.contains('tienda') ||

@@ -12,6 +12,8 @@ import '../services/supabase_service.dart';
 import '../widgets/ficha_tecnica_widget.dart';
 import 'package:share_plus/share_plus.dart';
 import '../providers/favoritos_provider.dart';
+import '../services/el_guia_engine.dart';
+import '../services/guia_copilot_brain.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Producto producto;
@@ -52,6 +54,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         .stream(primaryKey: ['id'])
         .eq('id', widget.producto.id);
     _cargarDatosAdicionales();
+    
+    // Registrar contexto activo para Gu-IA
+    ElGuiaEngine().contexto.productoActual = widget.producto;
+    GuiaCopilotBrain.instance.pantallaCargada(ScreenContext.tienda);
   }
 
   Future<void> _cargarDatosAdicionales() async {
@@ -88,6 +94,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   @override
   void dispose() {
+    // Limpiar contexto activo de Gu-IA si corresponde
+    if (ElGuiaEngine().contexto.productoActual?.id == widget.producto.id) {
+      ElGuiaEngine().contexto.productoActual = null;
+    }
     _galleryController.dispose();
     super.dispose();
   }

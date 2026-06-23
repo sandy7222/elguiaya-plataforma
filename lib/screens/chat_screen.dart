@@ -1,10 +1,11 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../services/chat_service.dart';
 import '../services/voice_service.dart'; // 🔊 IMPORTAMOS EL NUEVO SERVICIO DE VOZ
+import 'confirmar_finalizacion_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   final String reservaId;
@@ -27,10 +28,14 @@ class _ChatScreenState extends State<ChatScreen> {
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
 
-  final bool _isLoading = false;
   bool _isSending = false;
-  Map<String, dynamic>? _reservaInfo;
   String _tipoEmisorActual = 'pescador';
+
+  // Real database connection states
+  Map<String, dynamic>? _viajeInfo;
+  bool _loadingViaje = true;
+  bool _hasPassed = false;
+  bool _isPaid = false;
 
   // Colores El Guia YA
   static const Color _fondoOscuro = Color(0xFF1A1A1A);
@@ -40,28 +45,12 @@ class _ChatScreenState extends State<ChatScreen> {
   static const Color _verdeBrillante = Color(0xFF00FF00);
   static const Color _grisMedio = Color(0xFF666666);
 
-  // Lista local simulada para que puedas testear la voz y el chat sin Supabase
-  final List<Mensaje> _mensajesSimulados = [
-    Mensaje(
-      id: '1',
-      reservaId: 'test',
-      emisorId: 'el_guia_bot',
-      texto:
-          '¡Hola chamigo! Soy El GuIA, tu robot baqueano. ¿En qué te puedo ayudar hoy en el río?',
-      tipoEmisor: 'capitan',
-      creadoAt: DateTime.now().subtract(const Duration(minutes: 5)),
-      leido: true,
-    ),
-  ];
-
   @override
   void initState() {
     super.initState();
-    // Forzamos valores fijos para que no rompa si el servicio intenta buscar credenciales
-    _tipoEmisorActual = 'pescador';
-
     // 🔊 CALENTAMOS LOS MOTORES DE AUDIO DE EL GuIA
     VoiceService().init();
+    _cargarInfoViaje();
   }
 
   @override
@@ -71,6 +60,68 @@ class _ChatScreenState extends State<ChatScreen> {
     _focusNode.dispose();
     VoiceService().stop(); // 🛑 Frenamos la voz si el usuario sale del chat
     super.dispose();
+  }
+
+  Future<void> _cargarInfoViaje() async {
+    try {
+      final response = await Supabase.instance.client
+          .from('pedidos')
+          .select('*, budgets:presupuestos(*)')
+          .eq('id', widget.reservaId)
+          .maybeSingle();
+
+      if (response != null && mounted) {
+        final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+        final pescadorId = response['pescador_id'];
+        final capitanId = response['capitan_id'];
+
+        String tipo = 'pescador';
+        if (currentUserId == capitanId) {
+          tipo = 'capitan';
+        } else if (currentUserId == pescadorId) {
+          tipo = 'pescador';
+        } else {
+          tipo = 'admin';
+        }
+
+        final String fechaServicioStr = response['fecha_servicio']?.toString() ?? '';
+        bool passed = false;
+        if (fechaServicioStr.isNotEmpty) {
+          final DateTime dateServicio = DateTime.parse(fechaServicioStr);
+          final DateTime endOfServiceDay = DateTime(dateServicio.year, dateServicio.month, dateServicio.day).add(const Duration(days: 1));
+          passed = DateTime.now().isAfter(endOfServiceDay);
+        }
+
+        setState(() {
+          _viajeInfo = response;
+          _tipoEmisorActual = tipo;
+          _isPaid = response['estado'] == 'pagado';
+          _hasPassed = passed;
+          _loadingViaje = false;
+        });
+      } else {
+        if (mounted) {
+          setState(() {
+            _loadingViaje = false;
+          });
+        }
+      }
+    } catch (e) {
+      print('Error al cargar info de viaje: $e');
+      if (mounted) {
+        setState(() {
+          _loadingViaje = false;
+        });
+      }
+    }
+  }
+
+  Stream<List<Map<String, dynamic>>> _getMensajesStream() {
+    return Supabase.instance.client
+        .from('mensajes')
+        .stream(primaryKey: ['id'])
+        .eq('reserva_id', widget.reservaId)
+        .order('creado_at', ascending: false);
   }
 
   Future<void> _enviarMensaje() async {
@@ -139,61 +190,38 @@ class _ChatScreenState extends State<ChatScreen> {
     }
     // =========================================================
 
+    final String emisorId = Supabase.instance.client.auth.currentUser?.id ?? '';
+    if (emisorId.isEmpty) return;
+
     setState(() {
       _isSending = true;
-      // Insertamos tu mensaje de forma local e instantánea para verlo en pantalla
-      _mensajesSimulados.insert(
-        0,
-        Mensaje(
-          id: DateTime.now().toString(),
-          reservaId: widget.reservaId,
-          emisorId: 'usuario_pescador_prueba',
-          texto: texto,
-          tipoEmisor: 'pescador',
-          creadoAt: DateTime.now(),
-          leido: true,
+    });
+
+    try {
+      await Supabase.instance.client.from('mensajes').insert({
+        'reserva_id': widget.reservaId,
+        'emisor_id': emisorId,
+        'texto': texto,
+        'tipo_emisor': _tipoEmisorActual,
+        'leido': false,
+      });
+      _messageController.clear();
+      _focusNode.unfocus();
+    } catch (e) {
+      print('Error al enviar mensaje: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al enviar mensaje: $e'),
+          backgroundColor: Colors.redAccent,
         ),
       );
-    });
-
-    // Simulamos respuesta automática de El GuIA para probar la voz al toque
-    Future.delayed(const Duration(seconds: 1), () {
+    } finally {
       if (mounted) {
         setState(() {
-          String respuestaBot =
-              "Copiado, chamigo. Analizando tus coordenadas en el Paraná.";
-
-          if (textoLimpio.contains('pesca') || textoLimpio.contains('dorado')) {
-            respuestaBot =
-                "Para el dorado en la corredera, metele señuelo de paleta larga y tiralo donde el agua remansa, chamigo.";
-          } else if (textoLimpio.contains('raya') ||
-              textoLimpio.contains('picadura')) {
-            respuestaBot =
-                "Alerta: Introduce el pie herido en agua caliente para neutralizar el veneno de la raya. No cortes la herida.";
-          }
-
-          _mensajesSimulados.insert(
-            0,
-            Mensaje(
-              id: DateTime.now().toString(),
-              reservaId: widget.reservaId,
-              emisorId: 'el_guia_bot',
-              texto: respuestaBot,
-              tipoEmisor: 'capitan',
-              creadoAt: DateTime.now(),
-              leido: false,
-            ),
-          );
+          _isSending = false;
         });
       }
-    });
-
-    _messageController.clear();
-    _focusNode.unfocus();
-
-    setState(() {
-      _isSending = false;
-    });
+    }
   }
 
   void _scrollToBottom() {
@@ -210,15 +238,11 @@ class _ChatScreenState extends State<ChatScreen> {
     return DateFormat('HH:mm').format(dateTime);
   }
 
-  Widget _buildMessageBubble(Mensaje mensaje) {
-    final esMio = mensaje.emisorId == 'usuario_pescador_prueba';
-
+  Widget _buildMessageBubbleReal(String texto, bool esMio, DateTime creadoAt) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
       child: Row(
-        mainAxisAlignment: esMio
-            ? MainAxisAlignment.end
-            : MainAxisAlignment.start,
+        mainAxisAlignment: esMio ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
           if (!esMio) ...[
             CircleAvatar(
@@ -230,9 +254,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
           Flexible(
             child: Column(
-              crossAxisAlignment: esMio
-                  ? CrossAxisAlignment.end
-                  : CrossAxisAlignment.start,
+              crossAxisAlignment: esMio ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -244,13 +266,13 @@ class _ChatScreenState extends State<ChatScreen> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    mensaje.texto,
+                    texto,
                     style: const TextStyle(color: _blancoPuro, fontSize: 16),
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  _formatTime(mensaje.creadoAt),
+                  _formatTime(creadoAt),
                   style: TextStyle(
                     color: _blancoPuro.withOpacity(0.6),
                     fontSize: 12,
@@ -273,6 +295,11 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildHeader() {
+    final title = widget.nombreCliente ?? 'Tripulación';
+    final subtitle = _hasPassed 
+        ? '${widget.nombreServicio ?? 'Chat de Viaje'} - CHAT CERRADO'
+        : widget.nombreServicio ?? 'Chat de Viaje';
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -287,25 +314,32 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           const SizedBox(width: 8),
           CircleAvatar(
-            backgroundColor: _azulVibrante,
-            child: const Icon(Icons.sailing, color: _blancoPuro, size: 20),
+            backgroundColor: _hasPassed ? _grisMedio : _azulVibrante,
+            child: Icon(
+              _hasPassed ? Icons.lock : Icons.sailing, 
+              color: _blancoPuro, 
+              size: 20,
+            ),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'El GuIA Pro',
-                  style: TextStyle(
+                  title,
+                  style: const TextStyle(
                     color: _blancoPuro,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
-                  'Modo Sandbox de Voz',
-                  style: TextStyle(color: _verdeBrillante, fontSize: 14),
+                  subtitle,
+                  style: TextStyle(
+                    color: _hasPassed ? Colors.redAccent : _verdeBrillante,
+                    fontSize: 14,
+                  ),
                 ),
               ],
             ),
@@ -316,6 +350,96 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildMessageInput() {
+    if (!_isPaid) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xFF2C2C2C),
+          border: Border(top: BorderSide(color: _blancoPuro.withOpacity(0.2))),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.lock_outline, color: Colors.orangeAccent, size: 24),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'El chat está bloqueado hasta que se confirme el pago.',
+                style: TextStyle(
+                  color: _blancoPuro.withOpacity(0.8),
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_hasPassed) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF2C2C2C),
+          border: Border(top: BorderSide(color: _blancoPuro.withOpacity(0.2))),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.info_outline, color: Colors.amberAccent, size: 22),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'El chat de este viaje ha finalizado.',
+                    style: TextStyle(
+                      color: _blancoPuro.withOpacity(0.8),
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (_tipoEmisorActual == 'pescador') ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                height: 44,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ConfirmarFinalizacionScreen(),
+                      ),
+                    ).then((_) => _cargarInfoViaje());
+                  },
+                  icon: const Icon(Icons.star_rate_rounded, color: Colors.black87),
+                  label: const Text(
+                    'CALIFICAR EXPERIENCIA',
+                    style: TextStyle(
+                      color: Colors.black87,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF00E676),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -361,16 +485,14 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Captura del post-frame local para la voz automatizada sin depender de streams de red
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_mensajesSimulados.isNotEmpty) {
-        final ultimo = _mensajesSimulados.first;
-        if (ultimo.emisorId == 'el_guia_bot' && !ultimo.leido) {
-          ultimo.leido = true; // Lo marcamos como hablado
-          VoiceService().speak(ultimo.texto); // 🗣️ ¡Habla!
-        }
-      }
-    });
+    if (_loadingViaje) {
+      return const Scaffold(
+        backgroundColor: _fondoOscuro,
+        body: Center(
+          child: CircularProgressIndicator(color: _azulVibrante),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: _fondoOscuro,
@@ -378,14 +500,58 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           _buildHeader(),
           Expanded(
-            child: ListView.builder(
-              reverse:
-                  true, // Cambiamos a reverse para manejar la inserción desde el índice 0 cómodamente
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: _mensajesSimulados.length,
-              itemBuilder: (context, index) {
-                return _buildMessageBubble(_mensajesSimulados[index]);
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: _getMensajesStream(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator(color: _azulVibrante));
+                }
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Error al cargar mensajes: ${snapshot.error}',
+                      style: const TextStyle(color: Colors.redAccent),
+                    ),
+                  );
+                }
+
+                final mensajes = snapshot.data ?? [];
+
+                if (mensajes.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.chat_bubble_outline, color: _blancoPuro.withOpacity(0.3), size: 48),
+                        const SizedBox(height: 12),
+                        Text(
+                          'No hay mensajes aún.\n¡Inicia la conversación!',
+                          style: TextStyle(color: _blancoPuro.withOpacity(0.5)),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  reverse: true,
+                  controller: _scrollController,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  itemCount: mensajes.length,
+                  itemBuilder: (context, index) {
+                    final msg = mensajes[index];
+                    final String emisorId = msg['emisor_id']?.toString() ?? '';
+                    final String texto = msg['texto']?.toString() ?? '';
+                    final DateTime creadoAt = msg['creado_at'] != null 
+                        ? DateTime.parse(msg['creado_at'].toString()) 
+                        : DateTime.now();
+
+                    final bool esMio = emisorId == Supabase.instance.client.auth.currentUser?.id;
+
+                    return _buildMessageBubbleReal(texto, esMio, creadoAt);
+                  },
+                );
               },
             ),
           ),
@@ -394,25 +560,4 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
     );
   }
-}
-
-// 📦 Clase auxiliar local obligatoria para mapear los objetos sin depender del modelo externo
-class Mensaje {
-  final String id;
-  final String reservaId;
-  final String emisorId;
-  final String texto;
-  final String tipoEmisor;
-  final DateTime creadoAt;
-  bool leido;
-
-  Mensaje({
-    required this.id,
-    required this.reservaId,
-    required this.emisorId,
-    required this.texto,
-    required this.tipoEmisor,
-    required this.creadoAt,
-    required this.leido,
-  });
 }

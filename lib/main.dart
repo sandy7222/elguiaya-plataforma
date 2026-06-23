@@ -176,9 +176,7 @@ class MyApp extends StatelessWidget {
             const AdminTrackingScreen(embedMode: false),
         '/admin/logs': (context) => const AdminLogsScreen(embedMode: false),
         '/carrito': (context) => const CartScreen(),
-        '/notificaciones': (context) => NotificacionesScreen(
-          usuarioId: Supabase.instance.client.auth.currentUser?.id ?? '',
-        ),
+        '/notificaciones': (context) => const NotificacionesScreen(),
         '/mapa': (context) => Scaffold(
           appBar: AppBar(
             title: const Text(

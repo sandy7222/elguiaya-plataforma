@@ -1,13 +1,16 @@
-﻿
+
 
 
 
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../models/documento.dart';
+import '../screens/custom_crop_screen.dart';
 import '../services/storage_service.dart';
 import '../services/supabase_service.dart';
 
@@ -41,6 +44,7 @@ class _CameraPickerState extends State<CameraPicker> {
   File? _selectedImage;
   bool _isLoading = false;
   bool _hasDocument = false;
+  bool _recortarActivo = true;
 
   @override
   void initState() {
@@ -121,6 +125,56 @@ class _CameraPickerState extends State<CameraPicker> {
     }
   }
 
+  Future<void> _recortarYProcesar(File image) async {
+    try {
+      if (!_recortarActivo) {
+        setState(() {
+          _isLoading = true;
+          _selectedImage = image;
+        });
+        await _procesarImagen(image);
+        return;
+      }
+      final Uint8List imageBytes = await image.readAsBytes();
+      
+      if (!mounted) return;
+      
+      final Uint8List? croppedData = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CustomCropScreen(
+            imageData: imageBytes,
+            isCircular: widget.tipoDoc == Documento.FOTO_PERFIL_PESCADOR || 
+                        widget.tipoDoc == Documento.FOTO_PERFIL_CAPITAN,
+          ),
+        ),
+      );
+
+      if (croppedData == null) {
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      final tempDir = await getTemporaryDirectory();
+      final tempFile = File('${tempDir.path}/${widget.tipoDoc}_cropped_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      await tempFile.writeAsBytes(croppedData);
+
+      setState(() {
+        _isLoading = true;
+        _selectedImage = tempFile;
+      });
+
+      await _procesarImagen(tempFile);
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Center(child: Text('Error al recortar la imagen: $e')), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
   Future<void> _capturarDesdeCamara() async {
     try {
       final XFile? xfile = await StorageService.captureImageFromCamera();
@@ -132,12 +186,7 @@ class _CameraPickerState extends State<CameraPicker> {
         if (!ok) return;
       }
 
-      setState(() {
-        _isLoading = true;
-        _selectedImage = image;
-      });
-
-      await _procesarImagen(image);
+      await _recortarYProcesar(image);
 
     } catch (e) {
       setState(() => _isLoading = false);
@@ -165,46 +214,7 @@ class _CameraPickerState extends State<CameraPicker> {
         if (!ok) return;
       }
 
-      setState(() {
-        _isLoading = true;
-        _selectedImage = image;
-      });
-
-      // 1. Compresión Previa
-      final File compressedFile = await StorageService.compressImage(image);
-
-      // 2. Subida Inmediata
-      String url = '';
-      if (widget.tipoDoc == Documento.FOTO_PERFIL_CAPITAN || widget.tipoDoc == Documento.FOTO_PERFIL_PESCADOR) {
-        url = await StorageService.uploadProfileImage(
-          file: compressedFile,
-          userId: widget.userId,
-          tipoDoc: widget.tipoDoc,
-        );
-      } else if (widget.tipoDoc == Documento.DNI_PESCADOR) {
-        url = await StorageService.uploadPescadorDocument(
-          file: compressedFile,
-          userId: widget.userId,
-          tipoDoc: widget.tipoDoc,
-        );
-      } else {
-        url = await StorageService.uploadUserDocument(
-          file: compressedFile,
-          userId: widget.userId,
-          tipoDoc: widget.tipoDoc,
-        );
-      }
-
-      setState(() {
-        _hasDocument = true;
-        _isLoading = false;
-      });
-
-      // 3. Notificar URLs y archivo
-      widget.onImageSelected(compressedFile);
-      if (widget.onUrlGenerated != null) {
-        widget.onUrlGenerated!(url);
-      }
+      await _recortarYProcesar(image);
 
     } catch (e) {
       setState(() => _isLoading = false);
@@ -282,39 +292,61 @@ class _CameraPickerState extends State<CameraPicker> {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Text(
-                  'Seleccionar imagen',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text(
+                      'Seleccionar imagen',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                ),
+                  SwitchListTile(
+                    title: const Text(
+                      'Recortar/Encuadrar imagen',
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: const Text('Permite encuadrar la imagen antes de subirla'),
+                    value: _recortarActivo,
+                    activeColor: const Color(0xFF0D47A1),
+                    onChanged: (bool value) {
+                      setModalState(() {
+                        _recortarActivo = value;
+                      });
+                      setState(() {
+                        _recortarActivo = value;
+                      });
+                    },
+                  ),
+                  const Divider(),
+                  ListTile(
+                    leading: const Icon(Icons.camera_alt),
+                    title: const Text('Tomar foto'),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      _capturarDesdeCamara();
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.photo_library),
+                    title: const Text('Seleccionar de galeria'),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      _seleccionarDesdeGaleria();
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                ],
               ),
-              ListTile(
-                leading: const Icon(Icons.camera_alt),
-                title: const Text('Tomar foto'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _capturarDesdeCamara();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: const Text('Seleccionar de galeria'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _seleccionarDesdeGaleria();
-                },
-              ),
-              const SizedBox(height: 20),
-            ],
-          ),
+            );
+          }
         );
       },
     );

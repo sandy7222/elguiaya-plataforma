@@ -32,10 +32,14 @@ import 'package:capitanya_master/services/notificacion_service.dart';
 import 'mercado_pago_service.dart';
 import 'disponibilidad_service_final.dart';
 import 'notificacion_helper.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SupabaseService {
   static List<Producto> _cachedProductos = [];
   static List<Categoria> _cachedCategorias = [];
+
+  static List<Producto> get cachedProductos => _cachedProductos;
+  static List<Categoria> get cachedCategorias => _cachedCategorias;
 
   static const String _envUrl = String.fromEnvironment('SUPABASE_URL');
   static const String _url = _envUrl != '' ? _envUrl : 'https://ymgsxwfwntbqvguvbhoa.supabase.co';
@@ -527,24 +531,12 @@ class SupabaseService {
 
   static Future<void> verificarAutoAprobacion(String userId) async {
     try {
-      final supabase = Supabase.instance.client;
-      final profile = await supabase
-          .from('profiles')
-          .select('created_at, estado')
-          .eq('user_id', userId)
-          .single();
-
-      if (profile['estado'] == 'pendiente') {
-        final createdAt = DateTime.parse(profile['created_at']);
-        final horasTranscurridas = DateTime.now().difference(createdAt).inHours;
-
-        if (horasTranscurridas >= 48) {
-          print('Auto-aprobando socio por vencimiento de 48hs (Usuario: $userId)');
-          await actualizarEstadoSocio(userId, 'activo');
-        }
-      }
+      debugPrint('⏳ [SUPABASE] Verificando auto-aprobación en servidor para: $userId');
+      await supabase.rpc('verificar_y_auto_aprobar_perfil', params: {
+        'p_user_id': userId,
+      });
     } catch (e) {
-      print('Error en verificación de auto-aprobación: $e');
+      debugPrint('❌ [SUPABASE] Error en verificación de auto-aprobación remota: $e');
     }
   }
 
@@ -818,8 +810,32 @@ class SupabaseService {
           .order('created_at', ascending: false);
       
       _cachedProductos = List<Producto>.from(response.map((prod) => Producto.fromSupabase(prod)));
+      
+      // Guardar en cache offline (SharedPreferences)
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final jsonStr = json.encode(_cachedProductos.map((p) => p.toMap()).toList());
+        await prefs.setString('offline_productos_cache', jsonStr);
+      } catch (ex) {
+        debugPrint('Error al guardar cache de productos: $ex');
+      }
+
       return _cachedProductos;
     } catch (e) {
+      // Intentar cargar desde cache offline (SharedPreferences)
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final jsonStr = prefs.getString('offline_productos_cache');
+        if (jsonStr != null) {
+          final decoded = json.decode(jsonStr) as List;
+          _cachedProductos = decoded.map((p) => Producto.fromSupabase(p as Map<String, dynamic>)).toList();
+          debugPrint('🛒 Productos cargados desde cache offline (SharedPreferences)');
+          return _cachedProductos;
+        }
+      } catch (ex) {
+        debugPrint('Error al cargar cache offline de productos: $ex');
+      }
+
       // Error especifico para RLS
       if (e.toString().contains('401') || e.toString().contains('permission')) {
         throw Exception('ERROR 401: Las politicas RLS estan bloqueando el acceso a productos. Debes configurarlas en el panel de Supabase.');
@@ -1202,11 +1218,37 @@ class SupabaseService {
         ];
       }
 
+      // Guardar en cache offline (SharedPreferences)
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final jsonStr = json.encode(_cachedCategorias.map((c) => c.toMap()).toList());
+        await prefs.setString('offline_categorias_cache', jsonStr);
+      } catch (ex) {
+        debugPrint('Error al guardar cache de categorias: $ex');
+      }
+
       if (soloActivas) {
         return _cachedCategorias.where((c) => c.activa).toList();
       }
       return _cachedCategorias;
     } catch (e) {
+      // Intentar cargar desde cache offline (SharedPreferences)
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final jsonStr = prefs.getString('offline_categorias_cache');
+        if (jsonStr != null) {
+          final decoded = json.decode(jsonStr) as List;
+          _cachedCategorias = decoded.map((c) => Categoria.fromSupabase(c as Map<String, dynamic>)).toList();
+          debugPrint('📂 Categorías cargadas desde cache offline (SharedPreferences)');
+          if (soloActivas) {
+            return _cachedCategorias.where((c) => c.activa).toList();
+          }
+          return _cachedCategorias;
+        }
+      } catch (ex) {
+        debugPrint('Error al cargar cache offline de categorias: $ex');
+      }
+
       if (MODO_OBRA_ACTIVE) {
         // Fallback de emergencia si falla Supabase por completo
         _cachedCategorias = [
@@ -1498,6 +1540,29 @@ class SupabaseService {
           .eq('id', pedidoId);
     } catch (e) {
       throw Exception('Error al actualizar estado del pedido: $e');
+    }
+  }
+
+  /// Actualizar estado de despacho de pedido (con tracking, notas y comprobante opcional)
+  static Future<void> actualizarDespachoPedido({
+    required String pedidoId,
+    required String nuevoEstado,
+    required String notas,
+    String? ticketEnvioUrl,
+  }) async {
+    try {
+      await supabase
+          .from('pedidos')
+          .update({
+            'estado': nuevoEstado,
+            'estado_envio': 'despachado',
+            'notas': notas,
+            if (ticketEnvioUrl != null) 'ticket_envio_url': ticketEnvioUrl,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', pedidoId);
+    } catch (e) {
+      throw Exception('Error al actualizar despacho del pedido: $e');
     }
   }
 

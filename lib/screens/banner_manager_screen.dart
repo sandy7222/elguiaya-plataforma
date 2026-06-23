@@ -694,7 +694,7 @@ class _BannerFormDialogState extends State<_BannerFormDialog> {
                       child: OutlinedButton.icon(
                         onPressed: _seleccionarImagen,
                         icon: const Icon(Icons.photo_library),
-                        label: const Text('Galeria'),
+                        label: const Text('Galería'),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -702,10 +702,52 @@ class _BannerFormDialogState extends State<_BannerFormDialog> {
                       child: OutlinedButton.icon(
                         onPressed: _tomarFoto,
                         icon: const Icon(Icons.camera_alt),
-                        label: const Text('Camara'),
+                        label: const Text('Cámara'),
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 12),
+                
+                // Leyenda Informativa de Medidas Recomendadas
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0D47A1).withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFF0D47A1).withOpacity(0.2), width: 0.8),
+                  ),
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.info_outline, color: Color(0xFF0D47A1), size: 16),
+                          SizedBox(width: 6),
+                          Text(
+                            'Medidas y Diseño Recomendado',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                              color: Color(0xFF0D47A1),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        '• Slider Principal (Hero): 1200 x 675 px (Proporción 16:9)\n'
+                        '• Banner Secundario (Fijo): 1200 x 500 px (Proporción 2.4:1)\n'
+                        '• Peso sugerido: Menor a 300 KB (Formato JPG o PNG).\n'
+                        '💡 NOTA: No dibujes títulos ni textos principales en la imagen; la app los escribe dinámicamente encima con fondo legible.',
+                        style: TextStyle(
+                          fontSize: 11,
+                          height: 1.4,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 16),
                 

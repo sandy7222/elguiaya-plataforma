@@ -11,6 +11,13 @@ import '../services/connectivity_bridge.dart';
 import '../services/intent_service.dart';
 import '../screens/pescador_perfil_edit_screen.dart';
 import 'package:capitanya_master/main.dart';
+import '../services/supabase_service.dart';
+import '../screens/product_catalog_screen.dart';
+import '../screens/product_detail_screen.dart';
+import '../models/producto.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 /// Notifier global — cualquier parte de la app puede activar/desactivar el Guía
 /// sin necesidad de pasar callbacks. Leer/escribir con GuiaOverlayController.
@@ -51,16 +58,19 @@ class GuiaOverlayController {
   }
 
   /// Carga la preferencia guardada al arrancar la app o cambiar de usuario.
-  /// El Guía arranca APAGADO por defecto — el pescador debe encenderlo
-  /// la primera vez desde su pantalla de perfil.
+  /// El Guía siempre arranca APAGADO al iniciar la sesión/app.
+  /// Solo se enciende cuando el usuario lo activa de forma explícita desde los ajustes.
   static Future<void> cargarPreferencia() async {
     final user = Supabase.instance.client.auth.currentUser;
     final prefs = await SharedPreferences.getInstance();
+    
+    // Forzar que empiece APAGADO al iniciar la sesión/app
+    activo.value = false;
+    
     if (user != null) {
-      activo.value =
-          prefs.getBool('guia_activo_${user.id}') ??
-          prefs.getBool('guia_activo') ??
-          false;
+      await prefs.setBool('guia_activo_${user.id}', false);
+      await prefs.setBool('guia_activo', false);
+
       silenciado.value =
           prefs.getBool('guia_silenciado_${user.id}') ??
           prefs.getBool('guia_silenciado') ??
@@ -70,7 +80,6 @@ class GuiaOverlayController {
           prefs.getBool('guia_mic_activo') ??
           true;
     } else {
-      activo.value = false;
       silenciado.value = false;
       micActivo.value = true;
     }
@@ -116,9 +125,11 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
   bool _esCapitanOAdmin = false;
   StreamSubscription<AuthState>? _authSub;
 
-  // â”€â”€ Timers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Timers ────────────────────────────────────────────────────────────
   Timer? _avatarTimer;
   Timer? _inactividadTimer;
+  Timer? _reintentoEscuchaTimer;
+  bool _usuarioHablo = false;
 
   @override
   void initState() {
@@ -166,7 +177,7 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
                 _permiteInteractuar &&
                 _modoConversacionVoz &&
                 !_isListening) {
-              _iniciarEscuchaAutomatica();
+              _iniciarEscuchaConReintento();
             }
           });
         } else {
@@ -194,7 +205,7 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
               _permiteInteractuar &&
               _modoConversacionVoz &&
               !_isListening) {
-            _iniciarEscuchaAutomatica();
+            _iniciarEscuchaConReintento();
           }
         });
       } else {
@@ -249,6 +260,7 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
     _avatarTimer?.cancel();
     _inactividadTimer?.cancel();
     _bobTimer?.cancel();
+    _reintentoEscuchaTimer?.cancel();
     VoiceService().stop();
     VoiceService().stopVADListener();
     VoiceService().stopWakeWordListener();
@@ -389,7 +401,15 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
 
   // â”€â”€ Ciclo de vida del robot â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  void _encenderGuia() {
+  Future<void> _encenderGuia() async {
+    // ─── 🛡️ BLINDAJE DE SEGURIDAD (NO MODIFICAR ESTE FLUJO) ───
+    // CRÍTICO: Esta secuencia de permisos y arranque está estrictamente diseñada para
+    // evitar condiciones de carrera de diálogos de Android y conflictos con el foco de audio.
+    // 1. Verificar y pedir permiso de micrófono ANTES de mostrar el robot (_mostrarGuia = true).
+    // 2. Si es denegado, abortar inmediatamente, desactivar el controller y NO mostrar el avatar.
+    // 3. No tocar los tiempos de espera (1.5s en "aparece" antes de hablar) para dar tiempo a inicializar el canal nativo.
+    // ─────────────────────────────────────────────────────────
+
     final session = Supabase.instance.client.auth.currentSession;
     if (session == null) return; // ✅ Evita iniciar o hablar antes de loguearse
     if (_rolVerificado && _esCapitanOAdmin)
@@ -397,8 +417,25 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
 
     BaqueanoIAService.inicializar();
 
-    // ── Resetear posición: esquina inferior derecha pero con margen seguro
-    // Se resetea a -1 para que el build() lo recalcule con el tamaño real
+    // 1. ANTES DE APARECER EL ROBOT, verificar y pedir permiso de micrófono
+    if (!kIsWeb) {
+      try {
+        final status = await Permission.microphone.status;
+        if (!status.isGranted) {
+          final result = await Permission.microphone.request();
+          if (!result.isGranted) {
+            // Si el usuario deniega el permiso de micrófono, desactivamos el robot
+            // y regresamos el notifier de activo a false.
+            await GuiaOverlayController.setActivo(false);
+            return;
+          }
+        }
+      } catch (e) {
+        debugPrint('Error al solicitar micrófono en El Guía: $e');
+      }
+    }
+
+    // 2. Recién una vez hecho todo, se enciende y muestra el robot
     _robotX = -1;
     _robotY = -1;
 
@@ -419,25 +456,71 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
       setState(() => _bobOffset = math.sin(t * math.pi * 1.3) * 6.0);
     });
 
-    // Aparece (1.5s) â†’ saluda (4s) â†’ pasa a dormir/reposo
-    _avatarTimer = Timer(const Duration(milliseconds: 1500), () {
-      if (!mounted || !_mostrarGuia) return;
-      setState(() => _estadoGuia = CapitanState.saludo);
-      if (!_isMuted && _chatHistory.isNotEmpty) {
-        VoiceService().speak(_chatHistory.first['text']!);
-      } else {
-        // Si está silenciado, esperamos 4s en el estado de saludo visual y luego va a dormir
-        _avatarTimer = Timer(const Duration(seconds: 4), () {
-          if (!mounted || !_mostrarGuia) return;
-          setState(() {
-            _permiteInteractuar = true;
-            _estadoGuia = CapitanState.tomaMate;
-          });
-          _reiniciarTemporizadorInactividad();
-          _verificarWakeWord();
+    // 3. Inicializar STT de antemano para evitar retrasos y diálogos tardíos
+    try {
+      await VoiceService().initStt();
+    } catch (e) {
+      debugPrint('Error al inicializar STT de antemano en El Guía: $e');
+    }
+
+    if (!mounted || !_mostrarGuia) return;
+
+    // Esperar 1.5s en estado "aparece" de presentación visual antes de hablar
+    await Future.delayed(const Duration(milliseconds: 1500));
+
+    if (!mounted || !_mostrarGuia) return;
+
+    // 4. Iniciar el saludo hablado breve
+    setState(() => _estadoGuia = CapitanState.saludo);
+    const saludoBreve = '¡Hola amigo! Preguntame lo que quieras.';
+    if (!_isMuted && _chatHistory.isNotEmpty) {
+      VoiceService().speak(saludoBreve);
+    } else {
+      // Si está silenciado, esperamos 2s de saludo visual y pasamos directamente a escuchar
+      await Future.delayed(const Duration(seconds: 2));
+      if (mounted && _mostrarGuia) {
+        setState(() {
+          _permiteInteractuar = true;
+          _modoConversacionVoz = true;
         });
+        _iniciarEscuchaConReintento();
       }
-    });
+    }
+  }
+
+  void _ejecutarRuta(String ruta) {
+    if (ruta == 'externo') return;
+    
+    if (ruta == '/panel') {
+      navigatorKey.currentState?.pushNamedAndRemoveUntil(
+        '/panel',
+        (route) => false,
+      );
+    } else if (ruta.startsWith('/categoria/')) {
+      final catId = ruta.replaceFirst('/categoria/', '');
+      navigatorKey.currentState?.push(
+        MaterialPageRoute(
+          builder: (_) => ProductCatalogScreen(initialCategoryId: catId),
+          settings: RouteSettings(name: ruta),
+        ),
+      );
+    } else if (ruta.startsWith('/producto/')) {
+      final prodId = ruta.replaceFirst('/producto/', '');
+      final prod = SupabaseService.cachedProductos.firstWhere(
+        (p) => p.id == prodId,
+        orElse: () => Producto.empty(),
+      );
+      if (prod.id.isNotEmpty) {
+        navigatorKey.currentState?.push(
+          MaterialPageRoute(
+            builder: (_) => ProductDetailScreen(producto: prod),
+            settings: RouteSettings(name: ruta),
+          ),
+        );
+      }
+    } else {
+      navigatorKey.currentState?.pushNamed(ruta);
+    }
   }
 
   void _apagarGuia() {
@@ -449,13 +532,17 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
     _bobTimer?.cancel();
     setState(() {
       _estadoGuia = CapitanState.desaparece;
-      _avatarScale = 0.0;
-      _avatarOpacity = 0.0;
       _permiteInteractuar = false;
       _modoConversacionVoz = false;
     });
     _avatarTimer = Timer(const Duration(milliseconds: 1200), () {
-      if (mounted) setState(() => _mostrarGuia = false);
+      if (mounted) {
+        setState(() {
+          _mostrarGuia = false;
+          _avatarScale = 0.0;
+          _avatarOpacity = 0.0;
+        });
+      }
     });
     if (GuiaOverlayController.activo.value) {
       GuiaOverlayController.setActivo(false);
@@ -507,13 +594,13 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
     });
     // La frase suena mientras el GuIA hace la animación de despertar.
     // Al terminar de hablar, el setCompletionHandler de initState() auto-arranca
-    // _iniciarEscuchaAutomatica() porque _modoConversacionVoz == true.
+    // _iniciarEscuchaConReintento() porque _modoConversacionVoz == true.
     const fraseActivacion = '¿Sí, chamigo?';
     if (!_isMuted) {
       VoiceService().speak(fraseActivacion);
     } else {
       // Si está silenciado, abrimos el micrófono inmediatamente
-      _iniciarEscuchaAutomatica();
+      _iniciarEscuchaConReintento();
     }
   }
 
@@ -579,26 +666,78 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
 
   // â”€â”€ Voz â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  void _iniciarEscuchaAutomatica() async {
-    if (!mounted || !_mostrarGuia || !_permiteInteractuar) return;
+  void _iniciarEscuchaConReintento() async {
+    // ─── 🛡️ BLINDAJE DE BUCLE DE ESCUCHA (NO MODIFICAR) ───
+    // CRÍTICO: Bucle con timer de inactividad de 8 segundos y reintento con mensaje hablado
+    // ("Chamigo, ¿alguna pregunta? Solo debés hablar después de escucharme").
+    // Este flujo mantiene la conversación fluida sin obligar al usuario a interactuar manualmente
+    // de nuevo, pero previene consumos innecesarios o loops infinitos rápidos cuando está silenciado.
+    // ───────────────────────────────────────────────────────
+
+    if (!mounted || !_mostrarGuia || !_permiteInteractuar || !_modoConversacionVoz) return;
+
+    _reintentoEscuchaTimer?.cancel();
+    _usuarioHablo = false;
+
     _reiniciarTemporizadorInactividad();
     setState(() {
       _isListening = true;
       _estadoGuia = CapitanState.escuchando;
     });
+
+    // Iniciar temporizador de 8 segundos por si el usuario no habla
+    _reintentoEscuchaTimer = Timer(const Duration(seconds: 8), () async {
+      if (!mounted || !_mostrarGuia || _usuarioHablo) return;
+
+      debugPrint('[GuiaOverlay] 8 segundos transcurridos sin respuesta del usuario.');
+      
+      // Detener micrófono
+      await VoiceService().stopListening();
+      
+      if (!mounted || !_mostrarGuia || _usuarioHablo) return;
+
+      setState(() {
+        _isListening = false;
+        _estadoGuia = CapitanState.saludo; // Cambiar a saludo para animar el habla
+      });
+
+      const fraseReintento = 'Chamigo, ¿alguna pregunta? Solo debés hablar después de escucharme.';
+      if (!_isMuted) {
+        await VoiceService().speak(fraseReintento);
+      } else {
+        // Si está silenciado, esperamos 3 segundos y volvemos a escuchar para no entrar en bucle infinito rápido
+        await Future.delayed(const Duration(seconds: 3));
+        if (mounted && _mostrarGuia && !_usuarioHablo) {
+          _iniciarEscuchaConReintento();
+        }
+      }
+    });
+
     final success = await VoiceService().startListening((recognizedText, isFinal) {
       if (!mounted) return;
+      
+      if (recognizedText.trim().isNotEmpty) {
+        _usuarioHablo = true;
+        _reintentoEscuchaTimer?.cancel();
+      }
+
       setState(() => _chatController.text = recognizedText);
+
       if (isFinal && recognizedText.trim().isNotEmpty) {
         _enviarMensaje(recognizedText);
       }
     });
+
     if (!success && mounted) {
+      _reintentoEscuchaTimer?.cancel();
       _mostrarErrorMic();
     }
   }
 
   void _enviarMensaje(String text) async {
+    _reintentoEscuchaTimer?.cancel();
+    _usuarioHablo = true;
+
     final cleanText = text.trim();
     if (cleanText.isEmpty) return;
     _reiniciarTemporizadorInactividad();
@@ -640,14 +779,24 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
     }
 
     // Despedida verbal
-    if ([
+    final despedidaTriggers = [
       'chau',
       'adios',
       'adiós',
       'apagar',
       'apagate',
       'apágate',
-    ].contains(tLower)) {
+      'hasta luego',
+      'hablamos mas tarde',
+      'hablamos más tarde',
+      'desconecte',
+      'desconéctate',
+      'desconectate',
+      'desconectar',
+      'nos vemos',
+    ];
+
+    if (despedidaTriggers.any((trigger) => tLower.contains(trigger))) {
       setState(() => _chatHistory.add({'text': cleanText, 'isUser': 'true'}));
       const despedida = '¡Nos vemos, amigo! Buenas pescas...';
       setState(() => _chatHistory.add({'text': despedida, 'isUser': 'false'}));
@@ -674,17 +823,7 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
       }
 
       // Navegar solo si es ruta interna
-      if (navIntent.ruta != 'externo') {
-        // El panel principal reemplaza toda la pila para que sea el origen limpio
-        if (navIntent.ruta == '/panel') {
-          navigatorKey.currentState?.pushNamedAndRemoveUntil(
-            '/panel',
-            (route) => false,
-          );
-        } else {
-          navigatorKey.currentState?.pushNamed(navIntent.ruta);
-        }
-      }
+      _ejecutarRuta(navIntent.ruta);
 
       // Reiniciar el ciclo de voz después de navegar
       Future.delayed(const Duration(milliseconds: 1200), () {
@@ -738,7 +877,7 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
           GuiaOverlayController.micActivo.value) {
         Future.delayed(const Duration(milliseconds: 1000), () {
           if (mounted) {
-            navigatorKey.currentState?.pushNamed(respuesta.rutaNavegacion!);
+            _ejecutarRuta(respuesta.rutaNavegacion!);
           }
         });
       }

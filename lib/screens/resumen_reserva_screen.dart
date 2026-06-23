@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'chat_asistido_screen.dart';
@@ -54,7 +54,7 @@ class _ResumenReservaScreenState extends State<ResumenReservaScreen> {
           .order('created_at', ascending: false)
           .limit(1);
 
-      if ((presupuestosResponse as List).isEmpty) {
+      if (presupuestosResponse is! List || presupuestosResponse.isEmpty) {
         throw Exception('No se encontró una oferta activa para esta solicitud.');
       }
 
@@ -85,9 +85,14 @@ class _ResumenReservaScreenState extends State<ResumenReservaScreen> {
       }
 
       final rawPescadorProfile = cotizacion['profiles'];
-      final pescadorProfile = rawPescadorProfile is List
-          ? (rawPescadorProfile.isNotEmpty ? rawPescadorProfile.first as Map<String, dynamic> : null)
-          : rawPescadorProfile as Map<String, dynamic>?;
+      Map<String, dynamic>? pescadorProfile;
+      if (rawPescadorProfile is List) {
+        if (rawPescadorProfile.isNotEmpty && rawPescadorProfile.first is Map) {
+          pescadorProfile = Map<String, dynamic>.from(rawPescadorProfile.first as Map);
+        }
+      } else if (rawPescadorProfile is Map) {
+        pescadorProfile = Map<String, dynamic>.from(rawPescadorProfile);
+      }
 
       // Parseo seguro de monto
       final rawMonto = presupuesto['monto'];
@@ -112,6 +117,7 @@ class _ResumenReservaScreenState extends State<ResumenReservaScreen> {
             'telefono': capitanProfile['telefono'] ?? 'No provisto',
             'foto_url': capitanProfile['avatar_url'] ?? '',
             'embarcacion_url': capitanProfile['embarcacion_url'],
+            'bio_pescador': capitanProfile['bio_pescador'],
             'servicio_carnada': capitanProfile['servicio_carnada'] ?? 'No',
             'servicio_lenia': capitanProfile['servicio_lenia'] == true,
             'servicio_almacen': capitanProfile['servicio_almacen'] == true,
@@ -571,19 +577,26 @@ class _ResumenReservaScreenState extends State<ResumenReservaScreen> {
     final bool ofreceLenia = capitan['servicio_lenia'] ?? false;
     final bool ofreceAlmacen = capitan['servicio_almacen'] ?? false;
     
-    // Decodificar servicios extra de bio_pescador si es JSON
+    // Decodificar servicios extra de bio_pescador si es JSON/Map
     bool ofreceCabania = false;
     bool ofreceBanio = false;
     bool ofreceParrilla = false;
     
-    final bioRaw = capitan['bio_pescador']?.toString() ?? '';
-    if (bioRaw.startsWith('{')) {
-      try {
-        final Map<String, dynamic> jsonBio = jsonDecode(bioRaw);
-        ofreceCabania = jsonBio['cabania'] ?? false;
-        ofreceBanio = jsonBio['banio'] ?? false;
-        ofreceParrilla = jsonBio['parrilla'] ?? false;
-      } catch (_) {}
+    final bioRaw = capitan['bio_pescador'];
+    if (bioRaw is Map) {
+      ofreceCabania = bioRaw['cabania'] ?? false;
+      ofreceBanio = bioRaw['banio'] ?? false;
+      ofreceParrilla = bioRaw['parrilla'] ?? false;
+    } else if (bioRaw != null) {
+      final bioStr = bioRaw.toString();
+      if (bioStr.startsWith('{')) {
+        try {
+          final Map<String, dynamic> jsonBio = jsonDecode(bioStr);
+          ofreceCabania = jsonBio['cabania'] ?? false;
+          ofreceBanio = jsonBio['banio'] ?? false;
+          ofreceParrilla = jsonBio['parrilla'] ?? false;
+        } catch (_) {}
+      }
     }
 
     return Container(
@@ -923,7 +936,7 @@ class _ResumenReservaScreenState extends State<ResumenReservaScreen> {
     );
   }
 
-  Widget _buildCostoItem(String concepto, double monto) {
+  Widget _buildCostoItem(String concepto, num monto) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(

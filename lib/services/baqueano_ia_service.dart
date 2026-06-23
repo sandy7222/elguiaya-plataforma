@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:capitanya_master/models/el_guia_respuesta.dart';
 import 'package:capitanya_master/models/producto.dart';
 import 'package:capitanya_master/services/supabase_service.dart';
+import 'package:capitanya_master/models/categoria.dart';
 import 'connectivity_bridge.dart';
 import 'el_guia_engine.dart';
 import 'el_guia_context.dart';
@@ -29,6 +30,7 @@ class BaqueanoIAService {
   static final ElGuiaEngine _motorLocal = ElGuiaEngine();
 
   static List<Producto> _catalogo = [];
+  static List<Categoria> _categorias = [];
   static DateTime? _ultimaCarga;
 
   // Lógica del modo cómico: El Guía Recalentado / Furioso
@@ -133,6 +135,9 @@ class BaqueanoIAService {
     'banco',
   ];
 
+  static List<Producto> get catalogo => _catalogo;
+  static List<Categoria> get categorias => _categorias;
+
   static Future<void> inicializar() async {
     await _motorLocal.inicializar();
     await GroqConfig.cargar();
@@ -145,6 +150,9 @@ class BaqueanoIAService {
     // Timeout de 5s: Supabase lento no bloquea el arranque
     try {
       _catalogo = await SupabaseService.getProductos().timeout(
+        const Duration(seconds: 5),
+      );
+      _categorias = await SupabaseService.getCategorias().timeout(
         const Duration(seconds: 5),
       );
       _ultimaCarga = DateTime.now();
@@ -235,6 +243,50 @@ class BaqueanoIAService {
     }
 
     // ── TIER 0: Acción contextual directa (< 5ms, sin IA) ─────────────────────
+    // Interceptación de precio y detalles del producto actual en pantalla
+    final productoActual = ElGuiaEngine().contexto.productoActual;
+    if (productoActual != null) {
+      final f = pq.toLowerCase();
+      final quierePrecio = f.contains('precio') || 
+                           f.contains('cuesta') || 
+                           f.contains('sale') || 
+                           f.contains('valor') || 
+                           f.contains('cuanto es') || 
+                           f.contains('cuánto es') ||
+                           f.contains('tarifa') ||
+                           f.contains('cuanto sale') ||
+                           f.contains('cuánto sale');
+                           
+      final quiereDetalles = f.contains('caracteristica') || 
+                             f.contains('descrip') || 
+                             f.contains('detalle') || 
+                             f.contains('de que se trata') || 
+                             f.contains('de qué se trata') || 
+                             f.contains('que tiene') || 
+                             f.contains('qué tiene') ||
+                             f.contains('como es') ||
+                             f.contains('cómo es');
+                             
+      if (quierePrecio && !quiereDetalles) {
+        final precioStr = productoActual.precio.toStringAsFixed(0);
+        return ElGuiaRespuesta(
+          texto: 'Mirá chamigo, el ${productoActual.nombre} está a \$$precioStr pesos. Un regalo del Paraná, ¿no?',
+          gifSugerido: 'exito',
+        );
+      } else if (quiereDetalles && !quierePrecio) {
+        return ElGuiaRespuesta(
+          texto: 'Te cuento, compañero. El ${productoActual.nombre} tiene estas características: ${productoActual.descripcion}. Bien completito pa\' la pesca.',
+          gifSugerido: 'explica',
+        );
+      } else if (quierePrecio && quiereDetalles) {
+        final precioStr = productoActual.precio.toStringAsFixed(0);
+        return ElGuiaRespuesta(
+          texto: 'El ${productoActual.nombre} sale \$$precioStr pesos y te cuento lo que trae: ${productoActual.descripcion}. Ideal pa\' meterle al aparejo.',
+          gifSugerido: 'explica',
+        );
+      }
+    }
+
     // Si el copiloto sabe en qué pantalla está el usuario, puede ejecutar
     // acciones sin consultar ningún motor de IA.
     final brain = GuiaCopilotBrain.instance;
