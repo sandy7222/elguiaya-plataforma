@@ -73,6 +73,15 @@
       ],
       "respuesta_limpia": "Frío, 9.7°C, humedad 85%, viento 14.4 km/h",
       "gif": "saludo"
+    },
+    {
+      "intencion": "verificar_clima",
+      "activadores": [
+        "temperatura actual",
+        "pronostico del tiempo"
+      ],
+      "respuesta_limpia": "Verificar clima antes de pescar",
+      "gif": "hablaConMate"
     }
   ],
   "respuestas_protector": [
