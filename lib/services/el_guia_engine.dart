@@ -1582,8 +1582,13 @@ class ElGuiaEngine {
           }
         }
       }
-      if (!found && mejorIntencion == 'fallback') {
-        mejorIntencion = intencion;
+      if (!found) {
+        // Si es una intención dinámica/aprendida, le damos prioridad 12
+        const prioridadAprendida = 12;
+        if (prioridadAprendida < mejorNivel) {
+          mejorNivel = prioridadAprendida;
+          mejorIntencion = intencion;
+        }
       }
     }
 
@@ -2601,6 +2606,7 @@ class ElGuiaEngine {
 
     String respBase =
         'En el Paraná encontrás: dorado, surubí, boga, bagre, patí, tararira, pejerrey y sábalo. Cuál te interesa?';
+    bool especieEncontrada = false;
     for (final entry in especies.entries) {
       if (texto.contains(entry.key)) {
         final especie = entry.value as Map<String, dynamic>;
@@ -2609,7 +2615,47 @@ class ElGuiaEngine {
         final intro = puente[_random.nextInt(puente.length)];
         respBase =
             '$intro ${especie['descripcion']} Carnada: ${carnadas.take(2).join(' o ')}. ${especie['equipo']}';
+        especieEncontrada = true;
         break;
+      }
+    }
+
+    if (!especieEncontrada) {
+      // Buscar en especies/intenciones aprendidas en el local updater
+      for (final entry in GuiaLocalUpdater.obtenerActivadoresParaMotor().entries) {
+        for (final act in entry.value) {
+          if (texto.contains(act)) {
+            final respuestaDinamica = GuiaLocalUpdater.obtenerRespuesta(entry.key);
+            if (respuestaDinamica != null) {
+              _contexto.especieActual = act;
+              return respuestaDinamica;
+            }
+          }
+        }
+      }
+
+      // Buscar en intenciones dinámicas sincronizadas en las librerías
+      for (final lib in _librerias.values) {
+        if (lib.containsKey('intenciones')) {
+          final intencionesList = lib['intenciones'];
+          if (intencionesList is List) {
+            for (final item in intencionesList) {
+              if (item is Map<String, dynamic>) {
+                final String intentName = item['intencion']?.toString() ?? '';
+                final List<String> acts = List<String>.from((item['activadores'] as List? ?? []).map((e) => e.toString().toLowerCase().trim()));
+                for (final act in acts) {
+                  if (texto.contains(act)) {
+                    final respuestas = List<String>.from(item['respuestas'] ?? [item['respuesta_limpia']]);
+                    if (respuestas.isNotEmpty) {
+                      _contexto.especieActual = act;
+                      return respuestas[_random.nextInt(respuestas.length)];
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
 
@@ -3355,6 +3401,31 @@ class ElGuiaEngine {
     for (final especie in especies) {
       if (texto.contains(especie)) return especie;
     }
+    // Buscar en activadores de intenciones aprendidas/sincronizadas
+    for (final entry in GuiaLocalUpdater.obtenerActivadoresParaMotor().entries) {
+      for (final act in entry.value) {
+        if (texto.contains(act)) {
+          return act;
+        }
+      }
+    }
+    for (final lib in _librerias.values) {
+      if (lib.containsKey('intenciones')) {
+        final intencionesList = lib['intenciones'];
+        if (intencionesList is List) {
+          for (final item in intencionesList) {
+            if (item is Map<String, dynamic>) {
+              final List<String> acts = List<String>.from((item['activadores'] as List? ?? []).map((e) => e.toString().toLowerCase().trim()));
+              for (final act in acts) {
+                if (texto.contains(act)) {
+                  return act;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
     return '';
   }
 
@@ -3565,7 +3636,7 @@ class ElGuiaEngine {
       'hoy', 'ayer', 'manana', 'tarde', 'noche', 'dia',
       'nudo', 'nudos', 'boya', 'boyas', 'plomada', 'plomadas', 'carnada', 'carnadas', 'caña', 'cañas',
       'cana', 'canas', 'reel', 'reeles', 'pez', 'peces', 'rio', 'rios', 'agua', 'aguas', 'prefectura',
-      'pna', 'no', 'nada', 'masa'
+      'pna', 'no', 'nada', 'masa', 'pesca', 'sabes', 'conoces', 'saber', 'conocer'
     };
 
     final palabrasObjetivo = rest
@@ -3773,6 +3844,34 @@ class ElGuiaEngine {
     String intencion,
     String textoOriginal,
   ) {
+    final respuestaAprendida = GuiaLocalUpdater.obtenerRespuesta(intencion);
+    if (respuestaAprendida != null) {
+      return ElGuiaRespuesta(
+        texto: respuestaAprendida,
+        gifSugerido: GuiaLocalUpdater.obtenerGif(intencion),
+      );
+    }
+
+    // Buscar en intenciones dinámicas sincronizadas en las librerías
+    for (final lib in _librerias.values) {
+      if (lib.containsKey('intenciones')) {
+        final intencionesList = lib['intenciones'];
+        if (intencionesList is List) {
+          for (final item in intencionesList) {
+            if (item is Map<String, dynamic> && item['intencion'] == intencion) {
+              final respuestas = List<String>.from(item['respuestas'] ?? [item['respuesta_limpia']]);
+              final gif = item['gif']?.toString() ?? 'hablaConMate';
+              final String respuestaTexto = respuestas[_random.nextInt(respuestas.length)];
+              return ElGuiaRespuesta(
+                texto: respuestaTexto,
+                gifSugerido: gif,
+              );
+            }
+          }
+        }
+      }
+    }
+
     final gif = _humor.gifParaIntencion(intencion);
     switch (intencion) {
       case 'prefectura_naval_argentina':

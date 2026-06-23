@@ -86,8 +86,20 @@ class NotificacionService {
   /// Envía una notificación a un usuario específico
   Future<void> enviarNotificacion(Map<String, dynamic> datos) async {
     try {
+      // 1. Escribir en la tabla moderna
       await _supabase.from('notificaciones_globales').insert(datos);
       debugPrint('✅ [NotificacionService] Notificación enviada correctamente a ${datos['receptor_id']}');
+
+      // 2. Sincronizar en la tabla legada para encender la campana visual
+      await _supabase.from('notificaciones').insert({
+        'usuario_id': datos['receptor_id'],
+        'titulo': datos['titulo'],
+        'mensaje': datos['contenido'],
+        'tipo': datos['categoria'] ?? 'mensaje',
+        'leida': false,
+        'metadata': datos['payload'] ?? {},
+      });
+      debugPrint('✅ [NotificacionService] Sincronizada notificación legada para campana.');
     } catch (e) {
       debugPrint('❌ [NotificacionService] Error al enviar notificación: $e');
       rethrow;

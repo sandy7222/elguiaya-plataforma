@@ -7,6 +7,8 @@ import 'package:provider/provider.dart';
 import '../models/producto.dart';
 import '../providers/favoritos_provider.dart';
 
+import 'hover_card_wrapper.dart';
+
 class ProductCard extends StatelessWidget {
   final Producto producto;
   final VoidCallback onTap;
@@ -21,17 +23,18 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      shadowColor: Colors.black.withOpacity(0.08),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
+    return HoverCardWrapper(
+      child: Card(
+        elevation: 4,
+        shadowColor: Colors.black.withOpacity(0.08),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
             // Sección superior: Imagen + Stack de Favorito
             Stack(
               children: [
@@ -191,7 +194,8 @@ class ProductCard extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ),
+   );
   }
 
   Color _getStockColor(int stock) {

@@ -35,6 +35,7 @@ class _DocumentCaptureWidgetState extends State<DocumentCaptureWidget> {
   double _uploadProgress = 0.0;
   String? _error;
   final ImagePicker _picker = ImagePicker();
+  bool _recortarActivo = true;
 
   @override
   void initState() {
@@ -89,20 +90,25 @@ class _DocumentCaptureWidgetState extends State<DocumentCaptureWidget> {
       // Leer bytes directamente (Seguro para Web)
       final Uint8List originalBytes = await pickedFile.readAsBytes();
 
-      // 1. Recorte Personalizado pasando BYTES
-      final Uint8List? croppedData = await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => CustomCropScreen(
-            imageData: originalBytes,
-            isCircular: widget.isCircular,
-          ),
-        ),
-      );
+      Uint8List uploadBytes = originalBytes;
 
-      if (croppedData == null) {
-        setState(() => _isUploading = false);
-        return;
+      if (_recortarActivo) {
+        // 1. Recorte Personalizado pasando BYTES
+        final Uint8List? croppedData = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CustomCropScreen(
+              imageData: originalBytes,
+              isCircular: widget.isCircular,
+            ),
+          ),
+        );
+
+        if (croppedData == null) {
+          setState(() => _isUploading = false);
+          return;
+        }
+        uploadBytes = croppedData;
       }
 
       setState(() => _uploadProgress = 0.3);
@@ -115,7 +121,7 @@ class _DocumentCaptureWidgetState extends State<DocumentCaptureWidget> {
       String url;
       // Usamos el metodo uploadBinary que restauramos en StorageService
       url = await StorageService.uploadBinary(
-        bytes: croppedData,
+        bytes: uploadBytes,
         bucket: widget.tipoDoc == 'avatar' ? 'fotos_perfil' : 'documentacion_privada',
         folderPath: userId,
         fileName: '${widget.tipoDoc}.jpg',
@@ -148,39 +154,63 @@ class _DocumentCaptureWidgetState extends State<DocumentCaptureWidget> {
       context: context,
       backgroundColor: const Color(0xFF001F3F),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (context) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.camera_alt, color: Colors.white),
-              title: const Text('Tomar Foto', style: TextStyle(color: Colors.white)),
-              onTap: () async {
-                Navigator.pop(context);
-                final XFile? photo = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => CustomCameraScreen(
-                      title: 'Capturar ${widget.label}',
-                      isDocument: widget.tipoDoc != 'avatar',
-                    ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          return SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SwitchListTile(
+                  title: const Text(
+                    'Recortar/Encuadrar imagen',
+                    style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
                   ),
-                );
-                
-                if (photo != null) {
-                  await _processXFile(photo);
-                }
-              },
+                  subtitle: const Text('Permite encuadrar la imagen antes de subirla', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                  value: _recortarActivo,
+                  activeColor: const Color(0xFF00E676),
+                  onChanged: (bool value) {
+                    setModalState(() {
+                      _recortarActivo = value;
+                    });
+                    setState(() {
+                      _recortarActivo = value;
+                    });
+                  },
+                ),
+                const Divider(color: Colors.white12),
+                ListTile(
+                  leading: const Icon(Icons.camera_alt, color: Colors.white),
+                  title: const Text('Tomar Foto', style: TextStyle(color: Colors.white)),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    final XFile? photo = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CustomCameraScreen(
+                          title: 'Capturar ${widget.label}',
+                          isDocument: widget.tipoDoc != 'avatar',
+                        ),
+                      ),
+                    );
+                    
+                    if (photo != null) {
+                      await _processXFile(photo);
+                    }
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.photo_library, color: Colors.white),
+                  title: const Text('Elegir de Galería', style: TextStyle(color: Colors.white)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickAndProcess(ImageSource.gallery);
+                  },
+                ),
+                const SizedBox(height: 10),
+              ],
             ),
-            ListTile(
-              leading: const Icon(Icons.photo_library, color: Colors.white),
-              title: const Text('Elegir de Galería', style: TextStyle(color: Colors.white)),
-              onTap: () {
-                Navigator.pop(context);
-                _pickAndProcess(ImageSource.gallery);
-              },
-            ),
-          ],
-        ),
+          );
+        }
       ),
     );
   }

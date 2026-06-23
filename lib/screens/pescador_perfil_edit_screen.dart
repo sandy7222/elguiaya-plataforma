@@ -47,12 +47,14 @@ class _PescadorPerfilEditScreenState extends State<PescadorPerfilEditScreen> {
   void initState() {
     super.initState();
     _cargarDatos();
+    GuiaOverlayController.activo.addListener(_onGuiaPrefsChanged);
     GuiaOverlayController.silenciado.addListener(_onGuiaPrefsChanged);
     GuiaOverlayController.micActivo.addListener(_onGuiaPrefsChanged);
   }
 
   @override
   void dispose() {
+    GuiaOverlayController.activo.removeListener(_onGuiaPrefsChanged);
     GuiaOverlayController.silenciado.removeListener(_onGuiaPrefsChanged);
     GuiaOverlayController.micActivo.removeListener(_onGuiaPrefsChanged);
     super.dispose();
@@ -61,6 +63,7 @@ class _PescadorPerfilEditScreenState extends State<PescadorPerfilEditScreen> {
   void _onGuiaPrefsChanged() {
     if (!mounted) return;
     setState(() {
+      _guiaActivo = GuiaOverlayController.activo.value;
       _guiaSilenciado = GuiaOverlayController.silenciado.value;
       _guiaMicActivo = GuiaOverlayController.micActivo.value;
     });

@@ -34,8 +34,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
     try {
       setState(() => _isLoading = true);
       
-      // Simular usuario ID (en una app real vendria de autenticacion)
-      final usuarioId = 'user_${DateTime.now().millisecondsSinceEpoch}';
+      final usuarioId = SupabaseService.currentUserId ?? '';
       
       final pedidos = await SupabaseService.getPedidosPorUsuarioConItems(usuarioId);
       

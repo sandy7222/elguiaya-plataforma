@@ -54,15 +54,20 @@ class LocationPreferenceService {
   /// 2. IP geolocalización (http://ip-api.com/json)
   /// 3. Predeterminada (San Fernando)
   static Future<LocationDetails> obtenerUbicacionCascada() async {
+    // ─── 🛡️ BLINDAJE DE UBICACIÓN (NO MOSTRAR POPUPS AL INICIO) ───
+    // CRÍTICO: Geolocator.checkPermission() determina si el permiso YA fue otorgado.
+    // NUNCA usar Geolocator.requestPermission() en este paso, ya que disparará un diálogo
+    // intrusivo de permisos de Android nada más iniciar la app/sesión.
+    // Los permisos de GPS solo se deben solicitar explícitamente en la pantalla del mapa o tracking.
+    // Si no tiene permisos ya concedidos, debe caer silenciosamente al Paso 2 (Ubicación por IP).
+    // ──────────────────────────────────────────────────────────────
+
     // ── Paso 1: Geolocator con Low Accuracy y timeout de 5 segundos ──
     try {
       final bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (serviceEnabled) {
         LocationPermission permission = await Geolocator.checkPermission();
-        if (permission == LocationPermission.denied) {
-          permission = await Geolocator.requestPermission();
-        }
-
+        // NO solicitar permiso automáticamente al iniciar la sesión/app
         if (permission == LocationPermission.whileInUse ||
             permission == LocationPermission.always) {
           final position = await Geolocator.getCurrentPosition(

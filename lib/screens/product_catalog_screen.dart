@@ -7,6 +7,7 @@ import '../models/producto.dart';
 import '../providers/cart_provider.dart';
 import '../services/supabase_service.dart';
 import '../widgets/cart_floating_button.dart';
+import '../widgets/hover_card_wrapper.dart';
 import 'product_detail_screen.dart';
 
 class ProductCatalogScreen extends StatefulWidget {
@@ -496,82 +497,84 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
   }
 
   Widget _buildProductCard(Producto prod) {
-    return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailScreen(producto: prod))),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 15,
-              offset: const Offset(0, 8),
-            )
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Hero(
-              tag: 'prod_${prod.id}',
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                child: CachedNetworkImage(
-                  imageUrl: prod.imagenUrl,
-                  width: double.infinity,
-                  height: 140,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
+    return HoverCardWrapper(
+      child: GestureDetector(
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailScreen(producto: prod))),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 15,
+                offset: const Offset(0, 8),
+              )
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Hero(
+                tag: 'prod_${prod.id}',
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  child: CachedNetworkImage(
+                    imageUrl: prod.imagenUrl,
+                    width: double.infinity,
                     height: 140,
-                    color: const Color(0xFFF0F4F8),
-                    child: const Center(
-                      child: SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0D47A1)),
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      height: 140,
+                      color: const Color(0xFFF0F4F8),
+                      child: const Center(
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0D47A1)),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    height: 140,
-                    color: const Color(0xFFF0F4F8),
-                    child: const Center(
-                      child: Icon(Icons.image_not_supported, color: Colors.grey, size: 32),
+                    errorWidget: (context, url, error) => Container(
+                      height: 140,
+                      color: const Color(0xFFF0F4F8),
+                      child: const Center(
+                        child: Icon(Icons.image_not_supported, color: Colors.grey, size: 32),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    prod.nombre,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0A0E12)),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    prod.precioFormateado,
-                    style: const TextStyle(
-                      color: Color(0xFF00C853), // Verde Esmeralda Náutico
-                      fontWeight: FontWeight.w900,
-                      fontSize: 16,
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      prod.nombre,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0A0E12)),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  _buildStockBadge(prod),
-                ],
+                    const SizedBox(height: 8),
+                    Text(
+                      prod.precioFormateado,
+                      style: const TextStyle(
+                        color: Color(0xFF00C853), // Verde Esmeralda Náutico
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    _buildStockBadge(prod),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

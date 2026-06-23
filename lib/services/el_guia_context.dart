@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../models/producto.dart';
 
 /// Memoria conversacional temporal de El Guía.
 /// Registra el contexto de la conversación actual y se resetea por inactividad.
@@ -64,6 +65,9 @@ class ElGuiaContext {
   /// Indica si la consulta proviene del módulo de blog (para forzar rol redactor).
   bool esBlog = false;
 
+  /// Producto que el usuario está viendo actualmente en pantalla.
+  Producto? productoActual;
+
   /// Timestamp del último mensaje recibido (para auto-reset).
   DateTime? _ultimaActividad;
 
@@ -96,6 +100,7 @@ class ElGuiaContext {
     viajeContexto = '';
     ultimaConsulta = '';
     esBlog = false;
+    productoActual = null;
     objetivosRecientes = [];
     esperandoCierre = false;
     ultimaPreguntaHecha = '';

@@ -195,6 +195,7 @@ class _PortalPescadorScreenState extends State<PortalPescadorScreen> {
         elevation: 0,
         actions: [
           const IAStatusBadge(),
+          const NotificationQuickView(),
           IconButton(
             icon: const Icon(Icons.logout_rounded, color: Colors.white70),
             tooltip: 'Cerrar Sesion',

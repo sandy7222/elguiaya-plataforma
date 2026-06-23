@@ -34,6 +34,22 @@ class _CustomCropScreenState extends State<CustomCropScreen> {
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context, widget.imageData);
+            },
+            child: const Text(
+              'USAR ORIGINAL',
+              style: TextStyle(
+                color: Color(0xFF00E676),
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: Column(
         children: [
@@ -41,8 +57,12 @@ class _CustomCropScreenState extends State<CustomCropScreen> {
             child: Crop(
               image: widget.imageData,
               controller: _cropController,
-              onCropped: (image) {
-                Navigator.pop(context, image);
+              onCropped: (result) {
+                if (result is CropSuccess) {
+                  Navigator.pop(context, result.croppedImage);
+                } else {
+                  Navigator.pop(context, null);
+                }
               },
               aspectRatio: widget.isCircular ? 1 : null,
               initialRectBuilder: InitialRectBuilder.withBuilder((viewportRect, imageRect) {

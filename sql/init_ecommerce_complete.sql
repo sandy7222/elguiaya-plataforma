@@ -92,20 +92,44 @@ DO $$ BEGIN
     -- Rubros
     DROP POLICY IF EXISTS "Lectura pública de rubros" ON public.rubros;
     CREATE POLICY "Lectura pública de rubros" ON public.rubros FOR SELECT USING (true);
+
+    DROP POLICY IF EXISTS "Admins gestionan rubros" ON public.rubros;
+    CREATE POLICY "Admins gestionan rubros" ON public.rubros FOR ALL 
+    USING (
+        auth.role() = 'authenticated' AND (
+            auth.jwt() ->> 'role' = 'admin' OR 
+            auth.jwt() ->> 'rol' = 'admin' OR 
+            auth.jwt() ->> 'role' = 'service_role'
+        )
+    );
     
     -- Categorias
     DROP POLICY IF EXISTS "Lectura pública de categorias" ON public.categorias;
     CREATE POLICY "Lectura pública de categorias" ON public.categorias FOR SELECT USING (true);
     
     DROP POLICY IF EXISTS "Admins gestionan categorias" ON public.categorias;
-    CREATE POLICY "Admins gestionan categorias" ON public.categorias FOR ALL USING (true); -- Simplificado para desarrollo
+    CREATE POLICY "Admins gestionan categorias" ON public.categorias FOR ALL 
+    USING (
+        auth.role() = 'authenticated' AND (
+            auth.jwt() ->> 'role' = 'admin' OR 
+            auth.jwt() ->> 'rol' = 'admin' OR 
+            auth.jwt() ->> 'role' = 'service_role'
+        )
+    );
     
     -- Productos
     DROP POLICY IF EXISTS "Lectura pública de productos" ON public.productos;
     CREATE POLICY "Lectura pública de productos" ON public.productos FOR SELECT USING (true);
     
     DROP POLICY IF EXISTS "Admins gestionan productos" ON public.productos;
-    CREATE POLICY "Admins gestionan productos" ON public.productos FOR ALL USING (true);
+    CREATE POLICY "Admins gestionan productos" ON public.productos FOR ALL 
+    USING (
+        auth.role() = 'authenticated' AND (
+            auth.jwt() ->> 'role' = 'admin' OR 
+            auth.jwt() ->> 'rol' = 'admin' OR 
+            auth.jwt() ->> 'role' = 'service_role'
+        )
+    );
     
     -- Pedidos
     DROP POLICY IF EXISTS "Usuarios ven sus propios pedidos" ON public.pedidos;
@@ -117,7 +141,53 @@ DO $$ BEGIN
     WITH CHECK (auth.uid()::text = usuario_id::text);
 
     DROP POLICY IF EXISTS "Admins gestionan todos los pedidos" ON public.pedidos;
-    CREATE POLICY "Admins gestionan todos los pedidos" ON public.pedidos FOR ALL USING (true);
+    CREATE POLICY "Admins gestionan todos los pedidos" ON public.pedidos FOR ALL 
+    USING (
+        auth.role() = 'authenticated' AND (
+            auth.jwt() ->> 'role' = 'admin' OR 
+            auth.jwt() ->> 'rol' = 'admin' OR 
+            auth.jwt() ->> 'role' = 'service_role'
+        )
+    );
+
+    -- Items de Pedidos
+    DROP POLICY IF EXISTS "Usuarios ven sus propios items de pedidos" ON public.pedido_items;
+    CREATE POLICY "Usuarios ven sus propios items de pedidos" ON public.pedido_items FOR SELECT 
+    USING (
+        (auth.role() = 'authenticated' AND (
+            auth.jwt() ->> 'role' = 'admin' OR 
+            auth.jwt() ->> 'rol' = 'admin'
+        )) OR
+        EXISTS (
+            SELECT 1 FROM public.pedidos 
+            WHERE pedidos.id = pedido_items.pedido_id 
+              AND (pedidos.usuario_id::text = auth.uid()::text OR (auth.jwt() ->> 'role' = 'service_role'))
+        )
+    );
+
+    DROP POLICY IF EXISTS "Usuarios crean sus propios items de pedidos" ON public.pedido_items;
+    CREATE POLICY "Usuarios crean sus propios items de pedidos" ON public.pedido_items FOR INSERT 
+    WITH CHECK (
+        (auth.role() = 'authenticated' AND (
+            auth.jwt() ->> 'role' = 'admin' OR 
+            auth.jwt() ->> 'rol' = 'admin'
+        )) OR
+        EXISTS (
+            SELECT 1 FROM public.pedidos 
+            WHERE pedidos.id = pedido_items.pedido_id 
+              AND (pedidos.usuario_id::text = auth.uid()::text)
+        )
+    );
+
+    DROP POLICY IF EXISTS "Admins gestionan todos los items de pedidos" ON public.pedido_items;
+    CREATE POLICY "Admins gestionan todos los items de pedidos" ON public.pedido_items FOR ALL 
+    USING (
+        auth.role() = 'authenticated' AND (
+            auth.jwt() ->> 'role' = 'admin' OR 
+            auth.jwt() ->> 'rol' = 'admin' OR 
+            auth.jwt() ->> 'role' = 'service_role'
+        )
+    );
 END $$;
 
 -- ====================================================================

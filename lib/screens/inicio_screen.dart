@@ -13,6 +13,7 @@ import 'package:capitanya_master/screens/product_detail_screen.dart';
 import 'package:capitanya_master/screens/product_catalog_screen.dart';
 import 'package:capitanya_master/widgets/cart_sheet.dart';
 import 'package:capitanya_master/screens/blog_piques_screen.dart';
+import 'package:capitanya_master/widgets/hover_card_wrapper.dart';
 
 class InicioScreen extends StatefulWidget {
   const InicioScreen({super.key});
@@ -767,55 +768,57 @@ class _InicioScreenState extends State<InicioScreen> {
   }
 
   Widget _buildPremiumProductCard(Producto p) {
-    return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailScreen(producto: p))),
-      child: Container(
-        width: 170,
-        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-        decoration: BoxDecoration(
-          color: _cardWhite,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 8))],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Stack(
-              children: [
-                Hero(
-                  tag: 'prod_${p.id}',
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                    child: Image.network(
-                      p.imagenUrl,
-                      height: 150,
-                      width: 170,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(height: 150, width: 170, color: Colors.grey[200]),
+    return HoverCardWrapper(
+      child: GestureDetector(
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailScreen(producto: p))),
+        child: Container(
+          width: 170,
+          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          decoration: BoxDecoration(
+            color: _cardWhite,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 8))],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Stack(
+                children: [
+                  Hero(
+                    tag: 'prod_${p.id}',
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                      child: Image.network(
+                        p.imagenUrl,
+                        height: 150,
+                        width: 170,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(height: 150, width: 170, color: Colors.grey[200]),
+                      ),
                     ),
                   ),
-                ),
-                Positioned(top: 10, right: 10, child: _buildStockBadge(p.stock)),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(p.nombre, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: _darkBg)),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(p.precioFormateado, style: const TextStyle(color: _accentMint, fontWeight: FontWeight.w900, fontSize: 15)),
-                      const Icon(Icons.add_circle_outline, color: _primaryBlue, size: 20),
-                    ],
-                  ),
+                  Positioned(top: 10, right: 10, child: _buildStockBadge(p.stock)),
                 ],
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(p.nombre, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: _darkBg)),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(p.precioFormateado, style: const TextStyle(color: _accentMint, fontWeight: FontWeight.w900, fontSize: 15)),
+                        const Icon(Icons.add_circle_outline, color: _primaryBlue, size: 20),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

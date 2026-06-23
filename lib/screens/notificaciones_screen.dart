@@ -8,9 +8,9 @@ import 'captain_quote_screen.dart';
 import 'viajes_programados_screen.dart';
 
 class NotificacionesScreen extends StatelessWidget {
-  final String usuarioId;
+  final String? usuarioId;
 
-  const NotificacionesScreen({super.key, required this.usuarioId});
+  const NotificacionesScreen({super.key, this.usuarioId});
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +45,11 @@ class NotificacionesScreen extends StatelessWidget {
           ),
           SafeArea(
             child: StreamBuilder<List<Map<String, dynamic>>>(
-              stream: NotificacionService().escucharNotificaciones(usuarioId),
+              stream: NotificacionService().escucharNotificaciones(
+                (usuarioId != null && usuarioId!.isNotEmpty)
+                    ? usuarioId!
+                    : (Supabase.instance.client.auth.currentUser?.id ?? ''),
+              ),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../services/supabase_service.dart';
 import '../services/pago_service.dart';
+import '../services/storage_service.dart';
+import '../services/notificacion_service.dart';
 
 class AdminPedidosScreen extends StatelessWidget {
   const AdminPedidosScreen({super.key});
@@ -196,15 +199,19 @@ class AdminPedidosScreen extends StatelessWidget {
           Expanded(
             child: PopupMenuButton<String>(
               onSelected: (String nuevoEstado) async {
-                try {
-                  await SupabaseService.actualizarEstadoPedido(pedidoIdRaw, nuevoEstado);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Pedido $pedidoIdDisplay actualizado a $nuevoEstado'), backgroundColor: Colors.green),
-                  );
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-                  );
+                if (nuevoEstado == 'enviado') {
+                  _mostrarDialogoEnvio(context, pedidoIdRaw, pedidoIdDisplay, pedido['usuario_id']?.toString() ?? '');
+                } else {
+                  try {
+                    await SupabaseService.actualizarEstadoPedido(pedidoIdRaw, nuevoEstado);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Pedido $pedidoIdDisplay actualizado a $nuevoEstado'), backgroundColor: Colors.green),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                    );
+                  }
                 }
               },
               itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
@@ -420,5 +427,246 @@ class AdminPedidosScreen extends StatelessWidget {
         );
       }
     }
+  }
+
+  void _mostrarDialogoEnvio(BuildContext context, String pedidoId, String displayId, String usuarioId) {
+    final TextEditingController notasController = TextEditingController();
+    XFile? ticketFile;
+    bool isUploading = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF1E293B), // Fondo oscuro slate premium
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: BorderSide(color: const Color(0xFF38BDF8).withOpacity(0.5), width: 1.5),
+              ),
+              title: Row(
+                children: const [
+                  Icon(Icons.local_shipping_rounded, color: Color(0xFF38BDF8), size: 28),
+                  SizedBox(width: 12),
+                  Text(
+                    'Despachar Pedido',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Código de pedido: $displayId',
+                      style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Datos de Envío / Seguimiento *',
+                      style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: notasController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: 'ej. Correo Argentino - Cód: AR123456789AR',
+                        hintStyle: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 13),
+                        filled: true,
+                        fillColor: const Color(0xFF0F172A),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF38BDF8)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Comprobante de Envío (Opcional)',
+                      style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    ticketFile == null
+                        ? Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: isUploading ? null : () async {
+                                    final picked = await StorageService.pickImageFromGallery();
+                                    if (picked != null) {
+                                      setState(() {
+                                        ticketFile = picked;
+                                      });
+                                    }
+                                  },
+                                  icon: const Icon(Icons.photo_library_outlined, size: 18),
+                                  label: const Text('Galería', style: TextStyle(fontSize: 12)),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF334155),
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: isUploading ? null : () async {
+                                    final captured = await StorageService.captureImageFromCamera();
+                                    if (captured != null) {
+                                      setState(() {
+                                        ticketFile = captured;
+                                      });
+                                    }
+                                  },
+                                  icon: const Icon(Icons.camera_alt_outlined, size: 18),
+                                  label: const Text('Cámara', style: TextStyle(fontSize: 12)),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF334155),
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        : Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0F172A),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: const Color(0xFF334155)),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.image, color: Color(0xFF38BDF8)),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    ticketFile!.name,
+                                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.close, color: Colors.redAccent, size: 18),
+                                  onPressed: isUploading ? null : () {
+                                    setState(() {
+                                      ticketFile = null;
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                    if (isUploading) ...[
+                      const SizedBox(height: 20),
+                      const Center(
+                        child: CircularProgressIndicator(color: Color(0xFF38BDF8)),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isUploading ? null : () => Navigator.pop(dialogContext),
+                  child: const Text('Cancelar', style: TextStyle(color: Colors.white54)),
+                ),
+                ElevatedButton(
+                  onPressed: isUploading ? null : () async {
+                    if (notasController.text.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('⚠️ Por favor, ingrese los datos de seguimiento.'),
+                          backgroundColor: Colors.orange,
+                        ),
+                      );
+                      return;
+                    }
+
+                    setState(() {
+                      isUploading = true;
+                    });
+
+                    try {
+                      String? ticketUrl;
+                      if (ticketFile != null) {
+                        ticketUrl = await StorageService.uploadXFile(
+                          xFile: ticketFile!,
+                          bucket: 'branding',
+                          folderPath: 'tickets_envio',
+                          fileNamePrefix: 'ticket_$pedidoId',
+                        );
+                      }
+
+                      await SupabaseService.actualizarDespachoPedido(
+                        pedidoId: pedidoId,
+                        nuevoEstado: 'enviado',
+                        notas: notasController.text.trim(),
+                        ticketEnvioUrl: ticketUrl,
+                      );
+
+                      // Enviar notificación al pescador/cliente
+                      if (usuarioId.isNotEmpty) {
+                        await NotificacionService().enviarNotificacion({
+                          'receptor_id': usuarioId,
+                          'titulo': '🚚 ¡Tu pedido ha sido enviado!',
+                          'contenido': 'Tu pedido $displayId fue despachado. Seguimiento: ${notasController.text.trim()}',
+                          'categoria': 'logistica',
+                          'leido': false,
+                          'payload': {
+                            'pedido_id': pedidoId,
+                          },
+                        });
+                      }
+
+                      if (context.mounted) {
+                        Navigator.pop(dialogContext);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('✅ Pedido $displayId despachado con éxito.'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      setState(() {
+                        isUploading = false;
+                      });
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('❌ Error al despachar: $e'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF38BDF8),
+                    foregroundColor: const Color(0xFF0F172A),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: const Text('Confirmar Envío', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 }

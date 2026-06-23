@@ -16,6 +16,7 @@ import 'blog_piques_screen.dart';
 import '../providers/favoritos_provider.dart';
 import 'favoritos_screen.dart';
 import 'help_center_screen.dart';
+import 'order_history_screen.dart';
 
 class CategoriesGridScreen extends StatefulWidget {
   final Categoria? categoriaPadre;
@@ -631,9 +632,52 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
                       },
                     ),
                     const SizedBox(width: 8),
-                    _buildCartIndicator(),
-                    const SizedBox(width: 16),
-                    const Icon(Icons.person_outline, color: Colors.black54, size: 24),
+                    const SizedBox(width: 8),
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.person_outline, color: Colors.black54, size: 24),
+                      tooltip: 'Mi Cuenta',
+                      onSelected: (value) {
+                        if (value == 'pedidos') {
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => const OrderHistoryScreen()));
+                        } else if (value == 'perfil') {
+                          Navigator.pushNamed(context, '/perfil');
+                        } else if (value == 'notificaciones') {
+                          Navigator.pushNamed(context, '/notificaciones');
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'pedidos',
+                          child: Row(
+                            children: [
+                              Icon(Icons.shopping_bag_outlined, color: Colors.black87),
+                              SizedBox(width: 8),
+                              Text('Mis Compras'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'perfil',
+                          child: Row(
+                            children: [
+                              Icon(Icons.person_outline, color: Colors.black87),
+                              SizedBox(width: 8),
+                              Text('Mi Perfil'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'notificaciones',
+                          child: Row(
+                            children: [
+                              Icon(Icons.notifications_outlined, color: Colors.black87),
+                              SizedBox(width: 8),
+                              Text('Notificaciones'),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -681,7 +725,54 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const FavoritosScreen()));
               },
             ),
+            const SizedBox(width: 4),
             _buildCartIndicator(),
+            const SizedBox(width: 4),
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.person_outline, color: Colors.black54, size: 22),
+              tooltip: 'Mi Cuenta',
+              onSelected: (value) {
+                if (value == 'pedidos') {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const OrderHistoryScreen()));
+                } else if (value == 'perfil') {
+                  Navigator.pushNamed(context, '/perfil');
+                } else if (value == 'notificaciones') {
+                  Navigator.pushNamed(context, '/notificaciones');
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'pedidos',
+                  child: Row(
+                    children: [
+                      Icon(Icons.shopping_bag_outlined, color: Colors.black87),
+                      SizedBox(width: 8),
+                      Text('Mis Compras'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'perfil',
+                  child: Row(
+                    children: [
+                      Icon(Icons.person_outline, color: Colors.black87),
+                      SizedBox(width: 8),
+                      Text('Mi Perfil'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'notificaciones',
+                  child: Row(
+                    children: [
+                      Icon(Icons.notifications_outlined, color: Colors.black87),
+                      SizedBox(width: 8),
+                      Text('Notificaciones'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
         bottom: PreferredSize(

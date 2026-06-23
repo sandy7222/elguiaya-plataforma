@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../services/supabase_service.dart';
 import '../widgets/failsafe_background.dart';
+import 'chat_screen.dart';
+import 'confirmar_finalizacion_screen.dart';
 
 class ViajesProgramadosScreen extends StatefulWidget {
   final bool esCapitan;
@@ -134,6 +136,18 @@ class _ViajesProgramadosScreenState extends State<ViajesProgramadosScreen> {
     final Map<String, dynamic> contraparte = (widget.esCapitan
         ? viaje['profiles']
         : viaje['capitan']) ?? {};
+
+    final String fechaServicioStr = viaje['fecha_servicio']?.toString() ?? '';
+    bool hasPassed = false;
+    if (fechaServicioStr.isNotEmpty) {
+      try {
+        final DateTime dateServicio = DateTime.parse(fechaServicioStr);
+        final DateTime endOfServiceDay = DateTime(dateServicio.year, dateServicio.month, dateServicio.day).add(const Duration(days: 1));
+        hasPassed = DateTime.now().isAfter(endOfServiceDay);
+      } catch (e) {
+        print('Error al parsear fecha de servicio: $e');
+      }
+    }
 
     return GestureDetector(
       onTap: () {
@@ -299,7 +313,74 @@ class _ViajesProgramadosScreenState extends State<ViajesProgramadosScreen> {
                                 ),
                                 const Spacer(),
                                 IconButton(
-                                  onPressed: () {}, // Lógica de WhatsApp
+                                  onPressed: () {
+                                    if (hasPassed) {
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          backgroundColor: const Color(0xFF001F3F),
+                                          title: const Text(
+                                            'Viaje Finalizado',
+                                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                          ),
+                                          content: const Text(
+                                            'Este viaje ya ha finalizado y la comunicación activa por chat está cerrada. ¿Deseas ver el historial o calificar tu experiencia?',
+                                            style: TextStyle(color: Colors.white70),
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () => Navigator.pop(context),
+                                              child: const Text('Cancelar', style: TextStyle(color: Colors.white54)),
+                                            ),
+                                            TextButton(
+                                              onPressed: () {
+                                                Navigator.pop(context); // Cerrar diálogo
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) => ChatScreen(
+                                                      reservaId: viaje['id']?.toString() ?? '',
+                                                      nombreServicio: viaje['presupuestos'] != null 
+                                                          ? viaje['presupuestos']['titulo'] ?? 'Viaje de Pesca'
+                                                          : 'Viaje de Pesca',
+                                                      nombreCliente: contraparte['nombre'] ?? 'Usuario',
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                              child: const Text('Ver Chat', style: TextStyle(color: Color(0xFF00E676))),
+                                            ),
+                                            if (!widget.esCapitan)
+                                              TextButton(
+                                                onPressed: () {
+                                                  Navigator.pop(context); // Cerrar diálogo
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) => const ConfirmarFinalizacionScreen(),
+                                                    ),
+                                                  ).then((_) => _cargarViajes());
+                                                },
+                                                child: const Text('Calificar', style: TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold)),
+                                              ),
+                                          ],
+                                        ),
+                                      );
+                                    } else {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => ChatScreen(
+                                            reservaId: viaje['id']?.toString() ?? '',
+                                            nombreServicio: viaje['presupuestos'] != null 
+                                                ? viaje['presupuestos']['titulo'] ?? 'Viaje de Pesca'
+                                                : 'Viaje de Pesca',
+                                            nombreCliente: contraparte['nombre'] ?? 'Usuario',
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  },
                                   icon: const Icon(
                                     Icons.message,
                                     color: Color(0xFF00E676),
@@ -338,6 +419,38 @@ class _ViajesProgramadosScreenState extends State<ViajesProgramadosScreen> {
                               ],
                             ),
                     ),
+                    if (hasPassed && !widget.esCapitan) ...[
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 46,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ConfirmarFinalizacionScreen(),
+                              ),
+                            ).then((_) => _cargarViajes());
+                          },
+                          icon: const Icon(Icons.star_rate_rounded, color: Colors.black87),
+                          label: const Text(
+                            'FINALIZAR Y CALIFICAR VIAJE',
+                            style: TextStyle(
+                              color: Colors.black87,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.1,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF00E676),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
