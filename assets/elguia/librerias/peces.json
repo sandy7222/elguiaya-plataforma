@@ -229,6 +229,47 @@
       ],
       "respuesta_limpia": "Cascarudo, carnada resistente para surubí y dorado",
       "gif": "exito"
+    },
+    {
+      "intencion": "conservacion_surubi",
+      "activadores": [
+        "veda surubi",
+        "proteccion surubi",
+        "conservacion especies"
+      ],
+      "respuesta_limpia": "La veda del surubí es importante para su conservación",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "veda_del_surubi",
+      "activadores": [
+        "veda del surubí",
+        "protección del surubí",
+        "conservación de la especie"
+      ],
+      "respuesta_limpia": "La veda del surubí es un período de tiempo en el que se prohíbe la pesca para permitir que se recupere y se reproduzca",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "conocer_conservacion_surubi",
+      "activadores": [
+        "conservación del surubí",
+        "protección del medio ambiente",
+        "veda del surubí"
+      ],
+      "respuesta_limpia": "La conservación del surubí es importante para proteger la especie",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "conocer_habitat_dorados_surubies",
+      "activadores": [
+        "dorados",
+        "surubíes",
+        "río Paraná",
+        "río Bermejo"
+      ],
+      "respuesta_limpia": "Los dorados y surubíes se encuentran en los ríos Paraná y Bermejo",
+      "gif": "hablaConMate"
     }
   ]
 }

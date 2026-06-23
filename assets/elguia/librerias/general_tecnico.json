@@ -546,6 +546,35 @@
       ],
       "respuesta_limpia": "Temperatura afecta comportamiento",
       "gif": "piensaLeve"
+    },
+    {
+      "intencion": "como_pescar_matungos",
+      "activadores": [
+        "pescar matungos",
+        "lagunas profundas",
+        "sur de Buenos Aires"
+      ],
+      "respuesta_limpia": "Pescar matungos en lagunas profundas requiere técnicas y equipamientos específicos",
+      "gif": "piensaLeve"
+    },
+    {
+      "intencion": "donde_se_encuentran_matungos",
+      "activadores": [
+        "matungos en lagunas",
+        "donde viven los matungos"
+      ],
+      "respuesta_limpia": "Matungos en lagunas privadas y remotas",
+      "gif": "piensaLeve"
+    },
+    {
+      "intencion": "que_es_matungo",
+      "activadores": [
+        "matungo",
+        "pejerrey adulto",
+        "lagunas pampeanas"
+      ],
+      "respuesta_limpia": "Matungo: pejerrey adulto en lagunas pampeanas",
+      "gif": "hablaConMate"
     }
   ]
 }
