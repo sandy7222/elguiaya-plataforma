@@ -75,6 +75,25 @@
       ],
       "respuesta_limpia": "Verificar pronóstico y nivel del agua, spinning liviano para pejerrey, pesca de fondo para bagre y boga",
       "gif": "hablaConMate"
+    },
+    {
+      "intencion": "como_funciona_sensor_de_reel",
+      "activadores": [
+        "sensor de reel",
+        "sonido del reel",
+        "avisar de pique"
+      ],
+      "respuesta_limpia": "Sensor de reel para detectar pique",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "avisar_sonido_reel",
+      "activadores": [
+        "sonido del reel",
+        "pique"
+      ],
+      "respuesta_limpia": "Sebastián, Sebastián",
+      "gif": "hablaConMate"
     }
   ]
 }

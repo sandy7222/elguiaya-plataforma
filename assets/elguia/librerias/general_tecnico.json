@@ -551,11 +551,10 @@
       "intencion": "como_pescar_matungos",
       "activadores": [
         "pescar matungos",
-        "lagunas profundas",
-        "sur de Buenos Aires"
+        "técnica para matungos"
       ],
-      "respuesta_limpia": "Pescar matungos en lagunas profundas requiere técnicas y equipamientos específicos",
-      "gif": "piensaLeve"
+      "respuesta_limpia": "Usar carnada viva y anzuelos fuertes",
+      "gif": "hablaConMate"
     },
     {
       "intencion": "donde_se_encuentran_matungos",
@@ -574,6 +573,96 @@
         "lagunas pampeanas"
       ],
       "respuesta_limpia": "Matungo: pejerrey adulto en lagunas pampeanas",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "pesca_en_ushuaia",
+      "activadores": [
+        "Ushuaia",
+        "pesca en Ushuaia",
+        "trucha en Ushuaia"
+      ],
+      "respuesta_limpia": "Ushuaia ofrece pesca de trucha, salmón y pejerrey patagónico",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "como_pescar_matungo",
+      "activadores": [
+        "pescar matungo",
+        "pejerrey adulto",
+        "la represa de san luis",
+        "boya paster noster",
+        "mojarra"
+      ],
+      "respuesta_limpia": "Pescar matungo en La Represa de San Luis requiere técnica y estrategia",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "esperar_pique",
+      "activadores": [
+        "caña de pesca",
+        "pique",
+        "pejerrey"
+      ],
+      "respuesta_limpia": "Esperar con paciencia y mantener la caña quieta.",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "pesca_de_salmón_en_ushuaia",
+      "activadores": [
+        "pesca de salmón",
+        "Ushuaia",
+        "salmón del Atlántico"
+      ],
+      "respuesta_limpia": "La pesca de salmón en Ushuaia es emocionante, con peces de hasta 12 kg.",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "avisar_pique",
+      "activadores": [
+        "reel suena",
+        "pique detectado"
+      ],
+      "respuesta_limpia": "¡Sebastián, Sebastián!",
+      "gif": "exito"
+    },
+    {
+      "intencion": "donde_viven_matungos",
+      "activadores": [
+        "matungos en lagunas",
+        "laguna de Cochicó",
+        "pejerreys adultos"
+      ],
+      "respuesta_limpia": "Matungos viven en lagunas profundas como Cochicó",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "conocer_represa_salto_grande",
+      "activadores": [
+        "Represa de Salto Grande",
+        "sistemas de elevación",
+        "conservación de peces"
+      ],
+      "respuesta_limpia": "La Represa de Salto Grande tiene sistemas de elevación para permitir a los peces pasar por encima",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "pescar_pejerrey",
+      "activadores": [
+        "pescar pejerrey",
+        "caña de pesca",
+        "Río de la Plata"
+      ],
+      "respuesta_limpia": "Usar cebo adecuado y esperar pacientemente",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "ubicacion_paso_de_la_patria",
+      "activadores": [
+        "Paso de la Patria",
+        "latitud y longitud"
+      ],
+      "respuesta_limpia": "Lat: 29,75° S, Long: 57,65° O",
       "gif": "hablaConMate"
     }
   ]
