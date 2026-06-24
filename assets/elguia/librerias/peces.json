@@ -233,11 +233,11 @@
     {
       "intencion": "conservacion_surubi",
       "activadores": [
-        "veda surubi",
-        "proteccion surubi",
-        "conservacion especies"
+        "surubí",
+        "conservación",
+        "hábitat"
       ],
-      "respuesta_limpia": "La veda del surubí es importante para su conservación",
+      "respuesta_limpia": "Proteger los hábitats de reproducción de los surubíes es fundamental para la conservación de la especie.",
       "gif": "hablaConMate"
     },
     {

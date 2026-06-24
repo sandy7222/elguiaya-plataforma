@@ -157,6 +157,15 @@
       ],
       "respuesta_limpia": "Lombriz y masa son buenas opciones",
       "gif": "hablaConMate"
+    },
+    {
+      "intencion": "carnada_para_matungo",
+      "activadores": [
+        "carnada para matungo",
+        "matungo con mojarra"
+      ],
+      "respuesta_limpia": "Mojarra es efectiva",
+      "gif": "hablaConMate"
     }
   ]
 }
