@@ -5,6 +5,7 @@ import '../providers/cart_provider.dart';
 import '../models/cart_item.dart';
 import '../services/branding_service.dart';
 import '../services/mercado_pago_service.dart';
+import '../widgets/safe_product_image.dart';
 import 'checkout_payment_screen.dart';
 
 class CarritoScreen extends StatefulWidget {
@@ -181,7 +182,12 @@ class _CarritoScreenState extends State<CarritoScreen> {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image.network(item.producto.imagenUrl, width: 80, height: 80, fit: BoxFit.cover),
+            child: SafeProductImage(
+              imagenUrl: item.producto.imagenUrl,
+              width: 80,
+              height: 80,
+              fit: BoxFit.cover,
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(

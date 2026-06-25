@@ -364,7 +364,6 @@ class _PescadorDashboardScreenState extends State<PescadorDashboardScreen>
         backgroundColor: _azulNautico,
         foregroundColor: Colors.white,
         actions: [
-          const NotificationQuickView(),
           IconButton(
             icon: const Icon(Icons.calendar_month, color: Color(0xFF00E676)),
             tooltip: 'Mis Viajes Programados',
@@ -633,7 +632,18 @@ class _PescadorDashboardScreenState extends State<PescadorDashboardScreen>
     return OfertaCapitanCard(
       oferta: oferta,
       isProcessing: _isProcessingDeal,
-      onAccept: () => _aceptarPresupuestoReal(oferta),
+      onAccept: () {
+        final cotizacionId = (oferta['cotizacion_id']?.toString()) ?? 
+            (_cotizaciones.isNotEmpty ? _cotizaciones.first.id : '');
+        if (cotizacionId.isNotEmpty) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ResumenReservaScreen(cotizacionId: cotizacionId),
+            ),
+          ).then((_) => _cargarDatos());
+        }
+      },
     );
   }
 
@@ -1312,6 +1322,7 @@ class FormularioCotizacionTecnicaState
   final _formKey = GlobalKey<FormState>();
   final _localidadController = TextEditingController();
   final _provinciaController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   String _actividadSeleccionada = 'Turismo';
 
   final GlobalKey<MapSelectorWidgetState> _mapSelectorKey = GlobalKey();
@@ -1334,6 +1345,14 @@ class FormularioCotizacionTecnicaState
       _trackLog = List.from(widget.initialTrackLog!);
     }
     _distanciaKM = widget.initialDistanciaKM ?? 0.0;
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _localidadController.dispose();
+    _provinciaController.dispose();
+    super.dispose();
   }
 
   @override
@@ -1416,6 +1435,8 @@ class FormularioCotizacionTecnicaState
             child: Form(
               key: _formKey,
               child: SingleChildScrollView(
+                key: const PageStorageKey('formulario_cotizacion_scroll'),
+                controller: _scrollController,
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

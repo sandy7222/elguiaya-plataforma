@@ -1,4 +1,4 @@
-﻿import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// 🔔 HELPER CENTRALIZADO DE NOTIFICACIONES
 ///
@@ -104,6 +104,28 @@ class NotificacionHelper {
       mensaje: 'El pescador aceptó tu cotización de \$$monto. ¡Preparate para zarpar!',
       tipo: 'viaje_confirmado',
       metadata: {'pedido_id': pedidoId, 'monto': monto},
+    );
+  }
+
+  static Future<void> viajeConfirmadoConDatos(
+    String capitanId,
+    String pedidoId,
+    double monto,
+    String nombrePescador,
+    int cantidadPersonas,
+  ) async {
+    final personas = cantidadPersonas == 1 ? '1 persona' : '$cantidadPersonas personas';
+    await enviar(
+      usuarioId: capitanId,
+      titulo: '⚓ ¡Viaje Confirmado!',
+      mensaje: '$nombrePescador aceptó tu cotización de \$$monto · $personas en total. ¡Preparate para zarpar!',
+      tipo: 'viaje_confirmado',
+      metadata: {
+        'pedido_id': pedidoId,
+        'monto': monto,
+        'nombre_pescador': nombrePescador,
+        'cantidad_personas': cantidadPersonas,
+      },
     );
   }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/cart_provider.dart';
 import '../models/cart_item.dart';
+import 'safe_product_image.dart';
 
 class CartSheet extends StatelessWidget {
   const CartSheet({super.key});
@@ -123,7 +124,12 @@ class CartSheet extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image.network(item.producto.imagenUrl, width: 60, height: 60, fit: BoxFit.cover),
+            child: SafeProductImage(
+              imagenUrl: item.producto.imagenUrl,
+              width: 60,
+              height: 60,
+              fit: BoxFit.cover,
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(

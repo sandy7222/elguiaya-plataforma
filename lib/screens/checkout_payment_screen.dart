@@ -388,6 +388,8 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
                 const SizedBox(height: 28),
                 if (_errorMessage != null) _buildError(_errorMessage!),
                 _buildBotonMP(),
+                const SizedBox(height: 14),
+                _buildBotonSimularPago(),
               ],
             ),
           ),
@@ -549,6 +551,67 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
     );
   }
 
+  Widget _buildBotonSimularPago() {
+    return SizedBox(
+      width: double.infinity,
+      height: 54,
+      child: OutlinedButton.icon(
+        onPressed: _isProcessing ? null : _simularPagoExitoso,
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: Colors.orangeAccent, width: 1.5),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+        icon: const Icon(Icons.bug_report_outlined, color: Colors.orangeAccent),
+        label: const Text(
+          'SIMULAR PAGO (MODO TEST)',
+          style: TextStyle(
+            color: Colors.orangeAccent,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _simularPagoExitoso() async {
+    setState(() {
+      _isProcessing = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final mockPago = EstadoPagoMP(
+        id: 'mock_mp_${DateTime.now().millisecondsSinceEpoch}',
+        status: 'approved',
+        statusDetail: 'accredited',
+        transactionAmount: widget.amount,
+        paymentMethodId: 'visa',
+        dateApproved: DateTime.now(),
+      );
+
+      // Actualizar en Supabase
+      await _actualizarReservaEnSupabase(mockPago, EstadoReservaMP.aprobado);
+
+      _pollingTimer?.cancel();
+
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+          _pagoConfirmado = mockPago;
+          _pantalla = _Pantalla.aprobado;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+          _errorMessage = 'Error en simulación: $e';
+        });
+      }
+    }
+  }
+
   // ─── PANTALLA ESPERANDO ───────────────────────────────────────────────────
   Widget _buildEsperando() {
     return Padding(
@@ -642,6 +705,8 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
             ),
           ),
           const SizedBox(height: 14),
+          _buildBotonSimularPago(),
+          const SizedBox(height: 10),
           TextButton(
             onPressed: () => setState(() {
               _pantalla = _Pantalla.inicial;

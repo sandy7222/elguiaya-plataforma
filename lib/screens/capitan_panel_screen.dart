@@ -17,6 +17,7 @@ import 'capitan_zona_config_screen.dart';
 import 'viajes_programados_screen.dart';
 import '../services/viaje_lifecycle_service.dart';
 import '../services/viaje_tracking_service.dart';
+import '../services/gps_tracker_service.dart';
 import '../services/core_business_logic.dart';
 import 'solicitud_detalle_screen.dart';
 import '../widgets/notification_quick_view.dart';
@@ -39,6 +40,7 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
   List<Cotizacion> _cotizaciones = [];
   final List<Cotizacion> _cotizacionesPendientes = [];
   List<Map<String, dynamic>> _leads = [];
+  Set<String> _cotizacionesPresupuestadas = {};
   int _unreadLeadsCount = 0;
   bool _isLoading = true;
   bool _guardando = false;
@@ -205,6 +207,24 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
         leads = [];
       }
 
+      // 3. Cargar IDs de cotizaciones ya presupuestadas por este capitán
+      Set<String> cotizacionesPresupuestadas = {};
+      try {
+        final responsePresupuestos = await Supabase.instance.client
+            .from('presupuestos')
+            .select('cotizacion_id')
+            .eq('capitan_id', _capitanId);
+        
+        if (responsePresupuestos != null) {
+          cotizacionesPresupuestadas = (responsePresupuestos as List)
+              .map((p) => p['cotizacion_id']?.toString() ?? '')
+              .where((id) => id.isNotEmpty)
+              .toSet();
+        }
+      } catch (e) {
+        print('⚠️ Error al cargar presupuestos del capitán: $e');
+      }
+
       if (mounted) {
         // Contar solicitudes nuevas (leads)
         final nuevasSolicitudes = leads.where((l) => l['estado'] == 'pendiente' || l['estado'] == 'solicitada').length;
@@ -215,6 +235,7 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
         setState(() {
           _cotizaciones = cotizaciones;
           _leads = leads;
+          _cotizacionesPresupuestadas = cotizacionesPresupuestadas;
           _unreadLeadsCount = nuevasSolicitudes + tratosCerrados;
           _isLoading = false;
         });
@@ -688,18 +709,20 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
               
               final bool yaExpiro = expiraEn.isBefore(DateTime.now());
               
+              final bool yaOfertado = _cotizacionesPresupuestadas.contains(lead['id']);
+              
               return ListTile(
-                onTap: yaExpiro ? null : () => _mostrarDetalleLead(lead),
+                onTap: (yaExpiro || yaOfertado) ? null : () => _mostrarDetalleLead(lead),
                 contentPadding: EdgeInsets.zero,
                 leading: Badge(
-                  isLabelVisible: isUnread,
+                  isLabelVisible: isUnread && !yaOfertado,
                   backgroundColor: Colors.blueAccent,
                   child: CircleAvatar(
-                    backgroundColor: yaExpiro ? Colors.white10 : const Color(0xFF0A192F),
+                    backgroundColor: (yaExpiro || yaOfertado) ? Colors.white10 : const Color(0xFF0A192F),
                     radius: 20,
                     child: Icon(
-                      yaExpiro ? Icons.timer_off_rounded : Icons.person_rounded, 
-                      color: yaExpiro ? Colors.white30 : Colors.white,
+                      yaExpiro ? Icons.timer_off_rounded : (yaOfertado ? Icons.check_circle_outline : Icons.person_rounded), 
+                      color: yaExpiro ? Colors.white30 : (yaOfertado ? const Color(0xFF00E676) : Colors.white),
                       size: 20,
                     ),
                   ),
@@ -708,17 +731,21 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
                   lead['profiles']?['nombre'] ?? 'NUEVA SOLICITUD',
                   style: TextStyle(
                     fontWeight: FontWeight.bold, 
-                    color: yaExpiro ? Colors.white38 : Colors.white,
+                    color: (yaExpiro || yaOfertado) ? Colors.white38 : Colors.white,
                     fontSize: 14,
                     decoration: yaExpiro ? TextDecoration.lineThrough : null,
                   ),
                 ),
                 subtitle: yaExpiro 
                   ? const Text('Plazo de subasta finalizado', style: TextStyle(color: Colors.white30, fontSize: 11))
-                  : _buildLeadCountdown(expiraEn),
+                  : yaOfertado
+                      ? const Text('Propuesta enviada con éxito', style: TextStyle(color: Color(0xFF00E676), fontSize: 11, fontWeight: FontWeight.bold))
+                      : _buildLeadCountdown(expiraEn),
                 trailing: yaExpiro 
                   ? const Text('EXPIRADO', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 9, letterSpacing: 0.5))
-                  : const Icon(Icons.chevron_right_rounded, color: Colors.white70),
+                  : yaOfertado
+                      ? const Text('OFERTADO', style: TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold, fontSize: 9, letterSpacing: 0.5))
+                      : const Icon(Icons.chevron_right_rounded, color: Colors.white70),
               );
             },
           ),
@@ -743,13 +770,22 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
                   style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
                 ),
                 trailing: ElevatedButton(
-                  onPressed: () => _mostrarDialogoPresupuestar(cot),
+                  onPressed: _cotizacionesPresupuestadas.contains(cot.id)
+                      ? null
+                      : () => _mostrarDialogoPresupuestar(cot),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orangeAccent,
+                    backgroundColor: _cotizacionesPresupuestadas.contains(cot.id)
+                        ? Colors.grey
+                        : Colors.orangeAccent,
                     foregroundColor: Colors.black,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
-                  child: const Text('Cotizar', style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: Text(
+                    _cotizacionesPresupuestadas.contains(cot.id)
+                        ? 'Enviado'
+                        : 'Cotizar',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
             )
@@ -1227,20 +1263,26 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        _mostrarDialogoPresupuestar(cot);
-                      },
+                      onPressed: _cotizacionesPresupuestadas.contains(cot.id)
+                          ? null
+                          : () {
+                              Navigator.pop(context);
+                              _mostrarDialogoPresupuestar(cot);
+                            },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blueAccent,
+                        backgroundColor: _cotizacionesPresupuestadas.contains(cot.id)
+                            ? Colors.grey
+                            : Colors.blueAccent,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      child: const Text(
-                        'ENVIAR PROPUESTA (PRESUPUESTO)',
-                        style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                      child: Text(
+                        _cotizacionesPresupuestadas.contains(cot.id)
+                            ? 'PROPUESTA YA ENVIADA'
+                            : 'ENVIAR PROPUESTA (PRESUPUESTO)',
+                        style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5),
                       ),
                     ),
                   ),
@@ -1379,11 +1421,13 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
                             pedidoId: cot.id,
                             capitanId: _capitanId,
                           );
+                          // 🚀 Activar GPS tracking del capitán
+                          GpsTrackerService().startTracking(_capitanId);
                           _cargarDatos();
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('⛵ Viaje ${cot.codigoCorto} INICIADO'),
+                                content: Text('⛵ Viaje ${cot.codigoCorto} INICIADO — GPS activo'),
                                 backgroundColor: const Color(0xFF00E676),
                                 behavior: SnackBarBehavior.floating,
                               ),
@@ -1425,6 +1469,8 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
                                 pedidoId: cot.id,
                                 capitanId: _capitanId,
                               );
+                              // 🛑 Detener GPS tracking al finalizar el viaje
+                              GpsTrackerService().stopTracking();
                               _cargarDatos();
                               if (mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
