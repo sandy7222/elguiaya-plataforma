@@ -31,7 +31,7 @@ class _OfertaCapitanCardState extends State<OfertaCapitanCard>
       duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
     
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.03).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
   }
@@ -44,13 +44,30 @@ class _OfertaCapitanCardState extends State<OfertaCapitanCard>
 
   @override
   Widget build(BuildContext context) {
-    final capitanData = widget.oferta['profiles'] as Map<String, dynamic>?;
-    final capitanNombre = capitanData?['nombre'] ?? 'Capitán';
-    final capitanFoto = capitanData?['avatar_url'];
-    final barcoNombre = widget.oferta['barco_nombre'] ?? 'Embarcación Principal';
-    final barcoFoto = widget.oferta['barco_foto_url'] ?? widget.oferta['embarcacion_url'];
+    // Datos del capitán — vienen de profiles join
+    final rawProfiles = widget.oferta['profiles'];
+    final capitanData = rawProfiles is List
+        ? (rawProfiles.isNotEmpty ? rawProfiles.first as Map<String, dynamic>? : null)
+        : rawProfiles as Map<String, dynamic>?;
+
+    final capitanNombre = capitanData?['nombre']?.toString() ?? 'Capitán';
+    final capitanFoto = capitanData?['avatar_url']?.toString();
+    
+    // Foto de la embarcación — viene del join con guias
+    final barcoFoto = widget.oferta['embarcacion_url']?.toString()
+        ?? widget.oferta['barco_foto_url']?.toString();
+    final barcoNombre = widget.oferta['barco_nombre']?.toString()
+        ?? widget.oferta['embarcacion_nombre']?.toString()
+        ?? 'Embarcación Principal';
+
     final monto = (widget.oferta['monto'] as num?)?.toDouble() ?? 0.0;
-    final detalles = widget.oferta['detalles'] ?? 'Servicio de pesca profesional con equipamiento completo.';
+    final detalles = widget.oferta['detalles']?.toString()
+        ?? widget.oferta['bio_pescador']?.toString()
+        ?? 'Servicio de guía profesional (Contacto privado hasta el pago)';
+    
+    final calificacion = (widget.oferta['calificacion_promedio'] as num?)?.toDouble()
+        ?? (widget.oferta['calificacion'] as num?)?.toDouble();
+    final viajesRealizados = (widget.oferta['viajes_realizados'] as num?)?.toInt();
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -59,7 +76,6 @@ class _OfertaCapitanCardState extends State<OfertaCapitanCard>
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
           child: Container(
-            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.1),
               borderRadius: BorderRadius.circular(24),
@@ -69,176 +85,294 @@ class _OfertaCapitanCardState extends State<OfertaCapitanCard>
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 14,
+                  offset: const Offset(0, 6),
                 ),
               ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Cabecera: Foto, Nombre y Badge
-                Row(
+                // ── FOTO DE LA LANCHA (banner superior) ──────────────────
+                Stack(
                   children: [
-                    CircleAvatar(
-                      radius: 28,
-                      backgroundColor: Colors.white24,
-                      backgroundImage: capitanFoto != null ? NetworkImage(capitanFoto) : null,
-                      child: capitanFoto == null ? const Icon(Icons.person, color: Colors.white) : null,
+                    // Imagen de la lancha como banner
+                    ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(23),
+                        topRight: Radius.circular(23),
+                      ),
+                      child: Container(
+                        height: 140,
+                        width: double.infinity,
+                        color: const Color(0xFF001830),
+                        child: barcoFoto != null
+                            ? Image.network(
+                                barcoFoto,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => _buildBoatPlaceholder(),
+                              )
+                            : _buildBoatPlaceholder(),
+                      ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            capitanNombre,
-                            style: GoogleFonts.outfit(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+
+                    // Degradado sobre la imagen para legibilidad
+                    Positioned.fill(
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(23),
+                          topRight: Radius.circular(23),
+                        ),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withOpacity(0.6),
+                              ],
+                              stops: const [0.4, 1.0],
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.verified, color: Colors.white, size: 12),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'VERIFICADO',
-                                  style: GoogleFonts.outfit(
-                                    color: Colors.white,
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                        ),
+                      ),
+                    ),
+
+                    // Nombre de la embarcación encima del degradado
+                    Positioned(
+                      bottom: 10,
+                      left: 14,
+                      child: Row(
+                        children: [
+                          const Icon(Icons.directions_boat_rounded, color: Colors.white70, size: 14),
+                          const SizedBox(width: 6),
+                          Text(
+                            barcoNombre,
+                            style: GoogleFonts.outfit(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              shadows: [
+                                Shadow(color: Colors.black.withOpacity(0.5), blurRadius: 4),
                               ],
                             ),
                           ),
                         ],
                       ),
                     ),
-                    // Precio en la esquina superior
-                    Text(
-                      '\$${monto.toStringAsFixed(0)}',
-                      style: GoogleFonts.outfit(
-                        color: const Color(0xFF00E676),
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
+
+                    // Precio flotando arriba a la derecha
+                    Positioned(
+                      top: 10,
+                      right: 12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.6),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: const Color(0xFF00E676).withOpacity(0.6)),
+                        ),
+                        child: Text(
+                          '\$${monto.toStringAsFixed(0)}',
+                          style: GoogleFonts.outfit(
+                            color: const Color(0xFF00E676),
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
                   ],
                 ),
-                
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                  child: Divider(color: Colors.white10, height: 1),
-                ),
 
-                // Foto de la embarcación (Si existe) o Placeholder náutico
-                Container(
-                  height: 120,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    color: Colors.black26,
-                    image: barcoFoto != null 
-                      ? DecorationImage(image: NetworkImage(barcoFoto), fit: BoxFit.cover)
-                      : null,
-                  ),
-                  child: barcoFoto == null 
-                    ? const Center(child: Icon(Icons.directions_boat, color: Colors.white24, size: 40))
-                    : null,
-                ),
-
-                const SizedBox(height: 12),
-
-                // Info: Barco y Detalles
-                Row(
-                  children: [
-                    const Icon(Icons.anchor, color: Colors.white70, size: 16),
-                    const SizedBox(width: 6),
-                    Text(
-                      barcoNombre,
-                      style: GoogleFonts.outfit(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  detalles,
-                  style: GoogleFonts.outfit(
-                    color: Colors.white70,
-                    fontSize: 12,
-                    height: 1.4,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-
-                const SizedBox(height: 20),
-
-                // Botón 'Zarpamos' -> Ahora lleva al resumen
-                ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: Container(
-                    width: double.infinity,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF0066FF), Color(0xFF00E676)],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF0066FF).withOpacity(0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
+                // ── CABECERA: AVATAR + NOMBRE + BADGE ────────────────────
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Avatar del capitán con borde brillante
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: const Color(0xFF00E676),
+                            width: 2.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF00E676).withOpacity(0.3),
+                              blurRadius: 8,
+                              spreadRadius: 1,
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    child: ElevatedButton(
-                      onPressed: widget.isProcessing ? null : widget.onAccept,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                        child: CircleAvatar(
+                          radius: 26,
+                          backgroundColor: Colors.white12,
+                          backgroundImage: capitanFoto != null
+                              ? NetworkImage(capitanFoto)
+                              : null,
+                          child: capitanFoto == null
+                              ? const Icon(Icons.person, color: Colors.white60, size: 26)
+                              : null,
                         ),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.visibility, color: Colors.white, size: 20),
-                          const SizedBox(width: 10),
-                          Flexible(
-                            child: Text(
-                              'VER DETALLES Y RESERVAR',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                      const SizedBox(width: 12),
+
+                      // Nombre + badge verificado
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              capitanNombre,
                               style: GoogleFonts.outfit(
                                 color: Colors.white,
-                                fontSize: 13,
+                                fontSize: 17,
                                 fontWeight: FontWeight.bold,
-                                letterSpacing: 1.1,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                // Badge verificado
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+                                    ),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.verified, color: Colors.white, size: 11),
+                                      const SizedBox(width: 3),
+                                      Text(
+                                        'VERIFICADO',
+                                        style: GoogleFonts.outfit(
+                                          color: Colors.white,
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                // Calificación si existe
+                                if (calificacion != null && calificacion > 0) ...[
+                                  const SizedBox(width: 8),
+                                  const Icon(Icons.star_rounded, color: Color(0xFFFFD700), size: 14),
+                                  const SizedBox(width: 2),
+                                  Text(
+                                    calificacion.toStringAsFixed(1),
+                                    style: GoogleFonts.outfit(
+                                      color: Colors.white70,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                                // Cantidad de viajes si existe
+                                if (viajesRealizados != null && viajesRealizados > 0) ...[
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    '· $viajesRealizados viajes',
+                                    style: GoogleFonts.outfit(
+                                      color: Colors.white38,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // ── DESCRIPCIÓN ───────────────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: Text(
+                    detalles,
+                    style: GoogleFonts.outfit(
+                      color: Colors.white60,
+                      fontSize: 12,
+                      height: 1.4,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // ── BOTÓN VER DETALLES ────────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
+                  child: ScaleTransition(
+                    scale: _scaleAnimation,
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF0066FF), Color(0xFF00C6FF)],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF0066FF).withOpacity(0.35),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton(
+                          onPressed: widget.isProcessing ? null : widget.onAccept,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
                             ),
                           ),
-                        ],
+                          child: widget.isProcessing
+                              ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.visibility_rounded, color: Colors.white, size: 18),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      'VER DETALLES Y RESERVAR',
+                                      style: GoogleFonts.outfit(
+                                        color: Colors.white,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 0.8,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                        ),
                       ),
                     ),
                   ),
@@ -250,5 +384,30 @@ class _OfertaCapitanCardState extends State<OfertaCapitanCard>
       ),
     );
   }
-}
 
+  Widget _buildBoatPlaceholder() {
+    return Container(
+      color: const Color(0xFF001830),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.directions_boat_rounded,
+              color: Colors.white.withOpacity(0.15),
+              size: 48,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Sin foto de embarcación',
+              style: GoogleFonts.outfit(
+                color: Colors.white24,
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

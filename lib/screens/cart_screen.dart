@@ -1,10 +1,11 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../providers/cart_provider.dart';
 import '../models/cart_item.dart';
 import '../services/mercado_pago_service.dart';
+import '../widgets/safe_product_image.dart';
 import 'checkout_payment_screen.dart';
 import 'formulario_pasajeros_screen.dart';
 import 'formulario_envio_screen.dart';
@@ -94,12 +95,19 @@ class _CartScreenState extends State<CartScreen> {
       try {
         final profile = await Supabase.instance.client
             .from('profiles')
-            .select('nombre, apellido, dni')
+            .select('nombre, dni')
             .eq('user_id', user.id)
             .maybeSingle();
         if (profile != null) {
-          nombre = profile['nombre']?.toString() ?? '';
-          apellido = profile['apellido']?.toString() ?? '';
+          final nombreRaw = profile['nombre']?.toString() ?? '';
+          final parts = nombreRaw.trim().split(' ');
+          if (parts.length > 1) {
+            nombre = parts.sublist(0, parts.length - 1).join(' ');
+            apellido = parts.last;
+          } else {
+            nombre = nombreRaw;
+            apellido = '';
+          }
           dni = profile['dni']?.toString() ?? '';
         }
       } catch (_) {}
@@ -339,17 +347,11 @@ class _CartScreenState extends State<CartScreen> {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
-            child: Image.network(
-              item.producto.imagenUrl,
+            child: SafeProductImage(
+              imagenUrl: item.producto.imagenUrl,
               width: 72,
               height: 72,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                width: 72,
-                height: 72,
-                color: Colors.grey.shade200,
-                child: const Icon(Icons.image_not_supported_outlined, color: Colors.grey),
-              ),
             ),
           ),
           const SizedBox(width: 14),

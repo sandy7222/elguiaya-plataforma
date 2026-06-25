@@ -1,4 +1,4 @@
-﻿import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'disponibilidad_service_final.dart';
 import 'notificacion_helper.dart';
 
@@ -13,6 +13,18 @@ class ViajeLifecycleService {
     required String detalles,
   }) async {
     try {
+      // Evitar envíos duplicados del mismo capitán para la misma cotización
+      final yaExiste = await _supabase
+          .from('presupuestos')
+          .select('id')
+          .eq('cotizacion_id', cotizacionId)
+          .eq('capitan_id', capitanId)
+          .maybeSingle();
+
+      if (yaExiste != null) {
+        throw Exception('Ya has enviado una propuesta para esta cotización.');
+      }
+
       await _supabase.from('presupuestos').insert({
         'cotizacion_id': cotizacionId,
         'capitan_id': capitanId,
@@ -127,12 +139,41 @@ class ViajeLifecycleService {
           .update({'estado': 'cerrada'})
           .eq('id', presupuesto['cotizacion_id']);
 
-      // Notificar al capitán en la campanita
+      // Notificar al capitán en la campanita con datos del pescador
       try {
         final capitanId = presupuesto['capitan_id'] as String?;
         final monto = (presupuesto['monto'] as num?)?.toDouble() ?? 0.0;
         if (capitanId != null) {
-          await NotificacionHelper.viajeConfirmado(capitanId, response['id'], monto);
+          // Leer nombre del pescador para enriquecer la notificación
+          String nombrePescador = 'Un pescador';
+          int cantidadPersonas = 1;
+          try {
+            final pescadorProfile = await _supabase
+                .from('profiles')
+                .select('nombre, dni')
+                .eq('user_id', pescadorId)
+                .maybeSingle();
+            if (pescadorProfile != null) {
+              nombrePescador = pescadorProfile['nombre']?.toString() ?? 'Un pescador';
+            }
+            // Leer cantidad de personas de la cotización
+            final cotData = await _supabase
+                .from('cotizaciones')
+                .select('cantidad_personas')
+                .eq('id', presupuesto['cotizacion_id'])
+                .maybeSingle();
+            if (cotData != null) {
+              cantidadPersonas = (cotData['cantidad_personas'] as num?)?.toInt() ?? 1;
+            }
+          } catch (_) {}
+
+          await NotificacionHelper.viajeConfirmadoConDatos(
+            capitanId,
+            response['id'],
+            monto,
+            nombrePescador,
+            cantidadPersonas,
+          );
         }
       } catch (e) {
         print('Error al notificar al capitán sobre aceptación de presupuesto: $e');

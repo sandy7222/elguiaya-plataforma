@@ -2982,17 +2982,31 @@ class SupabaseService {
   // ========== METODOS DE FINALIZACION DE VIAJES ==========
   
   /// Obtener viajes listos para confirmacion de un cliente
-  static Future<List<Map<String, dynamic>>> getViajesListosConfirmacion(String clienteId) async {
+  static Future<List<Map<String, dynamic>>> getViajesListosConfirmacion(String pescadorId) async {
     try {
+      if (pescadorId.isEmpty) return [];
+      // Buscar directo en pedidos — la vista vw_viajes_listos_confirmacion puede no existir
       final response = await supabase
-          .from('vw_viajes_listos_confirmacion')
-          .select('*')
-          .eq('cliente_id', clienteId)
-          .order('fecha_pactada', ascending: true);
-      
+          .from('pedidos')
+          .select('*, profiles:capitan_id(nombre, avatar_url, telefono)')
+          .eq('pescador_id', pescadorId)
+          .eq('estado', 'listo_para_confirmar')
+          .order('finalizado_at', ascending: false);
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      throw Exception('Error al obtener viajes listos para confirmacion: $e');
+      // Fallback sin join si hay problemas de RLS en profiles
+      try {
+        final response = await supabase
+            .from('pedidos')
+            .select()
+            .eq('pescador_id', pescadorId)
+            .eq('estado', 'listo_para_confirmar')
+            .order('finalizado_at', ascending: false);
+        return List<Map<String, dynamic>>.from(response);
+      } catch (e2) {
+        print('⚠️ [getViajesListosConfirmacion] Error: $e2');
+        return [];
+      }
     }
   }
 
@@ -4119,7 +4133,6 @@ class SupabaseService {
         'provincia_destino': datos['provincia_destino'],
         'lugar_encuentro': datos['lugar_encuentro'],
         'distancia_km': datos['distancia_km'],
-        'distancia_millas': (datos['distancia_km'] as num?) != null ? (datos['distancia_km'] as num).toDouble() * 0.621371 : null,
         'fecha_ida': datos['fecha_ida'],
         'fecha_vuelta': datos['fecha_vuelta'],
         'hora_encuentro': datos['hora_encuentro'],
@@ -4181,15 +4194,65 @@ class SupabaseService {
   /// Obtener presupuestos del pescador
   static Future<List<Map<String, dynamic>>> getPresupuestosPescador(String pescadorId) async {
     try {
-      final response = await supabase
-          .from('vw_cotizaciones_pescador_tecnica')
-          .select('*')
+      // Obtener las cotizaciones activas del pescador con estado 'presupuestada'
+      final cotizaciones = await supabase
+          .from('cotizaciones')
+          .select('id, cotizacion_id:id')
           .eq('pescador_id', pescadorId)
           .eq('estado', 'presupuestada')
           .order('created_at', ascending: false);
-      
-      return List<Map<String, dynamic>>.from(response);
+
+      if ((cotizaciones as List).isEmpty) return [];
+
+      final cotizacionIds = cotizaciones.map((c) => c['id'].toString()).toList();
+
+      // Obtener presupuestos con perfil del capitán (avatar + embarcación)
+      final response = await supabase
+          .from('presupuestos')
+          .select('*, profiles:capitan_id(nombre, avatar_url, telefono, dni)')
+          .inFilter('cotizacion_id', cotizacionIds)
+          .eq('estado', 'pendiente')
+          .order('created_at', ascending: false);
+
+      final List<Map<String, dynamic>> result = [];
+
+      for (final presupuesto in (response as List)) {
+        final Map<String, dynamic> item = Map<String, dynamic>.from(presupuesto);
+
+        // Enriquecer con datos de guias (embarcacion_url, calificacion, etc.)
+        try {
+          final capitanId = presupuesto['capitan_id']?.toString();
+          if (capitanId != null) {
+            final guia = await supabase
+                .from('guias')
+                .select('embarcacion_url, barco_nombre, calificacion_promedio, viajes_realizados, bio_pescador')
+                .eq('id', capitanId)
+                .maybeSingle();
+            if (guia != null) {
+              item['embarcacion_url'] = guia['embarcacion_url'];
+              item['barco_nombre'] = guia['barco_nombre'];
+              item['calificacion_promedio'] = guia['calificacion_promedio'];
+              item['viajes_realizados'] = guia['viajes_realizados'];
+              item['bio_pescador'] = guia['bio_pescador'];
+            }
+          }
+        } catch (_) {}
+
+        result.add(item);
+      }
+
+      return result;
     } catch (e) {
+      // Fallback: intentar con la vista si existe
+      try {
+        final response = await supabase
+            .from('vw_cotizaciones_pescador_tecnica')
+            .select('*')
+            .eq('pescador_id', pescadorId)
+            .eq('estado', 'presupuestada')
+            .order('created_at', ascending: false);
+        return List<Map<String, dynamic>>.from(response);
+      } catch (_) {}
       throw Exception('Error al obtener presupuestos del pescador: $e');
     }
   }
@@ -5158,26 +5221,61 @@ class SupabaseService {
   /// Obtener manifiesto completo de un viaje
   static Future<List<Map<String, dynamic>>> getManifiestoViaje(String viajeId) async {
     try {
-      final response = await supabase.rpc('get_manifiesto_viaje', params: {
-        'p_viaje_id': viajeId,
-      });
-      
-      return List<Map<String, dynamic>>.from(response);
+      // Buscar por pedido_id en viajes_invitados (estrategia directa, sin RPC)
+      final porPedidoId = await supabase
+          .from('viajes_invitados')
+          .select()
+          .eq('pedido_id', viajeId)
+          .order('es_titular', ascending: false);
+
+      if ((porPedidoId as List).isNotEmpty) {
+        return List<Map<String, dynamic>>.from(porPedidoId);
+      }
+
+      // Fallback: buscar por pescador_id del pedido
+      final pedido = await supabase
+          .from('pedidos')
+          .select('pescador_id')
+          .eq('id', viajeId)
+          .maybeSingle();
+
+      if (pedido == null) return [];
+
+      final porPescadorId = await supabase
+          .from('viajes_invitados')
+          .select()
+          .eq('pescador_id', pedido['pescador_id'] as String)
+          .order('es_titular', ascending: false);
+
+      return List<Map<String, dynamic>>.from(porPescadorId);
     } catch (e) {
-      throw Exception('Error al obtener manifiesto: $e');
+      print('⚠️ [getManifiestoViaje] Error: $e');
+      return [];
     }
   }
 
   /// Obtener productos de un viaje
   static Future<List<Map<String, dynamic>>> getProductosViaje(String viajeId) async {
     try {
-      final response = await supabase.rpc('get_productos_viaje', params: {
-        'p_viaje_id': viajeId,
-      });
-      
-      return List<Map<String, dynamic>>.from(response);
+      // Leer desde campo 'manifiesto' del pedido (guardado como JSON)
+      final pedido = await supabase
+          .from('pedidos')
+          .select('manifiesto')
+          .eq('id', viajeId)
+          .maybeSingle();
+
+      if (pedido != null && pedido['manifiesto'] != null) {
+        final manifiesto = pedido['manifiesto'];
+        if (manifiesto is List) {
+          return List<Map<String, dynamic>>.from(
+            manifiesto.where((item) => item is Map && item['tipo'] == 'producto'),
+          );
+        }
+      }
+      return [];
     } catch (e) {
-      throw Exception('Error al obtener productos del viaje: $e');
+      print('⚠️ [getProductosViaje] Error: $e');
+      return [];
     }
   }
 
@@ -7183,4 +7281,3 @@ class SupabaseService {
     }
   }
 }
-

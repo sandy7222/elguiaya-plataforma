@@ -232,7 +232,7 @@ class _FormularioPasajerosScreenState
           if (p.xFile != null) {
             fotoUrl = await StorageService.uploadXFile(
               xFile: p.xFile!,
-              bucket: 'dni-pasajeros',
+              bucket: 'documentacion_privada',
               folderPath: '$userId/${widget.pedidoId}',
               fileNamePrefix: p.dniCtrl.text.trim(),
             );
@@ -248,10 +248,10 @@ class _FormularioPasajerosScreenState
             apellidoConInfo = '${p.apellidoCtrl.text.trim()} (Tel: ${p.telefonoCtrl.text.trim()})';
           }
 
-          // Insertar pasajero
-          await _supabase.from('viajes_invitados').upsert({
+          // Insertar pasajero (insert, no upsert — no hay constraint único)
+          await _supabase.from('viajes_invitados').insert({
             'pescador_id': userId,
-            'pedido_id': widget.pedidoId, // Vincular el pasajero al ID del Pedido / Reserva
+            'pedido_id': widget.pedidoId,
             'nombre': p.nombreCtrl.text.trim(),
             'apellido': apellidoConInfo,
             'dni': int.tryParse(p.dniCtrl.text.trim()) ?? 0,
@@ -259,14 +259,30 @@ class _FormularioPasajerosScreenState
             'foto_dni_url': fotoUrl,
           });
 
+          // Actualizar perfil del titular en Supabase para persistencia
+          if (p.esTitular) {
+            try {
+              await _supabase.from('profiles').update({
+                'nombre': '${p.nombreCtrl.text.trim()} ${p.apellidoCtrl.text.trim()}'.trim(),
+                'dni': int.tryParse(p.dniCtrl.text.trim()) ?? 0,
+                'telefono': p.telefonoCtrl.text.trim(),
+              }).eq('user_id', userId);
+            } catch (errProfile) {
+              print('⚠️ Error al actualizar perfil del titular: $errProfile');
+            }
+          }
+
           setState(() {
             p.subiendo = false;
             p.exito = true;
           });
         } catch (err) {
+          // 🔍 LOG DIAGNÓSTICO — ver error real en consola
+          print('❌ [PASAJEROS] Error guardando pasajero $i: $err');
           setState(() {
             p.subiendo = false;
-            p.error = err.toString();
+            // Mensaje amigable: nunca mostrar el error técnico al usuario
+            p.error = 'No se pudo guardar este pasajero. Revisá los datos e intentá de nuevo.';
           });
           rethrow;
         }
@@ -282,11 +298,15 @@ class _FormularioPasajerosScreenState
         Navigator.pop(context, true); // true = guardado exitoso
       }
     } catch (e) {
+      // 🔍 LOG DIAGNÓSTICO — error real
+      print('❌ [PASAJEROS] Error general: $e');
       if (mounted) {
+        // Mostrar error técnico temporalmente para diagnóstico
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error al guardar pasajeros: $e'),
+            content: Text('❌ Error: ${e.toString().length > 100 ? e.toString().substring(0, 100) : e.toString()}'),
             backgroundColor: Colors.redAccent,
+            duration: const Duration(seconds: 8),
           ),
         );
       }
@@ -505,21 +525,21 @@ class _FormularioPasajerosScreenState
                 children: [
                   if (p.error != null) ...[
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(12),
                       margin: const EdgeInsets.only(bottom: 12),
                       decoration: BoxDecoration(
-                        color: Colors.red.shade50,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.red.shade200),
+                        color: Colors.orange.shade50,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.orange.shade300),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.error_outline, color: Colors.redAccent, size: 16),
-                          const SizedBox(width: 8),
-                          Expanded(
+                          const Icon(Icons.info_outline, color: Colors.orange, size: 18),
+                          const SizedBox(width: 10),
+                          const Expanded(
                             child: Text(
-                              'Error de guardado: DNI inválido o error de red.',
-                              style: TextStyle(color: Colors.red.shade800, fontSize: 11),
+                              'No se pudo guardar este pasajero. Revisá los datos e intentá nuevamente.',
+                              style: TextStyle(color: Colors.black87, fontSize: 12, height: 1.4),
                             ),
                           ),
                         ],
@@ -541,9 +561,14 @@ class _FormularioPasajerosScreenState
                                 : null,
                           ),
                           const SizedBox(height: 8),
-                          Text(
-                            '${p.nombreCtrl.text} ${p.apellidoCtrl.text}'.toUpperCase(),
-                            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: _azul, letterSpacing: 0.5),
+                          AnimatedBuilder(
+                            animation: Listenable.merge([p.nombreCtrl, p.apellidoCtrl]),
+                            builder: (context, _) {
+                              return Text(
+                                '${p.nombreCtrl.text} ${p.apellidoCtrl.text}'.toUpperCase(),
+                                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: _azul, letterSpacing: 0.5),
+                              );
+                            },
                           ),
                           Text(
                             p.emailCtrl.text,
@@ -557,10 +582,34 @@ class _FormularioPasajerosScreenState
                       children: [
                         Expanded(
                           child: _buildCampo(
+                            ctrl: p.nombreCtrl,
+                            label: 'Nombre',
+                            icono: Icons.person,
+                            enabled: true,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildCampo(
+                            ctrl: p.apellidoCtrl,
+                            label: 'Apellido',
+                            icono: Icons.person_outline,
+                            enabled: true,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildCampo(
                             ctrl: p.dniCtrl,
                             label: 'DNI',
                             icono: Icons.badge_outlined,
-                            enabled: false,
+                            teclado: TextInputType.number,
+                            formato: [FilteringTextInputFormatter.digitsOnly],
+                            enabled: true,
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -569,7 +618,9 @@ class _FormularioPasajerosScreenState
                             ctrl: p.telefonoCtrl,
                             label: 'Teléfono',
                             icono: Icons.phone_android_rounded,
-                            enabled: false,
+                            teclado: TextInputType.phone,
+                            formato: [FilteringTextInputFormatter.digitsOnly],
+                            enabled: true,
                           ),
                         ),
                       ],

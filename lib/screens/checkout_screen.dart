@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/cart_provider.dart';
 import '../models/cart_item.dart';
 import '../services/branding_service.dart';
+import '../widgets/safe_product_image.dart';
 import 'dart:ui';
 
 class CheckoutScreen extends StatefulWidget {
@@ -358,7 +359,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       contentPadding: EdgeInsets.zero,
       leading: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: Image.network(item.producto.imagenUrl, width: 40, height: 40, fit: BoxFit.cover),
+        child: SafeProductImage(imagenUrl: item.producto.imagenUrl, width: 40, height: 40, fit: BoxFit.cover),
       ),
       title: Text(item.producto.nombre, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
       trailing: Text(item.subtotalFormateado, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),

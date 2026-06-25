@@ -103,7 +103,17 @@ class CartProvider extends ChangeNotifier {
     required double monto,
     required String descripcion,
     required String fecha,
+    String? capitanAvatarUrl,
+    String? embarcacionUrl,
   }) {
+    // Determinar imagenUrl: embarcacionUrl -> capitanAvatarUrl -> fallback
+    String resolvedImagenUrl = 'assets/images/logo_elguiaya_white.png';
+    if (embarcacionUrl != null && embarcacionUrl.trim().isNotEmpty) {
+      resolvedImagenUrl = embarcacionUrl.trim();
+    } else if (capitanAvatarUrl != null && capitanAvatarUrl.trim().isNotEmpty) {
+      resolvedImagenUrl = capitanAvatarUrl.trim();
+    }
+
     // Creamos un producto virtual para el viaje
     final productoViaje = Producto(
       id: 'viaje_$idCotizacion',
@@ -113,7 +123,7 @@ class CartProvider extends ChangeNotifier {
       stock: 1,
       rubro: 'viaje',
       categoriaId: 'viajes',
-      imagenUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=2070&auto=format&fit=crop', // Imagen de stock náutica
+      imagenUrl: resolvedImagenUrl,
       activo: true,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),

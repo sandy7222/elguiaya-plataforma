@@ -88,7 +88,8 @@ class Cotizacion {
       puntoPartida: partidaData != null ? Map<String, dynamic>.from(partidaData) : null,
       puntoDestino: destinoData != null ? Map<String, dynamic>.from(destinoData) : null,
       distanciaKm: (data['distancia_km'] as num?)?.toDouble(),
-      distanciaMillas: (data['distancia_millas'] as num?)?.toDouble(),
+      distanciaMillas: (data['distancia_millas'] as num?)?.toDouble() ?? 
+          ((data['distancia_km'] as num?) != null ? (data['distancia_km'] as num).toDouble() * 0.621371 : null),
       duracionEstimadaMinutos: data['duracion_estimada_minutos'] as int?,
       fechaIda: data['fecha_ida'] != null ? DateTime.tryParse(data['fecha_ida']) : null,
       fechaVuelta: data['fecha_vuelta'] != null ? DateTime.tryParse(data['fecha_vuelta']) : null,

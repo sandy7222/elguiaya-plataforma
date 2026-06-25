@@ -123,8 +123,13 @@ class _ResumenReservaScreenState extends State<ResumenReservaScreen> {
             'servicio_almacen': capitanProfile['servicio_almacen'] == true,
             'capacidad_personas': capitanProfile['capacidad_personas'] ?? 0,
             'capacidad_kilos': capitanProfile['capacidad_kilos'] ?? 0,
-            'calificacion': 4.9,
-            'viajes_realizados': 84
+            'calificacion': (capitanProfile['calificacion_promedio'] as num?)?.toDouble() 
+                ?? (capitanProfile['calificacion'] as num?)?.toDouble() 
+                ?? (capitanProfile['rating'] as num?)?.toDouble() 
+                ?? 0.0,
+            'viajes_realizados': (capitanProfile['viajes_realizados'] as num?)?.toInt() 
+                ?? (capitanProfile['total_viajes'] as num?)?.toInt() 
+                ?? 0
           },
           'pescador': {
             'id': cotizacion['pescador_id'],
@@ -186,6 +191,8 @@ class _ResumenReservaScreenState extends State<ResumenReservaScreen> {
         monto: baseViajeMonto,
         descripcion: _reservaData!['detalles_viaje']['descripcion'],
         fecha: _reservaData!['fecha_embarque'],
+        capitanAvatarUrl: _reservaData!['capitan']['foto_url'],
+        embarcacionUrl: _reservaData!['capitan']['embarcacion_url'],
       );
 
       // Si hay productos en la reserva (carnada, etc), también los sumamos (mock)

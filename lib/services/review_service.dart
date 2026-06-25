@@ -35,11 +35,12 @@ class ReviewService {
     final double promedio = (puntualidad + embarcacion + guiaPesca + trato + equipamiento) / 5.0;
     final int calificacion = promedio.round().clamp(1, 5);
 
-    // 3. Insertar la reseña en la tabla calificaciones_viajes
-    await _supabase.from('calificaciones_viajes').insert({
+    // 3. Insertar la reseña en la tabla calificaciones_viaje
+    await _supabase.from('calificaciones_viaje').insert({
       'pedido_id': pedidoId,
       'calificador_id': currentUser.id,
-      'capitán_calificado_id': capitanId,
+      'calificado_id': capitanId,
+      'calificador_rol': 'pescador',
       'calificacion': calificacion,
       'comentario': comentario,
       'aspectos_puntuados': {
@@ -49,6 +50,7 @@ class ReviewService {
         'trato': trato,
         'equipamiento': equipamiento,
       },
+      'created_at': DateTime.now().toIso8601String(),
     });
   }
 }

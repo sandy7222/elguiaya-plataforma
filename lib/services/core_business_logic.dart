@@ -1,4 +1,4 @@
-﻿import 'dart:math' as Math;
+import 'dart:math' as Math;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// MASTER CONNECTION SKILL
@@ -72,6 +72,18 @@ class MasterConnectionSkill {
     required DateTime fechaServicio,
   }) async {
     try {
+      // Evitar envíos duplicados del mismo capitán para la misma cotización
+      final yaExiste = await _supabase
+          .from('presupuestos')
+          .select('id')
+          .eq('cotizacion_id', cotizacionId)
+          .eq('capitan_id', capitanId)
+          .maybeSingle();
+
+      if (yaExiste != null) {
+        throw Exception('Ya has enviado una propuesta para esta cotización.');
+      }
+
       await _supabase.from('presupuestos').insert({
         'cotizacion_id': cotizacionId,
         'capitan_id': capitanId,
