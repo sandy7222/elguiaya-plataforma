@@ -1,9 +1,43 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'billetera_virtual_service.dart';
 import 'disponibilidad_service_final.dart';
+import 'mercado_pago_service.dart';
 import 'notificacion_helper.dart';
+import 'recordatorios_service.dart';
+import 'supabase_service.dart';
 
 class ViajeLifecycleService {
   static final _supabase = Supabase.instance.client;
+
+  /// Estados en los que el viaje ya fue abonado y se habilita contacto/chat.
+  static bool esEstadoPagado(String? estado) {
+    if (estado == null) return false;
+    final e = estado.toLowerCase();
+    return e == 'pagado' || e == 'confirmado';
+  }
+
+  /// Estados en los que el pescador aún debe completar el pago.
+  static bool requierePago(String? estado) {
+    if (estado == null) return true;
+    final e = estado.toLowerCase();
+    return e == 'programado' ||
+        e == 'pendiente_pago' ||
+        e == 'pago_pendiente' ||
+        e == 'pendiente' ||
+        e == 'cotizado';
+  }
+
+  static String _estadoPedidoDesdePago(EstadoReservaMP estado) {
+    switch (estado) {
+      case EstadoReservaMP.aprobado:
+        return 'pagado';
+      case EstadoReservaMP.pendiente:
+        return 'pago_pendiente';
+      case EstadoReservaMP.rechazado:
+        return 'cancelado';
+    }
+  }
 
   /// 1. MÓDULO DE OFERTA: El Capitán envía un presupuesto
   static Future<void> enviarPresupuesto({
@@ -25,14 +59,53 @@ class ViajeLifecycleService {
         throw Exception('Ya has enviado una propuesta para esta cotización.');
       }
 
-      await _supabase.from('presupuestos').insert({
+      final snapshot = await SupabaseService.obtenerSnapshotCapitanParaPresupuesto(capitanId);
+      await SupabaseService.sincronizarDocumentacionContractualCapitan(capitanId);
+      final contratoSnapshot = await SupabaseService.buildContratoSnapshot(
+        capitanId: capitanId,
+        cotizacionId: cotizacionId,
+        monto: monto,
+        detalles: detalles,
+        presupuestoVisual: snapshot,
+      );
+
+      final payload = {
         'cotizacion_id': cotizacionId,
         'capitan_id': capitanId,
         'monto': monto,
         'detalles': detalles,
         'estado': 'pendiente',
         'created_at': DateTime.now().toIso8601String(),
-      });
+        'capitan_nombre': snapshot['capitan_nombre'],
+        'capitan_avatar_url': snapshot['capitan_avatar_url'],
+        'embarcacion_url': snapshot['embarcacion_url'],
+        'barco_nombre': snapshot['barco_nombre'],
+        'contrato_snapshot': contratoSnapshot,
+      };
+
+      try {
+        await _supabase.from('presupuestos').insert(payload);
+      } catch (_) {
+        await _supabase.from('presupuestos').insert({
+          'cotizacion_id': cotizacionId,
+          'capitan_id': capitanId,
+          'monto': monto,
+          'detalles': detalles,
+          'estado': 'pendiente',
+          'created_at': DateTime.now().toIso8601String(),
+        });
+      }
+
+      // Marcar la cotización como presupuestada para el radar del pescador
+      try {
+        await _supabase.from('cotizaciones').update({
+          'estado': 'presupuestada',
+          'presupuesto_monto': monto,
+          'updated_at': DateTime.now().toIso8601String(),
+        }).eq('id', cotizacionId);
+      } catch (e) {
+        print('Error al actualizar estado de cotización tras presupuesto: $e');
+      }
 
       // Reservar fecha en el calendario del capitán
       try {
@@ -82,6 +155,18 @@ class ViajeLifecycleService {
     try {
       // Iniciamos una transacción lógica (RPC en Supabase sería ideal, pero aquí lo haremos secuencial)
 
+      // Verificar si ya existe un pedido para este presupuesto
+      final existingResponse = await _supabase
+          .from('pedidos')
+          .select('id')
+          .eq('presupuesto_id', presupuesto['id'])
+          .maybeSingle();
+
+      if (existingResponse != null) {
+        print('✅ Pedido ya existente para este presupuesto: ${existingResponse['id']}');
+        return existingResponse['id'] as String;
+      }
+
       // A. Validar que el capitán siga disponible (Simulación de Lock)
       String? fechaHoraViaje = presupuesto['fecha_hora_viaje']?.toString();
       
@@ -107,25 +192,36 @@ class ViajeLifecycleService {
       );
 
       if (!disponibilidad) {
-        throw Exception(
-          'El EL GUIA YA no tiene disponibilidad para este horario.',
-        );
+        print('⚠️ Advertencia: El capitán no tiene disponibilidad en el calendario para este horario ($fechaHoraViaje), procediendo de todos modos.');
       }
 
       // B. Crear el Pedido (Viaje Programado)
-      final response = await _supabase
-          .from('pedidos')
-          .insert({
+      final contratoSnapshot = presupuesto['contrato_snapshot'] ??
+          await SupabaseService.buildContratoSnapshot(
+            capitanId: presupuesto['capitan_id']?.toString() ?? '',
+            cotizacionId: presupuesto['cotizacion_id']?.toString() ?? '',
+            monto: (presupuesto['monto'] as num?)?.toDouble() ?? 0,
+            detalles: presupuesto['detalles']?.toString() ?? '',
+          );
+
+      final pedidoPayload = {
             'presupuesto_id': presupuesto['id'],
             'pescador_id': pescadorId,
             'capitan_id': presupuesto['capitan_id'],
             'monto_total': presupuesto['monto'],
-            'estado': 'programado', // No 'pagado' todavía
+            'estado': 'programado',
             'fecha_servicio': fechaHoraViaje,
+            'contrato_snapshot': contratoSnapshot,
             'created_at': DateTime.now().toIso8601String(),
-          })
-          .select()
-          .single();
+          };
+
+      dynamic response;
+      try {
+        response = await _supabase.from('pedidos').insert(pedidoPayload).select().single();
+      } catch (_) {
+        final fallback = Map<String, dynamic>.from(pedidoPayload)..remove('contrato_snapshot');
+        response = await _supabase.from('pedidos').insert(fallback).select().single();
+      }
 
       // C. Marcar presupuesto como aceptado
       await _supabase
@@ -173,6 +269,21 @@ class ViajeLifecycleService {
             monto,
             nombrePescador,
             cantidadPersonas,
+          );
+        }
+
+        // 🔔 Notificar al PESCADOR que su reserva fue enviada al capitán
+        if (pescadorId.isNotEmpty) {
+          await NotificacionHelper.enviar(
+            usuarioId: pescadorId,
+            titulo: '⛵ ¡Reserva Enviada al Capitán!',
+            mensaje:
+                'Tu reserva fue aceptada y el capitán fue notificado. Completá el pago para confirmar tu lugar.',
+            tipo: 'reserva_enviada',
+            metadata: {
+              'pedido_id': response['id'],
+              'presupuesto_id': presupuesto['id'],
+            },
           );
         }
       } catch (e) {
@@ -287,7 +398,7 @@ class ViajeLifecycleService {
     }
   }
 
-  /// 7. CALIFICAR PESCADOR: El Capitán punta al pescador tras el viaje
+  /// 7a. CALIFICAR PESCADOR: El Capitán punta al pescador tras el viaje
   static Future<void> calificarPescador({
     required String pedidoId,
     required String capitanId,
@@ -307,73 +418,353 @@ class ViajeLifecycleService {
       if (yaExiste != null) throw Exception('Ya calificaste este viaje.');
 
       await _supabase.from('calificaciones_viaje').insert({
-        'pedido_id': pedidoId,
-        'calificador_id': capitanId,
-        'calificador_rol': 'capitan',
-        'calificado_id': pescadorId,
-        'calificacion': calificacion,
-        'comentario': comentario,
+        'pedido_id':          pedidoId,
+        'calificador_id':     capitanId,
+        'calificador_rol':    'capitan',
+        'calificado_id':      pescadorId,
+        'calificacion':       calificacion,
+        'comentario':         comentario,
         'aspectos_puntuados': {'etiquetas': etiquetas},
-        'created_at': DateTime.now().toIso8601String(),
+        'created_at':         DateTime.now().toIso8601String(),
       });
 
-      // Marcar que el capitán calificó
       await _supabase
           .from('pedidos')
           .update({'capitan_califico': true})
           .eq('id', pedidoId);
 
-      // Verificar si ambos calificaron para cerrar el viaje automáticamente
+      // Notificar al pescador que fue calificado
+      try {
+        await NotificacionHelper.calificacionRecibidaPescador(
+            pescadorId, pedidoId, calificacion);
+      } catch (_) {}
+
+      // CIERRE AUTOMATICO: si el pescador ya califico, cerrar el viaje
       final pedido = await _supabase
           .from('pedidos')
-          .select('pescador_califico, pescador_id')
+          .select('pescador_califico')
           .eq('id', pedidoId)
           .maybeSingle();
-
-      // Notificar al pescador que fue calificado por el capitán
-      if (pedido != null && pedido['pescador_id'] != null) {
-        await NotificacionHelper.calificacionRecibidaPescador(
-            pedido['pescador_id'] as String, pedidoId, calificacion);
-      }
 
       if (pedido != null && pedido['pescador_califico'] == true) {
         await cerrarViaje(pedidoId);
       }
-      print('✅ Capitán $capitanId calificó al pescador $pescadorId con $calificacion anclas');
+
+      // Actualizar reputación del pescador en reputacion_pescadores
+      try {
+        await SupabaseService.actualizarReputacionPescador(
+            pescadorId, calificacion);
+      } catch (_) {}
+
+      print('Capitan $capitanId califico al pescador $pescadorId con $calificacion anzuelos');
     } catch (e) {
       throw Exception('Error al calificar pescador: $e');
     }
   }
 
-  /// 8. CERRAR VIAJE: Se cierra el ciclo cuando ambas partes calificaron
-  static Future<void> cerrarViaje(String pedidoId) async {
+  /// 7b. CALIFICAR CAPITAN: El Pescador punta al capitan tras el viaje
+  /// Metodo simetrico que faltaba para cerrar el ciclo.
+  static Future<void> calificarCapitan({
+    required String pedidoId,
+    required String pescadorId,
+    required String capitanId,
+    required int calificacion,
+    String comentario = '',
+    List<String> etiquetas = const [],
+  }) async {
     try {
+      final yaExiste = await _supabase
+          .from('calificaciones_viaje')
+          .select('id')
+          .eq('pedido_id', pedidoId)
+          .eq('calificador_id', pescadorId)
+          .maybeSingle();
+
+      if (yaExiste != null) throw Exception('Ya calificaste este viaje.');
+
+      await _supabase.from('calificaciones_viaje').insert({
+        'pedido_id':          pedidoId,
+        'calificador_id':     pescadorId,
+        'calificador_rol':    'pescador',
+        'calificado_id':      capitanId,
+        'calificacion':       calificacion,
+        'comentario':         comentario,
+        'aspectos_puntuados': {'etiquetas': etiquetas},
+        'created_at':         DateTime.now().toIso8601String(),
+      });
+
       await _supabase
           .from('pedidos')
-          .update({'estado': 'cerrado', 'cerrado_at': DateTime.now().toIso8601String()})
+          .update({'pescador_califico': true})
           .eq('id', pedidoId);
 
-      // Notificar a ambas partes que el viaje quedó cerrado
+      // Notificar al capitan que fue calificado
       try {
-        final pedido = await _supabase
-            .from('pedidos')
-            .select('pescador_id, capitan_id')
-            .eq('id', pedidoId)
-            .maybeSingle();
-        if (pedido != null &&
-            pedido['pescador_id'] != null &&
-            pedido['capitan_id'] != null) {
-          await NotificacionHelper.viajeCerrado(
-            pedido['pescador_id'] as String,
-            pedido['capitan_id'] as String,
-            pedidoId,
-          );
-        }
+        await NotificacionHelper.calificacionRecibidaCapitan(
+            capitanId, pedidoId, calificacion);
       } catch (_) {}
 
-      print('🔒 Viaje $pedidoId cerrado correctamente');
+      // CIERRE AUTOMATICO: si el capitan ya califico, cerrar el viaje
+      final pedido = await _supabase
+          .from('pedidos')
+          .select('capitan_califico')
+          .eq('id', pedidoId)
+          .maybeSingle();
+
+      if (pedido != null && pedido['capitan_califico'] == true) {
+        await cerrarViaje(pedidoId);
+      }
+
+      // Actualizar reputación del capitán en tabla reputacion_capitanes
+      try {
+        await SupabaseService.actualizarReputacionCapitan(capitanId, calificacion);
+      } catch (_) {}
+
+      print('Pescador $pescadorId califico al capitan $capitanId con $calificacion anclas');
     } catch (e) {
-      print('⚠️ Error al cerrar viaje $pedidoId: $e');
+      throw Exception('Error al calificar capitan: $e');
+    }
+  }
+
+  /// 8. CERRAR VIAJE: Se ejecuta cuando AMBAS partes calificaron.
+  ///    Una vez cerrado, AUTOMATICAMENTE:
+  ///      a) Marca el pedido como 'cerrado' con timestamp
+  ///      b) Notifica a ambas partes
+  ///      c) ACREDITA el monto neto en la BILLETERA VIRTUAL del capitan
+  ///         (en saldo_pendiente, disponible a las 48hs)
+  static Future<void> cerrarViaje(String pedidoId) async {
+    try {
+      final ahora = DateTime.now();
+
+      await _supabase
+          .from('pedidos')
+          .update({
+            'estado':     'cerrado',
+            'cerrado_at': ahora.toIso8601String(),
+          })
+          .eq('id', pedidoId);
+
+      // Obtener datos del pedido
+      final pedido = await _supabase
+          .from('pedidos')
+          .select('pescador_id, capitan_id, monto_total')
+          .eq('id', pedidoId)
+          .maybeSingle();
+
+      final capitanId  = pedido?['capitan_id']?.toString()  ?? '';
+      final pescadorId = pedido?['pescador_id']?.toString() ?? '';
+
+      // Notificar a ambas partes que el viaje quedo cerrado
+      if (capitanId.isNotEmpty && pescadorId.isNotEmpty) {
+        try {
+          await NotificacionHelper.viajeCerrado(pescadorId, capitanId, pedidoId);
+        } catch (_) {}
+      }
+
+      // ACREDITAR EN BILLETERA - esto es AUTOMATICO al cierre
+      if (capitanId.isNotEmpty) {
+        await BilleteraVirtualService.acreditarPorViajeCerrado(
+          pedidoId:  pedidoId,
+          capitanId: capitanId,
+        );
+
+        // Notificar al capitan que el dinero esta en su billetera en modo pendiente
+        final montoTotal = (pedido?['monto_total'] as num?)?.toDouble() ?? 0.0;
+        final neto = montoTotal * (1 - BilleteraVirtualService.comisionPorcentaje);
+        final disponibleEn = ahora.add(
+          const Duration(hours: BilleteraVirtualService.horasDisputas));
+
+        final diaDisp = disponibleEn.day.toString().padLeft(2, '0');
+        final mesDisp = disponibleEn.month.toString().padLeft(2, '0');
+        final horDisp = disponibleEn.hour.toString().padLeft(2, '0');
+        final minDisp = disponibleEn.minute.toString().padLeft(2, '0');
+
+        try {
+          await NotificacionHelper.enviar(
+            usuarioId: capitanId,
+            titulo: 'Dinero en camino a tu billetera',
+            mensaje:
+                'Se acreditaron en tu billetera virtual. '
+                'Estaran disponibles para retirar el '
+                '$diaDisp/$mesDisp a las $horDisp:$minDisp hs '
+                '(periodo de disputa de ${BilleteraVirtualService.horasDisputas}hs).',
+            tipo: 'billetera_pendiente',
+            metadata: {
+              'pedido_id':        pedidoId,
+              'monto_neto':       neto,
+              'disponible_desde': disponibleEn.toIso8601String(),
+            },
+          );
+        } catch (_) {}
+      }
+
+      print('Viaje $pedidoId cerrado. Billetera del capitan actualizada automaticamente.');
+    } catch (e) {
+      print('Error al cerrar viaje $pedidoId: $e');
+    }
+  }
+
+  /// SCHEDULER: Liberar saldos pendientes cuyo periodo de disputa vencio.
+  /// Llamar cada hora desde el scheduler del sistema.
+  static Future<void> schedulerLiberarPendientes() async {
+    print('Billetera: verificando pendientes vencidos...');
+    await BilleteraVirtualService.liberarPendientesVencidos();
+  }
+
+  /// 9. CONFIRMAR PAGO: Actualiza el pedido tras MP (real o simulado).
+  /// Retorna `true` solo si el pedido existió y se persistió el cambio.
+  static Future<bool> confirmarPagoPedido({
+    required String pedidoId,
+    required EstadoPagoMP pago,
+    required EstadoReservaMP estado,
+    String? preferenceId,
+    String? dniPagador,
+    double? montoFallback,
+  }) async {
+    if (pedidoId.isEmpty) return false;
+
+    try {
+      final estadoPedido = _estadoPedidoDesdePago(estado);
+      final ahora = DateTime.now().toIso8601String();
+
+      final updateData = <String, dynamic>{
+        'estado': estadoPedido,
+        'mp_payment_id': pago.id,
+        'metodo_pago': pago.paymentMethodId,
+        'monto_total': pago.transactionAmount,
+        'mp_preference_id': preferenceId,
+        'mp_external_reference': pedidoId,
+        'mp_raw_response': {
+          'id': pago.id,
+          'status': pago.status,
+          'status_detail': pago.statusDetail,
+          'transaction_amount': pago.transactionAmount,
+          'payment_method_id': pago.paymentMethodId,
+          'date_approved': pago.dateApproved?.toIso8601String(),
+        },
+        'updated_at': ahora,
+      };
+
+      if (estado == EstadoReservaMP.aprobado) {
+        updateData['contacto_habilitado'] = true;
+        updateData['contacto_habilitado_at'] = ahora;
+      }
+
+      final updated = await _supabase
+          .from('pedidos')
+          .update(updateData)
+          .eq('id', pedidoId)
+          .select('id, capitan_id, pescador_id, monto_total, fecha_servicio')
+          .maybeSingle();
+
+      if (updated == null) {
+        debugPrint('⚠️ confirmarPagoPedido: pedido $pedidoId no encontrado');
+        return false;
+      }
+
+      if (estado == EstadoReservaMP.aprobado) {
+        await SupabaseService.sincronizarContratoSnapshotEnPedido(pedidoId);
+        await SupabaseService.guardarPescadorSnapshotEnPedido(pedidoId);
+      }
+
+      // Tabla reservas legada (si existe vínculo)
+      try {
+        final res = await _supabase
+            .from('pedidos')
+            .select('reserva_id')
+            .eq('id', pedidoId)
+            .maybeSingle();
+
+        if (res != null && res['reserva_id'] != null) {
+          final rId = res['reserva_id'];
+          final estadoReserva = estado == EstadoReservaMP.aprobado
+              ? 'PAGADA'
+              : estado == EstadoReservaMP.pendiente
+                  ? 'PAGO_PENDIENTE'
+                  : 'PAGO_RECHAZADO';
+
+          if (rId is int) {
+            await _supabase
+                .from('reservas')
+                .update({'estado': estadoReserva})
+                .eq('id', rId);
+          } else {
+            final parsedId = int.tryParse(rId.toString());
+            if (parsedId != null) {
+              await _supabase
+                  .from('reservas')
+                  .update({'estado': estadoReserva})
+                  .eq('id', parsedId);
+            }
+          }
+        }
+      } catch (e2) {
+        debugPrint('⚠️ No se pudo actualizar tabla reservas: $e2');
+      }
+
+      if (dniPagador != null && dniPagador.isNotEmpty) {
+        try {
+          final currentUser = _supabase.auth.currentUser;
+          if (currentUser != null) {
+            await _supabase
+                .from('profiles')
+                .update({'dni': dniPagador})
+                .eq('user_id', currentUser.id);
+          }
+        } catch (_) {}
+      }
+
+      if (estado == EstadoReservaMP.aprobado) {
+        try {
+          await SupabaseService.liberarContactoAlConfirmarPago(pedidoId);
+        } catch (eLib) {
+          debugPrint('⚠️ liberarContactoAlConfirmarPago: $eLib');
+        }
+
+        final capitanId = updated['capitan_id']?.toString() ?? '';
+        final pescadorId = updated['pescador_id']?.toString() ??
+            _supabase.auth.currentUser?.id ??
+            '';
+        final monto = (updated['monto_total'] as num?)?.toDouble() ??
+            montoFallback ??
+            pago.transactionAmount;
+
+        if (capitanId.isNotEmpty && pescadorId.isNotEmpty) {
+          try {
+            await NotificacionHelper.pagoConfirmado(
+              pescadorId,
+              capitanId,
+              pedidoId,
+              monto,
+            );
+          } catch (eNotif) {
+            debugPrint('⚠️ Error enviando notificaciones de pago: $eNotif');
+          }
+        }
+
+        try {
+          final fechaRaw = updated['fecha_servicio']?.toString();
+          final fechaServicio = fechaRaw != null
+              ? DateTime.tryParse(fechaRaw)
+              : null;
+          if (fechaServicio != null && pescadorId.isNotEmpty) {
+            await RecordatoriosService.crearRecordatoriosReserva(
+              reservaId: pedidoId,
+              clienteId: pescadorId,
+              fechaSalida: fechaServicio,
+            );
+            debugPrint('🗓️ Recordatorios creados para viaje $pedidoId');
+          }
+        } catch (eRec) {
+          debugPrint('⚠️ Error creando recordatorios: $eRec');
+        }
+      }
+
+      return true;
+    } catch (e) {
+      debugPrint('⚠️ confirmarPagoPedido falló para $pedidoId: $e');
+      return false;
     }
   }
 }
+

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -38,8 +39,22 @@ class _CartScreenState extends State<CartScreen> {
   @override
   void initState() {
     super.initState();
-    _reservaId = 'reserva_${DateTime.now().millisecondsSinceEpoch}';
     _cargarDatos();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncReservaIdFromCart();
+  }
+
+  void _syncReservaIdFromCart() {
+    final cart = Provider.of<CartProvider>(context, listen: false);
+    if (cart.tieneItemsViaje && cart.pedidoViajeId != null) {
+      _reservaId = cart.pedidoViajeId;
+    } else if (_reservaId == null) {
+      _reservaId = const Uuid().v4();
+    }
   }
 
   Future<void> _cargarDatos() async {
@@ -176,6 +191,21 @@ class _CartScreenState extends State<CartScreen> {
 
   // ─── Procesar Pago Real ────────────────────────────────────────────────────
   Future<void> _procesarPago(CartProvider cart) async {
+    if (cart.tieneItemsViaje &&
+        (cart.pedidoViajeId == null || cart.pedidoViajeId!.isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            '⚠️ Aceptá la reserva desde el resumen del viaje antes de pagar.',
+          ),
+          backgroundColor: Colors.orangeAccent,
+        ),
+      );
+      return;
+    }
+
+    _syncReservaIdFromCart();
+
     if (cart.tieneItemsTienda && _envioSeleccionado == null && _serviciosEnvio.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

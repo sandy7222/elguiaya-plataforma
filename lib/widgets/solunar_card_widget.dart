@@ -73,7 +73,7 @@ class _SolunarCardWidgetState extends State<SolunarCardWidget> {
     final info = _solunarInfo!;
     final loc = _location!;
 
-    // Create stars/hooks rating based on dayRating (0.0 to 1.0)
+    // Puntuación de pesca del día (1 a 4 peces según dayRating)
     int fishIcons = 1;
     String ratingText = 'Baja';
     Color ratingColor = Colors.grey;
@@ -168,16 +168,7 @@ class _SolunarCardWidgetState extends State<SolunarCardWidget> {
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              Row(
-                                children: List.generate(
-                                  4,
-                                  (index) => Icon(
-                                    Icons.anchor_rounded,
-                                    color: index < fishIcons ? ratingColor : Colors.white10,
-                                    size: 14,
-                                  ),
-                                ),
-                              ),
+                              _buildPescaFishRating(fishIcons, ratingColor),
                             ],
                           ),
                         ],
@@ -266,6 +257,22 @@ class _SolunarCardWidgetState extends State<SolunarCardWidget> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildPescaFishRating(int filled, Color color) {
+    return Row(
+      children: List.generate(4, (index) {
+        final active = index < filled;
+        return Padding(
+          padding: const EdgeInsets.only(right: 1),
+          child: Icon(
+            active ? Icons.set_meal_rounded : Icons.set_meal_outlined,
+            color: active ? color : Colors.white10,
+            size: 14,
+          ),
+        );
+      }),
     );
   }
 

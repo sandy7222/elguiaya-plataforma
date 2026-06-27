@@ -1,9 +1,19 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import '../services/supabase_service.dart';
+import '../services/mercado_pago_service.dart';
+import '../services/viaje_lifecycle_service.dart';
+import '../services/gps_tracker_service.dart';
+import '../services/viaje_tracking_service.dart';
 import '../widgets/failsafe_background.dart';
+import '../widgets/calificacion_pescador_dialog.dart';
+import '../widgets/reputacion_badge_widget.dart';
+import 'ficha_contractual_screen.dart';
+import 'ficha_pescador_screen.dart';
 import 'chat_screen.dart';
 import 'confirmar_finalizacion_screen.dart';
+import 'checkout_payment_screen.dart';
 
 class ViajesProgramadosScreen extends StatefulWidget {
   final bool esCapitan;
@@ -60,6 +70,343 @@ class _ViajesProgramadosScreenState extends State<ViajesProgramadosScreen> {
       print('Error cargando viajes: $e');
       setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _abrirCheckoutPago(Map<String, dynamic> viaje) async {
+    final pedidoId = viaje['id']?.toString() ?? '';
+    if (pedidoId.isEmpty) return;
+
+    final monto = (viaje['monto_total'] as num?)?.toDouble() ?? 0.0;
+    final email = SupabaseService.supabase.auth.currentUser?.email ?? '';
+
+    try {
+      final preferencia = await MercadoPagoService.crearPreferencia(
+        reservaId: pedidoId,
+        titulo: 'Viaje EL GUIA YA',
+        monto: monto,
+        emailPagador: email,
+      );
+
+      if (!mounted) return;
+
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CheckoutPaymentScreen(
+            amount: monto,
+            description: 'Viaje EL GUIA YA',
+            reservaId: pedidoId,
+            emailPagador: email,
+            initPoint: preferencia.linkPago,
+            preferenceId: preferencia.preferenceId,
+          ),
+        ),
+      );
+
+      if (mounted) _cargarViajes();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al abrir el pago: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
+  }
+
+  String _codigoViaje(String id) {
+    if (id.isEmpty) return 'VJ-----';
+    final clean = id.replaceAll('-', '').toUpperCase();
+    final n = clean.length >= 4 ? 4 : clean.length;
+    return 'VJ-${clean.substring(0, n)}';
+  }
+
+  /// GPS OBLIGATORIO para el capitán: valida servicio + permiso antes de iniciar.
+  /// Devuelve true solo si la ubicación está disponible.
+  Future<bool> _asegurarUbicacionCapitan() async {
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      if (mounted) {
+        _mostrarDialogoUbicacion(
+          'Activá la ubicación del celular',
+          'Para iniciar el viaje necesitás encender el GPS del dispositivo. '
+              'Es obligatorio para registrar el recorrido y poder cobrar tus viajes.',
+          abrirConfig: () => Geolocator.openLocationSettings(),
+        );
+      }
+      return false;
+    }
+
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.denied) {
+      if (mounted) {
+        _mostrarDialogoUbicacion(
+          'Permiso de ubicación requerido',
+          'Necesitamos tu ubicación para registrar el recorrido del viaje. '
+              'Permití el acceso para poder iniciar y cobrar tus viajes.',
+        );
+      }
+      return false;
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      if (mounted) {
+        _mostrarDialogoUbicacion(
+          'Permiso de ubicación bloqueado',
+          'El permiso está bloqueado. Activalo manualmente en los ajustes de '
+              'la app para poder iniciar viajes.',
+          abrirConfig: () => Geolocator.openAppSettings(),
+        );
+      }
+      return false;
+    }
+
+    return true;
+  }
+
+  void _mostrarDialogoUbicacion(String titulo, String mensaje,
+      {VoidCallback? abrirConfig}) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: const Color(0xFF0A192F),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.location_off_rounded, color: Colors.orangeAccent),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(titulo,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+        content: Text(mensaje,
+            style: const TextStyle(color: Colors.white70, height: 1.4)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Entendido',
+                style: TextStyle(color: Colors.white54)),
+          ),
+          if (abrirConfig != null)
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                abrirConfig();
+              },
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00E676),
+                  foregroundColor: Colors.black),
+              child: const Text('Abrir ajustes'),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _iniciarViajeCapitan(Map<String, dynamic> viaje) async {
+    final pedidoId = viaje['id']?.toString() ?? '';
+    final capitanId = SupabaseService.currentUserId ?? '';
+    if (pedidoId.isEmpty || capitanId.isEmpty) return;
+
+    // GPS obligatorio: si no hay ubicación disponible, no se inicia el viaje.
+    final ubicacionOk = await _asegurarUbicacionCapitan();
+    if (!ubicacionOk) return;
+
+    try {
+      await ViajeLifecycleService.iniciarViaje(
+          pedidoId: pedidoId, capitanId: capitanId);
+      // GPS en vivo del capitán (posición actual en su perfil)
+      GpsTrackerService().startTracking(capitanId);
+      // Auditor de ruta del viaje: graba el recorrido en pedidos.track_log
+      ViajeTrackingService().startTracking(tripId: pedidoId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('⛵ Viaje iniciado — GPS activo'),
+            backgroundColor: Color(0xFF00E676),
+            behavior: SnackBarBehavior.floating));
+        _cargarViajes();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Error al iniciar: $e'),
+            backgroundColor: Colors.redAccent));
+      }
+    }
+  }
+
+  Future<void> _finalizarViajeCapitan(Map<String, dynamic> viaje) async {
+    final pedidoId = viaje['id']?.toString() ?? '';
+    final capitanId = SupabaseService.currentUserId ?? '';
+    if (pedidoId.isEmpty || capitanId.isEmpty) return;
+    try {
+      await ViajeLifecycleService.finalizarViaje(
+          pedidoId: pedidoId, capitanId: capitanId);
+      GpsTrackerService().stopTracking();
+      // Cierra el auditor de ruta y guarda el recorrido final
+      await ViajeTrackingService().stopTracking();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('🏁 Viaje finalizado. Calificá al pescador.'),
+            backgroundColor: Color(0xFF00E676),
+            behavior: SnackBarBehavior.floating));
+        _cargarViajes();
+        _calificarPescador(viaje);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Error al finalizar: $e'),
+            backgroundColor: Colors.redAccent));
+      }
+    }
+  }
+
+  void _calificarPescador(Map<String, dynamic> viaje) {
+    final pedidoId = viaje['id']?.toString() ?? '';
+    final capitanId = SupabaseService.currentUserId ?? '';
+    final pescadorId = viaje['pescador_id']?.toString() ?? '';
+    final nombre = (viaje['profiles']?['nombre'])?.toString() ?? 'Pescador';
+    if (pedidoId.isEmpty || pescadorId.isEmpty) return;
+    CalificacionPescadorDialog.mostrar(
+      context: context,
+      pedidoId: pedidoId,
+      capitanId: capitanId,
+      pescadorId: pescadorId,
+      pescadorNombre: nombre,
+      codigoViaje: _codigoViaje(pedidoId),
+      onCalificacionGuardada: _cargarViajes,
+    );
+  }
+
+  Widget _accionBoton(
+      String label, IconData icon, Color color, VoidCallback onTap) {
+    return SizedBox(
+      width: double.infinity,
+      height: 46,
+      child: ElevatedButton.icon(
+        onPressed: onTap,
+        icon: Icon(icon, color: Colors.black87),
+        label: Text(label,
+            style: const TextStyle(
+                color: Colors.black87,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.0)),
+        style: ElevatedButton.styleFrom(
+            backgroundColor: color,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
+      ),
+    );
+  }
+
+  Widget _buildAccionesCapitan(Map<String, dynamic> viaje, String estado) {
+    Widget? boton;
+    bool mostrarLeyendaGps = false;
+    if (estado == 'pagado' || estado == 'confirmado') {
+      mostrarLeyendaGps = true;
+      boton = _accionBoton('INICIAR VIAJE', Icons.play_arrow_rounded,
+          const Color(0xFF00E676), () => _iniciarViajeCapitan(viaje));
+    } else if (estado == 'en_curso' || estado == 'en_viaje') {
+      boton = _accionBoton('FINALIZAR VIAJE', Icons.flag_rounded,
+          Colors.orangeAccent, () => _finalizarViajeCapitan(viaje));
+    } else if (estado == 'listo_para_confirmar' || estado == 'finalizado') {
+      final yaCalifico = viaje['capitan_califico'] == true;
+      if (!yaCalifico) {
+        boton = _accionBoton('CALIFICAR PESCADOR', Icons.star_rate_rounded,
+            const Color(0xFF00E676), () => _calificarPescador(viaje));
+      }
+    }
+    if (boton == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Column(
+        children: [
+          boton,
+          if (mostrarLeyendaGps) ...[
+            const SizedBox(height: 8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.gps_fixed_rounded,
+                    color: Colors.amberAccent, size: 14),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Activá tu GPS antes de zarpar: es necesario para validar y cobrar tus viajes.',
+                    style: TextStyle(
+                      color: Colors.amberAccent.withOpacity(0.9),
+                      fontSize: 11,
+                      height: 1.3,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  void _irAConfirmarFinalizacion() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) => const ConfirmarFinalizacionScreen()),
+    ).then((_) => _cargarViajes());
+  }
+
+  /// Acciones del PESCADOR cuando el viaje fue finalizado por el capitán
+  /// (o ya pasó la fecha): calificar al capitán + reportar problema.
+  /// Enruta al reporte completo (alimenta Blog de Piques + IA).
+  Widget _buildAccionesPescador(
+      Map<String, dynamic> viaje, String estado, bool hasPassed) {
+    final listoParaCalificar = estado == 'listo_para_confirmar' ||
+        estado == 'finalizado' ||
+        hasPassed;
+    final yaCalifico = viaje['pescador_califico'] == true;
+    if (!listoParaCalificar || yaCalifico) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Column(
+        children: [
+          _accionBoton('CALIFICAR CAPITÁN', Icons.star_rate_rounded,
+              const Color(0xFF00E676), _irAConfirmarFinalizacion),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            height: 44,
+            child: OutlinedButton.icon(
+              onPressed: _irAConfirmarFinalizacion,
+              icon: const Icon(Icons.warning_amber_rounded,
+                  color: Colors.orangeAccent, size: 18),
+              label: const Text('Reportar un problema',
+                  style: TextStyle(
+                      color: Colors.orangeAccent,
+                      fontWeight: FontWeight.bold)),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.orangeAccent),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   String _getCuentaRegresiva(String fechaIso) {
@@ -131,11 +478,21 @@ class _ViajesProgramadosScreenState extends State<ViajesProgramadosScreen> {
   }
 
   Widget _buildViajeCard(Map<String, dynamic> viaje) {
-    final bool pagado = viaje['estado'] == 'pagado';
+    final bool pagado =
+        ViajeLifecycleService.esEstadoPagado(viaje['estado']?.toString());
+    final bool pendientePago =
+        !pagado && ViajeLifecycleService.requierePago(viaje['estado']?.toString());
+    final String estado = viaje['estado']?.toString().toLowerCase() ?? '';
+    final bool yaAbonado = pagado ||
+        const ['en_curso', 'en_viaje', 'listo_para_confirmar', 'finalizado', 'cerrado']
+            .contains(estado);
     final String countdown = _getCuentaRegresiva(viaje['fecha_servicio']);
     final Map<String, dynamic> contraparte = (widget.esCapitan
         ? viaje['profiles']
         : viaje['capitan']) ?? {};
+    final String contraparteId = widget.esCapitan
+        ? viaje['pescador_id']?.toString() ?? ''
+        : viaje['capitan_id']?.toString() ?? '';
 
     final String fechaServicioStr = viaje['fecha_servicio']?.toString() ?? '';
     bool hasPassed = false;
@@ -177,7 +534,7 @@ class _ViajesProgramadosScreenState extends State<ViajesProgramadosScreen> {
           color: Colors.white.withOpacity(0.08),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: pagado
+            color: yaAbonado
                 ? const Color(0xFF00E676).withOpacity(0.3)
                 : Colors.white10,
           ),
@@ -189,7 +546,7 @@ class _ViajesProgramadosScreenState extends State<ViajesProgramadosScreen> {
               // Header: Cuenta Regresiva
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                color: pagado
+                color: yaAbonado
                     ? const Color(0xFF00E676).withOpacity(0.2)
                     : Colors.white.withOpacity(0.05),
                 child: Row(
@@ -253,6 +610,16 @@ class _ViajesProgramadosScreenState extends State<ViajesProgramadosScreen> {
                                   fontSize: 12,
                                 ),
                               ),
+                              if (contraparteId.isNotEmpty) ...[
+                                const SizedBox(height: 4),
+                                ReputacionBadgeWidget(
+                                  userId: contraparteId,
+                                  tipo: widget.esCapitan
+                                      ? ReputacionTipo.pescador
+                                      : ReputacionTipo.capitan,
+                                  compact: true,
+                                ),
+                              ],
                             ],
                           ),
                         ),
@@ -268,9 +635,9 @@ class _ViajesProgramadosScreenState extends State<ViajesProgramadosScreen> {
                               ),
                             ),
                             Text(
-                              pagado ? 'PAGADO' : 'PENDIENTE',
+                              yaAbonado ? 'PAGADO' : 'PENDIENTE',
                               style: TextStyle(
-                                color: pagado
+                                color: yaAbonado
                                     ? const Color(0xFF00E676)
                                     : Colors.orange,
                                 fontSize: 10,
@@ -294,7 +661,7 @@ class _ViajesProgramadosScreenState extends State<ViajesProgramadosScreen> {
                         color: Colors.black.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(15),
                       ),
-                      child: pagado
+                      child: yaAbonado
                           ? Row(
                               children: [
                                 const Icon(
@@ -312,6 +679,44 @@ class _ViajesProgramadosScreenState extends State<ViajesProgramadosScreen> {
                                   ),
                                 ),
                                 const Spacer(),
+                                if (yaAbonado && !widget.esCapitan)
+                                  IconButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => FichaContractualScreen(
+                                            pedidoId: viaje['id']?.toString() ?? '',
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    icon: const Icon(
+                                      Icons.description_outlined,
+                                      color: Color(0xFF00E676),
+                                    ),
+                                    tooltip: 'Ficha contractual',
+                                  ),
+                                if (yaAbonado)
+                                  IconButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => FichaPescadorScreen(
+                                            pedidoId: viaje['id']?.toString() ?? '',
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    icon: Icon(
+                                      Icons.assignment_ind_outlined,
+                                      color: widget.esCapitan
+                                          ? Colors.amberAccent
+                                          : const Color(0xFF00E676),
+                                    ),
+                                    tooltip: 'Planilla del pescador',
+                                  ),
                                 IconButton(
                                   onPressed: () {
                                     if (hasPassed) {
@@ -407,7 +812,9 @@ class _ViajesProgramadosScreenState extends State<ViajesProgramadosScreen> {
                                   ),
                                 ),
                                 TextButton(
-                                  onPressed: () {}, // Abrir pasarela
+                                  onPressed: pendientePago
+                                      ? () => _abrirCheckoutPago(viaje)
+                                      : null,
                                   child: const Text(
                                     'PAGAR',
                                     style: TextStyle(
@@ -419,38 +826,9 @@ class _ViajesProgramadosScreenState extends State<ViajesProgramadosScreen> {
                               ],
                             ),
                     ),
-                    if (hasPassed && !widget.esCapitan) ...[
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 46,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const ConfirmarFinalizacionScreen(),
-                              ),
-                            ).then((_) => _cargarViajes());
-                          },
-                          icon: const Icon(Icons.star_rate_rounded, color: Colors.black87),
-                          label: const Text(
-                            'FINALIZAR Y CALIFICAR VIAJE',
-                            style: TextStyle(
-                              color: Colors.black87,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.1,
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF00E676),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                    if (widget.esCapitan) _buildAccionesCapitan(viaje, estado),
+                    if (!widget.esCapitan)
+                      _buildAccionesPescador(viaje, estado, hasPassed),
                   ],
                 ),
               ),

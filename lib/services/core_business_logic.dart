@@ -1,5 +1,6 @@
 import 'dart:math' as Math;
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'supabase_service.dart';
 
 /// MASTER CONNECTION SKILL
 /// El corazón de la operatividad de EL GUIA YA.
@@ -84,7 +85,16 @@ class MasterConnectionSkill {
         throw Exception('Ya has enviado una propuesta para esta cotización.');
       }
 
-      await _supabase.from('presupuestos').insert({
+      final snapshot = await SupabaseService.obtenerSnapshotCapitanParaPresupuesto(capitanId);
+      final contratoSnapshot = await SupabaseService.buildContratoSnapshot(
+        capitanId: capitanId,
+        cotizacionId: cotizacionId,
+        monto: monto,
+        detalles: detalles,
+        presupuestoVisual: snapshot,
+      );
+
+      final payload = {
         'cotizacion_id': cotizacionId,
         'capitan_id': capitanId,
         'monto': monto,
@@ -92,7 +102,34 @@ class MasterConnectionSkill {
         'fecha_hora_viaje': fechaServicio.toIso8601String(),
         'estado': 'pendiente',
         'created_at': DateTime.now().toIso8601String(),
-      });
+        'capitan_nombre': snapshot['capitan_nombre'],
+        'capitan_avatar_url': snapshot['capitan_avatar_url'],
+        'embarcacion_url': snapshot['embarcacion_url'],
+        'barco_nombre': snapshot['barco_nombre'],
+        'contrato_snapshot': contratoSnapshot,
+      };
+
+      try {
+        await _supabase.from('presupuestos').insert(payload);
+      } catch (_) {
+        await _supabase.from('presupuestos').insert({
+          'cotizacion_id': cotizacionId,
+          'capitan_id': capitanId,
+          'monto': monto,
+          'detalles': detalles,
+          'fecha_hora_viaje': fechaServicio.toIso8601String(),
+          'estado': 'pendiente',
+          'created_at': DateTime.now().toIso8601String(),
+        });
+      }
+
+      try {
+        await _supabase.from('cotizaciones').update({
+          'estado': 'presupuestada',
+          'presupuesto_monto': monto,
+          'updated_at': DateTime.now().toIso8601String(),
+        }).eq('id', cotizacionId);
+      } catch (_) {}
       print('✅ Oferta vinculada correctamente.');
     } catch (e) {
       throw Exception('Fallo al vincular oferta: $e');

@@ -6,6 +6,7 @@ import 'chat_unificado_screen.dart';
 import '../widgets/map_selector_widget.dart';
 import '../widgets/ia_status_badge.dart';
 import 'pescador_dashboard_screen.dart';
+import 'mis_viajes_screen.dart';
 import 'bienvenida_definitiva_screen.dart';
 import '../services/supabase_service.dart';
 import '../services/branding_service.dart';
@@ -75,6 +76,53 @@ class _PortalPescadorScreenState extends State<PortalPescadorScreen> {
       debugPrint('Error cargando perfil: $e');
       if (mounted) setState(() => _userName = 'Laura');
     }
+  }
+
+  /// Abre el formulario de nueva cotización como modal sobre el portal,
+  /// sin navegar a otra pantalla. El bottom nav sigue visible al volver.
+  void _abrirFormularioNuevaSolicitud() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => FormularioCotizacionTecnica(
+        onSubmit: (datos) async {
+          try {
+            final resultado =
+                await SupabaseService.crearCotizacionTecnica(datos);
+            if (!mounted) return;
+            Navigator.pop(context); // Cierra el modal
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Center(
+                  child: Text(
+                    resultado['exito'] == true
+                        ? '✅ Solicitud creada. Los capitánes ya pueden cotizar.'
+                        : '⚠️ ${resultado['mensaje'] ?? 'Error al crear solicitud'}',
+                  ),
+                ),
+                backgroundColor: resultado['exito'] == true
+                    ? const Color(0xFF10B981)
+                    : Colors.red,
+              ),
+            );
+          } catch (e) {
+            if (!mounted) return;
+            Navigator.pop(context);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+        initialPuntoPartida: _initialQuoteData?['partida'],
+        initialPuntoDestino: _initialQuoteData?['destino'],
+        initialTrackLog: _initialQuoteData?['trackLog'],
+        initialDistanciaKM: _initialQuoteData?['distancia'] as double?,
+      ),
+    );
   }
 
   /// Pide permiso de GPS solo al abrir el mapa por primera vez.
@@ -161,6 +209,7 @@ class _PortalPescadorScreenState extends State<PortalPescadorScreen> {
     return IndexedStack(
       index: _selectedIndex,
       children: [
+        // Pestaña 0: Panel principal del Pescador (entrada de sesión)
         PescadorDashboardScreen(initialQuoteData: _initialQuoteData),
         _MapSection(
           onRequestQuote: (partida, destino, trackLog, distancia) {

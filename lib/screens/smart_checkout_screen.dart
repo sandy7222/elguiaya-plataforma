@@ -287,10 +287,18 @@ class _SmartCheckoutScreenState extends State<SmartCheckoutScreen>
 
       // Navegar a la pantalla de pago real con Mercado Pago
       if (mounted) {
-        // Usar el ID del primer manifiesto como reserva, o generar uno temporal
-        final reservaId = cartProvider.manifiestosViaje.isNotEmpty
-            ? cartProvider.manifiestosViaje.first.id
-            : 'reserva_${DateTime.now().millisecondsSinceEpoch}';
+        String reservaId;
+        if (cartProvider.tieneItemsViaje) {
+          final pedidoId = cartProvider.pedidoViajeId;
+          if (pedidoId == null || pedidoId.isEmpty) {
+            throw Exception(
+              'Aceptá la reserva del viaje antes de proceder al pago.',
+            );
+          }
+          reservaId = pedidoId;
+        } else {
+          reservaId = 'reserva_${DateTime.now().millisecondsSinceEpoch}';
+        }
 
         final emailPagador = cartProvider.manifiestosViaje.isNotEmpty
             ? cartProvider.manifiestosViaje.first.email

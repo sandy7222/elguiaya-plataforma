@@ -26,6 +26,7 @@ import 'mi_calendario_screen.dart'; // Pantalla de administración de disponibil
 import 'capitan_vidriera_screen.dart'; // Pantalla de la Góndola del Capitán
 import '../widgets/calificacion_pescador_dialog.dart';
 import '../widgets/reputacion_badge_widget.dart';
+import '../widgets/radar_scanner_widget.dart';
 
 class CapitanPanelScreen extends StatefulWidget {
   const CapitanPanelScreen({super.key});
@@ -466,6 +467,8 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
                       
                       if (_mensajeAlertaRuta != null)
                         _buildRouteAlertBubble(),
+
+                      _buildRadarOperacionActiva() ?? const SizedBox.shrink(),
                         
                       _buildLeadsSection(),
                       _buildCotizacionesPendientes(),
@@ -568,6 +571,36 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
     );
   }
 
+  Widget? _buildRadarOperacionActiva() {
+    final perfil = _perfil;
+    if (perfil == null ||
+        perfil.latitudCentro == null ||
+        perfil.longitudCentro == null ||
+        _estadoCuenta != 'activo') {
+      return null;
+    }
+
+    final bool disponible = perfil.disponible;
+    final int leadsActivos = _leads.length;
+    final String mensaje = !disponible
+        ? 'Radar en pausa — activá disponibilidad para recibir solicitudes'
+        : leadsActivos == 0
+            ? 'Escaneando radar en tu zona...'
+            : '$leadsActivos solicitud(es) detectadas en tu radar';
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: RadarScannerWidget(
+        mensaje: mensaje,
+        mapCenter: LatLng(perfil.latitudCentro!, perfil.longitudCentro!),
+        radioKm: perfil.radioOperacionKm ?? 50.0,
+        blipColor: disponible
+            ? const Color(0xFF00E676)
+            : Colors.amberAccent,
+      ),
+    );
+  }
+
   Widget _buildLeadsSection() {
     final bool tieneZona = _perfil != null && _perfil!.latitudCentro != null;
     
@@ -634,28 +667,7 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
     }
 
     if (_leads.isEmpty) {
-      return _buildGlassCard(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          children: [
-            const SizedBox(
-              width: 40,
-              height: 40,
-              child: CircularProgressIndicator(color: Color(0xFF00E676), strokeWidth: 2),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Escaneando radar en zona...',
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.6),
-                fontSize: 13,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ],
-        ),
-      );
+      return const SizedBox.shrink();
     }
     
     return _buildGlassCard(
@@ -2313,81 +2325,4 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
       ),
     );
   }
-}
-
-class GeofencingRadarWidget extends StatelessWidget {
-  final double capitanLat;
-  final double capitanLon;
-  final double pescadorLat;
-  final double pescadorLon;
-  final double radioKm;
-
-  const GeofencingRadarWidget({
-    super.key,
-    required this.capitanLat,
-    required this.capitanLon,
-    required this.pescadorLat,
-    required this.pescadorLon,
-    required this.radioKm,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: RadarPainter(
-        radioKm: radioKm,
-        distanciaKm: _calcularDistanciaReal(),
-      ),
-    );
-  }
-
-  double _calcularDistanciaReal() {
-    return 25.0; // Placeholder para el dibujo
-  }
-}
-
-class RadarPainter extends CustomPainter {
-  final double radioKm;
-  final double distanciaKm;
-
-  RadarPainter({required double radioKm, required double distanciaKm})
-      : radioKm = radioKm,
-        distanciaKm = distanciaKm;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final paintBase = Paint()
-      ..color = const Color(0xFF00E676).withOpacity(0.2)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
-
-    // Dibujar círculos de radar
-    canvas.drawCircle(center, size.width / 2, paintBase);
-    canvas.drawCircle(center, size.width / 4, paintBase);
-
-    // Dibujar el punto del pescador relativo
-    final normalizedDist = (distanciaKm / radioKm).clamp(0.0, 1.0);
-    final pescadorPos = Offset(
-      center.dx + (size.width / 2 * normalizedDist * 0.8),
-      center.dy - (size.height / 2 * normalizedDist * 0.5),
-    );
-
-    final paintPescador = Paint()
-      ..color = Colors.orangeAccent
-      ..style = PaintingStyle.fill;
-    
-    // Pulso neón para el pescador
-    canvas.drawCircle(pescadorPos, 6, paintPescador);
-    canvas.drawCircle(pescadorPos, 12, paintPescador..color = Colors.orangeAccent.withOpacity(0.3));
-
-    // Línea de barrido
-    final paintSweep = Paint()
-      ..color = const Color(0xFF00E676).withOpacity(0.4)
-      ..strokeWidth = 2.0;
-    canvas.drawLine(center, Offset(size.width, 0), paintSweep);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

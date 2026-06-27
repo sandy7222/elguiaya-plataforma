@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/mercado_pago_service.dart';
 import '../services/guia_copilot_brain.dart';
 import '../services/copilot_channel.dart';
+import '../services/viaje_lifecycle_service.dart';
+import 'ficha_contractual_screen.dart';
+import 'ficha_pescador_screen.dart';
 
 /// Pantalla de pago real con Mercado Pago Checkout Pro.
 /// Flujo:
@@ -41,6 +44,8 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
   _Pantalla _pantalla = _Pantalla.inicial;
   String? _errorMessage;
   EstadoPagoMP? _pagoConfirmado;
+  /// Visible en debug o mientras Mercado Pago esté en sandbox (etapa de evaluación).
+  bool _mostrarSimulador = kDebugMode;
 
   // ── Polling automático ───────────────────────────────────────────────────
   Timer? _pollingTimer;
@@ -65,13 +70,31 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
       }
     });
 
-    if (widget.initPoint != null && widget.initPoint!.isNotEmpty) {
+    // En modo prueba (debug) NO abrimos Mercado Pago automáticamente:
+    // mostramos la pantalla inicial para que el tester pueda usar
+    // el botón "SIMULAR PAGO". En producción, comportamiento normal.
+    if (!kDebugMode && widget.initPoint != null && widget.initPoint!.isNotEmpty) {
       _pantalla = _Pantalla.esperando;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _lanzarUrlPago(widget.initPoint!);
         _iniciarPolling(); // arrancar polling automático
       });
     }
+
+    _resolverVisibilidadSimulador();
+  }
+
+  /// En evaluación: simulador disponible si MP está en sandbox o en build debug.
+  /// Al pasar MP a producción (is_sandbox = false), se oculta automáticamente.
+  Future<void> _resolverVisibilidadSimulador() async {
+    try {
+      await MercadoPagoService.cargarCredenciales();
+    } catch (_) {}
+
+    if (!mounted) return;
+    setState(() {
+      _mostrarSimulador = kDebugMode || MercadoPagoService.isSandbox;
+    });
   }
 
   @override
@@ -114,7 +137,7 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
             if (estadoMP != EstadoReservaMP.pendiente) {
               // Pago resuelto: actualizar y salir del polling
               timer.cancel();
-              await _actualizarReservaEnSupabase(pago, estadoMP);
+              await _confirmarPagoEnPedido(pago, estadoMP);
               if (mounted) {
                 setState(() {
                   _pagoConfirmado = pago;
@@ -208,7 +231,7 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
       final estadoMP = MercadoPagoService.parsearEstado(pago.status);
 
       // Actualizar la tabla 'reservas' en Supabase con el estado real
-      await _actualizarReservaEnSupabase(pago, estadoMP);
+      await _confirmarPagoEnPedido(pago, estadoMP);
 
       // Pago resuelto manualmente → parar el polling
       _pollingTimer?.cancel();
@@ -241,84 +264,23 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
   }
 
   // ─── ACTUALIZAR SUPABASE ──────────────────────────────────────────────────
-  Future<void> _actualizarReservaEnSupabase(
+  Future<void> _confirmarPagoEnPedido(
     EstadoPagoMP pago,
     EstadoReservaMP estado,
   ) async {
-    try {
-      final supabase = Supabase.instance.client;
-      
-      // Map to lowercase status for pedidos table
-      final estadoPedido = estado == EstadoReservaMP.aprobado
-          ? 'confirmado'
-          : estado == EstadoReservaMP.pendiente
-              ? 'pendiente'
-              : 'cancelado';
+    final ok = await ViajeLifecycleService.confirmarPagoPedido(
+      pedidoId: widget.reservaId,
+      pago: pago,
+      estado: estado,
+      preferenceId: widget.preferenceId,
+      dniPagador: widget.dniPagador,
+      montoFallback: widget.amount,
+    );
 
-      // Update the pedidos table (which contains all MP columns and uses UUID)
-      await supabase.from('pedidos').update({
-        'estado': estadoPedido,
-        'mp_payment_id': pago.id,
-        'metodo_pago': pago.paymentMethodId,
-        'monto_total': pago.transactionAmount,
-        'mp_preference_id': widget.preferenceId,
-        'mp_external_reference': widget.reservaId,
-        'mp_raw_response': {
-          'id': pago.id,
-          'status': pago.status,
-          'status_detail': pago.statusDetail,
-          'transaction_amount': pago.transactionAmount,
-          'payment_method_id': pago.paymentMethodId,
-          'date_approved': pago.dateApproved?.toIso8601String(),
-        },
-        'updated_at': DateTime.now().toIso8601String(),
-      }).eq('id', widget.reservaId);
-
-      // Try to fetch reserva_id from the updated pedido to update the reservas table state
-      try {
-        final res = await supabase
-            .from('pedidos')
-            .select('reserva_id')
-            .eq('id', widget.reservaId)
-            .maybeSingle();
-            
-        if (res != null && res['reserva_id'] != null) {
-          final rId = res['reserva_id'];
-          final estadoReserva = estado == EstadoReservaMP.aprobado
-              ? 'PAGADA'
-              : estado == EstadoReservaMP.pendiente
-                  ? 'PAGO_PENDIENTE'
-                  : 'PAGO_RECHAZADO';
-                  
-          if (rId is int) {
-            await supabase.from('reservas').update({
-              'estado': estadoReserva,
-            }).eq('id', rId);
-          } else {
-            final parsedId = int.tryParse(rId.toString());
-            if (parsedId != null) {
-              await supabase.from('reservas').update({
-                'estado': estadoReserva,
-              }).eq('id', parsedId);
-            }
-          }
-        }
-      } catch (e2) {
-        debugPrint('⚠️ No se pudo actualizar estado en tabla reservas: $e2');
-      }
-
-      // Safe attempt to save DNI in profile
-      if (widget.dniPagador != null && widget.dniPagador!.isNotEmpty) {
-        try {
-          final currentUser = supabase.auth.currentUser;
-          if (currentUser != null) {
-            await supabase.from('profiles').update({'dni': widget.dniPagador}).eq('user_id', currentUser.id);
-          }
-        } catch (_) {}
-      }
-    } catch (e) {
-      // No bloqueamos el flujo si el pedido/reserva no existe (modo demo sin reserva real)
-      debugPrint('⚠️ No se pudo actualizar pedido/reserva en Supabase: $e');
+    if (!ok) {
+      throw Exception(
+        'No se encontró el pedido del viaje. Volvé al carrito y aceptá la reserva nuevamente.',
+      );
     }
   }
 
@@ -346,6 +308,17 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
                   : null,
               botonLabel: 'VOLVER AL INICIO',
               onBoton: () => Navigator.of(context).popUntil((r) => r.isFirst),
+              botonSecundarioLabel: 'Ver ficha contractual',
+              onBotonSecundario: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => FichaContractualScreen(
+                      pedidoId: widget.reservaId,
+                    ),
+                  ),
+                );
+              },
             ),
             _Pantalla.pendiente  => _buildResultado(
               icon: Icons.hourglass_top_rounded,
@@ -388,8 +361,10 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
                 const SizedBox(height: 28),
                 if (_errorMessage != null) _buildError(_errorMessage!),
                 _buildBotonMP(),
-                const SizedBox(height: 14),
-                _buildBotonSimularPago(),
+                if (_mostrarSimulador) ...[
+                  const SizedBox(height: 14),
+                  _buildBotonSimularPago(),
+                ],
               ],
             ),
           ),
@@ -591,7 +566,7 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
       );
 
       // Actualizar en Supabase
-      await _actualizarReservaEnSupabase(mockPago, EstadoReservaMP.aprobado);
+      await _confirmarPagoEnPedido(mockPago, EstadoReservaMP.aprobado);
 
       _pollingTimer?.cancel();
 
@@ -705,8 +680,10 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
             ),
           ),
           const SizedBox(height: 14),
-          _buildBotonSimularPago(),
-          const SizedBox(height: 10),
+          if (_mostrarSimulador) ...[
+            _buildBotonSimularPago(),
+            const SizedBox(height: 10),
+          ],
           TextButton(
             onPressed: () => setState(() {
               _pantalla = _Pantalla.inicial;
@@ -728,6 +705,8 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
     String? detalle,
     required String botonLabel,
     required VoidCallback onBoton,
+    String? botonSecundarioLabel,
+    VoidCallback? onBotonSecundario,
   }) {
     return Padding(
       padding: const EdgeInsets.all(32),
@@ -784,6 +763,27 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
               ),
             ),
           ),
+          if (botonSecundarioLabel != null && onBotonSecundario != null) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: OutlinedButton(
+                onPressed: onBotonSecundario,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  side: const BorderSide(color: Colors.white54),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                child: Text(
+                  botonSecundarioLabel,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

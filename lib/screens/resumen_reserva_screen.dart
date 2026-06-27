@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'chat_asistido_screen.dart';
 import 'package:provider/provider.dart';
 import '../providers/cart_provider.dart';
+import '../services/viaje_lifecycle_service.dart';
 
 class ResumenReservaScreen extends StatefulWidget {
   final String cotizacionId;
@@ -19,6 +20,7 @@ class ResumenReservaScreen extends StatefulWidget {
 
 class _ResumenReservaScreenState extends State<ResumenReservaScreen> {
   Map<String, dynamic>? _reservaData;
+  Map<String, dynamic>? _presupuestoActivo;
   bool _isLoading = true;
   bool _isProcesando = false;
   
@@ -59,6 +61,7 @@ class _ResumenReservaScreenState extends State<ResumenReservaScreen> {
       }
 
       final presupuesto = presupuestosResponse.first;
+      _presupuestoActivo = Map<String, dynamic>.from(presupuesto);
       final rawCapitanProfile = presupuesto['profiles'];
       
       // Convertir a Map mutable para poder enriquecerlo
@@ -180,11 +183,23 @@ class _ResumenReservaScreenState extends State<ResumenReservaScreen> {
     setState(() => _isProcesando = true);
     
     try {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId == null) {
+        throw Exception('Debés iniciar sesión para confirmar la reserva.');
+      }
+      if (_presupuestoActivo == null) {
+        throw Exception('No se encontró el presupuesto activo.');
+      }
+
+      final pedidoId = await ViajeLifecycleService.aceptarPresupuesto(
+        presupuesto: _presupuestoActivo!,
+        pescadorId: userId,
+      );
+
       final cart = Provider.of<CartProvider>(context, listen: false);
       
       final baseViajeMonto = (_reservaData!['costos']['presupuesto_viaje'] as num).toDouble();
       
-      // Agregar el viaje al carrito
       cart.agregarViajeAlCarrito(
         idCotizacion: _reservaData!['id_viaje'],
         nombreCapitan: _reservaData!['capitan']['nombre'],
@@ -193,6 +208,7 @@ class _ResumenReservaScreenState extends State<ResumenReservaScreen> {
         fecha: _reservaData!['fecha_embarque'],
         capitanAvatarUrl: _reservaData!['capitan']['foto_url'],
         embarcacionUrl: _reservaData!['capitan']['embarcacion_url'],
+        pedidoId: pedidoId,
       );
 
       // Si hay productos en la reserva (carnada, etc), también los sumamos (mock)

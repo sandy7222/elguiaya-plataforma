@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../services/viaje_lifecycle_service.dart';
+import 'calificacion_tag_chip.dart';
 
 /// Diálogo para que el Capitán califique al Pescador al finalizar un viaje.
 class CalificacionPescadorDialog extends StatefulWidget {
@@ -229,9 +230,10 @@ class _CalificacionPescadorDialogState
                     alignment: WrapAlignment.center,
                     children: _etiquetas.map((tag) {
                       final isSelected = _selectedTags.contains(tag);
-                      return ChoiceChip(
-                        label: Text(tag),
+                      return CalificacionTagChip(
+                        label: tag,
                         selected: isSelected,
+                        accentColor: const Color(0xFF00E676),
                         onSelected: (selected) {
                           setState(() {
                             if (selected) {
@@ -241,26 +243,6 @@ class _CalificacionPescadorDialogState
                             }
                           });
                         },
-                        selectedColor:
-                            const Color(0xFF00E676).withOpacity(0.2),
-                        backgroundColor: Colors.white.withOpacity(0.04),
-                        labelStyle: TextStyle(
-                          color: isSelected
-                              ? const Color(0xFF00E676)
-                              : Colors.white.withOpacity(0.7),
-                          fontSize: 12,
-                          fontWeight: isSelected
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          side: BorderSide(
-                            color: isSelected
-                                ? const Color(0xFF00E676).withOpacity(0.5)
-                                : Colors.white.withOpacity(0.1),
-                          ),
-                        ),
                       );
                     }).toList(),
                   ),
@@ -326,8 +308,11 @@ class _CalificacionPescadorDialogState
                         const Expanded(
                           child: Text(
                             'Reportar incidente con este pescador',
-                            style:
-                                TextStyle(color: Colors.white70, fontSize: 12),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
                         Switch(

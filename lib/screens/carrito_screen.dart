@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
 import '../providers/cart_provider.dart';
 import '../models/cart_item.dart';
 import '../services/branding_service.dart';
@@ -66,7 +67,19 @@ class _CarritoScreenState extends State<CarritoScreen> {
     setState(() => _isCreatingPreference = true);
 
     try {
-      final reservaId = 'reserva_${DateTime.now().millisecondsSinceEpoch}';
+      late final String reservaId;
+      if (cart.tieneItemsViaje) {
+        final pedidoId = cart.pedidoViajeId;
+        if (pedidoId == null || pedidoId.isEmpty) {
+          throw Exception(
+            'Aceptá la reserva del viaje antes de proceder al pago.',
+          );
+        }
+        reservaId = pedidoId;
+      } else {
+        reservaId = const Uuid().v4();
+      }
+
       final emailSilencioso =
           Supabase.instance.client.auth.currentUser?.email ?? '';
       final totalConEnvio = cart.totalCarrito + _tarifaEnvio;

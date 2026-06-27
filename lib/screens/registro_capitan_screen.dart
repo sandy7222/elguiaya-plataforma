@@ -30,6 +30,8 @@ class _RegistroCapitanScreenState extends State<RegistroCapitanScreen> {
   final _localidadController = TextEditingController();
   final _provinciaController = TextEditingController();
   final _cpController = TextEditingController();
+  final _numeroCarnetController = TextEditingController();
+  final _numeroPolizaController = TextEditingController();
 
   // Archivos
   XFile? _avatarFile, _dniFile, _carnetFile, _seguroFile, _embarcacionFile;
@@ -89,6 +91,8 @@ class _RegistroCapitanScreenState extends State<RegistroCapitanScreen> {
     _localidadController.dispose();
     _provinciaController.dispose();
     _cpController.dispose();
+    _numeroCarnetController.dispose();
+    _numeroPolizaController.dispose();
     _referidoController.dispose();
     super.dispose();
   }
@@ -271,9 +275,23 @@ class _RegistroCapitanScreenState extends State<RegistroCapitanScreen> {
       return;
     }
 
+    if (_numeroCarnetController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Ingresá el N° de tu Carnet de Timonel (como figura en el documento).'), backgroundColor: Colors.orange),
+      );
+      return;
+    }
+
     if (_seguroFile != null && _vencimientoSeguro == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Por favor, declará la fecha de vencimiento de la Póliza de Seguro.'), backgroundColor: Colors.orange),
+      );
+      return;
+    }
+
+    if (_seguroFile != null && _numeroPolizaController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Ingresá el N° de póliza del Seguro de Embarcación.'), backgroundColor: Colors.orange),
       );
       return;
     }
@@ -325,6 +343,8 @@ class _RegistroCapitanScreenState extends State<RegistroCapitanScreen> {
         'embarcacion_url': embarcacionUrl,
         'vencimiento_seguro': _vencimientoSeguro?.toIso8601String(),
         'vencimiento_carnet': _vencimientoCarnet?.toIso8601String(),
+        'numero_carnet': _numeroCarnetController.text.trim(),
+        'numero_poliza': _numeroPolizaController.text.trim(),
         'referido': codigoReferidoFinal,
         'referido_id': comisionistaId,
         'es_capitan': true,
@@ -340,7 +360,7 @@ class _RegistroCapitanScreenState extends State<RegistroCapitanScreen> {
       // 3. Tambien guardar en tabla guias si existe
       try {
         await supabase.from('guias').upsert({
-          'id': user.id, // Usamos 'id' en lugar de 'user_id' según vimos en Supabase
+          'id': user.id,
           'nombre': _nombreController.text.trim(),
           'dni': _dniController.text.trim(),
           'email': _emailController.text.trim(),
@@ -352,6 +372,10 @@ class _RegistroCapitanScreenState extends State<RegistroCapitanScreen> {
           'referido': codigoReferidoFinal,
           'referido_id': comisionistaId,
           'verificado': false,
+          'avatar_url': avatarUrl,
+          'embarcacion_url': embarcacionUrl,
+          'carnet_timonel': _numeroCarnetController.text.trim(),
+          'poliza_seguro': _numeroPolizaController.text.trim(),
         });
       } catch (e) {
         debugPrint('Error no critico al guardar en tabla guias: $e');
@@ -521,6 +545,18 @@ class _RegistroCapitanScreenState extends State<RegistroCapitanScreen> {
                     title: 'DOCUMENTACIÓN REQUERIDA',
                     icon: Icons.description_outlined,
                     children: [
+                      _buildTextField(
+                        _numeroCarnetController,
+                        'N° Carnet de Timonel (como en el documento)',
+                        Icons.badge_outlined,
+                      ),
+                      const SizedBox(height: 12),
+                      _buildTextField(
+                        _numeroPolizaController,
+                        'N° Póliza de Seguro (si subís seguro)',
+                        Icons.policy_outlined,
+                      ),
+                      const SizedBox(height: 12),
                       _buildFileSelector('Foto de Perfil (Avatar)', 'avatar', _avatarBytes, _avatarFile),
                       _buildFileSelector('Foto de DNI (Frente)', 'dni', _dniBytes, _dniFile),
                       _buildFileSelector('Carnet de Timonel / Guía', 'carnet', _carnetBytes, _carnetFile),

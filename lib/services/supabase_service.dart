@@ -306,6 +306,8 @@ class SupabaseService {
       });
       
       // 2. Sincronizar con tabla profiles (Master)
+      final numeroCarnet = _textoDocumentoValido(guia.carnetTimonel);
+      final numeroPoliza = _textoDocumentoValido(guia.polizaSeguro);
       await supabase.from('profiles').upsert({
         'user_id': guia.id,
         'nombre': guia.nombre,
@@ -323,6 +325,8 @@ class SupabaseService {
         'embarcacion_url': guia.embarcacionUrl,
         'foto_dni_url': guia.dniUrl,
         'carnet_url': guia.carnetUrl,
+        if (numeroCarnet != null) 'numero_carnet': numeroCarnet,
+        if (numeroPoliza != null) 'numero_poliza': numeroPoliza,
         'referido': guia.referido,
         'referido_id': referidoId,
         if (lat != null) 'zona_lat': lat,
@@ -474,6 +478,10 @@ class SupabaseService {
       final int? dniInt = int.tryParse(rawDni.toString().replaceAll(RegExp(r'\D'), ''));
 
       if (isCapitan) {
+        final numeroCarnet = _textoDocumentoValido(profile['numero_carnet']?.toString()) ??
+            _textoDocumentoValido(profile['carnet_timonel']?.toString());
+        final numeroPoliza = _textoDocumentoValido(profile['numero_poliza']?.toString()) ??
+            _textoDocumentoValido(profile['poliza_seguro']?.toString());
         // Traspasar a tabla 'guias'
         await supabase.from('guias').upsert({
           'id': userId, 
@@ -487,8 +495,8 @@ class SupabaseService {
           'altura': profile['direccion_numero'] ?? profile['altura'] ?? '',
           'cp': profile['cp']?.toString() ?? '',
           'avatar_url': profile['avatar_url'],
-          'carnet_timonel': profile['carnet_url'],
-          'poliza_seguro': profile['seguro_url'],
+          'carnet_timonel': numeroCarnet ?? profile['carnet_url'],
+          'poliza_seguro': numeroPoliza ?? profile['seguro_url'],
           'expediente': profile['expediente'] ?? 'CAP-2026-TEMP',
           'capacidad_personas': profile['capacidad_personas'] ?? 0,
           'referido': profile['referido'],
@@ -2199,6 +2207,8 @@ class SupabaseService {
           .select('*')
           .eq('pescador_id', pescadorId)
           .gt('created_at', limiteExpiracion)
+          .neq('estado', 'cerrada')   // 🔒 No mostrar cotizaciones ya cerradas/pagadas
+          .neq('estado', 'cancelada') // 🔒 No mostrar cotizaciones canceladas
           .order('created_at', ascending: false);
       
       return List<Cotizacion>.from(response.map((cot) => Cotizacion.fromSupabase(cot)));
@@ -3072,7 +3082,9 @@ class SupabaseService {
         coordenadasPuertoDestino,
       );
 
-      if (distanciaPuerto > 1000.0) {
+      // En modo prueba (debug) se omite el geocerco para poder testear el cierre
+      // desde cualquier ubicación. En producción se mantiene estricto.
+      if (!kDebugMode && distanciaPuerto > 1000.0) {
         return {
           'exito': false,
           'mensaje': 'Error de localización: El capitán se encuentra a ${distanciaPuerto.toStringAsFixed(1)} metros del puerto de destino (máximo permitido 1000 metros).',
@@ -3086,7 +3098,7 @@ class SupabaseService {
         coordenadasPescador,
       );
 
-      if (distanciaCapitanPescador > 100.0) {
+      if (!kDebugMode && distanciaCapitanPescador > 100.0) {
         // Gatillo de Emergencia: Disparar disputa automática y congelar fondos/comisiones
         try {
           await iniciarDisputaViaje(
@@ -4191,22 +4203,681 @@ class SupabaseService {
     }
   }
 
+  /// Snapshot del capitán al crear presupuesto (el capitán sí puede leer su perfil/guias).
+  static Future<Map<String, dynamic>> obtenerSnapshotCapitanParaPresupuesto(
+    String capitanId,
+  ) async {
+    Map<String, dynamic>? guia;
+    Map<String, dynamic>? profile;
+
+    try {
+      guia = await supabase
+          .from('guias')
+          .select('nombre, avatar_url, embarcacion_url')
+          .eq('id', capitanId)
+          .maybeSingle();
+    } catch (_) {}
+
+    try {
+      profile = await supabase
+          .from('profiles')
+          .select('nombre, avatar_url, embarcacion_url, bio_pescador')
+          .eq('user_id', capitanId)
+          .maybeSingle();
+    } catch (_) {}
+
+    String? docAvatar;
+    try {
+      final docs = await supabase
+          .from('documentos_usuarios')
+          .select('url_storage')
+          .eq('usuario_id', capitanId)
+          .inFilter('tipo_doc', ['avatar', 'perfil'])
+          .order('created_at', ascending: false)
+          .limit(1);
+      if (docs is List && docs.isNotEmpty) {
+        docAvatar = docs.first['url_storage']?.toString();
+      }
+    } catch (_) {}
+
+    String? firstNonEmpty(String? a, [String? b, String? c]) {
+      for (final value in [a, b, c]) {
+        final trimmed = value?.trim();
+        if (trimmed != null && trimmed.isNotEmpty && trimmed.toLowerCase() != 'null') {
+          return trimmed;
+        }
+      }
+      return null;
+    }
+
+    return {
+      'capitan_nombre': firstNonEmpty(
+            guia?['nombre']?.toString(),
+            profile?['nombre']?.toString(),
+          ) ??
+          'Capitán',
+      'capitan_avatar_url': firstNonEmpty(
+        guia?['avatar_url']?.toString(),
+        profile?['avatar_url']?.toString(),
+        docAvatar,
+      ),
+      'embarcacion_url': firstNonEmpty(
+        guia?['embarcacion_url']?.toString(),
+        profile?['embarcacion_url']?.toString(),
+      ),
+      'barco_nombre': firstNonEmpty(
+            guia?['barco_nombre']?.toString(),
+            guia?['nombre'] != null ? 'Embarcación de ${guia!['nombre']}' : null,
+          ) ??
+          'Embarcación Principal',
+      'calificacion_promedio': null,
+      'viajes_realizados': null,
+      'bio_pescador': profile?['bio_pescador'],
+    };
+  }
+
+  /// Arma el snapshot contractual congelado para presupuesto/pedido.
+  static Future<Map<String, dynamic>> buildContratoSnapshot({
+    required String capitanId,
+    required String cotizacionId,
+    required double monto,
+    required String detalles,
+    Map<String, dynamic>? presupuestoVisual,
+  }) async {
+    Map<String, dynamic>? profile;
+    Map<String, dynamic>? guia;
+    Map<String, dynamic>? cotizacion;
+
+    try {
+      profile = await supabase
+          .from('profiles')
+          .select(
+            'nombre, telefono, expediente, numero_carnet, aseguradora, tipo_seguro, '
+            'numero_poliza, vencimiento_carnet, vencimiento_seguro, embarcacion_url, '
+            'servicio_carnada, servicio_lenia, servicio_almacen, bio_pescador, '
+            'capacidad_personas, capacidad_kilos',
+          )
+          .eq('user_id', capitanId)
+          .maybeSingle();
+    } catch (_) {}
+
+    try {
+      guia = await supabase
+          .from('guias')
+          .select('nombre, embarcacion_url, expediente, carnet_timonel, poliza_seguro')
+          .eq('id', capitanId)
+          .maybeSingle();
+    } catch (_) {}
+
+    try {
+      cotizacion = await supabase
+          .from('cotizaciones')
+          .select(
+            'fecha_ida, hora_encuentro, lugar_encuentro, cantidad_personas, '
+            'distancia_km, descripcion',
+          )
+          .eq('id', cotizacionId)
+          .maybeSingle();
+    } catch (_) {}
+
+    final visual = presupuestoVisual ??
+        await obtenerSnapshotCapitanParaPresupuesto(capitanId);
+
+    Map<String, dynamic> bio = {};
+    final bioRaw = profile?['bio_pescador'];
+    if (bioRaw is Map) {
+      bio = Map<String, dynamic>.from(bioRaw);
+    }
+
+    String? firstNonEmpty(String? a, [String? b, String? c]) {
+      for (final value in [a, b, c]) {
+        final trimmed = value?.trim();
+        if (trimmed != null && trimmed.isNotEmpty && trimmed.toLowerCase() != 'null') {
+          return trimmed;
+        }
+      }
+      return null;
+    }
+
+    final nombre = firstNonEmpty(
+          visual['capitan_nombre']?.toString(),
+          guia?['nombre']?.toString(),
+          profile?['nombre']?.toString(),
+        ) ??
+        'Capitán';
+
+    final numerosDoc = resolverNumerosDocumentacionCapitan(
+      profile: profile,
+      guia: guia,
+    );
+
+    return {
+      'capturado_en': DateTime.now().toIso8601String(),
+      'capitan': {
+        'nombre': nombre,
+        'expediente': firstNonEmpty(
+          profile?['expediente']?.toString(),
+          guia?['expediente']?.toString(),
+        ),
+        'numero_carnet': numerosDoc['numero_carnet'],
+        'vencimiento_carnet': profile?['vencimiento_carnet'],
+        'aseguradora': profile?['aseguradora']?.toString(),
+        'tipo_seguro': profile?['tipo_seguro']?.toString(),
+        'numero_poliza': numerosDoc['numero_poliza'],
+        'vencimiento_seguro': profile?['vencimiento_seguro'],
+        'telefono': profile?['telefono']?.toString(),
+      },
+      'embarcacion': {
+        'barco_nombre': visual['barco_nombre']?.toString() ?? 'Embarcación Principal',
+        'embarcacion_url': firstNonEmpty(
+          visual['embarcacion_url']?.toString(),
+          guia?['embarcacion_url']?.toString(),
+          profile?['embarcacion_url']?.toString(),
+        ),
+        'capacidad_personas': profile?['capacidad_personas'],
+        'capacidad_kilos': profile?['capacidad_kilos'],
+      },
+      'servicios': {
+        'carnada': profile?['servicio_carnada']?.toString() ?? 'No',
+        'lenia': profile?['servicio_lenia']?.toString() ?? 'false',
+        'almacen': profile?['servicio_almacen']?.toString() ?? 'false',
+        'cabania': bio['cabania']?.toString() ?? 'false',
+        'banio': bio['banio']?.toString() ?? 'false',
+        'parrilla': bio['parrilla']?.toString() ?? 'false',
+      },
+      'viaje': {
+        'fecha_ida': cotizacion?['fecha_ida'],
+        'hora_encuentro': cotizacion?['hora_encuentro'],
+        'lugar_encuentro': cotizacion?['lugar_encuentro'],
+        'cantidad_personas': cotizacion?['cantidad_personas'],
+        'distancia_km': cotizacion?['distancia_km'],
+        'descripcion': cotizacion?['descripcion'],
+      },
+      'oferta': {
+        'monto': monto,
+        'detalles': detalles,
+      },
+    };
+  }
+
+  /// Descarta URLs de storage y valores vacíos (solo números/texto de habilitación).
+  static String? _textoDocumentoValido(String? raw) {
+    if (raw == null) return null;
+    final value = raw.trim();
+    if (value.isEmpty || value.toLowerCase() == 'null') return null;
+    final lower = value.toLowerCase();
+    if (lower.startsWith('http://') ||
+        lower.startsWith('https://') ||
+        lower.contains('supabase.co/storage') ||
+        lower.contains('/object/public/')) {
+      return null;
+    }
+    return value;
+  }
+
+  /// Resuelve N° carnet y N° póliza desde profiles + guias (fuente de habilitación náutica).
+  static Map<String, String?> resolverNumerosDocumentacionCapitan({
+    Map<String, dynamic>? profile,
+    Map<String, dynamic>? guia,
+  }) {
+    String? pick(String? a, String? b) {
+      return _textoDocumentoValido(a) ?? _textoDocumentoValido(b);
+    }
+
+    return {
+      'numero_carnet': pick(
+        profile?['numero_carnet']?.toString(),
+        guia?['carnet_timonel']?.toString(),
+      ),
+      'numero_poliza': pick(
+        profile?['numero_poliza']?.toString(),
+        guia?['poliza_seguro']?.toString(),
+      ),
+    };
+  }
+
+  /// Copia números de carnet/póliza al perfil maestro si faltan o están desactualizados.
+  static Future<Map<String, String?>> sincronizarDocumentacionContractualCapitan(
+    String capitanId,
+  ) async {
+    Map<String, dynamic>? profile;
+    Map<String, dynamic>? guia;
+
+    try {
+      profile = await supabase
+          .from('profiles')
+          .select(
+            'numero_carnet, numero_poliza, aseguradora, tipo_seguro, '
+            'vencimiento_carnet, vencimiento_seguro',
+          )
+          .eq('user_id', capitanId)
+          .maybeSingle();
+    } catch (_) {}
+
+    try {
+      guia = await supabase
+          .from('guias')
+          .select('carnet_timonel, poliza_seguro')
+          .eq('id', capitanId)
+          .maybeSingle();
+    } catch (_) {}
+
+    final numeros = resolverNumerosDocumentacionCapitan(
+      profile: profile,
+      guia: guia,
+    );
+
+    final updates = <String, dynamic>{
+      'updated_at': DateTime.now().toIso8601String(),
+    };
+    if (numeros['numero_carnet'] != null) {
+      updates['numero_carnet'] = numeros['numero_carnet'];
+    }
+    if (numeros['numero_poliza'] != null) {
+      updates['numero_poliza'] = numeros['numero_poliza'];
+    }
+
+    if (updates.length > 1) {
+      try {
+        await supabase.from('profiles').update(updates).eq('user_id', capitanId);
+      } catch (e) {
+        print('⚠️ sincronizarDocumentacionContractualCapitan: $e');
+      }
+    }
+
+    return numeros;
+  }
+
+  static bool _documentacionVigente(String? isoDate) {
+    if (isoDate == null || isoDate.trim().isEmpty) return false;
+    final fecha = DateTime.tryParse(isoDate);
+    if (fecha == null) return false;
+    final hoy = DateTime.now();
+    return !fecha.isBefore(DateTime(hoy.year, hoy.month, hoy.day));
+  }
+
+  /// Indica si el capitán tiene datos mínimos para la ficha contractual.
+  static bool capitanDatosContractualesCompletos({
+    Map<String, dynamic>? profile,
+    Map<String, dynamic>? guia,
+  }) {
+    if (profile == null) return false;
+
+    final numeros = resolverNumerosDocumentacionCapitan(profile: profile, guia: guia);
+    bool filled(String? v) {
+      final t = v?.trim();
+      return t != null && t.isNotEmpty && t.toLowerCase() != 'null';
+    }
+
+    final carnetOk = filled(numeros['numero_carnet']) &&
+        _documentacionVigente(profile['vencimiento_carnet']?.toString());
+    final seguroOk = filled(numeros['numero_poliza']) &&
+        _documentacionVigente(profile['vencimiento_seguro']?.toString());
+
+    return carnetOk && seguroOk;
+  }
+
+  /// Carga perfil del capitán y evalúa datos contractuales (carnet/póliza vigentes).
+  static Future<bool> capitanTieneDatosContractuales(String capitanId) async {
+    try {
+      Map<String, dynamic>? profile;
+      Map<String, dynamic>? guia;
+
+      profile = await supabase
+          .from('profiles')
+          .select(
+            'numero_carnet, numero_poliza, aseguradora, tipo_seguro, '
+            'vencimiento_carnet, vencimiento_seguro',
+          )
+          .eq('user_id', capitanId)
+          .maybeSingle();
+
+      try {
+        guia = await supabase
+            .from('guias')
+            .select('carnet_timonel, poliza_seguro')
+            .eq('id', capitanId)
+            .maybeSingle();
+      } catch (_) {}
+
+      await sincronizarDocumentacionContractualCapitan(capitanId);
+
+      return capitanDatosContractualesCompletos(
+        profile: profile != null ? Map<String, dynamic>.from(profile) : null,
+        guia: guia != null ? Map<String, dynamic>.from(guia) : null,
+      );
+    } catch (_) {
+      return true;
+    }
+  }
+
+  /// Ficha contractual del viaje (RPC SECURITY DEFINER).
+  static Future<Map<String, dynamic>?> obtenerFichaContractual(String pedidoId) async {
+    try {
+      final response = await supabase.rpc(
+        'obtener_ficha_contractual',
+        params: {'p_pedido_id': pedidoId},
+      );
+      if (response is Map) {
+        return Map<String, dynamic>.from(response);
+      }
+    } catch (e) {
+      print('⚠️ obtenerFichaContractual RPC: $e');
+    }
+    return null;
+  }
+
+  /// Copia snapshot del presupuesto al pedido si aún no existe.
+  static Future<void> sincronizarContratoSnapshotEnPedido(String pedidoId) async {
+    try {
+      final pedido = await supabase
+          .from('pedidos')
+          .select('presupuesto_id, contrato_snapshot')
+          .eq('id', pedidoId)
+          .maybeSingle();
+      if (pedido == null) return;
+      if (pedido['contrato_snapshot'] != null) return;
+
+      final presId = pedido['presupuesto_id']?.toString();
+      if (presId == null || presId.isEmpty) return;
+
+      final pres = await supabase
+          .from('presupuestos')
+          .select('contrato_snapshot')
+          .eq('id', presId)
+          .maybeSingle();
+      if (pres == null || pres['contrato_snapshot'] == null) return;
+
+      await supabase.from('pedidos').update({
+        'contrato_snapshot': pres['contrato_snapshot'],
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', pedidoId);
+    } catch (e) {
+      print('⚠️ sincronizarContratoSnapshotEnPedido: $e');
+    }
+  }
+
+  /// Código legible del viaje (#VJ-XXXX).
+  static String codigoViajeDesdePedidoId(String pedidoId) {
+    if (pedidoId.isEmpty) return '#VJ-????';
+    final limpio = pedidoId.replaceAll('-', '').toUpperCase();
+    final n = limpio.length >= 4 ? 4 : limpio.length;
+    return '#VJ-${limpio.substring(0, n)}';
+  }
+
+  static String pedidoIdCorto(String pedidoId) {
+    if (pedidoId.isEmpty) return '—';
+    return pedidoId.length > 8
+        ? pedidoId.substring(0, 8).toUpperCase()
+        : pedidoId.toUpperCase();
+  }
+
+  static Map<String, String?> _parseApellidoPasajero(String? apellidoRaw) {
+    final apellido = apellidoRaw?.trim() ?? '';
+    if (apellido.isEmpty) {
+      return {'apellido': null, 'telefono': null, 'contingencia_telefono': null};
+    }
+
+    final telMatch = RegExp(r'\(Tel:\s*([^)]+)\)', caseSensitive: false).firstMatch(apellido);
+    final emergMatch =
+        RegExp(r'\(Emergencia:\s*([^,)]+)', caseSensitive: false).firstMatch(apellido);
+    final limpio = apellido.split('(').first.trim();
+
+    return {
+      'apellido': limpio.isEmpty ? null : limpio,
+      'telefono': telMatch?.group(1)?.trim(),
+      'contingencia_telefono': emergMatch?.group(1)?.trim(),
+    };
+  }
+
+  static Map<String, String?> _parseContingenciaDesdeBio(String? bioRaw) {
+    final bio = bioRaw?.toString().trim() ?? '';
+    if (bio.isEmpty) return {'nombre': null, 'telefono': null};
+
+    final match = RegExp(
+      r'Emergencia:\s*(.+?)\s*\(Tel:\s*([^)]+)\)',
+      caseSensitive: false,
+    ).firstMatch(bio);
+    if (match != null) {
+      return {
+        'nombre': match.group(1)?.trim(),
+        'telefono': match.group(2)?.trim(),
+      };
+    }
+    return {'nombre': null, 'telefono': null};
+  }
+
+  /// Arma snapshot congelado del pescador + acompañantes + contingencia (sin fotos de DNI).
+  static Future<Map<String, dynamic>> buildPescadorSnapshot(String pedidoId) async {
+    Map<String, dynamic>? pedido;
+    Map<String, dynamic>? profile;
+    List<Map<String, dynamic>> pasajeros = [];
+
+    try {
+      pedido = await supabase
+          .from('pedidos')
+          .select('id, pescador_id, cotizacion_id, presupuesto_id')
+          .eq('id', pedidoId)
+          .maybeSingle();
+    } catch (_) {}
+
+    final pescadorId = pedido?['pescador_id']?.toString() ?? '';
+    if (pescadorId.isEmpty) {
+      return {'capturado_en': DateTime.now().toIso8601String(), 'codigos': {}};
+    }
+
+    try {
+      profile = await supabase
+          .from('profiles')
+          .select('nombre, dni, telefono, avatar_url, bio_pescador')
+          .eq('user_id', pescadorId)
+          .maybeSingle();
+    } catch (_) {}
+
+    try {
+      final rows = await supabase
+          .from('viajes_invitados')
+          .select('nombre, apellido, dni, es_titular')
+          .eq('pedido_id', pedidoId)
+          .order('es_titular', ascending: false);
+      pasajeros = List<Map<String, dynamic>>.from(rows);
+    } catch (_) {}
+
+    Map<String, dynamic>? titularRow;
+    for (final p in pasajeros) {
+      if (p['es_titular'] == true) {
+        titularRow = p;
+        break;
+      }
+    }
+
+    String? nombreTitular = titularRow?['nombre']?.toString().trim();
+    String? apellidoTitular;
+    String? telTitular = profile?['telefono']?.toString();
+    String? dniTitular = titularRow?['dni']?.toString() ?? profile?['dni']?.toString();
+
+    if (titularRow != null) {
+      final parsed = _parseApellidoPasajero(titularRow['apellido']?.toString());
+      apellidoTitular = parsed['apellido'];
+      telTitular = parsed['telefono'] ?? telTitular;
+    } else {
+      final full = profile?['nombre']?.toString().trim() ?? '';
+      if (full.isNotEmpty) {
+        final parts = full.split(RegExp(r'\s+'));
+        nombreTitular = parts.first;
+        if (parts.length > 1) {
+          apellidoTitular = parts.sublist(1).join(' ');
+        }
+      }
+    }
+
+    final bioContingencia = _parseContingenciaDesdeBio(profile?['bio_pescador']?.toString());
+    String? contingenciaTel = bioContingencia['telefono'];
+    String? contingenciaNombre = bioContingencia['nombre'];
+
+    if (titularRow != null) {
+      final parsed = _parseApellidoPasajero(titularRow['apellido']?.toString());
+      contingenciaTel ??= parsed['contingencia_telefono'];
+    }
+
+    final acompanantes = <Map<String, dynamic>>[];
+    for (final p in pasajeros) {
+      if (p['es_titular'] == true) continue;
+      final parsed = _parseApellidoPasajero(p['apellido']?.toString());
+      acompanantes.add({
+        'nombre': p['nombre']?.toString(),
+        'apellido': parsed['apellido'],
+        'nombre_completo':
+            '${p['nombre']?.toString() ?? ''} ${parsed['apellido'] ?? ''}'.trim(),
+        'dni': p['dni']?.toString(),
+        'telefono': parsed['telefono'],
+      });
+    }
+
+    final nombreCompletoTitular =
+        '${nombreTitular ?? ''} ${apellidoTitular ?? ''}'.trim();
+
+    return {
+      'capturado_en': DateTime.now().toIso8601String(),
+      'codigos': {
+        'codigo_viaje': codigoViajeDesdePedidoId(pedidoId),
+        'pedido_id_corto': pedidoIdCorto(pedidoId),
+        'pedido_id': pedidoId,
+        'cotizacion_id': pedido?['cotizacion_id']?.toString(),
+        'presupuesto_id': pedido?['presupuesto_id']?.toString(),
+      },
+      'titular': {
+        'nombre': nombreTitular,
+        'apellido': apellidoTitular,
+        'nombre_completo':
+            nombreCompletoTitular.isNotEmpty ? nombreCompletoTitular : profile?['nombre'],
+        'dni': dniTitular,
+        'telefono': telTitular,
+        'avatar_url': profile?['avatar_url']?.toString(),
+      },
+      'acompanantes': acompanantes,
+      'contingencia': {
+        'nombre': contingenciaNombre,
+        'telefono': contingenciaTel,
+      },
+    };
+  }
+
+  /// Persiste snapshot del pescador en el pedido.
+  static Future<void> guardarPescadorSnapshotEnPedido(String pedidoId) async {
+    try {
+      final snapshot = await buildPescadorSnapshot(pedidoId);
+      await supabase.from('pedidos').update({
+        'pescador_snapshot': snapshot,
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', pedidoId);
+    } catch (e) {
+      print('⚠️ guardarPescadorSnapshotEnPedido: $e');
+    }
+  }
+
+  /// Planilla del pescador (RPC SECURITY DEFINER).
+  static Future<Map<String, dynamic>?> obtenerFichaPescador(String pedidoId) async {
+    try {
+      final response = await supabase.rpc(
+        'obtener_ficha_pescador',
+        params: {'p_pedido_id': pedidoId},
+      );
+      if (response is Map) {
+        return Map<String, dynamic>.from(response);
+      }
+    } catch (e) {
+      print('⚠️ obtenerFichaPescador RPC: $e');
+    }
+    return null;
+  }
+
+  /// Datos públicos del capitán para tarjeta de oferta (RPC SECURITY DEFINER).
+  static Future<Map<String, dynamic>?> obtenerDatosCapitanOferta({
+    required String capitanId,
+    String? cotizacionId,
+  }) async {
+    try {
+      final response = await supabase.rpc(
+        'obtener_datos_capitan_oferta',
+        params: {
+          'p_capitan_id': capitanId,
+          if (cotizacionId != null && cotizacionId.isNotEmpty)
+            'p_cotizacion_id': cotizacionId,
+        },
+      );
+      if (response is Map) {
+        return Map<String, dynamic>.from(response);
+      }
+    } catch (e) {
+      print('⚠️ obtenerDatosCapitanOferta RPC: $e');
+    }
+    return null;
+  }
+
+  static bool _urlValida(String? value) {
+    final url = value?.trim();
+    return url != null && url.isNotEmpty && url.toLowerCase() != 'null';
+  }
+
+  /// Enriquece un presupuesto crudo del stream para la tarjeta abreviada.
+  static Future<Map<String, dynamic>> enrichPresupuestoParaTarjeta(
+    Map<String, dynamic> presupuesto,
+  ) async {
+    final item = Map<String, dynamic>.from(presupuesto);
+    final capitanId = item['capitan_id']?.toString();
+    final cotizacionId = item['cotizacion_id']?.toString();
+
+    if (_urlValida(item['capitan_avatar_url']?.toString()) &&
+        _urlValida(item['embarcacion_url']?.toString()) &&
+        _urlValida(item['capitan_nombre']?.toString())) {
+      return item;
+    }
+
+    if (capitanId != null && capitanId.isNotEmpty) {
+      final rpcData = await obtenerDatosCapitanOferta(
+        capitanId: capitanId,
+        cotizacionId: cotizacionId,
+      );
+      if (rpcData != null) {
+        item['capitan_nombre'] ??= rpcData['nombre'];
+        item['capitan_avatar_url'] ??= rpcData['avatar_url'];
+        item['embarcacion_url'] ??= rpcData['embarcacion_url'];
+        item['barco_nombre'] ??= rpcData['barco_nombre'];
+        item['calificacion_promedio'] ??= rpcData['calificacion_promedio'];
+        item['viajes_realizados'] ??= rpcData['viajes_realizados'];
+        item['bio_pescador'] ??= rpcData['bio_pescador'];
+        item['avatar_url'] ??= rpcData['avatar_url'];
+      }
+    }
+
+    return item;
+  }
+
   /// Obtener presupuestos del pescador
   static Future<List<Map<String, dynamic>>> getPresupuestosPescador(String pescadorId) async {
     try {
-      // Obtener las cotizaciones activas del pescador con estado 'presupuestada'
+      final limiteExpiracion =
+          DateTime.now().subtract(const Duration(hours: 24)).toIso8601String();
+
+      // Cotizaciones activas del pescador (misma lógica que el dashboard).
+      // No exigir estado 'presupuestada': el capitán puede enviar oferta
+      // mientras la solicitud sigue en pendiente/solicitada.
       final cotizaciones = await supabase
           .from('cotizaciones')
-          .select('id, cotizacion_id:id')
+          .select('id')
           .eq('pescador_id', pescadorId)
-          .eq('estado', 'presupuestada')
+          .gt('created_at', limiteExpiracion)
+          .neq('estado', 'cerrada')
+          .neq('estado', 'cancelada')
           .order('created_at', ascending: false);
 
       if ((cotizaciones as List).isEmpty) return [];
 
-      final cotizacionIds = cotizaciones.map((c) => c['id'].toString()).toList();
+      final cotizacionIds =
+          cotizaciones.map((c) => c['id'].toString()).toList();
 
-      // Obtener presupuestos con perfil del capitán (avatar + embarcación)
+      // Obtener presupuestos con snapshot del capitán
       final response = await supabase
           .from('presupuestos')
           .select('*, profiles:capitan_id(nombre, avatar_url, telefono, dni)')
@@ -4219,24 +4890,58 @@ class SupabaseService {
       for (final presupuesto in (response as List)) {
         final Map<String, dynamic> item = Map<String, dynamic>.from(presupuesto);
 
-        // Enriquecer con datos de guias (embarcacion_url, calificacion, etc.)
-        try {
+        // Snapshot ya guardado en la fila (visible para el pescador vía RLS de presupuestos)
+        if (!_urlValida(item['capitan_avatar_url']?.toString()) ||
+            !_urlValida(item['embarcacion_url']?.toString())) {
           final capitanId = presupuesto['capitan_id']?.toString();
           if (capitanId != null) {
-            final guia = await supabase
-                .from('guias')
-                .select('embarcacion_url, barco_nombre, calificacion_promedio, viajes_realizados, bio_pescador')
-                .eq('id', capitanId)
-                .maybeSingle();
-            if (guia != null) {
-              item['embarcacion_url'] = guia['embarcacion_url'];
-              item['barco_nombre'] = guia['barco_nombre'];
-              item['calificacion_promedio'] = guia['calificacion_promedio'];
-              item['viajes_realizados'] = guia['viajes_realizados'];
-              item['bio_pescador'] = guia['bio_pescador'];
+            final rpcData = await obtenerDatosCapitanOferta(
+              capitanId: capitanId,
+              cotizacionId: presupuesto['cotizacion_id']?.toString(),
+            );
+            if (rpcData != null) {
+              item['capitan_nombre'] = rpcData['nombre'];
+              item['capitan_avatar_url'] = rpcData['avatar_url'];
+              item['embarcacion_url'] = rpcData['embarcacion_url'];
+              item['barco_nombre'] = rpcData['barco_nombre'];
+              item['calificacion_promedio'] = rpcData['calificacion_promedio'];
+              item['viajes_realizados'] = rpcData['viajes_realizados'];
+              item['bio_pescador'] = rpcData['bio_pescador'];
+              item['avatar_url'] = rpcData['avatar_url'];
             }
           }
-        } catch (_) {}
+        }
+
+        // Fallback legado: guias directo (por si el RPC aún no está desplegado)
+        if (!_urlValida(item['embarcacion_url']?.toString())) {
+          try {
+            final capitanId = presupuesto['capitan_id']?.toString();
+            if (capitanId != null) {
+              final guia = await supabase
+                  .from('guias')
+                  .select('nombre, avatar_url, embarcacion_url')
+                  .eq('id', capitanId)
+                  .maybeSingle();
+              if (guia != null) {
+                item['embarcacion_url'] ??= guia['embarcacion_url'];
+                item['barco_nombre'] ??= guia['nombre'] != null
+                    ? 'Embarcación de ${guia['nombre']}'
+                    : 'Embarcación Principal';
+                item['avatar_url'] ??= guia['avatar_url'];
+                item['capitan_nombre'] ??= guia['nombre'];
+
+                final profiles = item['profiles'];
+                if (profiles is Map && profiles['avatar_url'] == null) {
+                  profiles['avatar_url'] = guia['avatar_url'];
+                }
+                if (profiles is Map &&
+                    (profiles['nombre'] == null || profiles['nombre'].toString().isEmpty)) {
+                  profiles['nombre'] = guia['nombre'];
+                }
+              }
+            }
+          } catch (_) {}
+        }
 
         result.add(item);
       }
@@ -4641,6 +5346,27 @@ class SupabaseService {
     }
   }
 
+  /// Actualizar reputacion del pescador (calificaciones del capitan)
+  static Future<Map<String, dynamic>> actualizarReputacionPescador(
+    String pescadorId,
+    int calificacion,
+  ) async {
+    try {
+      final response = await supabase.rpc('actualizar_reputacion_pescador', params: {
+        'p_pescador_id': pescadorId,
+        'p_calificacion': calificacion,
+      });
+
+      if (response.isNotEmpty) {
+        return Map<String, dynamic>.from(response.first);
+      }
+
+      throw Exception('No se pudo actualizar la reputacion del pescador');
+    } catch (e) {
+      throw Exception('Error al actualizar reputacion del pescador: $e');
+    }
+  }
+
   /// Registra un viaje completado incrementando la cantidad de viajes y actualizando el nivel de reputación
   static Future<void> registrarViajeCompletadoReputacion(String capitanId) async {
     try {
@@ -4815,6 +5541,40 @@ class SupabaseService {
       };
     } catch (e) {
       throw Exception('Error al obtener reputacion: $e');
+    }
+  }
+
+  /// Obtener reputacion de un pescador
+  static Future<Map<String, dynamic>> getReputacionPescador(String pescadorId) async {
+    try {
+      final response = await supabase
+          .from('reputacion_pescadores')
+          .select('*')
+          .eq('pescador_id', pescadorId)
+          .maybeSingle();
+
+      if (response != null) {
+        return response;
+      }
+
+      return {
+        'pescador_id': pescadorId,
+        'calificacion_promedio': 0.0,
+        'total_viajes': 0,
+        'viajes_completados': 0,
+        'viajes_cancelados': 0,
+        'total_calificaciones': 0,
+        'calificaciones_5_estrellas': 0,
+        'calificaciones_4_estrellas': 0,
+        'calificaciones_3_estrellas': 0,
+        'calificaciones_2_estrellas': 0,
+        'calificaciones_1_estrella': 0,
+        'nivel_reputacion': 'novato',
+        'created_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+    } catch (e) {
+      throw Exception('Error al obtener reputacion del pescador: $e');
     }
   }
 
@@ -6466,44 +7226,40 @@ class SupabaseService {
   // ========== MÉTODOS DE NOTIFICACIONES ==========
 
   /// Obtener notificaciones del usuario actual en tiempo real
+  /// Fuente unificada: notificaciones_globales (misma que Centro de Alertas).
   static Stream<List<Notificacion>> getNotificacionesStream() {
     final userId = currentUserId;
     if (userId == null) return Stream.value([]);
 
     return supabase
-        .from('notificaciones')
+        .from('notificaciones_globales')
         .stream(primaryKey: ['id'])
-        .eq('usuario_id', userId)
+        .eq('receptor_id', userId)
         .order('created_at', ascending: false)
-        .map((data) => data.map((n) => Notificacion.fromSupabase(n)).toList());
+        .map((data) => data.map(_notificacionDesdeGlobal).toList());
+  }
+
+  static Notificacion _notificacionDesdeGlobal(Map<String, dynamic> data) {
+    final payload = data['payload'];
+    return Notificacion(
+      id: data['id']?.toString() ?? '',
+      usuarioId: data['receptor_id']?.toString() ?? '',
+      titulo: data['titulo']?.toString() ?? '',
+      mensaje: data['contenido']?.toString() ?? '',
+      fecha: DateTime.tryParse(data['created_at']?.toString() ?? '') ??
+          DateTime.now(),
+      leida: data['leido'] == true,
+      tipo: data['categoria']?.toString() ?? 'informativa',
+      metadata: payload is Map<String, dynamic>
+          ? payload
+          : (payload is Map ? Map<String, dynamic>.from(payload) : null),
+    );
   }
 
   /// Marcar una notificación como leída
   static Future<void> marcarNotificacionLeida(String id) async {
     try {
-      final notif = await supabase
-          .from('notificaciones')
-          .select('usuario_id, titulo')
-          .eq('id', id)
-          .maybeSingle();
-
-      await supabase
-          .from('notificaciones')
-          .update({'leida': true})
-          .eq('id', id);
-
-      if (notif != null) {
-        final uId = notif['usuario_id'];
-        final tit = notif['titulo'];
-        if (uId != null && tit != null) {
-          await supabase
-              .from('notificaciones_globales')
-              .update({'leido': true})
-              .eq('receptor_id', uId)
-              .eq('titulo', tit)
-              .eq('leido', false);
-        }
-      }
+      await NotificacionService().marcarComoLeida(id);
     } catch (e) {
       print('Error al marcar notificación como leída: $e');
     }

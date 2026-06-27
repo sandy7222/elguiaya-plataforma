@@ -363,8 +363,7 @@ class _AdminViajesScreenState extends State<AdminViajesScreen> {
               child: ElevatedButton.icon(
                 onPressed: () {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => ManifiestoPasajerosScreen(
-                    viajeId: viaje['id'],
-                    nombreLancha: 'Embarcación',
+                    pedidoId: viaje['id']?.toString() ?? '',
                   )));
                 },
                 icon: const Icon(Icons.assignment),

@@ -11,6 +11,10 @@ class CartProvider extends ChangeNotifier {
   final List<CartItem> _items = [];
   DireccionEnvio? _direccionEnvio;
   final List<ManifiestoViaje> _manifiestosViaje = [];
+  String? _pedidoViajeId;
+
+  /// ID del pedido real en Supabase vinculado al viaje del carrito.
+  String? get pedidoViajeId => _pedidoViajeId;
 
   List<CartItem> get items => List.unmodifiable(_items);
 
@@ -105,7 +109,11 @@ class CartProvider extends ChangeNotifier {
     required String fecha,
     String? capitanAvatarUrl,
     String? embarcacionUrl,
+    String? pedidoId,
   }) {
+    if (pedidoId != null && pedidoId.isNotEmpty) {
+      _pedidoViajeId = pedidoId;
+    }
     // Determinar imagenUrl: embarcacionUrl -> capitanAvatarUrl -> fallback
     String resolvedImagenUrl = 'assets/images/logo_elguiaya_white.png';
     if (embarcacionUrl != null && embarcacionUrl.trim().isNotEmpty) {
@@ -178,6 +186,10 @@ class CartProvider extends ChangeNotifier {
 
   // Eliminar producto del carrito
   void eliminarDelCarrito(String productoId) {
+    final item = _items.where((i) => i.producto.id == productoId).firstOrNull;
+    if (item != null && item.producto.rubro.toLowerCase() == 'viaje') {
+      _pedidoViajeId = null;
+    }
     _items.removeWhere((item) => item.producto.id == productoId);
     notifyListeners();
   }
@@ -287,6 +299,7 @@ class CartProvider extends ChangeNotifier {
     _items.clear();
     _direccionEnvio = null;
     _manifiestosViaje.clear();
+    _pedidoViajeId = null;
     notifyListeners();
   }
 

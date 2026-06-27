@@ -177,9 +177,11 @@ class _AdminDetalleViajeScreenState extends State<AdminDetalleViajeScreen> {
                   _buildGlassCard(
                     child: Column(
                       children: [
-                        _buildParteRow('⚓ Capitán', capitanNombre, capitanId),
+                        _buildParteRow('⚓ Capitán', capitanNombre, capitanId,
+                            ReputacionTipo.capitan),
                         const Divider(color: Colors.white10, height: 20),
-                        _buildParteRow('🎣 Pescador', pescadorNombre, pescadorId),
+                        _buildParteRow('🎣 Pescador', pescadorNombre, pescadorId,
+                            ReputacionTipo.pescador),
                       ],
                     ),
                   ),
@@ -208,7 +210,11 @@ class _AdminDetalleViajeScreenState extends State<AdminDetalleViajeScreen> {
                                 children: [
                                   const Text('Capitán', style: TextStyle(color: Colors.white54, fontSize: 11)),
                                   const SizedBox(height: 6),
-                                  ReputacionBadgeWidget(userId: capitanId, compact: false),
+                                  ReputacionBadgeWidget(
+                                    userId: capitanId,
+                                    tipo: ReputacionTipo.capitan,
+                                    compact: false,
+                                  ),
                                 ],
                               ),
                             ),
@@ -220,7 +226,11 @@ class _AdminDetalleViajeScreenState extends State<AdminDetalleViajeScreen> {
                                 children: [
                                   const Text('Pescador', style: TextStyle(color: Colors.white54, fontSize: 11)),
                                   const SizedBox(height: 6),
-                                  ReputacionBadgeWidget(userId: pescadorId, compact: false),
+                                  ReputacionBadgeWidget(
+                                    userId: pescadorId,
+                                    tipo: ReputacionTipo.pescador,
+                                    compact: false,
+                                  ),
                                 ],
                               ),
                             ),
@@ -243,8 +253,7 @@ class _AdminDetalleViajeScreenState extends State<AdminDetalleViajeScreen> {
                             context,
                             MaterialPageRoute(
                               builder: (_) => ManifiestoPasajerosScreen(
-                                viajeId: widget.viaje['id'],
-                                nombreLancha: 'Embarcación',
+                                pedidoId: widget.viaje['id']?.toString() ?? '',
                               ),
                             ),
                           ),
@@ -384,7 +393,12 @@ class _AdminDetalleViajeScreenState extends State<AdminDetalleViajeScreen> {
     );
   }
 
-  Widget _buildParteRow(String rol, String nombre, String userId) {
+  Widget _buildParteRow(
+    String rol,
+    String nombre,
+    String userId,
+    ReputacionTipo tipo,
+  ) {
     return Row(
       children: [
         Text(rol, style: const TextStyle(fontSize: 16)),
@@ -399,7 +413,8 @@ class _AdminDetalleViajeScreenState extends State<AdminDetalleViajeScreen> {
             ],
           ),
         ),
-        if (userId.isNotEmpty) ReputacionBadgeWidget(userId: userId, compact: true),
+        if (userId.isNotEmpty)
+          ReputacionBadgeWidget(userId: userId, tipo: tipo, compact: true),
       ],
     );
   }

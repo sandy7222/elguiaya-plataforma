@@ -27,6 +27,28 @@ class NotificacionHelper {
     Map<String, dynamic>? metadata,
   }) async {
     try {
+      // 1. Escribir en la tabla moderna 'notificaciones_globales'
+      String categoriaNueva = 'informativa';
+      if (tipo == 'viaje' || tipo == 'cotizacion' || tipo == 'pago' || tipo.startsWith('viaje_') || tipo.startsWith('presupuesto_') || tipo.startsWith('pago_')) {
+        categoriaNueva = 'comercial';
+      } else if (tipo == 'fraude' || tipo == 'disputa') {
+        categoriaNueva = 'seguridad';
+      } else if (tipo == 'sistema') {
+        categoriaNueva = 'logistica';
+      }
+
+      await _supabase.from('notificaciones_globales').insert({
+        'receptor_id': usuarioId,
+        'tipo_actor': 'sistema',
+        'categoria': categoriaNueva,
+        'prioridad': 'informativa',
+        'titulo': titulo,
+        'contenido': mensaje,
+        'leido': false,
+        'payload': metadata ?? {},
+      });
+
+      // 2. Escribir en la tabla legada 'notificaciones'
       await _supabase.from('notificaciones').insert({
         'usuario_id': usuarioId,
         'titulo': titulo,
@@ -51,22 +73,46 @@ class NotificacionHelper {
     Map<String, dynamic>? metadata,
   }) async {
     final ahora = DateTime.now().toIso8601String();
-    final registros = usuarioIds
-        .where((id) => id.isNotEmpty)
-        .map((id) => {
-              'usuario_id': id,
-              'titulo': titulo,
-              'mensaje': mensaje,
-              'tipo': tipo,
-              'leida': false,
-              'created_at': ahora,
-              if (metadata != null) 'metadata': metadata,
-            })
-        .toList();
-
-    if (registros.isEmpty) return;
+    final validIds = usuarioIds.where((id) => id.isNotEmpty).toList();
+    if (validIds.isEmpty) return;
 
     try {
+      // 1. Escribir en la tabla moderna 'notificaciones_globales'
+      String categoriaNueva = 'informativa';
+      if (tipo == 'viaje' || tipo == 'cotizacion' || tipo == 'pago' || tipo.startsWith('viaje_') || tipo.startsWith('presupuesto_') || tipo.startsWith('pago_')) {
+        categoriaNueva = 'comercial';
+      } else if (tipo == 'fraude' || tipo == 'disputa') {
+        categoriaNueva = 'seguridad';
+      } else if (tipo == 'sistema') {
+        categoriaNueva = 'logistica';
+      }
+
+      final loteGlobal = validIds.map((id) => {
+        'receptor_id': id,
+        'tipo_actor': 'sistema',
+        'categoria': categoriaNueva,
+        'prioridad': 'informativa',
+        'titulo': titulo,
+        'contenido': mensaje,
+        'leido': false,
+        'payload': metadata ?? {},
+      }).toList();
+
+      await _supabase.from('notificaciones_globales').insert(loteGlobal);
+
+      // 2. Escribir en la tabla legada 'notificaciones'
+      final registros = validIds
+          .map((id) => {
+                'usuario_id': id,
+                'titulo': titulo,
+                'mensaje': mensaje,
+                'tipo': tipo,
+                'leida': false,
+                'created_at': ahora,
+                if (metadata != null) 'metadata': metadata,
+              })
+          .toList();
+
       await _supabase.from('notificaciones').insert(registros);
     } catch (e) {
       print('⚠️ [NotificacionHelper] Error enviando notificación masiva ($tipo): $e');

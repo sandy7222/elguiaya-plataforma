@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../services/voice_service.dart';
 import '../widgets/guia_overlay.dart';
+import '../widgets/reputacion_badge_widget.dart';
 
 class PescadorPerfilEditScreen extends StatefulWidget {
   const PescadorPerfilEditScreen({super.key});
@@ -250,29 +251,57 @@ class _PescadorPerfilEditScreenState extends State<PescadorPerfilEditScreen> {
                     children: [
                       // Header con Avatar
                       Center(
-                        child: Stack(
-                        children: [
-                          CircleAvatar(
-                            radius: 55,
-                            backgroundColor: const Color(0xFF00E676).withOpacity(0.2),
-                            backgroundImage: _avatarUrl != null ? NetworkImage(_avatarUrl!) : null,
-                            child: _avatarUrl == null ? const Icon(Icons.person, color: Colors.white, size: 50) : null,
-                          ),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: CircleAvatar(
-                              radius: 18,
-                              backgroundColor: const Color(0xFF00E676),
-                              child: IconButton(
-                                icon: const Icon(Icons.camera_alt, size: 18, color: Colors.black),
-                                onPressed: () { /* Proximamente: Cambiar foto */ },
-                              ),
+                        child: Column(
+                          children: [
+                            Stack(
+                              children: [
+                                CircleAvatar(
+                                  radius: 55,
+                                  backgroundColor:
+                                      const Color(0xFF00E676).withOpacity(0.2),
+                                  backgroundImage: _avatarUrl != null
+                                      ? NetworkImage(_avatarUrl!)
+                                      : null,
+                                  child: _avatarUrl == null
+                                      ? const Icon(Icons.person,
+                                          color: Colors.white, size: 50)
+                                      : null,
+                                ),
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: CircleAvatar(
+                                    radius: 18,
+                                    backgroundColor: const Color(0xFF00E676),
+                                    child: IconButton(
+                                      icon: const Icon(Icons.camera_alt,
+                                          size: 18, color: Colors.black),
+                                      onPressed: () {
+                                        /* Proximamente: Cambiar foto */
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 10),
+                            Builder(
+                              builder: (context) {
+                                final uid = Supabase.instance.client
+                                    .auth.currentUser?.id;
+                                if (uid == null || uid.isEmpty) {
+                                  return const SizedBox.shrink();
+                                }
+                                return ReputacionBadgeWidget(
+                                  userId: uid,
+                                  tipo: ReputacionTipo.pescador,
+                                  compact: false,
+                                );
+                              },
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
 
                     const SizedBox(height: 16),
 
