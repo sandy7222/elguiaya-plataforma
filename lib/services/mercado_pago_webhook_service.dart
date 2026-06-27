@@ -192,10 +192,11 @@ class MercadoPagoWebhookService {
 
       if (isUuid) {
         // Map to lowercase status for pedidos table
-        final estadoPedido = nuevoEstado.toLowerCase() == 'confirmada' || nuevoEstado.toLowerCase() == 'aprobado'
-            ? 'confirmado'
+        final estadoPedido = nuevoEstado.toLowerCase() == 'confirmada' ||
+                nuevoEstado.toLowerCase() == 'aprobado'
+            ? 'pagado'
             : nuevoEstado.toLowerCase() == 'pendiente'
-                ? 'pendiente'
+                ? 'pago_pendiente'
                 : 'cancelado';
 
         final updateData = {

@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:capitanya_master/services/storage_service.dart';
+import 'package:capitanya_master/services/supabase_service.dart';
 
 /// Formulario de Declaración de Pasajeros.
 /// El titular aparece pre-cargado. Con el botón [+] se agregan invitados.
@@ -289,6 +290,7 @@ class _FormularioPasajerosScreenState
       }
 
       if (mounted) {
+        await SupabaseService.guardarPescadorSnapshotEnPedido(widget.pedidoId);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('✅ Pasajeros y contactos de emergencia guardados correctamente'),

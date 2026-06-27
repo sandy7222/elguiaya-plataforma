@@ -5,18 +5,21 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../services/chat_service.dart';
 import '../services/voice_service.dart'; // 🔊 IMPORTAMOS EL NUEVO SERVICIO DE VOZ
+import '../services/viaje_lifecycle_service.dart';
 import 'confirmar_finalizacion_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   final String reservaId;
   final String? nombreServicio;
   final String? nombreCliente;
+  final String? mensajeInicial;
 
   const ChatScreen({
     super.key,
     required this.reservaId,
     this.nombreServicio,
     this.nombreCliente,
+    this.mensajeInicial,
   });
 
   @override
@@ -48,7 +51,9 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    // 🔊 CALENTAMOS LOS MOTORES DE AUDIO DE EL GuIA
+    if (widget.mensajeInicial != null && widget.mensajeInicial!.trim().isNotEmpty) {
+      _messageController.text = widget.mensajeInicial!.trim();
+    }
     VoiceService().init();
     _cargarInfoViaje();
   }
@@ -95,7 +100,8 @@ class _ChatScreenState extends State<ChatScreen> {
         setState(() {
           _viajeInfo = response;
           _tipoEmisorActual = tipo;
-          _isPaid = response['estado'] == 'pagado';
+          _isPaid =
+              ViajeLifecycleService.esEstadoPagado(response['estado']?.toString());
           _hasPassed = passed;
           _loadingViaje = false;
         });

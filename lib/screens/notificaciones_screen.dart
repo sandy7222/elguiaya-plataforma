@@ -3,9 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/notificacion_service.dart';
-import 'resumen_reserva_screen.dart';
-import 'captain_quote_screen.dart';
-import 'viajes_programados_screen.dart';
+import '../services/notification_navigation_helper.dart';
 
 class NotificacionesScreen extends StatelessWidget {
   final String? usuarioId;
@@ -168,75 +166,14 @@ class NotificacionesScreen extends StatelessWidget {
                 }
 
                 final payload = notificacion['payload'];
-                if (payload != null && payload is Map) {
-                  final String? cotizacionId = payload['cotizacion_id']?.toString();
-                  final String? pedidoId = payload['pedido_id']?.toString();
+                final payloadMap = payload is Map<String, dynamic>
+                    ? payload
+                    : (payload is Map ? Map<String, dynamic>.from(payload) : null);
 
-                  if ((cotizacionId != null && cotizacionId.isNotEmpty) ||
-                      (pedidoId != null && pedidoId.isNotEmpty)) {
-                    
-                    // Mostrar loading spinner premium
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (context) => const Center(
-                        child: CircularProgressIndicator(
-                          color: Color(0xFF00E5FF),
-                        ),
-                      ),
-                    );
-
-                    try {
-                      final user = Supabase.instance.client.auth.currentUser;
-                      if (user != null) {
-                        final profile = await Supabase.instance.client
-                            .from('profiles')
-                            .select('es_capitan')
-                            .eq('user_id', user.id)
-                            .maybeSingle();
-
-                        final bool esCapitan = profile?['es_capitan'] == true;
-
-                        if (context.mounted) {
-                          // Cerrar diálogo de carga
-                          Navigator.of(context).pop();
-
-                          if (cotizacionId != null && cotizacionId.isNotEmpty) {
-                            if (esCapitan) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => CaptainQuoteScreen(cotizacionId: cotizacionId),
-                                ),
-                              );
-                            } else {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ResumenReservaScreen(cotizacionId: cotizacionId),
-                                ),
-                              );
-                            }
-                          } else if (pedidoId != null && pedidoId.isNotEmpty) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ViajesProgramadosScreen(esCapitan: esCapitan),
-                              ),
-                            );
-                          }
-                        }
-                      } else {
-                        if (context.mounted) Navigator.of(context).pop();
-                      }
-                    } catch (e) {
-                      debugPrint('Error en navegación: $e');
-                      if (context.mounted) {
-                        Navigator.of(context).pop();
-                      }
-                    }
-                  }
-                }
+                await NotificationNavigationHelper.abrirDesdePayload(
+                  context,
+                  payloadMap,
+                );
               },
               child: Container(
                 padding: const EdgeInsets.all(16),

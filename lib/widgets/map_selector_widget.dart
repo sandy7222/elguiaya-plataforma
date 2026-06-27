@@ -35,8 +35,11 @@ class MapSelectorWidget extends StatefulWidget {
 
 class MapSelectorWidgetState extends State<MapSelectorWidget>
     with SingleTickerProviderStateMixin {
+  static const String _tileUserAgent = 'com.example.capitanya_master';
+
   final MapController _mapController = MapController();
   final Distance _distanceCalculator = const Distance();
+  bool _mapReady = false;
 
   // Recorrido multi-puntos
   final List<LatLng> _routePoints = [];
@@ -77,6 +80,12 @@ class MapSelectorWidgetState extends State<MapSelectorWidget>
         _actualizarDesdePuntos();
       }
     }
+  }
+
+  void _refreshMapAfterLayout() {
+    if (!mounted || !_mapReady) return;
+    final center = _routePoints.isNotEmpty ? _routePoints.first : _defaultCenter;
+    _mapController.move(center, _defaultZoom);
   }
 
   @override
@@ -664,22 +673,32 @@ class MapSelectorWidgetState extends State<MapSelectorWidget>
 
   @override
   Widget build(BuildContext context) {
-    Widget mapWidget = FlutterMap(
-      mapController: _mapController,
-      options: MapOptions(
-        initialCenter: _defaultCenter,
-        initialZoom: _defaultZoom,
-        interactionOptions: const InteractionOptions(
-          flags: InteractiveFlag.all,
+    final mapCenter =
+        _routePoints.isNotEmpty ? _routePoints.first : _defaultCenter;
+
+    Widget mapWidget = SizedBox.expand(
+      child: FlutterMap(
+        mapController: _mapController,
+        options: MapOptions(
+          initialCenter: mapCenter,
+          initialZoom: _defaultZoom,
+          interactionOptions: const InteractionOptions(
+            flags: InteractiveFlag.all,
+          ),
+          onMapReady: () {
+            if (!mounted) return;
+            setState(() => _mapReady = true);
+            WidgetsBinding.instance.addPostFrameCallback(
+              (_) => _refreshMapAfterLayout(),
+            );
+          },
+          onTap: (_, point) => _onMapTap(point),
         ),
-        onTap: (_, point) => _onMapTap(point),
-      ),
-      children: [
-        TileLayer(
-          urlTemplate: 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
-          subdomains: const ['a', 'b', 'c'],
-          userAgentPackageName: 'com.example.El Guia YA',
-        ),
+        children: [
+          TileLayer(
+            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            userAgentPackageName: _tileUserAgent,
+          ),
         if (_routePoints.isNotEmpty)
           PolylineLayer(
             polylines: [
@@ -692,8 +711,9 @@ class MapSelectorWidgetState extends State<MapSelectorWidget>
               ),
             ],
           ),
-        MarkerLayer(markers: _buildMarkers()),
-      ],
+          MarkerLayer(markers: _buildMarkers()),
+        ],
+      ),
     );
 
     String instructStr = _routePoints.isEmpty

@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../services/viaje_lifecycle_service.dart';
+import '../services/supabase_service.dart';
 
 /// Pantalla de detalle completo de una solicitud de viaje para el Capitán.
 /// Diseño Nautical Premium con Glassmorphism.
@@ -238,6 +239,23 @@ class _SolicitudDetalleScreenState extends State<SolicitudDetalleScreen>
     HapticFeedback.mediumImpact();
 
     try {
+      final datosOk = await SupabaseService.capitanTieneDatosContractuales(widget.capitanId);
+      if (!datosOk && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Tu carnet o póliza no están completos o están vencidos. '
+              'Actualizá la documentación en Identidad del capitán para que la ficha contractual sea válida. '
+              'La oferta se enviará igual.',
+              style: GoogleFonts.outfit(fontSize: 13),
+            ),
+            backgroundColor: Colors.amber.shade800,
+            duration: const Duration(seconds: 6),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+
       await ViajeLifecycleService.enviarPresupuesto(
         cotizacionId: _lead['id'],
         capitanId: widget.capitanId,

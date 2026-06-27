@@ -1,9 +1,10 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../services/supabase_service.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/storage_service.dart';
-import '../services/supabase_service.dart';
 
 class CapitanIdentidadScreen extends StatefulWidget {
   const CapitanIdentidadScreen({super.key});
@@ -28,6 +29,10 @@ class _CapitanIdentidadScreenState extends State<CapitanIdentidadScreen> {
   final _provinciaController = TextEditingController();
   final _cbuController = TextEditingController();
   final _bancoController = TextEditingController();
+  final _aseguradoraController = TextEditingController();
+  final _tipoSeguroController = TextEditingController();
+  String? _numeroCarnetAuto;
+  String? _numeroPolizaAuto;
   final _passwordController = TextEditingController();
   final _confirmarPasswordController = TextEditingController();
 
@@ -61,6 +66,8 @@ class _CapitanIdentidadScreenState extends State<CapitanIdentidadScreen> {
     _provinciaController.dispose();
     _cbuController.dispose();
     _bancoController.dispose();
+    _aseguradoraController.dispose();
+    _tipoSeguroController.dispose();
     _passwordController.dispose();
     _confirmarPasswordController.dispose();
     super.dispose();
@@ -84,6 +91,8 @@ class _CapitanIdentidadScreenState extends State<CapitanIdentidadScreen> {
           .eq('id', user.id)
           .maybeSingle();
 
+      final numeros = await SupabaseService.sincronizarDocumentacionContractualCapitan(user.id);
+
       if (mounted) {
         setState(() {
           _nombreController.text = perfil['nombre'] ?? '';
@@ -103,6 +112,18 @@ class _CapitanIdentidadScreenState extends State<CapitanIdentidadScreen> {
           _avatarUrl = perfil['avatar_url'];
           _seguroUrl = perfil['seguro_url'];
           _carnetUrl = perfil['carnet_url'];
+          _numeroCarnetAuto = numeros['numero_carnet'] ??
+              SupabaseService.resolverNumerosDocumentacionCapitan(
+                profile: Map<String, dynamic>.from(perfil),
+                guia: guia != null ? Map<String, dynamic>.from(guia) : null,
+              )['numero_carnet'];
+          _numeroPolizaAuto = numeros['numero_poliza'] ??
+              SupabaseService.resolverNumerosDocumentacionCapitan(
+                profile: Map<String, dynamic>.from(perfil),
+                guia: guia != null ? Map<String, dynamic>.from(guia) : null,
+              )['numero_poliza'];
+          _aseguradoraController.text = perfil['aseguradora']?.toString() ?? '';
+          _tipoSeguroController.text = perfil['tipo_seguro']?.toString() ?? '';
           
           // Cargar fechas de vencimiento de forma segura
           if (perfil['vencimiento_seguro'] != null) {
@@ -204,6 +225,12 @@ class _CapitanIdentidadScreenState extends State<CapitanIdentidadScreen> {
           '${tipo}_url': url,
           'updated_at': DateTime.now().toIso8601String(),
         }).eq('user_id', userId);
+
+        if (tipo == 'avatar') {
+          await Supabase.instance.client.from('guias').update({
+            'avatar_url': url,
+          }).eq('id', userId);
+        }
         
         setState(() {
           if (tipo == 'avatar') _avatarUrl = url;
@@ -276,22 +303,27 @@ class _CapitanIdentidadScreenState extends State<CapitanIdentidadScreen> {
         'provincia': _provinciaController.text.trim(),
         'vencimiento_seguro': _vencimientoSeguro?.toIso8601String(),
         'vencimiento_carnet': _vencimientoCarnet?.toIso8601String(),
+        'aseguradora': _aseguradoraController.text.trim(),
+        'tipo_seguro': _tipoSeguroController.text.trim(),
         'updated_at': DateTime.now().toIso8601String(),
       };
 
       try {
         await Supabase.instance.client.from('profiles').update(data).eq('user_id', user.id);
+        await SupabaseService.sincronizarDocumentacionContractualCapitan(user.id);
       } catch (dbError) {
-        // Fallback si las nuevas columnas de vencimiento no se crearon en Supabase todavía
-        debugPrint('⚠️ Columnas de vencimiento faltantes en Supabase, reintentando sin ellas: $dbError');
+        // Fallback si las nuevas columnas no se crearon en Supabase todavía
+        debugPrint('⚠️ Columnas contractuales/vencimiento faltantes en Supabase, reintentando sin ellas: $dbError');
         data.remove('vencimiento_seguro');
         data.remove('vencimiento_carnet');
+        data.remove('aseguradora');
+        data.remove('tipo_seguro');
         await Supabase.instance.client.from('profiles').update(data).eq('user_id', user.id);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('⚠️ Se guardó el perfil. Las fechas de vencimiento requieren migración de tablas en Supabase por el Admin.'),
+              content: Text('⚠️ Se guardó el perfil. Carnet/seguro y fechas de vencimiento requieren migración SQL en Supabase.'),
               backgroundColor: Colors.amber,
               duration: Duration(seconds: 6),
               behavior: SnackBarBehavior.floating,
@@ -438,7 +470,33 @@ class _CapitanIdentidadScreenState extends State<CapitanIdentidadScreen> {
 
                       const SizedBox(height: 32),
                       _buildSectionTitle('DOCUMENTACIÓN Y CONTROL DE VENCIMIENTOS'),
+                      const SizedBox(height: 8),
+                      Text(
+                        'N° de carnet y póliza se sincronizan solos desde tu habilitación náutica registrada. '
+                        'Solo completá aseguradora y tipo de cobertura si aún no están cargados.',
+                        style: TextStyle(color: Colors.white.withValues(alpha: 0.65), fontSize: 13),
+                      ),
                       const SizedBox(height: 16),
+                      _buildReadOnlyDocField(
+                        'N° Carnet de Timonel',
+                        _numeroCarnetAuto,
+                        Icons.badge_outlined,
+                      ),
+                      const SizedBox(height: 12),
+                      _buildReadOnlyDocField(
+                        'N° de póliza de seguro',
+                        _numeroPolizaAuto,
+                        Icons.description_outlined,
+                      ),
+                      const SizedBox(height: 12),
+                      _buildTextField('Aseguradora', _aseguradoraController, Icons.shield_outlined),
+                      const SizedBox(height: 12),
+                      _buildTextField(
+                        'Tipo / cobertura de póliza',
+                        _tipoSeguroController,
+                        Icons.policy_outlined,
+                      ),
+                      const SizedBox(height: 20),
                       
                       // Seguro de embarcación y su vencimiento
                       _buildDocStatusCard('Seguro de Embarcación', _seguroUrl, () => _cambiarDocumento('seguro')),
@@ -491,6 +549,44 @@ class _CapitanIdentidadScreenState extends State<CapitanIdentidadScreen> {
     return Text(
       title,
       style: const TextStyle(color: Colors.orange, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5),
+    );
+  }
+
+  Widget _buildReadOnlyDocField(String label, String? value, IconData icon) {
+    final display = (value != null && value.trim().isNotEmpty) ? value.trim() : 'Pendiente — registrá el número al inscribirte o contactá soporte';
+    final ok = value != null && value.trim().isNotEmpty;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: ok ? Colors.green.withValues(alpha: 0.35) : Colors.orange.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: ok ? Colors.greenAccent : Colors.orange, size: 22),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: TextStyle(color: Colors.white.withValues(alpha: 0.55), fontSize: 11)),
+                const SizedBox(height: 4),
+                Text(
+                  display,
+                  style: TextStyle(
+                    color: ok ? Colors.white : Colors.orange.shade200,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(Icons.sync_lock_rounded, color: Colors.white.withValues(alpha: 0.35), size: 18),
+        ],
+      ),
     );
   }
 

@@ -1,7 +1,9 @@
 
 
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../services/despertador_service.dart';
 import '../services/gemini_ai_service.dart';
 import '../services/seguridad_service.dart';
 
@@ -19,7 +21,10 @@ class _AsistenteElGuiaYaScreenState extends State<AsistenteElGuiaYaScreen> {
   
   bool _isLoading = false;
   bool _isTyping = false;
-  final String _usuarioId = 'usuario_demo'; // En produccion obtener del auth
+  final String _usuarioId = 'usuario_demo';
+
+  // Estado del despertador — se consulta al iniciar para que el Guia esté al tanto
+  DespertadorEstado? _estadoDespertador;
   
   // Colores El Guia YA
   static const Color _fondoOscuro = Color(0xFF1A1A1A);
@@ -31,7 +36,14 @@ class _AsistenteElGuiaYaScreenState extends State<AsistenteElGuiaYaScreen> {
   @override
   void initState() {
     super.initState();
+    DespertadorService.inicializar();
     _inicializarConversacion();
+    _cargarEstadoDespertador();
+  }
+
+  Future<void> _cargarEstadoDespertador() async {
+    final estado = await DespertadorService.estadoActual();
+    if (mounted) setState(() => _estadoDespertador = estado);
   }
 
   @override
@@ -70,20 +82,23 @@ class _AsistenteElGuiaYaScreenState extends State<AsistenteElGuiaYaScreen> {
   Future<void> _sendMessage() async {
     final message = _messageController.text.trim();
     if (message.isEmpty) return;
-
-    // Limpiar campo de texto
     _messageController.clear();
-
-    // Agregar mensaje del usuario al chat
     _addMessageToChat('usuario', message);
 
-    // Mostrar indicador de escritura
-    setState(() {
-      _isTyping = true;
-    });
+    // ─── DESPERTADOR: detección antes de Gemini ────────────────────────────
+    if (DespertadorService.esCancelacionDespertador(message)) {
+      await _cancelarDespertador();
+      return;
+    }
+    if (DespertadorService.esPeticionDespertador(message)) {
+      await _procesarDespertador(message);
+      return;
+    }
+    // ──────────────────────────────────────────────────────────────────────
+
+    setState(() { _isTyping = true; });
 
     try {
-      // Escanear mensaje en busca de fraude
       final deteccion = await GeminiAIService.escanearFraudeChat(
         chatId: 'chat_$_usuarioId',
         usuarioId: _usuarioId,
@@ -91,36 +106,123 @@ class _AsistenteElGuiaYaScreenState extends State<AsistenteElGuiaYaScreen> {
       );
 
       if (deteccion != null) {
-        // Generar reporte y mostrar advertencia
-        final reporte = await GeminiAIService.generarReporteSeguridad(deteccion);
-        _addMessageToChat('asistente', 
-          '⚠️ He detectado actividad sospechosa en tu mensaje. Por tu seguridad y la de los guias, te recomiendo mantener todas las transacciones dentro de la plataforma El Guia YA. Esto te protege contra fraudes y garantiza un servicio de calidad.');
-        
-        // En produccion: registrar deteccion en Panel de Seguridad
+        await GeminiAIService.generarReporteSeguridad(deteccion);
+        _addMessageToChat('asistente',
+          '⚠️ He detectado actividad sospechosa en tu mensaje. Por tu seguridad y la de los guías, '
+          'te recomiendo mantener todas las transacciones dentro de la plataforma El Guia YA.');
         _registrarDeteccionFraude(deteccion);
       } else {
-        // Chat normal con el Asistente El Guia YA
         final response = await GeminiAIService.chatGeneral(
           usuarioId: _usuarioId,
           mensaje: message,
           contextoChat: _chatHistory,
         );
-
         _addMessageToChat('asistente', response.mensaje);
 
-        // Si es sobre guias, ofrecer recomendacion activa
         if (_messageContieneConsultaSobreGuias(message)) {
           _ofrecerRecomendacionActiva();
         }
       }
     } catch (e) {
-      _addMessageToChat('asistente', 
-        'Disculpa, he tenido un problema. Soy el Asistente El Guia YA y estoy aqui para ayudarte. ¿Podrias reformular tu pregunta?');
+      _addMessageToChat('asistente',
+        'Disculpa, tuve un problema. ¿Podés reformular tu pregunta?');
     } finally {
-      setState(() {
-        _isTyping = false;
-      });
+      setState(() { _isTyping = false; });
     }
+  }
+
+  // ─── Procesar petición de despertador ──────────────────────────────────────
+  Future<void> _procesarDespertador(String mensaje) async {
+    setState(() { _isTyping = true; });
+
+    try {
+      final hora = DespertadorService.extraerHora(mensaje);
+
+      if (hora == null) {
+        // El Guia pide aclaración
+        _addMessageToChat('asistente',
+            '⏰ ¡Dale chamigo! ¿A qué hora querés que te despierte? '
+            'Decime algo como "a las 6" o "a las 6:30" y te lo programo ahora.');
+        return;
+      }
+
+      // Obtener el próximo viaje del usuario para la fecha
+      DateTime fechaViaje = DateTime.now().add(const Duration(days: 1));
+      String pedidoId = '';
+      try {
+        final uid = Supabase.instance.client.auth.currentUser?.id ?? '';
+        if (uid.isNotEmpty) {
+          final proximos = await Supabase.instance.client
+              .from('pedidos')
+              .select('id, cotizaciones(fecha_ida)')
+              .eq('pescador_id', uid)
+              .inFilter('estado', ['confirmado', 'pagado', 'programado'])
+              .order('created_at', ascending: false)
+              .limit(1);
+          if (proximos is List && proximos.isNotEmpty) {
+            pedidoId = proximos.first['id']?.toString() ?? '';
+            final fi = proximos.first['cotizaciones']?['fecha_ida']?.toString();
+            if (fi != null) fechaViaje = DateTime.tryParse(fi) ?? fechaViaje;
+          }
+        }
+      } catch (_) {}
+
+      final nombre = (await _getNombreUsuario()) ?? 'chamigo';
+      final result = await DespertadorService.programar(
+        hora:          hora,
+        fechaViaje:    fechaViaje,
+        nombreCliente: nombre,
+        pedidoId:      pedidoId.isNotEmpty ? pedidoId : null,
+      );
+
+      if (result.exito) {
+        final fechaFmt = '${fechaViaje.day}/${fechaViaje.month}';
+        _addMessageToChat('asistente',
+            '⏰ ¡Listo, $nombre! Te voy a despertar a las $hora del $fechaFmt.\n\n'
+            '${result.mensaje}\n\n'
+            '_Podés cancelar en cualquier momento diciéndome '
+            '"cancelá el despertador" o "ya no me despiertes"._');
+      } else {
+        _addMessageToChat('asistente',
+            '😅 No pude programar el despertador: ${result.errorMsg}. '
+            'Intentá de nuevo con una hora válida.');
+      }
+    } catch (e) {
+      _addMessageToChat('asistente',
+          'Ups, tuve un problema para programar el despertador. Intentalo de vuelta.');
+    } finally {
+      setState(() { _isTyping = false; });
+    }
+  }
+
+  // ─── Cancelar despertador ──────────────────────────────────────────────────
+  Future<void> _cancelarDespertador() async {
+    setState(() { _isTyping = true; });
+    final cancelado = await DespertadorService.cancelar();
+    setState(() { _isTyping = false; });
+
+    if (cancelado) {
+      _addMessageToChat('asistente',
+          '✅ Listo chamigo, cancelé el despertador. '
+          'Si querés volver a programarlo, avisame cuando quieras. 🌙');
+    } else {
+      _addMessageToChat('asistente',
+          'No había ningún despertador programado, así que no hay nada que cancelar. '
+          'Si querés que te despierte, pedímelo.');
+    }
+  }
+
+  Future<String?> _getNombreUsuario() async {
+    try {
+      final uid = Supabase.instance.client.auth.currentUser?.id;
+      if (uid == null) return null;
+      final p = await Supabase.instance.client
+          .from('profiles')
+          .select('nombre')
+          .eq('user_id', uid)
+          .maybeSingle();
+      return p?['nombre']?.toString();
+    } catch (_) { return null; }
   }
 
   bool _messageContieneConsultaSobreGuias(String message) {

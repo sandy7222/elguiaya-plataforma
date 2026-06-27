@@ -42,6 +42,8 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
   final _provinciaController = TextEditingController();
   final _cpController = TextEditingController();
   final _capacidadController = TextEditingController();
+  final _numeroCarnetController = TextEditingController();
+  final _numeroPolizaController = TextEditingController();
   final _referidoController = TextEditingController();
   bool _traeReferido = false;
   String? _comisionistaId;
@@ -74,6 +76,8 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
     _provinciaController.dispose();
     _cpController.dispose();
     _capacidadController.dispose();
+    _numeroCarnetController.dispose();
+    _numeroPolizaController.dispose();
     _referidoController.dispose();
     super.dispose();
   }
@@ -165,6 +169,16 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
       return;
     }
 
+    if (_selectedRole == 'capitan' && _numeroCarnetController.text.trim().isEmpty) {
+      _showError('Ingresá el N° de tu Carnet de Timonel.');
+      return;
+    }
+
+    if (_selectedRole == 'capitan' && _numeroPolizaController.text.trim().isEmpty) {
+      _showError('Ingresá el N° de póliza de tu Seguro de Embarcación.');
+      return;
+    }
+
     if (_selectedRole == 'capitan' && _seguroUrl != null && _vencimientoSeguro == null) {
       _showError('Por favor, ingresá la fecha de vencimiento de tu Seguro.');
       return;
@@ -234,12 +248,36 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
         'capacidad_personas': int.tryParse(_capacidadController.text.trim()) ?? 0,
         'vencimiento_seguro': _vencimientoSeguro?.toIso8601String(),
         'vencimiento_carnet': _vencimientoCarnet?.toIso8601String(),
+        if (_selectedRole == 'capitan') 'numero_carnet': _numeroCarnetController.text.trim(),
+        if (_selectedRole == 'capitan') 'numero_poliza': _numeroPolizaController.text.trim(),
         'estado': _selectedRole == 'capitan' ? 'pendiente' : 'activo',
         'verificado': _selectedRole != 'capitan',
         'referido': _codigoReferidoFinal,
         'referido_id': _comisionistaId,
         'updated_at': DateTime.now().toIso8601String(),
       }, onConflict: 'user_id');
+
+      if (_selectedRole == 'capitan' && userId != null) {
+        try {
+          await SupabaseService.supabase.from('guias').upsert({
+            'id': userId,
+            'nombre': _nombreController.text.trim(),
+            'dni': int.tryParse(_dniTextController.text.replaceAll(RegExp(r'\D'), '')) ?? 0,
+            'email': _emailController.text.trim(),
+            'telefono': _telefonoController.text.trim(),
+            'localidad': _localidadController.text.trim(),
+            'provincia': _provinciaController.text.trim(),
+            'calle': _calleController.text.trim(),
+            'altura': _alturaController.text.trim(),
+            'carnet_timonel': _numeroCarnetController.text.trim(),
+            'poliza_seguro': _numeroPolizaController.text.trim(),
+            'avatar_url': _avatarUrl,
+            'embarcacion_url': _embarcacionUrl,
+          });
+        } catch (e) {
+          debugPrint('Error no crítico al guardar guía en registro maestro: $e');
+        }
+      }
 
       if (mounted) {
         _showSuccessDialog();
@@ -623,6 +661,12 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
           if (_selectedRole == 'capitan') ...[
             const SizedBox(height: 20),
             _buildDatePickerBox('Vencimiento del Carnet de Timonel', _vencimientoCarnet, 'carnet'),
+            _buildTextField(
+              _numeroCarnetController,
+              'N° Carnet de Timonel',
+              Icons.badge_outlined,
+            ),
+            const SizedBox(height: 16),
             DocumentCaptureWidget(
               label: 'CARNET DE TIMONEL / GUÍA',
               tipoDoc: 'carnet',
@@ -631,6 +675,12 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
             ),
             const SizedBox(height: 20),
             _buildDatePickerBox('Vencimiento del Seguro de Embarcación', _vencimientoSeguro, 'seguro'),
+            _buildTextField(
+              _numeroPolizaController,
+              'N° Póliza de Seguro',
+              Icons.policy_outlined,
+            ),
+            const SizedBox(height: 16),
             DocumentCaptureWidget(
               label: 'SEGURO DE EMBARCACIÓN',
               tipoDoc: 'seguro',

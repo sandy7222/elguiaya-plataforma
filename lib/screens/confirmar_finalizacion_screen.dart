@@ -10,6 +10,7 @@ import '../services/supabase_service.dart';
 import '../services/storage_service.dart';
 import '../services/viaje_lifecycle_service.dart';
 import '../models/pique_pulse.dart';
+import '../widgets/calificacion_tag_chip.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ConfirmarFinalizacionScreen extends StatefulWidget {
@@ -322,11 +323,14 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                           
                           // Badge de Servicio Detectado
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.06),
+                              color: const Color(0xFF1A2F45),
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: Colors.white.withOpacity(0.1)),
+                              border: Border.all(
+                                color: const Color(0xFF00E5FF).withOpacity(0.45),
+                              ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -357,9 +361,10 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                             alignment: WrapAlignment.center,
                             children: etiquetasDisponibles.map((tag) {
                               final isSelected = selectedTags.contains(tag);
-                              return ChoiceChip(
-                                label: Text(tag),
+                              return CalificacionTagChip(
+                                label: tag,
                                 selected: isSelected,
+                                accentColor: const Color(0xFF00E5FF),
                                 onSelected: (selected) {
                                   setDialogState(() {
                                     if (selected) {
@@ -369,21 +374,6 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                                     }
                                   });
                                 },
-                                selectedColor: const Color(0xFF00E5FF).withOpacity(0.2),
-                                backgroundColor: Colors.white.withOpacity(0.04),
-                                labelStyle: TextStyle(
-                                  color: isSelected ? const Color(0xFF00E5FF) : Colors.white.withOpacity(0.7),
-                                  fontSize: 12,
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  side: BorderSide(
-                                    color: isSelected
-                                        ? const Color(0xFF00E5FF).withOpacity(0.5)
-                                        : Colors.white.withOpacity(0.1),
-                                  ),
-                                ),
                               );
                             }).toList(),
                           ),

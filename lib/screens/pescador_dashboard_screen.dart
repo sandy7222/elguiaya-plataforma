@@ -15,17 +15,27 @@ import '../widgets/solunar_card_widget.dart';
 import '../widgets/notification_quick_view.dart';
 import 'pescador_perfil_edit_screen.dart';
 import 'viajes_programados_screen.dart';
+import '../widgets/reputacion_badge_widget.dart';
 import '../services/core_business_logic.dart';
 import '../services/viaje_lifecycle_service.dart';
 import '../widgets/oferta_capitan_card.dart';
+import '../widgets/radar_scanner_widget.dart';
 import 'resumen_reserva_screen.dart';
 import '../services/gps_tracker_service.dart';
 import 'capitan_tracker_screen.dart';
+import 'mis_viajes_screen.dart';
+import 'checkout_payment_screen.dart';
 
 class PescadorDashboardScreen extends StatefulWidget {
   final Map<String, dynamic>? initialQuoteData;
+  /// Si es true, abre el formulario de cotización al cargar la pantalla
+  final bool openFormOnLoad;
 
-  const PescadorDashboardScreen({super.key, this.initialQuoteData});
+  const PescadorDashboardScreen({
+    super.key,
+    this.initialQuoteData,
+    this.openFormOnLoad = false,
+  });
 
   @override
   State<PescadorDashboardScreen> createState() =>
@@ -63,7 +73,7 @@ class _PescadorDashboardScreenState extends State<PescadorDashboardScreen>
     _cargarDatos();
     _configurarRealtime();
 
-    if (widget.initialQuoteData != null) {
+    if (widget.initialQuoteData != null || widget.openFormOnLoad) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _mostrarFormularioCotizacion(initialData: widget.initialQuoteData);
       });
@@ -165,6 +175,14 @@ class _PescadorDashboardScreenState extends State<PescadorDashboardScreen>
             if (mounted) _cargarDatos();
           },
         )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'presupuestos',
+          callback: (payload) {
+            if (mounted) _cargarDatos();
+          },
+        )
         .subscribe();
   }
 
@@ -173,12 +191,18 @@ class _PescadorDashboardScreenState extends State<PescadorDashboardScreen>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => FormularioCotizacionTecnica(
-        onSubmit: _crearCotizacionTecnica,
-        initialPuntoPartida: initialData?['partida'],
-        initialPuntoDestino: initialData?['destino'],
-        initialTrackLog: initialData?['trackLog'],
-        initialDistanciaKM: initialData?['distancia'],
+      useSafeArea: true,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(context).bottom,
+        ),
+        child: FormularioCotizacionTecnica(
+          onSubmit: _crearCotizacionTecnica,
+          initialPuntoPartida: initialData?['partida'],
+          initialPuntoDestino: initialData?['destino'],
+          initialTrackLog: initialData?['trackLog'],
+          initialDistanciaKM: initialData?['distancia'],
+        ),
       ),
     );
   }
@@ -329,8 +353,13 @@ class _PescadorDashboardScreenState extends State<PescadorDashboardScreen>
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                const ViajesProgramadosScreen(esCapitan: false),
+            builder: (context) => CheckoutPaymentScreen(
+              amount: (presupuesto['monto'] as num?)?.toDouble() ?? 0.0,
+              description: 'Viaje EL GUIA YA',
+              reservaId: pedidoId,
+              emailPagador:
+                  Supabase.instance.client.auth.currentUser?.email ?? '',
+            ),
           ),
         );
 
@@ -365,15 +394,14 @@ class _PescadorDashboardScreenState extends State<PescadorDashboardScreen>
         foregroundColor: Colors.white,
         actions: [
           IconButton(
-            icon: const Icon(Icons.calendar_month, color: Color(0xFF00E676)),
-            tooltip: 'Mis Viajes Programados',
+            icon: const Icon(Icons.folder_open_rounded, color: Color(0xFF00E676)),
+            tooltip: 'Mis Viajes',
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) =>
-                    const ViajesProgramadosScreen(esCapitan: false),
+                builder: (context) => const MisViajesScreen(),
               ),
-            ),
+            ).then((_) => _cargarDatos()),
           ),
 
           IconButton(
@@ -463,47 +491,126 @@ class _PescadorDashboardScreenState extends State<PescadorDashboardScreen>
                       ),
                     ),
 
+                    const SizedBox(height: 12),
+
+                    // 📁 Acceso rápido a la carpeta de Mis Viajes
+                    GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const MisViajesScreen(),
+                        ),
+                      ),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0D2847),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                              color: const Color(0xFF1A3A5C)),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF00C853)
+                                    .withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.folder_open_rounded,
+                                  color: Color(0xFF00C853), size: 22),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Mis Viajes',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  Text(
+                                    _cotizaciones.isEmpty && _presupuestos.isEmpty
+                                        ? 'No tenés viajes activos'
+                                        : '${_cotizaciones.length} solicitud(es) • ${_presupuestos.length} presupuesto(s)',
+                                    style: const TextStyle(
+                                      color: Color(0xFF8BA4BC),
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Icon(Icons.arrow_forward_ios_rounded,
+                                color: Color(0xFF8BA4BC), size: 16),
+                          ],
+                        ),
+                      ),
+                    ),
+
                     const SizedBox(height: 24),
 
-                    if (_cotizaciones.isNotEmpty)
-                      StreamBuilder<List<Map<String, dynamic>>>(
-                        stream: Supabase.instance.client
-                            .from('presupuestos')
-                            .stream(primaryKey: ['id'])
-                            .eq('cotizacion_id', _cotizaciones.first.id)
-                            .map(
-                              (maps) => List<Map<String, dynamic>>.from(maps),
-                            ),
-                        builder: (context, snapshot) {
-                          if (snapshot.hasError) {
-                            return _buildRadarSearchingState(
-                              'Reconectando radar...',
-                            );
-                          }
+                    if (_cotizaciones.isNotEmpty) ...[
+                      Builder(
+                        builder: (context) {
+                          final cotIds =
+                              _cotizaciones.map((c) => c.id).toSet();
+                          final ofertas = _presupuestos
+                              .where(
+                                (o) => cotIds.contains(
+                                  o['cotizacion_id']?.toString(),
+                                ),
+                              )
+                              .toList();
 
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Center(
-                              child: CircularProgressIndicator(
-                                color: Color(0xFF00E676),
-                              ),
-                            );
-                          }
-
-                          final ofertas = snapshot.data ?? [];
-                          if (ofertas.isEmpty) {
-                            return _buildRadarSearchingState(
-                              'Buscando capitanes en la zona...',
-                            );
-                          }
+                          final cotMapa = _cotizacionParaMapa(ofertas);
 
                           return Column(
-                            children: ofertas
-                                .map((o) => _buildPresupuestoCard(o))
-                                .toList(),
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _buildRadarSearchingState(
+                                ofertas.isEmpty
+                                    ? 'Buscando capitanes en la zona...'
+                                    : '${ofertas.length} presupuesto(s) recibido(s)',
+                                cotizacion: cotMapa,
+                              ),
+                              if (ofertas.isNotEmpty) ...[
+                                const SizedBox(height: 16),
+                                ...ofertas.map(
+                                  (o) => OfertaCapitanCard(
+                                    key: ValueKey(o['id']?.toString() ?? ''),
+                                    oferta: o,
+                                    isProcessing: _isProcessingDeal,
+                                    onAccept: () {
+                                      final cotizacionId =
+                                          o['cotizacion_id']?.toString() ?? '';
+                                      if (cotizacionId.isNotEmpty) {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                ResumenReservaScreen(
+                                              cotizacionId: cotizacionId,
+                                            ),
+                                          ),
+                                        ).then((_) => _cargarDatos());
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ],
                           );
                         },
                       ),
+                    ],
 
                     if (_cotizaciones.isNotEmpty) ...[
                       const SizedBox(height: 20),
@@ -574,6 +681,14 @@ class _PescadorDashboardScreenState extends State<PescadorDashboardScreen>
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
+                if (_pescadorId != null && _pescadorId!.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  ReputacionBadgeWidget(
+                    userId: _pescadorId!,
+                    tipo: ReputacionTipo.pescador,
+                    compact: true,
+                  ),
+                ],
                 const SizedBox(height: 8),
                 InkWell(
                   onTap: () => Navigator.push(
@@ -849,449 +964,43 @@ class _PescadorDashboardScreenState extends State<PescadorDashboardScreen>
     );
   }
 
-  Widget _buildRadarSearchingState(String mensaje) {
+  double? _coord(Map<String, dynamic>? punto, String key) {
+    if (punto == null) return null;
+    final value = punto[key] ?? (key == 'lon' ? punto['lng'] : null);
+    return value != null ? (value as num).toDouble() : null;
+  }
+
+  List<LatLng> _puntosTrackLog(List<Map<String, dynamic>>? trackLog) {
+    if (trackLog == null || trackLog.isEmpty) return [];
+    return trackLog
+        .where((e) => e['lat'] != null && (e['lon'] != null || e['lng'] != null))
+        .map(
+          (e) => LatLng(
+            (e['lat'] as num).toDouble(),
+            ((e['lon'] ?? e['lng']) as num).toDouble(),
+          ),
+        )
+        .toList();
+  }
+
+  Cotizacion? _cotizacionParaMapa(List<Map<String, dynamic>> ofertas) {
+    if (_cotizaciones.isEmpty) return null;
+    if (ofertas.isNotEmpty) {
+      final cotId = ofertas.first['cotizacion_id']?.toString();
+      for (final cot in _cotizaciones) {
+        if (cot.id == cotId) return cot;
+      }
+    }
+    return _cotizaciones.first;
+  }
+
+  Widget _buildRadarSearchingState(
+    String mensaje, {
+    Cotizacion? cotizacion,
+  }) {
     return RadarScannerWidget(
       mensaje: mensaje,
-      cotizacion: _cotizaciones.isNotEmpty ? _cotizaciones.first : null,
-    );
-  }
-}
-
-class RadarScannerWidget extends StatefulWidget {
-  final String mensaje;
-  final Cotizacion? cotizacion;
-  const RadarScannerWidget({
-    required this.mensaje,
-    this.cotizacion,
-    super.key,
-  });
-
-  @override
-  State<RadarScannerWidget> createState() => _RadarScannerWidgetState();
-}
-
-class _RadarScannerWidgetState extends State<RadarScannerWidget>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  final List<_RadarBlip> _blips = [];
-  final Random _random = Random();
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 4),
-    )..repeat();
-
-    // Generar blips aleatorios simulando capitanes en la zona
-    for (int i = 0; i < 4; i++) {
-      final angle = _random.nextDouble() * 2 * pi;
-      final distance = 0.2 + _random.nextDouble() * 0.6; // Entre 20% y 80% del radio
-      _blips.add(_RadarBlip(
-        angle: angle,
-        distance: distance,
-        size: 3.0 + _random.nextDouble() * 3.0,
-        baseOpacity: 0.3 + _random.nextDouble() * 0.7,
-      ));
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  LatLng getMapCenter() {
-    if (widget.cotizacion != null && widget.cotizacion!.tieneDatosGeograficos) {
-      final lat1 = widget.cotizacion!.latitudPartida;
-      final lon1 = widget.cotizacion!.longitudPartida;
-      final lat2 = widget.cotizacion!.latitudDestino;
-      final lon2 = widget.cotizacion!.longitudDestino;
-      if (lat1 != null && lon1 != null && lat2 != null && lon2 != null) {
-        return LatLng((lat1 + lat2) / 2, (lon1 + lon2) / 2);
-      }
-    }
-    return const LatLng(-34.4250, -58.5796); // San Fernando por defecto
-  }
-
-  double getMapZoom() {
-    if (widget.cotizacion != null && widget.cotizacion!.distanciaKm != null) {
-      final dist = widget.cotizacion!.distanciaKm!;
-      if (dist < 2.0) return 15.0;
-      if (dist < 5.0) return 14.0;
-      if (dist < 15.0) return 13.0;
-      if (dist < 40.0) return 11.5;
-      return 10.0;
-    }
-    return 13.0;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF001F3F).withOpacity(0.6), // Fondo oscuro náutico
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF00E676).withOpacity(0.15)),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF00E676).withOpacity(0.03),
-            blurRadius: 15,
-            spreadRadius: 1,
-          )
-        ],
-      ),
-      child: Column(
-        children: [
-          // Plato del radar rectangular (Full-Width)
-          Container(
-            height: 190,
-            width: double.infinity,
-            clipBehavior: Clip.antiAlias, // Recorta todos los hijos al radio de borde!
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFF00E676).withOpacity(0.15)),
-            ),
-            child: Stack(
-              children: [
-                // Capa de mapa recortada rectangularmente con esquinas redondeadas
-                Container(
-                  color: const Color(0xFF000B18), // Fondo azul oscuro ultra profundo
-                  child: FlutterMap(
-                    options: MapOptions(
-                      initialCenter: getMapCenter(),
-                      initialZoom: getMapZoom(),
-                      interactionOptions: const InteractionOptions(
-                        flags: InteractiveFlag.none, // Deshabilitar interacciones
-                      ),
-                    ),
-                    children: [
-                      TileLayer(
-                        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                        userAgentPackageName: 'com.example.El Guia YA',
-                      ),
-                      if (widget.cotizacion != null && widget.cotizacion!.tieneDatosGeograficos) ...[
-                        PolylineLayer(
-                          polylines: <Polyline<Object>>[
-                            if (widget.cotizacion!.trackLog != null && widget.cotizacion!.trackLog!.isNotEmpty)
-                              Polyline<Object>(
-                                points: widget.cotizacion!.trackLog!
-                                    .map((e) => LatLng((e['lat'] as num).toDouble(), (e['lon'] as num).toDouble()))
-                                    .toList(),
-                                strokeWidth: 3.0,
-                                color: const Color(0xFF00E676).withOpacity(0.6),
-                              )
-                            else
-                              Polyline<Object>(
-                                points: [
-                                  LatLng(widget.cotizacion!.latitudPartida!, widget.cotizacion!.longitudPartida!),
-                                  LatLng(widget.cotizacion!.latitudDestino!, widget.cotizacion!.longitudDestino!),
-                                ],
-                                strokeWidth: 2.0,
-                                color: const Color(0xFF00E676).withOpacity(0.4),
-                              ),
-                          ],
-                        ),
-                        MarkerLayer(
-                          markers: [
-                            if (widget.cotizacion!.latitudPartida != null && widget.cotizacion!.longitudPartida != null)
-                              Marker(
-                                point: LatLng(widget.cotizacion!.latitudPartida!, widget.cotizacion!.longitudPartida!),
-                                width: 12,
-                                height: 12,
-                                child: Container(
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFF00E676),
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(color: Color(0xFF00E676), blurRadius: 4, spreadRadius: 1),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            if (widget.cotizacion!.latitudDestino != null && widget.cotizacion!.longitudDestino != null)
-                              Marker(
-                                point: LatLng(widget.cotizacion!.latitudDestino!, widget.cotizacion!.longitudDestino!),
-                                width: 12,
-                                height: 12,
-                                child: Container(
-                                  decoration: const BoxDecoration(
-                                    color: Colors.redAccent,
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(color: Colors.redAccent, blurRadius: 4, spreadRadius: 1),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                // Superposición de tinte muy suave para integrar el mapa con la consola táctica sin oscurecerlo
-                IgnorePointer(
-                  child: Container(
-                    color: Colors.black.withOpacity(0.05),
-                  ),
-                ),
-                // Indicadores de grados laterales a la izquierda
-                Positioned(
-                  left: 12,
-                  top: 0,
-                  bottom: 0,
-                  child: IgnorePointer(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('300°', style: TextStyle(color: const Color(0xFF00E676).withOpacity(0.6), fontSize: 9, fontFamily: 'monospace', fontWeight: FontWeight.bold)),
-                        Text('285°', style: TextStyle(color: const Color(0xFF00E676).withOpacity(0.6), fontSize: 9, fontFamily: 'monospace', fontWeight: FontWeight.bold)),
-                        Text('270°', style: TextStyle(color: const Color(0xFF00E676).withOpacity(0.6), fontSize: 9, fontFamily: 'monospace', fontWeight: FontWeight.bold)),
-                        Text('255°', style: TextStyle(color: const Color(0xFF00E676).withOpacity(0.6), fontSize: 9, fontFamily: 'monospace', fontWeight: FontWeight.bold)),
-                        Text('240°', style: TextStyle(color: const Color(0xFF00E676).withOpacity(0.6), fontSize: 9, fontFamily: 'monospace', fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ),
-                ),
-                // Indicadores de grados laterales a la derecha
-                Positioned(
-                  right: 12,
-                  top: 0,
-                  bottom: 0,
-                  child: IgnorePointer(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text('60°', style: TextStyle(color: const Color(0xFF00E676).withOpacity(0.6), fontSize: 9, fontFamily: 'monospace', fontWeight: FontWeight.bold)),
-                        Text('75°', style: TextStyle(color: const Color(0xFF00E676).withOpacity(0.6), fontSize: 9, fontFamily: 'monospace', fontWeight: FontWeight.bold)),
-                        Text('90°', style: TextStyle(color: const Color(0xFF00E676).withOpacity(0.6), fontSize: 9, fontFamily: 'monospace', fontWeight: FontWeight.bold)),
-                        Text('105°', style: TextStyle(color: const Color(0xFF00E676).withOpacity(0.6), fontSize: 9, fontFamily: 'monospace', fontWeight: FontWeight.bold)),
-                        Text('120°', style: TextStyle(color: const Color(0xFF00E676).withOpacity(0.6), fontSize: 9, fontFamily: 'monospace', fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ),
-                ),
-                // Superposición del Painter de Radar (anillos, haz rotativo y blips)
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: AnimatedBuilder(
-                      animation: _controller,
-                      builder: (context, child) {
-                        return CustomPaint(
-                          painter: _RadarPainter(
-                            sweepAngle: _controller.value * 2 * pi,
-                            blips: _blips,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          // Texto palpitante
-          _PalpitandoTexto(mensaje: widget.mensaje),
-        ],
-      ),
-    );
-  }
-}
-
-class _RadarBlip {
-  final double angle;
-  final double distance;
-  final double size;
-  final double baseOpacity;
-
-  _RadarBlip({
-    required this.angle,
-    required this.distance,
-    required this.size,
-    required this.baseOpacity,
-  });
-}
-
-class _RadarPainter extends CustomPainter {
-  final double sweepAngle;
-  final List<_RadarBlip> blips;
-
-  _RadarPainter({required this.sweepAngle, required this.blips});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = min(size.width, size.height) / 2;
-    // Teorema de Pitágoras para obtener el radio máximo hasta las esquinas del rectángulo
-    final maxRadius = sqrt(size.width * size.width + size.height * size.height) / 2;
-
-    // Fondo del radar (translúcido verde)
-    final bgPaint = Paint()
-      ..color = const Color(0xFF00E676).withOpacity(0.02)
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(center, radius, bgPaint);
-
-    // Círculos concéntricos de la grilla
-    final gridPaint = Paint()
-      ..color = const Color(0xFF00E676).withOpacity(0.15)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
-
-    canvas.drawCircle(center, radius, gridPaint);
-    canvas.drawCircle(center, radius * 0.75, gridPaint);
-    canvas.drawCircle(center, radius * 0.5, gridPaint);
-    canvas.drawCircle(center, radius * 0.25, gridPaint);
-
-    // Ejes cartesianos cruzados del radar (se extienden por toda la superficie)
-    canvas.drawLine(Offset(0, center.dy), Offset(size.width, center.dy), gridPaint);
-    canvas.drawLine(Offset(center.dx, 0), Offset(center.dx, size.height), gridPaint);
-
-    // (Líneas auxiliares de 45° eliminadas para mayor claridad visual del mapa)
-
-    // Pintar los Blips de capitanes (puntos verdes palpitantes distribuidos a lo ancho)
-    for (final blip in blips) {
-      double diff = (sweepAngle - blip.angle) % (2 * pi);
-      if (diff < 0) diff += 2 * pi;
-
-      double opacity = 0.0;
-      if (diff < pi / 2) {
-        opacity = (1.0 - (diff / (pi / 2))) * blip.baseOpacity;
-      } else if (diff > 1.5 * pi) {
-        opacity = 0.05;
-      } else {
-        opacity = 0.05;
-      }
-
-      if (opacity > 0.0) {
-        final blipX = center.dx + cos(blip.angle) * maxRadius * blip.distance;
-        final blipY = center.dy + sin(blip.angle) * maxRadius * blip.distance;
-
-        final blipPaint = Paint()
-          ..color = const Color(0xFF00E676).withOpacity(opacity)
-          ..style = PaintingStyle.fill;
-        canvas.drawCircle(Offset(blipX, blipY), blip.size, blipPaint);
-
-        final glowPaint = Paint()
-          ..color = const Color(0xFF00E676).withOpacity(opacity * 0.4)
-          ..style = PaintingStyle.fill;
-        canvas.drawCircle(Offset(blipX, blipY), blip.size * 2.2, glowPaint);
-      }
-    }
-
-    // Dibujar el haz/barrido del radar cubriendo TODO el rectángulo (Sweep Gradient)
-    final sweepPaint = Paint()
-      ..shader = SweepGradient(
-        center: Alignment.center,
-        startAngle: 0.0,
-        endAngle: 2 * pi,
-        colors: [
-          const Color(0xFF00E676).withOpacity(0.25),
-          const Color(0xFF00E676).withOpacity(0.08),
-          const Color(0xFF00E676).withOpacity(0.0),
-          const Color(0xFF00E676).withOpacity(0.0),
-        ],
-        stops: const [0.0, 0.15, 0.4, 1.0],
-        transform: GradientRotation(sweepAngle - 0.2),
-      ).createShader(Rect.fromCircle(center: center, radius: maxRadius))
-      ..style = PaintingStyle.fill;
-
-    // Pintar sobre el rectángulo completo
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), sweepPaint);
-
-    // Aguja brillante al frente del haz que llega hasta los bordes y esquinas
-    final sweepLinePaint = Paint()
-      ..color = const Color(0xFF00E676).withOpacity(0.7)
-      ..strokeWidth = 1.8
-      ..style = PaintingStyle.stroke;
-    
-    final lineEndX = center.dx + cos(sweepAngle) * maxRadius;
-    final lineEndY = center.dy + sin(sweepAngle) * maxRadius;
-    canvas.drawLine(center, Offset(lineEndX, lineEndY), sweepLinePaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _RadarPainter oldDelegate) {
-    return oldDelegate.sweepAngle != sweepAngle;
-  }
-}
-
-class _PalpitandoTexto extends StatefulWidget {
-  final String mensaje;
-  const _PalpitandoTexto({required this.mensaje});
-
-  @override
-  State<_PalpitandoTexto> createState() => _PalpitandoTextoState();
-}
-
-class _PalpitandoTextoState extends State<_PalpitandoTexto>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _fadeController;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _fadeController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    )..repeat(reverse: true);
-    _animation = Tween<double>(begin: 0.4, end: 1.0).animate(_fadeController);
-  }
-
-  @override
-  void dispose() {
-    _fadeController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _animation,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: const BoxDecoration(
-              color: Color(0xFF00E676),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Color(0xFF00E676),
-                  blurRadius: 6,
-                  spreadRadius: 2,
-                )
-              ]
-            ),
-          ),
-          const SizedBox(width: 10),
-          Text(
-            widget.mensaje,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.5,
-              shadows: [
-                Shadow(
-                  color: Color(0xFF00E676),
-                  blurRadius: 4,
-                )
-              ]
-            ),
-          ),
-        ],
-      ),
+      cotizacion: cotizacion ?? (_cotizaciones.isNotEmpty ? _cotizaciones.first : null),
     );
   }
 }
@@ -1353,6 +1062,27 @@ class FormularioCotizacionTecnicaState
     _localidadController.dispose();
     _provinciaController.dispose();
     super.dispose();
+  }
+
+  void _cerrarTeclado() {
+    FocusManager.instance.primaryFocus?.unfocus();
+  }
+
+  void _setStatePreservandoScroll(VoidCallback actualizar) {
+    final offset =
+        _scrollController.hasClients ? _scrollController.offset : null;
+    setState(actualizar);
+    if (offset == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollController.hasClients) return;
+      final maxExtent = _scrollController.position.maxScrollExtent;
+      _scrollController.jumpTo(offset.clamp(0.0, maxExtent));
+    });
+  }
+
+  void _ejecutarSinTeclado(VoidCallback accion) {
+    _cerrarTeclado();
+    Future.microtask(accion);
   }
 
   @override
@@ -1434,11 +1164,20 @@ class FormularioCotizacionTecnicaState
           Expanded(
             child: Form(
               key: _formKey,
-              child: SingleChildScrollView(
-                key: const PageStorageKey('formulario_cotizacion_scroll'),
-                controller: _scrollController,
-                padding: const EdgeInsets.all(20),
-                child: Column(
+              child: NotificationListener<ScrollNotification>(
+                onNotification: (notification) {
+                  if (notification is ScrollStartNotification &&
+                      notification.dragDetails != null) {
+                    _cerrarTeclado();
+                  }
+                  return false;
+                },
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildSectionTitle('¿Qué quieres hacer?'),
@@ -1453,6 +1192,8 @@ class FormularioCotizacionTecnicaState
                         Expanded(
                           child: TextFormField(
                             controller: _localidadController,
+                            textInputAction: TextInputAction.next,
+                            scrollPadding: const EdgeInsets.only(bottom: 140),
                             style: GoogleFonts.outfit(fontSize: 14),
                             decoration: InputDecoration(
                               labelText: 'Localidad / Ciudad',
@@ -1475,6 +1216,9 @@ class FormularioCotizacionTecnicaState
                         Expanded(
                           child: TextFormField(
                             controller: _provinciaController,
+                            textInputAction: TextInputAction.done,
+                            scrollPadding: const EdgeInsets.only(bottom: 140),
+                            onFieldSubmitted: (_) => _cerrarTeclado(),
                             style: GoogleFonts.outfit(fontSize: 14),
                             decoration: InputDecoration(
                               labelText: 'Provincia',
@@ -1503,6 +1247,7 @@ class FormularioCotizacionTecnicaState
                       width: double.infinity,
                       child: ElevatedButton.icon(
                         onPressed: () {
+                          _cerrarTeclado();
                           final query =
                               '${_localidadController.text} ${_provinciaController.text}';
                           if (query.trim().length > 3) {
@@ -1584,14 +1329,14 @@ class FormularioCotizacionTecnicaState
                           destinoInicial: widget.initialPuntoDestino,
                           trackLogInicial: widget.initialTrackLog,
                           onRouteSelected: (partida, destino, track) {
-                            setState(() {
+                            _setStatePreservandoScroll(() {
                               _puntoPartida = partida;
                               _puntoDestino = destino;
                               _trackLog = track;
                             });
                           },
                           onDistanceChanged: (dist) {
-                            setState(() => _distanciaKM = dist);
+                            _setStatePreservandoScroll(() => _distanciaKM = dist);
                           },
                         ),
                       ),
@@ -1655,7 +1400,7 @@ class FormularioCotizacionTecnicaState
                                       ? DateFormat('dd MMM').format(_fechaIda!)
                                       : 'Selec.',
                                   icon: Icons.calendar_today,
-                                  onTap: () async {
+                                  onTap: () => _ejecutarSinTeclado(() async {
                                     final fecha = await showDatePicker(
                                       context: context,
                                       initialDate: DateTime.now(),
@@ -1664,9 +1409,12 @@ class FormularioCotizacionTecnicaState
                                         const Duration(days: 365),
                                       ),
                                     );
-                                    if (fecha != null)
-                                      setState(() => _fechaIda = fecha);
-                                  },
+                                    if (fecha != null) {
+                                      _setStatePreservandoScroll(
+                                        () => _fechaIda = fecha,
+                                      );
+                                    }
+                                  }),
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -1679,7 +1427,7 @@ class FormularioCotizacionTecnicaState
                                         ).format(_fechaVuelta!)
                                       : 'Selec.',
                                   icon: Icons.calendar_today,
-                                  onTap: () async {
+                                  onTap: () => _ejecutarSinTeclado(() async {
                                     final fecha = await showDatePicker(
                                       context: context,
                                       initialDate:
@@ -1694,9 +1442,12 @@ class FormularioCotizacionTecnicaState
                                         const Duration(days: 365),
                                       ),
                                     );
-                                    if (fecha != null)
-                                      setState(() => _fechaVuelta = fecha);
-                                  },
+                                    if (fecha != null) {
+                                      _setStatePreservandoScroll(
+                                        () => _fechaVuelta = fecha,
+                                      );
+                                    }
+                                  }),
                                 ),
                               ),
                             ],
@@ -1709,14 +1460,17 @@ class FormularioCotizacionTecnicaState
                                 : 'Seleccionar hora',
                             icon: Icons.access_time,
                             isFullWidth: true,
-                            onTap: () async {
+                            onTap: () => _ejecutarSinTeclado(() async {
                               final hora = await showTimePicker(
                                 context: context,
                                 initialTime: TimeOfDay.now(),
                               );
-                              if (hora != null)
-                                setState(() => _horaEncuentro = hora);
-                            },
+                              if (hora != null) {
+                                _setStatePreservandoScroll(
+                                  () => _horaEncuentro = hora,
+                                );
+                              }
+                            }),
                           ),
                         ],
                       ),
@@ -1771,7 +1525,9 @@ class FormularioCotizacionTecnicaState
                               _buildStepperButton(
                                 icon: Icons.remove,
                                 onTap: _cantidadPersonas > 1
-                                    ? () => setState(() => _cantidadPersonas--)
+                                    ? () => _setStatePreservandoScroll(
+                                          () => _cantidadPersonas--,
+                                        )
                                     : null,
                               ),
                               Container(
@@ -1788,8 +1544,9 @@ class FormularioCotizacionTecnicaState
                               ),
                               _buildStepperButton(
                                 icon: Icons.add,
-                                onTap: () =>
-                                    setState(() => _cantidadPersonas++),
+                                onTap: () => _setStatePreservandoScroll(
+                                      () => _cantidadPersonas++,
+                                    ),
                               ),
                             ],
                           ),
@@ -1865,6 +1622,7 @@ class FormularioCotizacionTecnicaState
               ),
             ),
           ),
+        ),
         ],
       ),
     );
@@ -1900,7 +1658,9 @@ class FormularioCotizacionTecnicaState
   Widget _buildActivityChip(String label, IconData icon) {
     final bool isSelected = _actividadSeleccionada == label;
     return GestureDetector(
-      onTap: () => setState(() => _actividadSeleccionada = label),
+      onTap: () => _setStatePreservandoScroll(
+            () => _actividadSeleccionada = label,
+          ),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

@@ -52,6 +52,7 @@ import 'package:capitanya_master/screens/pronostico_screen.dart';
 import 'package:capitanya_master/screens/viajes_programados_screen.dart';
 import 'package:capitanya_master/widgets/solunar_card_widget.dart';
 import 'package:capitanya_master/services/deep_link_service.dart';
+import 'package:capitanya_master/services/recordatorios_service.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -89,6 +90,10 @@ Future<void> main() async {
 
   // 5. Inicializar servicio de Deep Links
   DeepLinkService().inicializar();
+
+  // 6. 🗓️ Iniciar scheduler de recordatorios automáticos (WhatsApp 7d, 3d, 24h, 12h)
+  //    Corre en segundo plano cada 5 minutos verificando recordatorios pendientes.
+  RecordatoriosService.iniciarScheduler();
 
   runApp(
     MultiProvider(

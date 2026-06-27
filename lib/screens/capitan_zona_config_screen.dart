@@ -3,6 +3,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../widgets/radar_scanner_widget.dart';
+
 class CapitanZonaConfigScreen extends StatefulWidget {
   const CapitanZonaConfigScreen({super.key});
 
@@ -270,6 +272,32 @@ class _CapitanZonaConfigScreenState extends State<CapitanZonaConfigScreen> {
                                 ],
                               ),
                             ],
+                          ),
+                          Positioned.fill(
+                            child: RadarSweepAnimatedOverlay(
+                              accentColor: const Color(0xFF00E676),
+                            ),
+                          ),
+                          Positioned(
+                            left: 20,
+                            right: 20,
+                            bottom: 16,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.72),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: const Color(0xFF00E676).withOpacity(0.35),
+                                ),
+                              ),
+                              child: const PalpitandoTexto(
+                                mensaje: 'Radar activo — escaneando tu zona de operación',
+                              ),
+                            ),
                           ),
                           Positioned(
                             top: 20,

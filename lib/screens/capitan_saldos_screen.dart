@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../services/supabase_service.dart';
+import '../services/billetera_virtual_service.dart';
 
 class CapitanSaldosScreen extends StatefulWidget {
   const CapitanSaldosScreen({super.key});
@@ -16,6 +17,8 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
     with AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
   Map<String, dynamic> _saldos = {};
   List<Map<String, dynamic>> _transacciones = [];
+  int _viajesEnProcesoMes = 0;
+  double _proyectadoMes = 0.0;
   bool _isLoading = true;
   Timer? _actualizacionTimer;
   RealtimeChannel? _realtimeChannel;
@@ -102,6 +105,7 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
         _transacciones = transacciones;
         _isLoading = false;
       });
+      _cargarProyeccionMes();
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
@@ -112,6 +116,35 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
           ),
         );
       }
+    }
+  }
+
+  Future<void> _cargarProyeccionMes() async {
+    try {
+      final now = DateTime.now();
+      final desde = DateTime(now.year, now.month, 1).toIso8601String();
+      final hasta = DateTime(now.year, now.month + 1, 1).toIso8601String();
+      final resp = await Supabase.instance.client
+          .from('pedidos')
+          .select('monto_total, estado, fecha_servicio')
+          .eq('capitan_id', _capitanId)
+          .inFilter('estado', ['pagado', 'en_curso', 'listo_para_confirmar'])
+          .gte('fecha_servicio', desde)
+          .lt('fecha_servicio', hasta);
+      final list = List<Map<String, dynamic>>.from(resp);
+      double bruto = 0;
+      for (final p in list) {
+        bruto += (p['monto_total'] as num?)?.toDouble() ?? 0.0;
+      }
+      if (mounted) {
+        setState(() {
+          _viajesEnProcesoMes = list.length;
+          _proyectadoMes =
+              bruto * (1 - BilleteraVirtualService.comisionPorcentaje);
+        });
+      }
+    } catch (_) {
+      // Silencioso: el indicador es informativo
     }
   }
 
@@ -398,6 +431,92 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProyeccionMesCard() {
+    return _buildGlassCard(
+      padding: const EdgeInsets.all(20),
+      borderColor: const Color(0xFF00B0FF).withOpacity(0.25),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.trending_up_rounded, color: Color(0xFF00B0FF), size: 16),
+              SizedBox(width: 8),
+              Text(
+                'ESTE MES',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 11,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '$_viajesEnProcesoMes',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 26,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    Text(
+                      'Viajes en proceso',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.5),
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '\$${_proyectadoMes.toStringAsFixed(0)}',
+                      style: const TextStyle(
+                        color: Color(0xFF00B0FF),
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    Text(
+                      'Proyectado a cobrar',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.5),
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Estimado neto (luego de comisión). Se acredita al cerrarse cada viaje y queda disponible a las ${BilleteraVirtualService.horasDisputas}hs.',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.4),
+              fontSize: 10,
+              height: 1.4,
+            ),
           ),
         ],
       ),
@@ -973,6 +1092,10 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
                       children: [
                         // Tarjeta Principal Glassmorphic de Saldo Total
                         _buildTotalBalanceCard(totalBalance, saldoDisponible, saldoAConfirmar),
+                        const SizedBox(height: 16),
+
+                        // Indicador "Este mes": viajes en proceso + proyectado
+                        _buildProyeccionMesCard(),
                         const SizedBox(height: 16),
                         
                         // Tarjeta Glassmorphic de Distribución 80/20

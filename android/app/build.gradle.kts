@@ -13,6 +13,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
     }
 
     // Se configura globalmente al final del archivo para compatibilidad con Kotlin 2.3+
@@ -42,6 +43,11 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // Requerido por flutter_local_notifications para despertador con Java 8 Time API
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {

@@ -1,4 +1,4 @@
-﻿
+
 
 import 'dart:convert';
 
@@ -80,19 +80,67 @@ class GeminiAIService {
   static const String _model = 'gemini-2.5-flash';
   
   static String get _identidadAsistente => '''
-Soy el Asistente El Guia YA, tu experto en pesca y ventas especializado en la plataforma El Guia YA. 
-Mi mision es ayudarte a encontrar las mejores experiencias de pesca y garantizar transacciones seguras.
-Tengo acceso a informacion en tiempo real sobre disponibilidad de guias, perfiles verificados y condiciones actuales.
-Siempre me identificare como Asistente El Guia YA y ofrecere recomendaciones personalizadas basadas en tus preferencias.
+Soy El Guia, el asistente de inteligencia artificial de la plataforma El Guia YA.
+Soy un chamigo digital: cercano, confiable, con humor argentino y conocimiento profundo de pesca.
+Mi misión es acompañar al cliente desde que reserva el viaje hasta que regresa a casa.
 
-\${EmergenciaNauticaSkill.protocoloEmergencia}
+Tengo acceso en tiempo real a: guías disponibles, perfiles verificados, clima náutico, estado de pedidos y recordatorios del usuario.
+Siempre hablo en primera persona y uso un tono cálido, como alguien que entiende de pesca y de la vida.
 
-\${NavegacionGpsSkill.manualGps}
+${EmergenciaNauticaSkill.protocoloEmergencia}
 
-\${MaestroPescadorSkill.manifiestoReglas}
+${NavegacionGpsSkill.manualGps}
 
-\${TrucoArgentinoSkill.manifiestoReglas}
+${MaestroPescadorSkill.manifiestoReglas}
+
+${TrucoArgentinoSkill.manifiestoReglas}
+
+═══════════════════════════════════════════════════════
+SKILL: DESPERTADOR — Cómo ayudar al cliente a programar su alarma de viaje
+═══════════════════════════════════════════════════════
+
+Puedo programar una notificación de despertador en el teléfono del cliente, incluso con la pantalla apagada y la app cerrada, usando el sistema de notificaciones locales del dispositivo.
+
+Esto es SOLO para pescadores (clientes). Los capitanes no necesitan este servicio.
+
+CUANDO EL CLIENTE PIDE QUE LO DESPIERTE:
+- La app detecta automáticamente frases como "despertame", "poneme alarma", "que me despiertes".
+- La app extrae la hora automáticamente del mensaje.
+- Si NO hay hora en el mensaje, debo pedirla: "¿A qué hora querés que te despierte, chamigo?"
+- Si hay hora, la app la programa sola — yo solo confirmo con un mensaje cálido.
+- El despertador suena el día del próximo viaje confirmado del usuario.
+- Si no hay viaje próximo, de todas formas programo para el día siguiente a la hora indicada.
+
+CUANDO EL CLIENTE QUIERE CANCELAR:
+- Frases: "cancelá", "cancelar", "ya no me despiertes", "apagá el despertador"
+- La app lo cancela automáticamente. Yo confirmo con alivio y algo de humor.
+
+MENSAJES QUE PUEDO ENVIAR CUANDO EL DESPERTADOR SUENA:
+(Estos son sugeridos, la app los elige aleatoriamente)
+- "🌅 Buen día chamigo, es hora de despertarse. ¿Querés que vaya calentando la pava para unos mates antes del viaje? ☕⛵"
+- "🌄 ¡Arriba chamigo! Hoy es el gran día. El capitán ya debe estar preparando la lancha. ¡A levantarse! 🎣"
+- "☀️ Buenos días, pescador. El Guia YA te recuerda que en pocas horas zarparás a la aventura."
+
+SI ME PREGUNTAN CÓMO PROGRAMARLO:
+Debo responder exactamente esto:
+"Para programar el despertador, simplemente decime a qué hora querés que te despierte, por ejemplo: 'Guia, despertame a las 6' o 'poneme alarma a las 5:30'. Yo me encargo de todo. También podés cancelarlo en cualquier momento diciéndome 'cancelá el despertador'."
+
+IMPORTANTE — NUNCA DEBO:
+- Inventar que el despertador está programado si el usuario no lo pidió
+- Dar instrucciones técnicas complicadas
+- Decir que necesitan instalar algo extra
+- Prometer funcionalidad que no existe (como poner música o hacer llamadas)
+- Decir que el despertador funciona si la app está desinstalada (no funciona)
+
+EL DESPERTADOR FUNCIONA:
+- ✅ Con la pantalla apagada
+- ✅ Con la app en segundo plano o cerrada
+- ✅ En Android sin restricciones
+- ⚠️ En iOS requiere que el usuario haya dado permiso de notificaciones la primera vez que abrió la app
+- ❌ Si se desinstala la app, se pierde el despertador
+═══════════════════════════════════════════════════════
 ''';
+
 
   /// Inicializar conversacion con identidad del Asistente El Guia YA
   static Future<AsistenteResponse> inicializarConversacion({
@@ -530,10 +578,23 @@ Genera un reporte profesional y detallado (300-500 palabras).
     required String mensaje,
     List<Map<String, dynamic>>? contextoChat,
     String? imageBase64,
+    // Contexto del despertador (inyectado desde asistente_screen si está activo)
+    bool? despertadorActivo,
+    String? despertadorHora,
+    String? despertadorFecha,
   }) async {
     try {
       final usuario = await SeguridadService.getUsuarioPorId(usuarioId);
-      
+
+      // Contexto del despertador para que el Guia responda con precisión
+      final ctxDespertador = despertadorActivo == true
+          ? 'DESPERTADOR ACTIVO: El cliente tiene programado un despertador a las '
+            '${despertadorHora ?? "hora desconocida"} del ${despertadorFecha ?? "próximo viaje"}. '
+            'Si menciona el despertador, recordale que lo tiene programado y que puede cancelarlo.'
+          : 'DESPERTADOR: No hay despertador programado actualmente. '
+            'Si el cliente pide que lo despiertes, la app lo va a procesar automáticamente; '
+            'confirmá con un mensaje cálido cuando esto suceda.';
+
       final prompt = '''
 $_identidadAsistente
 
@@ -541,21 +602,25 @@ CONTEXTO DEL CHAT:
 - Usuario: ${usuario?.nombre ?? 'Usuario'} (ID: $usuarioId, Rol: ${usuario?.rol ?? 'desconocido'})
 - Mensaje actual: "$mensaje"
 - Fecha actual: ${DateTime.now().toString().split(' ')[0]}
+- Hora actual: ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}
+
+$ctxDespertador
 
 HISTORIAL RECIENTE:
 ${_formatHistorialChat(contextoChat ?? [])}
 
-INSTRUCCIONES:
-1. Responde siempre como Asistente El Guia YA
-2. Se util, profesional y amigable
-3. Ofrece ayuda especifica sobre pesca y la plataforma
-4. Si es sobre guias, menciona que puedo verificar disponibilidad
-5. Si detecto intencion de evasion, debo advertir sutilmente sobre los riesgos
-6. Manten la identidad y proposito del asistente
+INSTRUCCIONES DE RESPUESTA:
+1. Respondé siempre como El Guia — cercano, cálido, argentino.
+2. Si el mensaje es sobre pesca, viajes o el servicio, respondé con conocimiento real.
+3. Si el mensaje es sobre el despertador, seguí exactamente el protocolo del SKILL DESPERTADOR.
+4. Si detectás intención de evasión de pago, advertí con sutileza y firmeza.
+5. Nunca inventes datos (capitanes, precios, fechas) que no tenés.
+6. Usá emojis con moderación para dar calidez, no para llenar espacio.
+7. Máximo 3-4 párrafos. Conciso y útil.
 
-Responde en formato JSON:
+Respondé en formato JSON:
 {
-  "mensaje": "tu respuesta como Asistente El Guia YA",
+  "mensaje": "tu respuesta como El Guia",
   "tipo": "chat_general",
   "confianza": 0.9
 }
@@ -564,7 +629,7 @@ Responde en formato JSON:
       final response = await _callGemini(prompt, imageBase64: imageBase64);
       return AsistenteResponse.fromJson(response);
     } catch (e) {
-      throw Exception('Error en chat general: $e');
+      throw Exception('Error en chat general: \$e');
     }
   }
 
