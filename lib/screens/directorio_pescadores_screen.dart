@@ -1,6 +1,7 @@
-Ôªøimport 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../services/supabase_service.dart';
 import '../services/pdf_service.dart';
+import '../widgets/safe_button.dart';
 
 class DirectorioPescadoresScreen extends StatefulWidget {
   const DirectorioPescadoresScreen({super.key});
@@ -127,19 +128,19 @@ class _DirectorioPescadoresScreenState extends State<DirectorioPescadoresScreen>
                     children: [
                       _buildInfoBlock('PERFIL DEL PESCADOR', [
                         _buildDataRow('DNI', p['dni']?.toString() ?? 'N/A'),
-                        _buildDataRow('TEL√âFONO', p['telefono'] ?? 'N/A'),
+                        _buildDataRow('TEL…FONO', p['telefono'] ?? 'N/A'),
                         _buildDataRow('EMAIL', p['email'] ?? 'N/A'),
                         _buildDataRow('C. POSTAL', p['cp']?.toString() ?? 'N/A'),
                       ]),
                       const SizedBox(height: 20),
-                      _buildInfoBlock('DOMICILIO DE ENV√çO', [
+                      _buildInfoBlock('DOMICILIO DE ENVÕO', [
                         _buildDataRow('CALLE', p['direccion_calle'] ?? p['calle'] ?? 'No declarada'),
                         _buildDataRow('ALTURA', p['direccion_numero'] ?? p['altura'] ?? 'S/N'),
                         _buildDataRow('LOCALIDAD', p['localidad'] ?? 'N/A'),
                         _buildDataRow('PROVINCIA', p['provincia'] ?? 'N/A'),
                       ]),
                       const SizedBox(height: 20),
-                      const _SectionHeader(title: 'IDENTIFICACI√ìN DIGITAL', icon: Icons.badge),
+                      const _SectionHeader(title: 'IDENTIFICACI”N DIGITAL', icon: Icons.badge),
                       const SizedBox(height: 12),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -161,17 +162,17 @@ class _DirectorioPescadoresScreenState extends State<DirectorioPescadoresScreen>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Icon(Icons.waves, color: Colors.green[50], size: 40),
-                    ElevatedButton.icon(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.check_circle_outline),
-                      label: const Text('CERRAR ARCHIVO'),
-                      style: ElevatedButton.styleFrom(
+                    SafeElevatedIconButton(
+  onPressed: () => Navigator.pop(context),
+  icon: Icons.check_circle_outline,
+  label: 'CERRAR ARCHIVO',
+  style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF1B5E20),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                       ),
-                    ),
+),
                   ],
                 ),
               ),
@@ -235,7 +236,7 @@ class _DirectorioPescadoresScreenState extends State<DirectorioPescadoresScreen>
         title: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('GESTI√ìN DE CLIENTES', style: TextStyle(fontSize: 14, letterSpacing: 1.2, fontWeight: FontWeight.w400)),
+            Text('GESTI”N DE CLIENTES', style: TextStyle(fontSize: 14, letterSpacing: 1.2, fontWeight: FontWeight.w400)),
             Text('Directorio de Pescadores', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           ],
         ),
@@ -280,7 +281,7 @@ class _DirectorioPescadoresScreenState extends State<DirectorioPescadoresScreen>
         children: [
           Icon(Icons.people_outline, size: 80, color: Colors.grey),
           SizedBox(height: 16),
-          Text('No hay pescadores registrados a√∫n.', style: TextStyle(fontSize: 18, color: Colors.grey)),
+          Text('No hay pescadores registrados a˙n.', style: TextStyle(fontSize: 18, color: Colors.grey)),
         ],
       ),
     );
@@ -290,7 +291,7 @@ class _DirectorioPescadoresScreenState extends State<DirectorioPescadoresScreen>
     return LayoutBuilder(
       builder: (context, constraints) {
         if (constraints.maxWidth < 600) {
-          // MODO M√ìVIL: Lista de Tarjetas (Fichas)
+          // MODO M”VIL: Lista de Tarjetas (Fichas)
           return ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: _pescadores.length,
@@ -402,10 +403,10 @@ class _DirectorioPescadoresScreenState extends State<DirectorioPescadoresScreen>
                   columns: [
                     const DataColumn(label: Text('SOCIO #', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
                     const DataColumn(label: Text('NOMBRE', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
-                    const DataColumn(label: Text('DIRECCI√ìN', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+                    const DataColumn(label: Text('DIRECCI”N', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
                     if (MediaQuery.of(context).orientation == Orientation.landscape) ...[
                       const DataColumn(label: Text('LOCALIDAD', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
-                      const DataColumn(label: Text('TEL√âFONO', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+                      const DataColumn(label: Text('TEL…FONO', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
                     ],
                     const DataColumn(label: Text('EXPORTAR', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
                     const DataColumn(label: Text('ACCIONES', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),

@@ -1,9 +1,10 @@
-﻿
+
 
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../widgets/safe_button.dart';
 import '../services/supabase_service.dart';
 
 class AdminTrackingScreen extends StatefulWidget {
@@ -69,10 +70,14 @@ class _AdminTrackingScreenState extends State<AdminTrackingScreen> {
     }
 
     try {
+      final adminId = SupabaseService.currentUserId;
+      if (adminId == null) {
+        throw Exception('Sesi�n admin no v�lida');
+      }
       final resultado = await SupabaseService.cargarTrackingYNotificar(
         _pedidoSeleccionadoId!,
         _trackingController.text,
-        '11111111-1111-1111-1111-111111111111', // ID de prueba admin
+        adminId,
       );
 
       if (mounted) {
@@ -84,8 +89,8 @@ class _AdminTrackingScreenState extends State<AdminTrackingScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Center(child: Text(
-                '✅ ${resultado['mensaje']}\n'
-                '📧 Correo enviado al pescador'
+                '? ${resultado['mensaje']}\n'
+                '?? Correo enviado al pescador'
               )),
               backgroundColor: _verdeExito,
               duration: const Duration(seconds: 4),
@@ -204,7 +209,7 @@ class _AdminTrackingScreenState extends State<AdminTrackingScreen> {
                 children: const [
                   Icon(Icons.local_shipping, color: Colors.white),
                   SizedBox(width: 8),
-                  Text('Gestion de Tracking'),
+                  Text('Seguimiento env�os tienda'),
                 ],
               ),
               backgroundColor: _azulNautico,
@@ -301,10 +306,10 @@ class _AdminTrackingScreenState extends State<AdminTrackingScreen> {
                       // Boton de carga
                       SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton.icon(
+                        child: SafeElevatedIconButton(
                           onPressed: _cargarTracking,
-                          icon: const Icon(Icons.upload_file),
-                          label: const Text('Cargar Tracking y Enviar Notificacion'),
+                          icon: Icons.upload_file,
+                          label: 'Cargar tracking y notificar',
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _verdeExito,
                             foregroundColor: Colors.white,
@@ -550,10 +555,10 @@ class _AdminTrackingScreenState extends State<AdminTrackingScreen> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton.icon(
+                  child: SafeOutlinedIconButton(
                     onPressed: () => _mostrarDetallesPedido(pedido),
-                    icon: const Icon(Icons.visibility),
-                    label: const Text('Ver Detalles'),
+                    icon: Icons.visibility,
+                    label: 'Ver detalles',
                     style: OutlinedButton.styleFrom(
                       foregroundColor: _azulNautico,
                     ),
@@ -562,14 +567,14 @@ class _AdminTrackingScreenState extends State<AdminTrackingScreen> {
                 const SizedBox(width: 8),
                 if (!tieneTracking)
                   Expanded(
-                    child: ElevatedButton.icon(
+                    child: SafeElevatedIconButton(
                       onPressed: () {
                         setState(() {
                           _pedidoSeleccionadoId = pedido['pedido_tienda_id'];
                         });
                       },
-                      icon: const Icon(Icons.add),
-                      label: const Text('Agregar Tracking'),
+                      icon: Icons.add,
+                      label: 'Agregar tracking',
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _azulNautico,
                         foregroundColor: Colors.white,

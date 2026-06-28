@@ -1,4 +1,4 @@
-﻿
+
 
 import 'dart:math';
 
@@ -115,7 +115,7 @@ class StressTestService {
     String mensaje = '';
     switch (pescador['experiencia']) {
       case 'principiante':
-        mensaje = 'Hola, soy ${pescador['nombre']}. Soy principiante en la pesca y me gustaria hacer un viaje a ${viaje['destino']}. Necesito guia y equipo basico. Mi presupuesto es de \$${presupuesto.toStringAsFixed(0)}. ¿Podrian ayudarme?';
+        mensaje = 'Hola, soy ${pescador['nombre']}. Soy principiante en la pesca y me gustaria hacer un viaje a ${viaje['destino']}. Necesito guia y equipo basico. Mi presupuesto es de \$${presupuesto.toStringAsFixed(0)}. �Podrian ayudarme?';
         break;
       case 'intermedio':
         mensaje = 'Hola, soy ${pescador['nombre']}. Tengo experiencia intermedia y busco un viaje a ${viaje['destino']} para practicar ${viaje['tipo']}. Necesito equipo especializado. Presupuesto \$${presupuesto.toStringAsFixed(0)}.';
@@ -152,13 +152,13 @@ class StressTestService {
   
   // Simular envio de 5 solicitudes
   static Future<List<Map<String, dynamic>>> enviarSolicitudesStressTest() async {
-    print('🚀 INICIANDO PRUEBA DE ESTRES - Envio de 5 solicitudes');
+    print('?? INICIANDO PRUEBA DE ESTRES - Envio de 5 solicitudes');
     print('=' * 60);
     
     final solicitudes = <Map<String, dynamic>>[];
     
     for (int i = 0; i < 5; i++) {
-      print('\n📤 Enviando solicitud ${i + 1}/5...');
+      print('\n?? Enviando solicitud ${i + 1}/5...');
       
       // Generar solicitud
       final solicitud = generarSolicitudPrueba(i);
@@ -167,18 +167,18 @@ class StressTestService {
       // Simular envio a Supabase
       await Future.delayed(Duration(milliseconds: 500 + _random.nextInt(1000)));
       
-      print('✅ Solicitud ${i + 1} enviada:');
-      print('   📧 Pescador: ${solicitud['pescador_nombre']}');
-      print('   🎯 Destino: ${solicitud['destino']}');
-      print('   💰 Presupuesto: \$${solicitud['presupuesto_estimado'].toStringAsFixed(0)}');
-      print('   👥 N° Pescadores: ${solicitud['numero_pescadores']}');
-      print('   🎣 Tipo: ${solicitud['viaje_tipo_pesca']}');
-      print('   📅 Fecha: ${solicitud['viaje_fecha_solicitada']}');
-      print('   📦 Equipamiento: ${solicitud['equipamiento_requerido'].join(', ')}');
-      print('   📝 Mensaje: "${solicitud['mensaje_pescador']}"');
+      print('? Solicitud ${i + 1} enviada:');
+      print('   ?? Pescador: ${solicitud['pescador_nombre']}');
+      print('   ?? Destino: ${solicitud['destino']}');
+      print('   ?? Presupuesto: \$${solicitud['presupuesto_estimado'].toStringAsFixed(0)}');
+      print('   ?? N� Pescadores: ${solicitud['numero_pescadores']}');
+      print('   ?? Tipo: ${solicitud['viaje_tipo_pesca']}');
+      print('   ?? Fecha: ${solicitud['viaje_fecha_solicitada']}');
+      print('   ?? Equipamiento: ${solicitud['equipamiento_requerido'].join(', ')}');
+      print('   ?? Mensaje: "${solicitud['mensaje_pescador']}"');
     }
     
-    print('\n✅ PRUEBA DE ESTRES COMPLETADA - 5 solicitudes enviadas');
+    print('\n? PRUEBA DE ESTRES COMPLETADA - 5 solicitudes enviadas');
     print('=' * 60);
     
     return solicitudes;
@@ -186,7 +186,7 @@ class StressTestService {
   
   // Simular respuesta del capitan
   static Future<Map<String, dynamic>> responderSolicitudStressTest(Map<String, dynamic> solicitud) async {
-    print('\n📋 PROCESANDO RESPUESTA DEL CAPITAN');
+    print('\n?? PROCESANDO RESPUESTA DEL CAPITAN');
     print('-' * 40);
     
     // Calcular precio basado en factores
@@ -217,13 +217,13 @@ class StressTestService {
     String respuesta = '';
     switch (experiencia) {
       case 'principiante':
-        respuesta = '¡Hola ${solicitud['pescador_nombre']}! Perfecto para principiantes. Te ofrezco un paquete completo con guia especializada, equipo para principiantes, y tecnicas basicas. Incluye transporte desde Capital y carnada. El viaje a ${solicitud['destino']} sera una experiencia inolvidable.';
+        respuesta = '�Hola ${solicitud['pescador_nombre']}! Perfecto para principiantes. Te ofrezco un paquete completo con guia especializada, equipo para principiantes, y tecnicas basicas. Incluye transporte desde Capital y carnada. El viaje a ${solicitud['destino']} sera una experiencia inolvidable.';
         break;
       case 'intermedio':
-        respuesta = '¡Hola ${solicitud['pescador_nombre']}! Excelente eleccion para tu nivel. Te ofrezco equipo de calidad intermedia con tecnicas avanzadas de ${solicitud['viaje_tipo_pesca']}. Incluye guia especializada y los mejores spots de ${solicitud['destino']}.';
+        respuesta = '�Hola ${solicitud['pescador_nombre']}! Excelente eleccion para tu nivel. Te ofrezco equipo de calidad intermedia con tecnicas avanzadas de ${solicitud['viaje_tipo_pesca']}. Incluye guia especializada y los mejores spots de ${solicitud['destino']}.';
         break;
       case 'avanzado':
-        respuesta = '¡Hola ${solicitud['pescador_nombre']}! Veo que buscas un desafio. Te ofrezco equipo premium y acceso a zonas exclusivas de ${solicitud['destino']}. Para tu nivel, tengo tecnicas avanzadas y spots poco conocidos para ${solicitud['viaje_tipo_pesca']}.';
+        respuesta = '�Hola ${solicitud['pescador_nombre']}! Veo que buscas un desafio. Te ofrezco equipo premium y acceso a zonas exclusivas de ${solicitud['destino']}. Para tu nivel, tengo tecnicas avanzadas y spots poco conocidos para ${solicitud['viaje_tipo_pesca']}.';
         break;
     }
     
@@ -238,17 +238,17 @@ class StressTestService {
       'status': 'respondido',
     };
     
-    print('✅ Respuesta generada:');
-    print('   💰 Precio cotizado: \$${precioFinal.toStringAsFixed(0)}');
-    print('   📄 Respuesta: "$respuesta"');
-    print('   📅 Fecha respuesta: ${respuestaData['fecha_respuesta']}');
+    print('? Respuesta generada:');
+    print('   ?? Precio cotizado: \$${precioFinal.toStringAsFixed(0)}');
+    print('   ?? Respuesta: "$respuesta"');
+    print('   ?? Fecha respuesta: ${respuestaData['fecha_respuesta']}');
     
     return respuestaData;
   }
   
   // Simular proceso de pago
   static Future<Map<String, dynamic>> procesarPagoStressTest(String cotizacionId, double monto) async {
-    print('\n💳 PROCESANDO PAGO');
+    print('\n?? PROCESANDO PAGO');
     print('-' * 30);
     
     // Simular procesamiento de pago
@@ -291,10 +291,10 @@ class StressTestService {
       }
     }
     
-    print('✅ Pagos generados:');
+    print('? Pagos generados:');
     for (final pago in pagos) {
-      print('   💰 Cuota ${pago['cuota'] ?? 'unica'}: \$${pago['monto'].toStringAsFixed(0)}');
-      print('   📅 Vencimiento: ${pago['fecha_vencimiento']}');
+      print('   ?? Cuota ${pago['cuota'] ?? 'unica'}: \$${pago['monto'].toStringAsFixed(0)}');
+      print('   ?? Vencimiento: ${pago['fecha_vencimiento']}');
     }
     
     return {
@@ -307,7 +307,7 @@ class StressTestService {
   
   // Simular finalizacion de mision
   static Future<Map<String, dynamic>> finalizarMisionStressTest(String cotizacionId) async {
-    print('\n🎯 FINALIZANDO MISION');
+    print('\n?? FINALIZANDO MISION');
     print('-' * 25);
     
     // Simular proceso de finalizacion
@@ -320,10 +320,10 @@ class StressTestService {
       'mision_completada': true,
     };
     
-    print('✅ Mision finalizada:');
-    print('   🆔 Cotizacion: $cotizacionId');
-    print('   📅 Fecha finalizacion: ${finalizacion['fecha_finalizacion']}');
-    print('   ✅ Estado: ${finalizacion['status']}');
+    print('? Mision finalizada:');
+    print('   ?? Cotizacion: $cotizacionId');
+    print('   ?? Fecha finalizacion: ${finalizacion['fecha_finalizacion']}');
+    print('   ? Estado: ${finalizacion['status']}');
     
     return finalizacion;
   }
@@ -334,7 +334,7 @@ class StressTestService {
     int calificacion,
     String comentario,
   ) async {
-    print('\n⭐ REGISTRANDO PUNTUACION');
+    print('\n? REGISTRANDO PUNTUACION');
     print('-' * 25);
     
     // Simular guardado en Supabase
@@ -348,43 +348,43 @@ class StressTestService {
       'guardado_en_supabase': true,
     };
     
-    print('✅ Puntuacion guardada:');
-    print('   🆔 Cotizacion: $cotizacionId');
-    print('   ⭐ Calificacion: $calificacion/5');
-    print('   💬 Comentario: "$comentario"');
-    print('   📅 Fecha: ${puntuacion['fecha_puntuacion']}');
-    print('   ✅ Guardado en Supabase: ${puntuacion['guardado_en_supabase']}');
+    print('? Puntuacion guardada:');
+    print('   ?? Cotizacion: $cotizacionId');
+    print('   ? Calificacion: $calificacion/5');
+    print('   ?? Comentario: "$comentario"');
+    print('   ?? Fecha: ${puntuacion['fecha_puntuacion']}');
+    print('   ? Guardado en Supabase: ${puntuacion['guardado_en_supabase']}');
     
     return puntuacion;
   }
   
   // Ejecutar prueba de estres completa
   static Future<Map<String, dynamic>> ejecutarPruebaDeEstresCompleta() async {
-    print('\n🔥 INICIANDO PRUEBA DE ESTRES COMPLETA - EL GUIA YA');
+    print('\n?? INICIANDO PRUEBA DE ESTRES COMPLETA - EL GUIA YA');
     print('=' * 70);
     
     final resultados = <String, dynamic>{};
     
     try {
       // Paso 1: Enviar 5 solicitudes
-      print('\n📍 PASO 1: Generacion de Solicitudes');
+      print('\n?? PASO 1: Generacion de Solicitudes');
       final solicitudes = await enviarSolicitudesStressTest();
       resultados['solicitudes_enviadas'] = solicitudes;
       
       // Paso 2: Elegir una solicitud para procesar completamente
       final solicitudSeleccionada = solicitudes.first;
-      print('\n📍 PASO 2: Seleccion de Solicitud');
-      print('✅ Solicitud seleccionada: ${solicitudSeleccionada['id']}');
-      print('   📧 Pescador: ${solicitudSeleccionada['pescador_nombre']}');
-      print('   🎯 Destino: ${solicitudSeleccionada['destino']}');
+      print('\n?? PASO 2: Seleccion de Solicitud');
+      print('? Solicitud seleccionada: ${solicitudSeleccionada['id']}');
+      print('   ?? Pescador: ${solicitudSeleccionada['pescador_nombre']}');
+      print('   ?? Destino: ${solicitudSeleccionada['destino']}');
       
       // Paso 3: Responder solicitud
-      print('\n📍 PASO 3: Respuesta del Capitan');
+      print('\n?? PASO 3: Respuesta del Capitan');
       final respuesta = await responderSolicitudStressTest(solicitudSeleccionada);
       resultados['respuesta_capitan'] = respuesta;
       
       // Paso 4: Procesar pago
-      print('\n📍 PASO 4: Proceso de Pago');
+      print('\n?? PASO 4: Proceso de Pago');
       final pago = await procesarPagoStressTest(
         solicitudSeleccionada['id'], 
         respuesta['precio_cotizado'],
@@ -392,29 +392,29 @@ class StressTestService {
       resultados['pago_procesado'] = pago;
       
       // Paso 5: Finalizar mision
-      print('\n📍 PASO 5: Finalizacion de Mision');
+      print('\n?? PASO 5: Finalizacion de Mision');
       final finalizacion = await finalizarMisionStressTest(solicitudSeleccionada['id']);
       resultados['mision_finalizada'] = finalizacion;
       
       // Paso 6: Puntuar servicio
-      print('\n📍 PASO 6: Puntuacion del Servicio');
+      print('\n?? PASO 6: Puntuacion del Servicio');
       final puntuacion = await puntuarServicioStressTest(
         solicitudSeleccionada['id'],
         5, // Calificacion perfecta para prueba
-        'Excelente servicio, muy profesional y el capitan conoce los mejores lugares. El equipo era de primera calidad. ¡Volvere sin duda!',
+        'Excelente servicio, muy profesional y el capitan conoce los mejores lugares. El equipo era de primera calidad. �Volvere sin duda!',
       );
       resultados['puntuacion_registrada'] = puntuacion;
       
       // Resumen final
-      print('\n🎉 PRUEBA DE ESTRES COMPLETADA EXITOSAMENTE');
+      print('\n?? PRUEBA DE ESTRES COMPLETADA EXITOSAMENTE');
       print('=' * 70);
-      print('✅ Solicitudes enviadas: ${solicitudes.length}');
-      print('✅ Solicitud procesada: ${solicitudSeleccionada['id']}');
-      print('✅ Respuesta generada: \$${respuesta['precio_cotizado'].toStringAsFixed(0)}');
-      print('✅ Pagos generados: ${pago['pagos_generados'].length}');
-      print('✅ Mision finalizada: ${finalizacion['mision_completada']}');
-      print('✅ Puntuacion guardada: ${puntuacion['calificacion']}/5');
-      print('✅ Todos los pasos completados sin errores');
+      print('? Solicitudes enviadas: ${solicitudes.length}');
+      print('? Solicitud procesada: ${solicitudSeleccionada['id']}');
+      print('? Respuesta generada: \$${respuesta['precio_cotizado'].toStringAsFixed(0)}');
+      print('? Pagos generados: ${pago['pagos_generados'].length}');
+      print('? Mision finalizada: ${finalizacion['mision_completada']}');
+      print('? Puntuacion guardada: ${puntuacion['calificacion']}/5');
+      print('? Todos los pasos completados sin errores');
       
       resultados['prueba_completada'] = true;
       resultados['fecha_finalizacion'] = DateTime.now().toIso8601String();
@@ -422,7 +422,7 @@ class StressTestService {
       return resultados;
       
     } catch (e) {
-      print('\n❌ ERROR EN PRUEBA DE ESTRES: $e');
+      print('\n? ERROR EN PRUEBA DE ESTRES: $e');
       resultados['prueba_completada'] = false;
       resultados['error'] = e.toString();
       resultados['fecha_error'] = DateTime.now().toIso8601String();

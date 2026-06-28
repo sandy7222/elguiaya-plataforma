@@ -9,6 +9,7 @@ import '../services/storage_service.dart';
 import '../services/voice_service.dart';
 import '../services/groq_service.dart';
 import 'package:intl/intl.dart';
+import '../widgets/safe_button.dart';
 
 class AdminBlogScreen extends StatefulWidget {
   const AdminBlogScreen({super.key});
@@ -287,18 +288,20 @@ class _AdminBlogScreenState extends State<AdminBlogScreen> with SingleTickerProv
                               ),
                             ),
                             const Spacer(),
-                            ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
+                            SafeElevatedIconButton(
+  onPressed: () => _abrirModalSalidaPesca(),
+  icon: Icons.record_voice_over,
+  iconSize: 15,
+  label: '🎣 Mi Salida de Pesca',
+  textStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+  style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF00E5FF).withValues(alpha: 0.15),
                                 foregroundColor: const Color(0xFF00E5FF),
                                 side: const BorderSide(color: Color(0xFF00E5FF), width: 1.5),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                               ),
-                              icon: const Icon(Icons.record_voice_over, size: 15),
-                              label: const Text('🎣 Mi Salida de Pesca', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                              onPressed: () => _abrirModalSalidaPesca(),
-                            ),
+),
                             const SizedBox(width: 8),
                           ],
                         ),
@@ -814,7 +817,7 @@ class _AdminBlogScreenState extends State<AdminBlogScreen> with SingleTickerProv
 
                                     SizedBox(
                                       width: double.infinity,
-                                      child: ElevatedButton.icon(
+                                      child: SafeElevatedIconButton(
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: isVideo
                                               ? Colors.redAccent.withValues(alpha: 0.15)
@@ -827,20 +830,16 @@ class _AdminBlogScreenState extends State<AdminBlogScreen> with SingleTickerProv
                                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                           padding: const EdgeInsets.symmetric(vertical: 12),
                                         ),
-                                        icon: Icon(
-                                          Icons.auto_awesome,
+                                        icon: Icons.auto_awesome,
+                                        iconSize: 16,
+                                        iconColor: isVideo ? Colors.redAccent : cyanColor,
+                                        label: isVideo
+                                            ? 'Redactar nota del video con Gu-IA'
+                                            : 'Generar borrador con Gu-IA',
+                                        textStyle: TextStyle(
                                           color: isVideo ? Colors.redAccent : cyanColor,
-                                          size: 16,
-                                        ),
-                                        label: Text(
-                                          isVideo
-                                              ? 'REDACTAR NOTA DEL VIDEO CON GU-IA'
-                                              : 'GENERAR BORRADOR CON GU-IA',
-                                          style: TextStyle(
-                                            color: isVideo ? Colors.redAccent : cyanColor,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 11,
-                                          ),
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 11,
                                         ),
                                         onPressed: () => _generarConIA(noticia),
                                       ),
@@ -1004,15 +1003,8 @@ class _AdminBlogScreenState extends State<AdminBlogScreen> with SingleTickerProv
                                   child: _buildTextField(imagenCtrl, 'Pegar link de imagen ilustrativa...'),
                                 ),
                                 const SizedBox(width: 8),
-                                ElevatedButton.icon(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF00E5FF),
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                  ),
-                                  icon: const Icon(Icons.upload_file, color: Colors.black, size: 16),
-                                  label: const Text('Subir', style: TextStyle(color: Colors.black, fontSize: 12, fontWeight: FontWeight.bold)),
-                                  onPressed: () async {
+                                SafeElevatedIconButton(
+  onPressed: () async {
                                     try {
                                       final ImagePicker picker = ImagePicker();
                                       final XFile? image = await picker.pickImage(
@@ -1062,7 +1054,17 @@ class _AdminBlogScreenState extends State<AdminBlogScreen> with SingleTickerProv
                                       _mostrarMensaje('Error al subir imagen: $e', esError: true);
                                     }
                                   },
-                                ),
+  icon: Icons.upload_file,
+  iconSize: 16,
+  iconColor: Colors.black,
+  label: 'Subir',
+  textStyle: TextStyle(color: Colors.black, fontSize: 12, fontWeight: FontWeight.bold),
+  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF00E5FF),
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  ),
+),
                               ],
                             ),
 
@@ -1851,11 +1853,14 @@ class _ModalSalidaPescaState extends State<_ModalSalidaPesca> {
         ),
         const SizedBox(height: 12),
         Center(
-          child: TextButton.icon(
-            onPressed: () => _generarRedaccionIA(),
-            icon: const Icon(Icons.autorenew, color: Color(0xFF00E5FF), size: 16),
-            label: const Text('Volver a redactar', style: TextStyle(color: Color(0xFF00E5FF), fontSize: 11, fontWeight: FontWeight.bold)),
-          ),
+          child: SafeTextIconButton(
+  onPressed: () => _generarRedaccionIA(),
+  icon: Icons.autorenew,
+  iconSize: 16,
+  iconColor: const Color(0xFF00E5FF),
+  label: 'Volver a redactar',
+  textStyle: TextStyle(color: Color(0xFF00E5FF), fontSize: 11, fontWeight: FontWeight.bold),
+),
         ),
       ],
     );

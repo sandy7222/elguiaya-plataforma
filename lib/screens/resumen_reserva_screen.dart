@@ -5,6 +5,7 @@ import 'chat_asistido_screen.dart';
 import 'package:provider/provider.dart';
 import '../providers/cart_provider.dart';
 import '../services/viaje_lifecycle_service.dart';
+import '../widgets/safe_button.dart';
 
 class ResumenReservaScreen extends StatefulWidget {
   final String cotizacionId;
@@ -1113,22 +1114,8 @@ class _ResumenReservaScreenState extends State<ResumenReservaScreen> {
           SizedBox(
             width: double.infinity,
             height: 56, // Altura estandar para botones moviles
-            child: ElevatedButton.icon(
+            child: ElevatedButton(
               onPressed: _isProcesando ? null : _aceptarReserva,
-              icon: _isProcesando 
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Icon(Icons.check_circle),
-              label: Text(
-                _isProcesando ? 'Procesando...' : 'Aceptar Reserva',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: _verdeExito,
                 foregroundColor: Colors.white,
@@ -1136,6 +1123,14 @@ class _ResumenReservaScreenState extends State<ResumenReservaScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
+              ),
+              child: SafeButtonLoadingContent(
+                loading: _isProcesando,
+                icon: Icons.check_circle,
+                idleLabel: 'Aceptar reserva',
+                loadingLabel: 'Procesando...',
+                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                spinnerColor: Colors.white,
               ),
             ),
           ),
@@ -1146,21 +1141,19 @@ class _ResumenReservaScreenState extends State<ResumenReservaScreen> {
           SizedBox(
             width: double.infinity,
             height: 56, // Altura estandar para botones moviles
-            child: OutlinedButton.icon(
-              onPressed: _consultarIA,
-              icon: const Icon(Icons.chat),
-              label: const Text(
-                'Consultar IA',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              style: OutlinedButton.styleFrom(
+            child: SafeOutlinedIconButton(
+  onPressed: _consultarIA,
+  icon: Icons.chat,
+  label: 'Consultar IA',
+  textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+  style: OutlinedButton.styleFrom(
                 foregroundColor: _azulNautico,
                 side: BorderSide(color: _azulNautico, width: 2),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-            ),
+),
           ),
           
           const SizedBox(height: 8),

@@ -1,9 +1,14 @@
 import 'dart:ui';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/viaje_lifecycle_service.dart';
+import '../services/viaje_tracking_service.dart';
 import '../widgets/reputacion_badge_widget.dart';
+import '../widgets/auditor_map_widget.dart';
+import '../widgets/viaje_track_auditor_sheet.dart';
+import '../widgets/safe_button.dart';
 import 'manifiesto_pasajeros_screen.dart';
 
 /// Pantalla de auditoría profunda de un viaje individual (vista Admin).
@@ -24,6 +29,8 @@ class _AdminDetalleViajeScreenState extends State<AdminDetalleViajeScreen> {
 
   bool _isLoading = false;
   List<Map<String, dynamic>> _calificaciones = [];
+  List<dynamic> _trackLog = [];
+  Timer? _trackRefreshTimer;
 
   String get _codigoViaje {
     final rawId = widget.viaje['id']?.toString() ?? '--------';
@@ -38,7 +45,26 @@ class _AdminDetalleViajeScreenState extends State<AdminDetalleViajeScreen> {
   @override
   void initState() {
     super.initState();
+    _trackLog = List<dynamic>.from(widget.viaje['track_log'] as List? ?? []);
     _cargarCalificaciones();
+    if (widget.viaje['estado']?.toString() == 'en_curso') {
+      _trackRefreshTimer = Timer.periodic(const Duration(seconds: 45), (_) {
+        _reloadTrackLog();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _trackRefreshTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _reloadTrackLog() async {
+    final pedidoId = widget.viaje['id']?.toString() ?? '';
+    if (pedidoId.isEmpty) return;
+    final log = await ViajeTrackingService.fetchTrackLog(pedidoId);
+    if (mounted) setState(() => _trackLog = log);
   }
 
   Future<void> _cargarCalificaciones() async {
@@ -170,6 +196,31 @@ class _AdminDetalleViajeScreenState extends State<AdminDetalleViajeScreen> {
                   // Timeline de estados
                   _buildSectionTitle('TIMELINE DEL VIAJE'),
                   _buildTimeline(estado),
+                  const SizedBox(height: 12),
+
+                  _buildSectionTitle('RECORRIDO GPS'),
+                  _buildGlassCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        AuditorMapWidget(trackLog: _trackLog, showRolesSeparately: true),
+                        const SizedBox(height: 12),
+                        SafeOutlinedIconButton(
+                          onPressed: () => ViajeTrackAuditorSheet.show(context, {
+                            ...widget.viaje,
+                            'track_log': _trackLog,
+                          }),
+                          icon: Icons.fullscreen_rounded,
+                          iconSize: 18,
+                          label: 'Ver auditoría completa',
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: _verde,
+                            side: BorderSide(color: _verde.withOpacity(0.5)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 12),
 
                   // Partes

@@ -3,6 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../widgets/safe_button.dart';
+import '../utils/fecha_nacimiento_utils.dart';
+import '../widgets/descargar_despacho_pna_button.dart';
 
 // ══════════════════════════════════════════════════════════════════════════════
 // MANIFIESTO DE EMBARQUE — Vista del CAPITÁN
@@ -218,6 +221,8 @@ class _ManifiestoPasajerosScreenState extends State<ManifiestoPasajerosScreen> {
                         const SizedBox(height: 12),
                         _buildPasajerosSection(),
                         const SizedBox(height: 12),
+                        DescargarDespachoPnaButton(pedidoId: widget.pedidoId),
+                        const SizedBox(height: 12),
                         _buildPrefecturaAviso(),
                         const SizedBox(height: 30),
                       ],
@@ -283,6 +288,12 @@ class _ManifiestoPasajerosScreenState extends State<ManifiestoPasajerosScreen> {
   Widget _buildTitularCard() {
     final nombre    = _titular?['nombre']?.toString() ?? 'Pescador';
     final dni       = _titular?['dni']?.toString() ?? '—';
+    final titularInvitado = _pasajeros.cast<Map<String, dynamic>>().where(
+      (p) => p['es_titular'] == true,
+    ).firstOrNull ?? (_pasajeros.isNotEmpty ? _pasajeros.first : null);
+    final fechaNac = FechaNacimientoUtils.formatearLegible(
+      titularInvitado?['fecha_nacimiento'],
+    );
     final tel       = _titular?['telefono']?.toString() ?? '';
     final avatarUrl = _titular?['avatar_url']?.toString() ?? '';
     final localidad = _titular?['localidad']?.toString() ?? '';
@@ -357,6 +368,10 @@ class _ManifiestoPasajerosScreenState extends State<ManifiestoPasajerosScreen> {
                                   letterSpacing: 1.0)),
                         ],
                       ),
+                      const SizedBox(height: 4),
+                      Text('Nac.: $fechaNac',
+                          style: GoogleFonts.inter(
+                              color: _gris, fontSize: 12)),
                       if (localidad.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Text('📍 $localidad${provincia.isNotEmpty ? ", $provincia" : ""}',
@@ -375,20 +390,21 @@ class _ManifiestoPasajerosScreenState extends State<ManifiestoPasajerosScreen> {
               child: Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => _llamar(tel),
-                      icon: const Icon(Icons.call_rounded, size: 15),
-                      label: Text(tel,
-                          style: GoogleFonts.inter(fontWeight: FontWeight.w600,
-                              fontSize: 12)),
-                      style: OutlinedButton.styleFrom(
+                    child: SafeOutlinedIconButton(
+  onPressed: () => _llamar(tel),
+  icon: Icons.call_rounded,
+  iconSize: 15,
+  label: tel,
+  textStyle: GoogleFonts.inter(fontWeight: FontWeight.w600,
+                              fontSize: 12),
+  style: OutlinedButton.styleFrom(
                         foregroundColor: _blanco,
                         side: BorderSide(color: _blanco.withOpacity(0.3)),
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10)),
                       ),
-                    ),
+),
                   ),
                   const SizedBox(width: 8),
                   OutlinedButton(
@@ -470,6 +486,7 @@ class _ManifiestoPasajerosScreenState extends State<ManifiestoPasajerosScreen> {
             final nombre    = '${p['nombre_pasajero'] ?? p['nombre'] ?? ''} '
                               '${p['apellido_pasajero'] ?? p['apellido'] ?? ''}'.trim();
             final dni       = p['dni_pasajero']?.toString() ?? p['dni']?.toString() ?? '—';
+            final fechaNac  = FechaNacimientoUtils.formatearLegible(p['fecha_nacimiento']);
             final tel       = p['telefono']?.toString() ?? '';
             final fotoDniUrl= p['foto_dni_url']?.toString() ?? '';
             final validado  = p['datos_validados'] == true;
@@ -524,6 +541,9 @@ class _ManifiestoPasajerosScreenState extends State<ManifiestoPasajerosScreen> {
                                         letterSpacing: 1.0)),
                               ],
                             ),
+                            Text('Nac.: $fechaNac',
+                                style: GoogleFonts.inter(
+                                    color: _gris, fontSize: 11)),
                           ],
                         ),
                       ),
@@ -657,19 +677,20 @@ class _ManifiestoPasajerosScreenState extends State<ManifiestoPasajerosScreen> {
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: _copiarManifiesto,
-              icon: const Icon(Icons.copy_rounded, size: 15),
-              label: Text('Copiar manifiesto completo',
-                  style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 13)),
-              style: OutlinedButton.styleFrom(
+            child: SafeOutlinedIconButton(
+  onPressed: _copiarManifiesto,
+  icon: Icons.copy_rounded,
+  iconSize: 15,
+  label: 'Copiar manifiesto completo',
+  textStyle: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 13),
+  style: OutlinedButton.styleFrom(
                 foregroundColor: _naranja,
                 side: BorderSide(color: _naranja.withOpacity(0.5)),
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10)),
               ),
-            ),
+),
           ),
         ],
       ),
@@ -692,12 +713,12 @@ class _ManifiestoPasajerosScreenState extends State<ManifiestoPasajerosScreen> {
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(color: _gris, fontSize: 12)),
           const SizedBox(height: 20),
-          ElevatedButton.icon(
-            onPressed: _cargar,
-            icon: const Icon(Icons.refresh_rounded),
-            label: const Text('Reintentar'),
-            style: ElevatedButton.styleFrom(backgroundColor: _verde),
-          ),
+          SafeElevatedIconButton(
+  onPressed: _cargar,
+  icon: Icons.refresh_rounded,
+  label: 'Reintentar',
+  style: ElevatedButton.styleFrom(backgroundColor: _verde),
+),
         ],
       ),
     ),

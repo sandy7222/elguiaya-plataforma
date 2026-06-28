@@ -11,6 +11,8 @@ class GpsTrackerService {
   StreamSubscription<Position>? _positionStreamSubscription;
   bool _isTracking = false;
 
+  bool get isTracking => _isTracking;
+
   /// Inicia el rastreo del pescador y actualiza Supabase automáticamente
   Future<void> startTracking(String userId) async {
     if (_isTracking) return;

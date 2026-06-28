@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../models/documento.dart';
 import '../services/storage_service.dart';
+import '../widgets/safe_button.dart';
 import '../services/supabase_service.dart';
 
 class PerfilScreen extends StatefulWidget {
@@ -242,16 +243,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
     
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      child: ElevatedButton.icon(
+      child: ElevatedButton(
         onPressed: () => _subirDocumento(tipo, descripcion),
-        icon: Icon(icon, color: doc != null ? Colors.green : const Color(0xFF0D47A1)),
-        label: Text(
-          doc != null ? '$title ✓' : title,
-          style: TextStyle(
-            color: doc != null ? Colors.green : const Color(0xFF0D47A1),
-            fontWeight: FontWeight.bold,
-          ),
-        ),
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.white,
           foregroundColor: const Color(0xFF0D47A1),
@@ -262,6 +255,15 @@ class _PerfilScreenState extends State<PerfilScreen> {
               color: doc != null ? Colors.green : const Color(0xFF0D47A1),
               width: 2,
             ),
+          ),
+        ),
+        child: SafeButtonContent(
+          icon: icon,
+          iconColor: doc != null ? Colors.green : const Color(0xFF0D47A1),
+          label: doc != null ? '$title ✓' : title,
+          textStyle: TextStyle(
+            color: doc != null ? Colors.green : const Color(0xFF0D47A1),
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),

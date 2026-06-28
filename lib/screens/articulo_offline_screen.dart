@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../widgets/safe_button.dart';
 
 /// Pantalla de lectura de un artículo de revista guardado localmente (offline).
 /// Recibe los datos completos del artículo como un Map y los muestra sin
@@ -211,25 +212,24 @@ class ArticuloOfflineScreen extends StatelessWidget {
 
                 // ── Botón ver en revista original ─────────────────────────
                 if (url.isNotEmpty)
-                  OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: _cyan,
-                      side: BorderSide(color: _cyan.withOpacity(0.4)),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-                    ),
-                    icon: const Icon(Icons.open_in_browser, size: 18),
-                    label: Text(
-                      'Ver en ${fuente.isNotEmpty ? fuente : "la revista original"}',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                    ),
-                    onPressed: () async {
+                  SafeOutlinedIconButton(
+  onPressed: () async {
                       final uri = Uri.parse(url);
                       if (await canLaunchUrl(uri)) {
                         await launchUrl(uri, mode: LaunchMode.externalApplication);
                       }
                     },
-                  ),
+  icon: Icons.open_in_browser,
+  iconSize: 18,
+  label: 'Ver en ${fuente.isNotEmpty ? fuente : "la revista original"}',
+  textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+  style: OutlinedButton.styleFrom(
+                      foregroundColor: _cyan,
+                      side: BorderSide(color: _cyan.withOpacity(0.4)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                    ),
+),
 
                 const SizedBox(height: 40),
               ]),

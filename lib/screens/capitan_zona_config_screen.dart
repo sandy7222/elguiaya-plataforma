@@ -1,4 +1,4 @@
-Ôªøimport 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -33,7 +33,7 @@ class _CapitanZonaConfigScreenState extends State<CapitanZonaConfigScreen> {
     "Dom",
   ];
 
-  // Localidades para centrado r√°pido
+  // Localidades para centrado r·pido
   String? _provinciaSeleccionada;
   String? _localidadSeleccionada;
 
@@ -45,9 +45,9 @@ class _CapitanZonaConfigScreenState extends State<CapitanZonaConfigScreen> {
       {"nombre": "Tigre / Delta", "lat": -34.4251, "lng": -58.5796},
       {"nombre": "San Fernando", "lat": -34.4444, "lng": -58.5583},
       {"nombre": "Mar del Plata", "lat": -38.0055, "lng": -57.5426},
-      {"nombre": "Bah√≠a Blanca", "lat": -38.7183, "lng": -62.2663},
+      {"nombre": "BahÌa Blanca", "lat": -38.7183, "lng": -62.2663},
       {"nombre": "La Plata", "lat": -34.9214, "lng": -57.9545},
-      {"nombre": "San Nicol√°s", "lat": -33.3333, "lng": -60.2167},
+      {"nombre": "San Nicol·s", "lat": -33.3333, "lng": -60.2167},
     ],
     "Santa Fe": [
       {"nombre": "Rosario", "lat": -32.9442, "lng": -60.6505},
@@ -60,19 +60,19 @@ class _CapitanZonaConfigScreenState extends State<CapitanZonaConfigScreen> {
       {"nombre": "Paso de la Patria", "lat": -27.3167, "lng": -58.5667},
       {"nombre": "Esquina", "lat": -30.0147, "lng": -59.5264},
       {"nombre": "Goya", "lat": -29.1441, "lng": -59.2635},
-      {"nombre": "Ita Ibat√©", "lat": -27.4267, "lng": -57.3403},
+      {"nombre": "Ita IbatÈ", "lat": -27.4267, "lng": -57.3403},
     ],
-    "Entre R√≠os": [
-      {"nombre": "Paran√°", "lat": -31.7333, "lng": -60.5333},
+    "Entre RÌos": [
+      {"nombre": "Paran·", "lat": -31.7333, "lng": -60.5333},
       {"nombre": "Concordia", "lat": -31.3930, "lng": -58.0209},
-      {"nombre": "Gualeguaych√∫", "lat": -33.0094, "lng": -58.5146},
+      {"nombre": "Gualeguaych˙", "lat": -33.0094, "lng": -58.5146},
       {"nombre": "Victoria", "lat": -32.6184, "lng": -60.155},
-      {"nombre": "Col√≥n", "lat": -32.2228, "lng": -58.1433},
+      {"nombre": "ColÛn", "lat": -32.2228, "lng": -58.1433},
     ],
-    "Neuqu√©n": [
-      {"nombre": "Neuqu√©n Capital", "lat": -38.9516, "lng": -68.0591},
+    "NeuquÈn": [
+      {"nombre": "NeuquÈn Capital", "lat": -38.9516, "lng": -68.0591},
       {"nombre": "Villa La Angostura", "lat": -40.7621, "lng": -71.6429},
-      {"nombre": "San Mart√≠n de los Andes", "lat": -40.1556, "lng": -71.3536},
+      {"nombre": "San MartÌn de los Andes", "lat": -40.1556, "lng": -71.3536},
     ],
     "Chaco": [
       {"nombre": "Isla del Cerrito", "lat": -27.2889, "lng": -58.6167},
@@ -153,7 +153,7 @@ class _CapitanZonaConfigScreenState extends State<CapitanZonaConfigScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('¬°Zona de trabajo actualizada!'),
+            content: Text('°Zona de trabajo actualizada!'),
             backgroundColor: Colors.green,
           ),
         );
@@ -206,7 +206,7 @@ class _CapitanZonaConfigScreenState extends State<CapitanZonaConfigScreen> {
       backgroundColor: const Color(0xFF001F3F),
       appBar: AppBar(
         title: const Text(
-          'CONFIGURACI√ìN DE ZONA',
+          'CONFIGURACI”N DE ZONA',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
         backgroundColor: Colors.transparent,
@@ -295,7 +295,7 @@ class _CapitanZonaConfigScreenState extends State<CapitanZonaConfigScreen> {
                                 ),
                               ),
                               child: const PalpitandoTexto(
-                                mensaje: 'Radar activo ‚Äî escaneando tu zona de operaci√≥n',
+                                mensaje: 'Radar activo ó escaneando tu zona de operaciÛn',
                               ),
                             ),
                           ),
@@ -310,7 +310,7 @@ class _CapitanZonaConfigScreenState extends State<CapitanZonaConfigScreen> {
                                 borderRadius: BorderRadius.circular(15),
                               ),
                               child: const Text(
-                                'üìç Toc√° el mapa para centrar tu puerto base',
+                                '?? Toc· el mapa para centrar tu puerto base',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: Colors.white,
@@ -339,7 +339,7 @@ class _CapitanZonaConfigScreenState extends State<CapitanZonaConfigScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildSectionTitle('UBICACI√ìN R√ÅPIDA'),
+                              _buildSectionTitle('UBICACI”N R¡PIDA'),
                               const SizedBox(height: 12),
                               Row(
                                 children: [
@@ -402,7 +402,7 @@ class _CapitanZonaConfigScreenState extends State<CapitanZonaConfigScreen> {
                               ),
                               const SizedBox(height: 24),
                               _buildSectionTitle(
-                                'RADIO DE ACCI√ìN: ${_radioKm.toInt()} KM',
+                                'RADIO DE ACCI”N: ${_radioKm.toInt()} KM',
                               ),
                               Slider(
                                 value: _radioKm,
@@ -416,7 +416,7 @@ class _CapitanZonaConfigScreenState extends State<CapitanZonaConfigScreen> {
                               ),
 
                               const SizedBox(height: 24),
-                              _buildSectionTitle('D√çAS DE TRABAJO'),
+                              _buildSectionTitle('DÕAS DE TRABAJO'),
                               const SizedBox(height: 12),
                               Wrap(
                                 spacing: 8,

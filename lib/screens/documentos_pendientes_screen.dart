@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/safe_button.dart';
 
 import '../services/supabase_service.dart';
 
@@ -177,29 +178,33 @@ class _DocumentosPendientesScreenState extends State<DocumentosPendientesScreen>
                       onPressed: () => Navigator.pop(context),
                       child: const Text('CERRAR', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                     ),
-                    ElevatedButton.icon(
-                      onPressed: () {
+                    SafeElevatedIconButton(
+  onPressed: () {
                         Navigator.pop(context);
                         _procesarSocio(capitan, 'rechazado');
                       },
-                      icon: const Icon(Icons.cancel, size: 18),
-                      label: const Text('RECHAZAR', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                      style: ElevatedButton.styleFrom(
+  icon: Icons.cancel,
+  iconSize: 18,
+  label: 'RECHAZAR',
+  textStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+  style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red[50],
                         foregroundColor: Colors.red,
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                         elevation: 0,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: Colors.red[100]!)),
                       ),
-                    ),
-                    ElevatedButton.icon(
-                      onPressed: () {
+),
+                    SafeElevatedIconButton(
+  onPressed: () {
                         Navigator.pop(context);
                         _procesarSocio(capitan, 'activo', expediente: capitan['temp_expediente']);
                       },
-                      icon: const Icon(Icons.verified, size: 18),
-                      label: const Text('ADMITIR SOCIO', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                      style: ElevatedButton.styleFrom(
+  icon: Icons.verified,
+  iconSize: 18,
+  label: 'ADMITIR SOCIO',
+  textStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+  style: ElevatedButton.styleFrom(
                         backgroundColor: _primaryColor,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
@@ -207,7 +212,7 @@ class _DocumentosPendientesScreenState extends State<DocumentosPendientesScreen>
                         elevation: 5,
                         shadowColor: _primaryColor.withOpacity(0.4),
                       ),
-                    ),
+),
                   ],
                 ),
               ),
@@ -500,18 +505,20 @@ class _DocumentosPendientesScreenState extends State<DocumentosPendientesScreen>
                     const SizedBox(height: 15),
                     SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: () => _verDocumentos(cap),
-                        icon: const Icon(Icons.visibility, size: 16),
-                        label: const Text('REVISAR LEGAJO COMPLETO', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
-                        style: ElevatedButton.styleFrom(
+                      child: SafeElevatedIconButton(
+  onPressed: () => _verDocumentos(cap),
+  icon: Icons.visibility,
+  iconSize: 16,
+  label: 'REVISAR LEGAJO COMPLETO',
+  textStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+  style: ElevatedButton.styleFrom(
                           backgroundColor: esCapitan ? const Color(0xFF0D47A1) : const Color(0xFF2E7D32),
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           elevation: 2,
                         ),
-                      ),
+),
                     ),
                   ],
                 ),

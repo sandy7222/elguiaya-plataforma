@@ -1,9 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 /// Pantalla que reproduce un video de YouTube dentro de la app,
-/// sin salir a la aplicación de YouTube ni al navegador.
+/// sin salir a la aplicaci�n de YouTube ni al navegador.
 class YoutubePlayerScreen extends StatefulWidget {
   final String videoUrl;   // URL completa de YouTube
   final String titulo;
@@ -52,7 +52,7 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> {
   @override
   void dispose() {
     _controller?.close();
-    // Restaurar orientación al salir
+    // Restaurar orientaci�n al salir
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     super.dispose();
   }
@@ -67,12 +67,12 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> {
       backgroundColor: const Color(0xFF001F3F),
       body: Column(
         children: [
-          // ── Reproductor ─────────────────────────────────────
+          // -- Reproductor -------------------------------------
           YoutubePlayer(
             controller: _controller!,
           ),
 
-          // ── Info del video ──────────────────────────────────
+          // -- Info del video ----------------------------------
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
@@ -116,7 +116,7 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> {
                         ),
                       ],
                       const Spacer(),
-                      // Botón cerrar
+                      // Bot�n cerrar
                       IconButton(
                         icon: const Icon(Icons.close_rounded, color: Colors.white54, size: 20),
                         onPressed: () => Navigator.pop(context),
@@ -126,7 +126,7 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> {
 
                   const SizedBox(height: 16),
 
-                  // Título
+                  // T�tulo
                   if (widget.titulo.isNotEmpty)
                     Text(
                       widget.titulo,
@@ -145,7 +145,7 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> {
 
                   const SizedBox(height: 14),
 
-                  // Descripción / comentario del influencer
+                  // Descripci�n / comentario del influencer
                   if (widget.descripcion.isNotEmpty) ...[
                     Row(
                       children: [
@@ -184,10 +184,10 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> {
 
                   const SizedBox(height: 24),
 
-                  // Crédito
+                  // Cr�dito
                   Center(
                     child: Text(
-                      '🎣 El Guia YA — Blog de Pesca',
+                      '?? El Guia YA � Blog de Pesca',
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.2),
                         fontSize: 11,

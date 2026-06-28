@@ -1,6 +1,7 @@
-﻿
+
 
 import 'package:flutter/material.dart';
+import '../widgets/safe_button.dart';
 
 import '../services/billetera_service.dart';
 
@@ -229,7 +230,7 @@ class _BilleteraCapitanScreenState extends State<BilleteraCapitanScreen> {
               const Icon(Icons.analytics, color: _azulVibrante),
               const SizedBox(width: 8),
               const Text(
-                '📊 Resumen de Pagos',
+                '?? Resumen de Pagos',
                 style: TextStyle(
                   color: _blancoPuro,
                   fontSize: 16,
@@ -428,22 +429,22 @@ class _BilleteraCapitanScreenState extends State<BilleteraCapitanScreen> {
       case 'pendiente':
         statusColor = _naranjaIntenso;
         statusIcon = Icons.pending;
-        statusText = '⏳ Pendiente';
+        statusText = '? Pendiente';
         break;
       case 'procesando':
         statusColor = _azulVibrante;
         statusIcon = Icons.sync;
-        statusText = '🔄 Procesando';
+        statusText = '?? Procesando';
         break;
       case 'completado':
         statusColor = _verdeBrillante;
         statusIcon = Icons.check_circle;
-        statusText = '✅ Completado';
+        statusText = '? Completado';
         break;
       case 'fallido':
         statusColor = _rojoFuerte;
         statusIcon = Icons.error;
-        statusText = '❌ Fallido';
+        statusText = '? Fallido';
         break;
       default:
         statusColor = _blancoPuro;
@@ -530,11 +531,11 @@ class _BilleteraCapitanScreenState extends State<BilleteraCapitanScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfoRow('📅 Fecha Vencimiento', _formatearFecha(fechaVencimiento)),
-                _buildInfoRow('💰 Metodo de Pago', pago['metodo_pago'] ?? 'No especificado'),
+                _buildInfoRow('?? Fecha Vencimiento', _formatearFecha(fechaVencimiento)),
+                _buildInfoRow('?? Metodo de Pago', pago['metodo_pago'] ?? 'No especificado'),
                 if (fechaPago != null) ...[
-                  _buildInfoRow('✅ Fecha Pago', _formatearFecha(fechaPago)),
-                  _buildInfoRow('🧾 Comprobante', pago['comprobante'] ?? 'No cargado'),
+                  _buildInfoRow('? Fecha Pago', _formatearFecha(fechaPago)),
+                  _buildInfoRow('?? Comprobante', pago['comprobante'] ?? 'No cargado'),
                 ],
                 
                 const SizedBox(height: 12),
@@ -542,7 +543,7 @@ class _BilleteraCapitanScreenState extends State<BilleteraCapitanScreen> {
                 // Progreso de pagos
                 if (cuotas > 1) ...[
                   Text(
-                    '📊 Progreso de Pagos',
+                    '?? Progreso de Pagos',
                     style: const TextStyle(
                       color: _blancoPuro,
                       fontWeight: FontWeight.bold,
@@ -571,55 +572,59 @@ class _BilleteraCapitanScreenState extends State<BilleteraCapitanScreen> {
                   children: [
                     if (status == 'pendiente') ...[
                       Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _actualizarEstadoPago(pago['id'], 'procesando'),
-                          icon: const Icon(Icons.sync, size: 16),
-                          label: const Text('Procesar'),
-                          style: ElevatedButton.styleFrom(
+                        child: SafeElevatedIconButton(
+  onPressed: () => _actualizarEstadoPago(pago['id'], 'procesando'),
+  icon: Icons.sync,
+  iconSize: 16,
+  label: 'Procesar',
+  style: ElevatedButton.styleFrom(
                             backgroundColor: _azulVibrante,
                             foregroundColor: _blancoPuro,
                           ),
-                        ),
+),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _actualizarEstadoPago(pago['id'], 'fallido'),
-                          icon: const Icon(Icons.cancel, size: 16),
-                          label: const Text('Cancelar'),
-                          style: ElevatedButton.styleFrom(
+                        child: SafeElevatedIconButton(
+  onPressed: () => _actualizarEstadoPago(pago['id'], 'fallido'),
+  icon: Icons.cancel,
+  iconSize: 16,
+  label: 'Cancelar',
+  style: ElevatedButton.styleFrom(
                             backgroundColor: _rojoFuerte,
                             foregroundColor: _blancoPuro,
                           ),
-                        ),
+),
                       ),
                     ],
                     
                     if (status == 'procesando') ...[
                       Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _actualizarEstadoPago(pago['id'], 'completado'),
-                          icon: const Icon(Icons.check_circle, size: 16),
-                          label: const Text('Completar'),
-                          style: ElevatedButton.styleFrom(
+                        child: SafeElevatedIconButton(
+  onPressed: () => _actualizarEstadoPago(pago['id'], 'completado'),
+  icon: Icons.check_circle,
+  iconSize: 16,
+  label: 'Completar',
+  style: ElevatedButton.styleFrom(
                             backgroundColor: _verdeBrillante,
                             foregroundColor: _blancoPuro,
                           ),
-                        ),
+),
                       ),
                     ],
                     
                     if (status == 'completado' && pago['comprobante'] == null) ...[
                       Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _cargarComprobante(pago['id']),
-                          icon: const Icon(Icons.upload, size: 16),
-                          label: const Text('Cargar Comprobante'),
-                          style: ElevatedButton.styleFrom(
+                        child: SafeElevatedIconButton(
+  onPressed: () => _cargarComprobante(pago['id']),
+  icon: Icons.upload,
+  iconSize: 16,
+  label: 'Cargar Comprobante',
+  style: ElevatedButton.styleFrom(
                             backgroundColor: _azulVibrante,
                             foregroundColor: _blancoPuro,
                           ),
-                        ),
+),
                       ),
                     ],
                   ],
@@ -710,7 +715,7 @@ class _BilleteraCapitanScreenState extends State<BilleteraCapitanScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text(
-          '📊 Estadisticas de Pagos',
+          '?? Estadisticas de Pagos',
           style: TextStyle(
             color: Color(0xFF1A1A1A),
             fontWeight: FontWeight.bold,
@@ -781,7 +786,7 @@ class _BilleteraCapitanScreenState extends State<BilleteraCapitanScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text(
-          '💰 Nuevo Pago Diferido',
+          '?? Nuevo Pago Diferido',
           style: TextStyle(
             color: Color(0xFF1A1A1A),
             fontWeight: FontWeight.bold,
@@ -809,7 +814,7 @@ class _BilleteraCapitanScreenState extends State<BilleteraCapitanScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text(
-          '🧾 Cargar Comprobante',
+          '?? Cargar Comprobante',
           style: TextStyle(
             color: Color(0xFF1A1A1A),
             fontWeight: FontWeight.bold,

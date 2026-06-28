@@ -1,7 +1,8 @@
-Ôªøimport 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../services/geo_service.dart';
+import '../widgets/safe_button.dart';
 
 class ComandoOperativoScreen extends StatefulWidget {
   const ComandoOperativoScreen({super.key});
@@ -25,10 +26,10 @@ class _ComandoOperativoScreenState extends State<ComandoOperativoScreen> {
   static const Color _capitanColor = Color(0x660066FF); // Azul transparente
   static const Color _pescadorColor = Color(0xFF00E676); // Verde brillante
 
-  // Paran√°, Entre R√≠os, Argentina (Punto de inicio sugerido)
+  // Paran·, Entre RÌos, Argentina (Punto de inicio sugerido)
   final LatLng _centroInicial = const LatLng(-31.7333, -60.5333);
 
-  // Controladores y estados para los buscadores de √°rea
+  // Controladores y estados para los buscadores de ·rea
   final TextEditingController _searchNombreController = TextEditingController();
   final TextEditingController _searchLocalidadController = TextEditingController();
   final TextEditingController _searchProvinciaController = TextEditingController();
@@ -141,7 +142,7 @@ class _ComandoOperativoScreenState extends State<ComandoOperativoScreen> {
                     )
                   );
 
-                  final nombreCapitan = row['nombre'] as String? ?? 'Capit√°n';
+                  final nombreCapitan = row['nombre'] as String? ?? 'Capit·n';
                   final avatarUrl = row['avatar_url'] as String?;
                   final capacidad = row['capacidad_personas'] ?? 0;
 
@@ -488,14 +489,14 @@ class _ComandoOperativoScreenState extends State<ComandoOperativoScreen> {
             SizedBox(
               width: double.infinity,
               height: 32,
-              child: ElevatedButton.icon(
-                onPressed: ejecutarBusqueda,
-                icon: const Icon(Icons.search, size: 12, color: Colors.black),
-                label: const Text(
-                  'BUSCAR',
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black),
-                ),
-                style: ElevatedButton.styleFrom(
+              child: SafeElevatedIconButton(
+  onPressed: ejecutarBusqueda,
+  icon: Icons.search,
+  iconSize: 12,
+  iconColor: Colors.black,
+  label: 'BUSCAR',
+  textStyle: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black),
+  style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF00E676),
                   elevation: 2,
                   padding: EdgeInsets.zero,
@@ -503,7 +504,7 @@ class _ComandoOperativoScreenState extends State<ComandoOperativoScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-              ),
+),
             ),
           ],
         ),

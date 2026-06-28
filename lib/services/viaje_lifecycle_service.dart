@@ -6,6 +6,7 @@ import 'mercado_pago_service.dart';
 import 'notificacion_helper.dart';
 import 'recordatorios_service.dart';
 import 'supabase_service.dart';
+import 'viaje_gps_coordinator.dart';
 
 class ViajeLifecycleService {
   static final _supabase = Supabase.instance.client;
@@ -362,6 +363,14 @@ class ViajeLifecycleService {
       if (pedido != null && pedido['pescador_id'] != null) {
         await NotificacionHelper.viajeIniciado(pedido['pescador_id'] as String, pedidoId);
       }
+
+      await ViajeGpsCoordinator().startForTrip(
+        pedidoId: pedidoId,
+        userId: capitanId,
+        rol: ViajeGpsRol.capitan,
+        requestPermissionIfNeeded: false,
+      );
+
       print('✅ Viaje $pedidoId iniciado por capitán $capitanId');
     } catch (e) {
       throw Exception('Error al iniciar viaje: $e');
@@ -392,6 +401,9 @@ class ViajeLifecycleService {
       if (pedido != null && pedido['pescador_id'] != null) {
         await NotificacionHelper.viajeFinalizado(pedido['pescador_id'] as String, pedidoId);
       }
+
+      await ViajeGpsCoordinator().stopForTrip();
+
       print('✅ Viaje $pedidoId finalizado por capitán $capitanId');
     } catch (e) {
       throw Exception('Error al finalizar viaje: $e');

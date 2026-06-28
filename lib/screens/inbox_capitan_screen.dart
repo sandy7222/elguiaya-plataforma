@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../widgets/safe_button.dart';
 import '../services/supabase_service.dart';
 import '../services/viaje_lifecycle_service.dart';
+import '../utils/view_insets.dart';
 
 /// Inbox de Solicitudes del Capitán — Datos 100% reales desde Supabase.
 /// Usa StreamBuilder para actualizaciones en tiempo real.
@@ -133,7 +135,12 @@ class _InboxCapitanScreenState extends State<InboxCapitanScreen> {
                 }
 
                 return ListView.builder(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.fromLTRB(
+                    16,
+                    16,
+                    16,
+                    ViewInsets.systemBottomPadding(context, extra: 16),
+                  ),
                   itemCount: solicitudes.length,
                   itemBuilder: (context, index) =>
                       _buildCard(solicitudes[index]),
@@ -505,7 +512,7 @@ class _InboxCapitanScreenState extends State<InboxCapitanScreen> {
             SizedBox(
               width: double.infinity,
               height: 48,
-              child: ElevatedButton.icon(
+              child: ElevatedButton(
                 onPressed: enviando
                     ? null
                     : () async {
@@ -543,18 +550,35 @@ class _InboxCapitanScreenState extends State<InboxCapitanScreen> {
                           setLocalState(() => enviando = false);
                         }
                       },
-                icon: enviando
-                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Icon(Icons.send_rounded, size: 18),
-                label: Text(
-                  enviando ? 'ENVIANDO...' : 'ENVIAR OFERTA',
-                  style: GoogleFonts.outfit(fontWeight: FontWeight.w900, letterSpacing: 1),
-                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF00C853),
                   foregroundColor: Colors.black87,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
+                child: enviando
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          ),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: SafeButtonText(
+                              'Enviando...',
+                              style: GoogleFonts.outfit(fontWeight: FontWeight.w900, letterSpacing: 1),
+                            ),
+                          ),
+                        ],
+                      )
+                    : SafeButtonContent(
+                        icon: Icons.send_rounded,
+                        iconSize: 18,
+                        label: 'Enviar oferta',
+                        textStyle: GoogleFonts.outfit(fontWeight: FontWeight.w900, letterSpacing: 1),
+                      ),
               ),
             ),
           ],

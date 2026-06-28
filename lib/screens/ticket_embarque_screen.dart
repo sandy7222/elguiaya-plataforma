@@ -7,6 +7,9 @@ import 'package:url_launcher/url_launcher.dart';
 import 'ficha_contractual_screen.dart';
 import 'ficha_pescador_screen.dart';
 import 'capitan_vidriera_public_screen.dart';
+import '../widgets/safe_button.dart';
+import '../utils/fecha_nacimiento_utils.dart';
+import '../widgets/descargar_despacho_pna_button.dart';
 
 // ══════════════════════════════════════════════════════════════════════════════
 // TICKET DE EMBARQUE — Vista del PESCADOR (cliente)
@@ -316,6 +319,9 @@ class _TicketEmbarqueScreenState extends State<TicketEmbarqueScreen> {
                             const SizedBox(height: 12),
                             _buildPasajerosCard(),
                             const SizedBox(height: 12),
+                            if (_pagado)
+                              DescargarDespachoPnaButton(pedidoId: widget.pedidoId),
+                            if (_pagado) const SizedBox(height: 12),
                             _buildContactoCard(),
                             if (_pagado) ...[
                               const SizedBox(height: 12),
@@ -601,6 +607,7 @@ class _TicketEmbarqueScreenState extends State<TicketEmbarqueScreen> {
               final nombre = p['nombre_completo']?.toString()
                           ?? '${p['nombre'] ?? ''} ${p['apellido'] ?? ''}'.trim();
               final dni    = p['dni_pasajero']?.toString() ?? p['dni']?.toString() ?? '—';
+              final fechaNac = FechaNacimientoUtils.formatearLegible(p['fecha_nacimiento']);
               final esTitular = p['es_titular'] == true;
               return Container(
                 margin: const EdgeInsets.only(bottom: 8),
@@ -649,6 +656,9 @@ class _TicketEmbarqueScreenState extends State<TicketEmbarqueScreen> {
                           ),
                           Text('DNI: $dni',
                               style: GoogleFonts.inter(color: _gris, fontSize: 11)),
+                          if (p['fecha_nacimiento'] != null)
+                            Text('Nac.: $fechaNac',
+                                style: GoogleFonts.inter(color: _gris, fontSize: 10)),
                         ],
                       ),
                     ),
@@ -724,28 +734,30 @@ class _TicketEmbarqueScreenState extends State<TicketEmbarqueScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _llamar(tel),
-                        icon: const Icon(Icons.call_rounded, size: 16),
-                        label: Text('Llamar',
-                            style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
-                        style: OutlinedButton.styleFrom(
+                      child: SafeOutlinedIconButton(
+  onPressed: () => _llamar(tel),
+  icon: Icons.call_rounded,
+  iconSize: 16,
+  label: 'Llamar',
+  textStyle: GoogleFonts.inter(fontWeight: FontWeight.w600),
+  style: OutlinedButton.styleFrom(
                           foregroundColor: _azulBrillo,
                           side: BorderSide(color: _azulBrillo.withOpacity(0.5)),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10)),
                         ),
-                      ),
+),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () => _whatsapp(tel),
-                        icon: const Icon(Icons.message_rounded, size: 16),
-                        label: Text('WhatsApp',
-                            style: GoogleFonts.inter(fontWeight: FontWeight.w700)),
-                        style: ElevatedButton.styleFrom(
+                      child: SafeElevatedIconButton(
+  onPressed: () => _whatsapp(tel),
+  icon: Icons.message_rounded,
+  iconSize: 16,
+  label: 'WhatsApp',
+  textStyle: GoogleFonts.inter(fontWeight: FontWeight.w700),
+  style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF25D366),
                           foregroundColor: Colors.white,
                           elevation: 0,
@@ -753,7 +765,7 @@ class _TicketEmbarqueScreenState extends State<TicketEmbarqueScreen> {
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10)),
                         ),
-                      ),
+),
                     ),
                   ],
                 ),
@@ -793,7 +805,7 @@ class _TicketEmbarqueScreenState extends State<TicketEmbarqueScreen> {
             style: GoogleFonts.inter(color: _gris, fontSize: 12, height: 1.4),
           ),
           const SizedBox(height: 12),
-          ElevatedButton.icon(
+          SafeElevatedButton(
             onPressed: () {
               Navigator.push(
                 context,
@@ -803,17 +815,23 @@ class _TicketEmbarqueScreenState extends State<TicketEmbarqueScreen> {
                 ),
               );
             },
-            icon: const Icon(Icons.description_outlined, size: 18),
-            label: const Text('Ver ficha contractual completa'),
+            icon: Icons.description_outlined,
+            label: 'Ver ficha contractual completa',
             style: ElevatedButton.styleFrom(
               backgroundColor: _azul,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 12),
             ),
+            iconColor: Colors.white,
+            textStyle: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
           ),
           if (capitanId.isNotEmpty) ...[
             const SizedBox(height: 8),
-            OutlinedButton.icon(
+            SafeOutlinedButton(
               onPressed: () {
                 Navigator.push(
                   context,
@@ -827,8 +845,8 @@ class _TicketEmbarqueScreenState extends State<TicketEmbarqueScreen> {
                   ),
                 );
               },
-              icon: const Icon(Icons.storefront_outlined, size: 18),
-              label: const Text('Vidriera del capitán'),
+              icon: Icons.storefront_outlined,
+              label: 'Vidriera del capitán',
             ),
           ],
         ],
@@ -863,7 +881,7 @@ class _TicketEmbarqueScreenState extends State<TicketEmbarqueScreen> {
             style: GoogleFonts.inter(color: _gris, fontSize: 12, height: 1.4),
           ),
           const SizedBox(height: 12),
-          ElevatedButton.icon(
+          SafeElevatedButton(
             onPressed: () {
               Navigator.push(
                 context,
@@ -872,12 +890,18 @@ class _TicketEmbarqueScreenState extends State<TicketEmbarqueScreen> {
                 ),
               );
             },
-            icon: const Icon(Icons.assignment_ind_outlined, size: 18),
-            label: const Text('Ver planilla del pescador'),
+            icon: Icons.assignment_ind_outlined,
+            label: 'Ver planilla del pescador',
             style: ElevatedButton.styleFrom(
               backgroundColor: _verde,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+            iconColor: Colors.white,
+            textStyle: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
             ),
           ),
         ],
@@ -926,12 +950,12 @@ class _TicketEmbarqueScreenState extends State<TicketEmbarqueScreen> {
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(color: _gris, fontSize: 12)),
           const SizedBox(height: 20),
-          ElevatedButton.icon(
-            onPressed: _cargar,
-            icon: const Icon(Icons.refresh_rounded),
-            label: const Text('Reintentar'),
-            style: ElevatedButton.styleFrom(backgroundColor: _azulBrillo),
-          ),
+          SafeElevatedIconButton(
+  onPressed: _cargar,
+  icon: Icons.refresh_rounded,
+  label: 'Reintentar',
+  style: ElevatedButton.styleFrom(backgroundColor: _azulBrillo),
+),
         ],
       ),
     ),

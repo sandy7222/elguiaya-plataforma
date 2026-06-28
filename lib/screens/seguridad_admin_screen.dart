@@ -1,7 +1,8 @@
-﻿
+
 
 import 'package:flutter/material.dart';
 
+import '../widgets/safe_button.dart';
 import '../services/moderacion_service.dart';
 import '../services/seguridad_service.dart';
 
@@ -875,10 +876,11 @@ class _SeguridadAdminScreenState extends State<SeguridadAdminScreen>
           Row(
             children: [
               Expanded(
-                child: ElevatedButton.icon(
+                child: SafeElevatedIconButton(
                   onPressed: () => _cambiarVerificacion(capitan, true),
-                  icon: Icon(Icons.verified, color: _blancoPuro),
-                  label: Text('Verificar'),
+                  icon: Icons.verified,
+                  iconColor: _blancoPuro,
+                  label: 'Verificar',
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _verdeBrillante,
                     foregroundColor: _blancoPuro,
@@ -887,10 +889,11 @@ class _SeguridadAdminScreenState extends State<SeguridadAdminScreen>
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: ElevatedButton.icon(
+                child: SafeElevatedIconButton(
                   onPressed: () => _cambiarVerificacion(capitan, false),
-                  icon: Icon(Icons.close, color: _blancoPuro),
-                  label: Text('Rechazar'),
+                  icon: Icons.close,
+                  iconColor: _blancoPuro,
+                  label: 'Rechazar',
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _rojoFuerte,
                     foregroundColor: _blancoPuro,
@@ -1084,10 +1087,13 @@ class _SeguridadAdminScreenState extends State<SeguridadAdminScreen>
           Row(
             children: [
               Expanded(
-                child: ElevatedButton.icon(
+                child: SafeElevatedIconButton(
                   onPressed: () => _revisarAlerta(alerta),
-                  icon: Icon(Icons.visibility, color: _blancoPuro, size: 16),
-                  label: Text('Revisar', style: TextStyle(fontSize: 12)),
+                  icon: Icons.visibility,
+                  iconSize: 16,
+                  iconColor: _blancoPuro,
+                  label: 'Revisar',
+                  textStyle: const TextStyle(fontSize: 12, color: Colors.white),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _azulVibrante,
                     foregroundColor: _blancoPuro,
@@ -1097,10 +1103,13 @@ class _SeguridadAdminScreenState extends State<SeguridadAdminScreen>
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: ElevatedButton.icon(
+                child: SafeElevatedIconButton(
                   onPressed: () => _resolverAlerta(alerta),
-                  icon: Icon(Icons.check, color: _blancoPuro, size: 16),
-                  label: Text('Resolver', style: TextStyle(fontSize: 12)),
+                  icon: Icons.check,
+                  iconSize: 16,
+                  iconColor: _blancoPuro,
+                  label: 'Resolver',
+                  textStyle: const TextStyle(fontSize: 12, color: Colors.white),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _verdeBrillante,
                     foregroundColor: _blancoPuro,

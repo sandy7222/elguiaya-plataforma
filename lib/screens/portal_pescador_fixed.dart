@@ -1,4 +1,4 @@
-﻿
+
 
 import 'package:flutter/material.dart';
 
@@ -125,11 +125,11 @@ class _PortalPescadorScreenState extends State<PortalPescadorScreen> {
       };
 
       // En un entorno real, aqui se enviaria a Supabase
-      print('✅ Solicitud enviada: ${solicitud['id']}');
+      print('? Solicitud enviada: ${solicitud['id']}');
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('¡Solicitud enviada correctamente! Te responderemos pronto.'),
+          content: Text('�Solicitud enviada correctamente! Te responderemos pronto.'),
           backgroundColor: _verdeBrillante,
           duration: const Duration(seconds: 3),
         ),
@@ -224,7 +224,7 @@ class _PortalPescadorScreenState extends State<PortalPescadorScreen> {
                             const Icon(Icons.map, color: _azulVibrante),
                             const SizedBox(width: 8),
                             const Text(
-                              '🗺️ Zonas de Pesca Disponibles',
+                              '??? Zonas de Pesca Disponibles',
                               style: TextStyle(
                                 color: _azulVibrante,
                                 fontWeight: FontWeight.bold,
@@ -336,7 +336,7 @@ class _PortalPescadorScreenState extends State<PortalPescadorScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            '👤 Datos Personales',
+            '?? Datos Personales',
             style: TextStyle(
               color: _blancoPuro,
               fontSize: 16,
@@ -406,7 +406,7 @@ class _PortalPescadorScreenState extends State<PortalPescadorScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            '🚢 Detalles del Viaje',
+            '?? Detalles del Viaje',
             style: TextStyle(
               color: _blancoPuro,
               fontSize: 16,
@@ -471,7 +471,7 @@ class _PortalPescadorScreenState extends State<PortalPescadorScreen> {
               Expanded(
                 child: TextFormField(
                   controller: _numeroPescadoresController,
-                  decoration: _buildInputDecoration('N° Pescadores'),
+                  decoration: _buildInputDecoration('N� Pescadores'),
                   keyboardType: TextInputType.number,
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
@@ -539,7 +539,7 @@ class _PortalPescadorScreenState extends State<PortalPescadorScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            '🎣 Equipamiento Requerido',
+            '?? Equipamiento Requerido',
             style: TextStyle(
               color: _blancoPuro,
               fontSize: 16,
@@ -591,7 +591,7 @@ class _PortalPescadorScreenState extends State<PortalPescadorScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            '📝 Mensaje Adicional',
+            '?? Mensaje Adicional',
             style: TextStyle(
               color: _blancoPuro,
               fontSize: 16,
@@ -685,7 +685,7 @@ class _PortalPescadorScreenState extends State<PortalPescadorScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text(
-          '📍 Ubicacion Seleccionada',
+          '?? Ubicacion Seleccionada',
           style: TextStyle(
             color: _fondoOscuro,
             fontWeight: FontWeight.bold,
@@ -704,7 +704,7 @@ class _PortalPescadorScreenState extends State<PortalPescadorScreen> {
             ),
             const SizedBox(height: 8),
             const Text(
-              '¿Deseas solicitar cotizacion para esta zona?',
+              '�Deseas solicitar cotizacion para esta zona?',
               style: TextStyle(
                 color: _azulVibrante,
                 fontWeight: FontWeight.w600,

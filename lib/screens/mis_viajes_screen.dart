@@ -6,6 +6,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/cotizacion.dart';
 import '../services/supabase_service.dart';
 import '../widgets/reputacion_badge_widget.dart';
+import '../utils/presupuesto_pescador_actions.dart';
+import '../utils/view_insets.dart';
+import '../widgets/safe_button.dart';
+import '../widgets/el_guia_ya_home_button.dart';
 import 'resumen_reserva_screen.dart';
 import 'ticket_embarque_screen.dart';
 import 'ficha_contractual_screen.dart';
@@ -54,9 +58,10 @@ class _MisViajesScreenState extends State<MisViajesScreen> {
   List<Map<String, dynamic>> _pedidosActivos = [];
   List<Map<String, dynamic>> _pedidosHistorial = [];
 
-  // IDs descartados/cancelados localmente en esta sesión
-  final Set<String> _descartadosLocalIds = {};
+  // IDs de cotizaciones canceladas localmente en esta sesión
   final Set<String> _cotizacionesCanceladasIds = {};
+
+  RealtimeChannel? _presupuestosChannel;
 
   String? _pescadorId;
 
@@ -64,6 +69,27 @@ class _MisViajesScreenState extends State<MisViajesScreen> {
   void initState() {
     super.initState();
     _cargarDatos();
+  }
+
+  @override
+  void dispose() {
+    _presupuestosChannel?.unsubscribe();
+    super.dispose();
+  }
+
+  void _suscribirPresupuestos(String pescadorId) {
+    _presupuestosChannel?.unsubscribe();
+    _presupuestosChannel = Supabase.instance.client
+        .channel('mis_viajes_presupuestos_$pescadorId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'presupuestos',
+          callback: (_) {
+            if (mounted) _cargarDatos();
+          },
+        )
+        .subscribe();
   }
 
   // ─── Carga de datos ───────────────────────────────────────────────────────
@@ -109,12 +135,15 @@ class _MisViajesScreenState extends State<MisViajesScreen> {
       if (mounted) {
         setState(() {
           _cotizaciones = cotizaciones;
-          _presupuestos = presupuestos;
+          _presupuestos = presupuestos
+              .where((p) => p['estado']?.toString() != 'descartado')
+              .toList();
           _pedidosActivos = pedidosActivos;
           _pedidosHistorial = pedidosHist;
           if (pedidosHist.isNotEmpty) _historialExpandido = true;
           _isLoading = false;
         });
+        _suscribirPresupuestos(_pescadorId!);
       }
     } catch (e) {
       debugPrint('❌ MisViajesScreen._cargarDatos: $e');
@@ -182,10 +211,8 @@ class _MisViajesScreenState extends State<MisViajesScreen> {
         .toList();
   }
 
-  /// Presupuestos pendientes sin descartar
-  List<Map<String, dynamic>> get _presupuestosFiltrados => _presupuestos
-      .where((p) => !_descartadosLocalIds.contains(p['id']?.toString()))
-      .toList();
+  /// Presupuestos pendientes (ya filtrados en Supabase y al cargar).
+  List<Map<String, dynamic>> get _presupuestosFiltrados => _presupuestos;
 
   List<Map<String, dynamic>> get _pedidosProximos => _pedidosActivos;
 
@@ -193,44 +220,24 @@ class _MisViajesScreenState extends State<MisViajesScreen> {
 
   // ─── Acciones ─────────────────────────────────────────────────────────────
   Future<void> _descartarPresupuesto(Map<String, dynamic> presupuesto) async {
-    final pid = presupuesto['id']?.toString() ?? '';
-    final capitanNombre = presupuesto['profiles']?['nombre']?.toString() ??
-        presupuesto['capitan_nombre']?.toString() ??
-        'el capitán';
-    final monto = (presupuesto['monto_total'] as num?)?.toDouble() ?? 0.0;
+    final pid = PresupuestoPescadorActions.idDe(presupuesto);
+    if (pid.isEmpty) return;
 
-    final confirmar = await showDialog<bool>(
-      context: context,
-      barrierColor: Colors.black87,
-      builder: (_) => _ConfirmDescartarDialog(
-          capitanNombre: capitanNombre, monto: monto),
+    final resultado = await PresupuestoPescadorActions.descartarConConfirmacion(
+      context,
+      presupuesto,
     );
-    if (confirmar != true || !mounted) return;
-
-    // Marcar localmente (no borra del DB, solo oculta en esta sesión)
-    setState(() => _descartadosLocalIds.add(pid));
-
-    // Actualizar estado en Supabase como 'descartado' por el pescador
-    try {
-      await Supabase.instance.client
-          .from('presupuestos')
-          .update({'estado': 'descartado'})
-          .eq('id', pid);
-    } catch (e) {
-      debugPrint('⚠️ Error descartando presupuesto $pid: $e');
+    if (resultado == null || !mounted) return;
+    if (!resultado) {
+      PresupuestoPescadorActions.mostrarSnackError(context);
+      return;
     }
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('🗑️ Presupuesto de $capitanNombre descartado'),
-          backgroundColor: _C.surface,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          margin: const EdgeInsets.all(12),
-        ),
-      );
-    }
+    setState(() {
+      _presupuestos.removeWhere((p) => p['id']?.toString() == pid);
+    });
+
+    PresupuestoPescadorActions.mostrarSnackDescartado(context, presupuesto);
   }
 
   // ─── Cancelar cotización esperando ────────────────────────────────────────
@@ -325,7 +332,10 @@ class _MisViajesScreenState extends State<MisViajesScreen> {
         child: _isLoading
             ? const Center(child: CircularProgressIndicator(color: _C.verde))
             : ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: ViewInsets.scrollPadding(
+                  context,
+                  hasPortalBottomNav: false,
+                ),
                 children: [
                   _buildNuevaSolicitudBanner(),
                   const SizedBox(height: 20),
@@ -336,7 +346,6 @@ class _MisViajesScreenState extends State<MisViajesScreen> {
                   _buildSeccionConfirmados(),
                   const SizedBox(height: 16),
                   _buildSeccionHistorial(),
-                  const SizedBox(height: 40),
                 ],
               ),
       ),
@@ -352,6 +361,11 @@ class _MisViajesScreenState extends State<MisViajesScreen> {
       elevation: 0,
       title: Row(
         children: [
+          ElGuiaYaHomeButton(
+            height: 30,
+            onTap: () => Navigator.pop(context, 'panel'),
+          ),
+          const SizedBox(width: 12),
           const Icon(Icons.folder_open_rounded, color: _C.verde, size: 22),
           const SizedBox(width: 10),
           Text('Mis Viajes',
@@ -852,35 +866,31 @@ class _PresupuestoCard extends StatelessWidget {
             children: [
               Expanded(
                 flex: 2,
-                child: OutlinedButton.icon(
+                child: OutlinedButton(
                   onPressed: onDescartar,
-                  icon: const Icon(Icons.delete_outline_rounded,
-                      size: 16, color: _C.rojo),
-                  label: Text('Descartar',
-                      style: GoogleFonts.inter(
-                          color: _C.rojo,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13)),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     side: BorderSide(color: _C.rojo.withOpacity(0.5)),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10)),
                   ),
+                  child: SafeButtonContent(
+                    icon: Icons.delete_outline_rounded,
+                    label: 'Descartar',
+                    iconSize: 16,
+                    iconColor: _C.rojo,
+                    textStyle: GoogleFonts.inter(
+                        color: _C.rojo,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13),
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 flex: 3,
-                child: ElevatedButton.icon(
+                child: ElevatedButton(
                   onPressed: onReservar,
-                  icon: const Icon(Icons.anchor_rounded,
-                      size: 16, color: Colors.white),
-                  label: Text('Ver y Reservar',
-                      style: GoogleFonts.inter(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13)),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     backgroundColor: _C.verdeOsc,
@@ -888,6 +898,16 @@ class _PresupuestoCard extends StatelessWidget {
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: SafeButtonContent(
+                    icon: Icons.anchor_rounded,
+                    label: 'Ver y reservar',
+                    iconSize: 16,
+                    iconColor: Colors.white,
+                    textStyle: GoogleFonts.inter(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13),
                   ),
                 ),
               ),
@@ -1080,23 +1100,13 @@ class _ConfirmadoCard extends StatelessWidget {
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
-              child: OutlinedButton.icon(
+              child: OutlinedButton(
                 onPressed: () => Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (_) =>
                         const ViajesProgramadosScreen(esCapitan: false),
                   ),
-                ),
-                icon: const Icon(Icons.sailing_rounded, size: 16),
-                label: Text(
-                  estado == 'listo_para_confirmar'
-                      ? 'Calificar capitán y cerrar viaje'
-                      : estado == 'en_curso' || estado == 'en_viaje'
-                          ? 'Ver viaje en curso'
-                          : 'Ver detalle del viaje',
-                  style: GoogleFonts.inter(
-                      fontWeight: FontWeight.w700, fontSize: 13),
                 ),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 11),
@@ -1105,94 +1115,92 @@ class _ConfirmadoCard extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
                 ),
+                child: SafeButtonContent(
+                  icon: Icons.sailing_rounded,
+                  label: estado == 'listo_para_confirmar'
+                      ? 'Calificar capitán y cerrar viaje'
+                      : estado == 'en_curso' || estado == 'en_viaje'
+                          ? 'Ver viaje en curso'
+                          : 'Ver detalle del viaje',
+                  iconSize: 16,
+                  textStyle: GoogleFonts.inter(
+                      fontWeight: FontWeight.w700, fontSize: 13),
+                  iconColor: _C.azulBrillo,
+                ),
               ),
             ),
             const SizedBox(height: 8),
             if (const {'pagado', 'confirmado', 'en_curso', 'listo_para_confirmar', 'cerrado'}
                 .contains(estado))
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          FichaContractualScreen(pedidoId: pedidoId),
-                    ),
-                  ),
-                  icon: const Icon(Icons.description_outlined, size: 16),
-                  label: Text(
-                    'Ver ficha contractual',
-                    style: GoogleFonts.inter(
-                        fontWeight: FontWeight.w700, fontSize: 13),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 11),
-                    foregroundColor: const Color(0xFF0D2847),
-                    side: BorderSide(
-                        color: const Color(0xFF0D2847).withOpacity(0.4)),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                  ),
-                ),
-              ),
-            if (const {'pagado', 'confirmado', 'en_curso', 'listo_para_confirmar', 'cerrado'}
-                .contains(estado))
-              const SizedBox(height: 8),
-            if (const {'pagado', 'confirmado', 'en_curso', 'listo_para_confirmar', 'cerrado'}
-                .contains(estado))
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => FichaPescadorScreen(pedidoId: pedidoId),
-                    ),
-                  ),
-                  icon: const Icon(Icons.assignment_ind_outlined, size: 16),
-                  label: Text(
-                    'Ver planilla del pescador',
-                    style: GoogleFonts.inter(
-                        fontWeight: FontWeight.w700, fontSize: 13),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 11),
-                    foregroundColor: const Color(0xFF00875A),
-                    side: BorderSide(
-                        color: const Color(0xFF00875A).withOpacity(0.4)),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                  ),
-                ),
-              ),
-            if (const {'pagado', 'confirmado', 'en_curso', 'listo_para_confirmar', 'cerrado'}
-                .contains(estado))
-              const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
+              SafeOutlinedButton(
                 onPressed: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => TicketEmbarqueScreen(pedidoId: pedidoId),
+                    builder: (_) =>
+                        FichaContractualScreen(pedidoId: pedidoId),
                   ),
                 ),
-                icon: const Icon(Icons.confirmation_number_rounded, size: 16),
-                label: Text(
-                  esHoy ? '🚢 Ver Ticket — ¡Hoy es el día!' : '📋 Ver Ticket de Embarque',
-                  style: GoogleFonts.inter(
-                      fontWeight: FontWeight.w700, fontSize: 13),
-                ),
-                style: ElevatedButton.styleFrom(
+                icon: Icons.description_outlined,
+                label: 'Ver ficha contractual',
+                style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 11),
-                  backgroundColor: esHoy ? _C.rojo : _C.azulBrillo,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
+                  foregroundColor: const Color(0xFF0D2847),
+                  side: BorderSide(
+                      color: const Color(0xFF0D2847).withOpacity(0.4)),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
                 ),
               ),
+            if (const {'pagado', 'confirmado', 'en_curso', 'listo_para_confirmar', 'cerrado'}
+                .contains(estado))
+              const SizedBox(height: 8),
+            if (const {'pagado', 'confirmado', 'en_curso', 'listo_para_confirmar', 'cerrado'}
+                .contains(estado))
+              SafeOutlinedButton(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => FichaPescadorScreen(pedidoId: pedidoId),
+                  ),
+                ),
+                icon: Icons.assignment_ind_outlined,
+                label: 'Ver planilla del pescador',
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 11),
+                  foregroundColor: const Color(0xFF00875A),
+                  side: BorderSide(
+                      color: const Color(0xFF00875A).withOpacity(0.4)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+            if (const {'pagado', 'confirmado', 'en_curso', 'listo_para_confirmar', 'cerrado'}
+                .contains(estado))
+              const SizedBox(height: 8),
+            SafeElevatedButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => TicketEmbarqueScreen(pedidoId: pedidoId),
+                ),
+              ),
+              icon: Icons.confirmation_number_rounded,
+              label: esHoy
+                  ? 'Ver ticket — ¡Hoy es el día!'
+                  : 'Ver ticket de embarque',
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 11),
+                backgroundColor: esHoy ? _C.rojo : _C.azulBrillo,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+              ),
+              iconColor: Colors.white,
+              textStyle: GoogleFonts.inter(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                  color: Colors.white),
             ),
           ],
         ],
@@ -1455,124 +1463,19 @@ class _EmptySection extends StatelessWidget {
               style: GoogleFonts.inter(color: _C.grisTexto, fontSize: 13)),
           if (onNuevaSolicitud != null) ...[
             const SizedBox(height: 12),
-            TextButton.icon(
-              onPressed: onNuevaSolicitud,
-              icon: const Icon(Icons.add_rounded,
-                  color: _C.azulBrillo, size: 16),
-              label: Text('Nueva Solicitud',
-                  style: GoogleFonts.inter(
+            SafeTextIconButton(
+  onPressed: onNuevaSolicitud,
+  icon: Icons.add_rounded,
+  iconSize: 16,
+  iconColor: _C.azulBrillo,
+  label: 'Nueva Solicitud',
+  textStyle: GoogleFonts.inter(
                       color: _C.azulBrillo,
                       fontWeight: FontWeight.w600,
-                      fontSize: 13)),
-            ),
+                      fontSize: 13),
+),
           ],
         ],
-      ),
-    );
-  }
-}
-
-// ─── Diálogo de descarte ──────────────────────────────────────────────────────
-class _ConfirmDescartarDialog extends StatelessWidget {
-  final String capitanNombre;
-  final double monto;
-  const _ConfirmDescartarDialog(
-      {required this.capitanNombre, required this.monto});
-
-  @override
-  Widget build(BuildContext context) {
-    final montoFmt = NumberFormat.currency(
-            locale: 'es_AR', symbol: '\$', decimalDigits: 0)
-        .format(monto);
-
-    return Dialog(
-      backgroundColor: _C.card,
-      shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                  color: _C.rojo.withOpacity(0.1), shape: BoxShape.circle),
-              child: const Icon(Icons.delete_outline_rounded,
-                  color: _C.rojo, size: 32),
-            ),
-            const SizedBox(height: 16),
-            Text('¿Descartás esta cotización?',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.inter(
-                    color: _C.blanco,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 17)),
-            const SizedBox(height: 8),
-            RichText(
-              textAlign: TextAlign.center,
-              text: TextSpan(
-                style: GoogleFonts.inter(
-                    color: _C.grisTexto, fontSize: 13, height: 1.5),
-                children: [
-                  const TextSpan(text: 'Vas a eliminar la propuesta de '),
-                  TextSpan(
-                    text: capitanNombre,
-                    style: const TextStyle(
-                        color: _C.blanco, fontWeight: FontWeight.w600),
-                  ),
-                  const TextSpan(text: ' por '),
-                  TextSpan(
-                    text: montoFmt,
-                    style: const TextStyle(
-                        color: _C.verde, fontWeight: FontWeight.w700),
-                  ),
-                  const TextSpan(
-                    text:
-                        '.\n\nSolo se borra este ticket. Tu solicitud de viaje seguirá activa.',
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      side: const BorderSide(color: _C.cardBorder),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                    ),
-                    child: Text('Cancelar',
-                        style: GoogleFonts.inter(
-                            color: _C.grisTexto,
-                            fontWeight: FontWeight.w600)),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      backgroundColor: _C.rojo,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                    ),
-                    child: Text('Sí, descartar',
-                        style:
-                            GoogleFonts.inter(fontWeight: FontWeight.w700)),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }

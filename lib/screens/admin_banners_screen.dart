@@ -6,6 +6,7 @@ import 'package:capitanya_master/models/producto.dart';
 import 'package:capitanya_master/models/categoria.dart';
 import 'package:capitanya_master/services/supabase_service.dart';
 import 'package:capitanya_master/services/branding_service.dart';
+import '../widgets/safe_button.dart';
 
 class AdminBannersScreen extends StatefulWidget {
   const AdminBannersScreen({super.key});
@@ -697,17 +698,19 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> with SingleTick
                   'Listado de Publicaciones',
                   style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                 ),
-                ElevatedButton.icon(
-                  onPressed: () => _editProductoDialog(null),
-                  icon: const Icon(Icons.add, size: 16),
-                  label: const Text('NUEVA PUBLICACIÓN', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(
+                SafeElevatedIconButton(
+  onPressed: () => _editProductoDialog(null),
+  icon: Icons.add,
+  iconSize: 16,
+  label: 'NUEVA PUBLICACIÓN',
+  textStyle: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+  style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orangeAccent,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
-                ),
+),
               ],
             ),
           ),

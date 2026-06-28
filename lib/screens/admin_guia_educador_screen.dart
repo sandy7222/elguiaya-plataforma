@@ -11,6 +11,7 @@ import '../widgets/guia_overlay.dart';
 import '../config/groq_config.dart';
 import '../services/groq_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../widgets/safe_button.dart';
 
 
 /// Panel de control del Educador Gemini.
@@ -738,8 +739,8 @@ El JSON resultante debe ser una lista con este formato:
             const SizedBox(height: 8),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () async {
+              child: SafeElevatedIconButton(
+  onPressed: () async {
                   await GeminiConfig.limpiarPausa();
                   setState(() {});
                   if (mounted) {
@@ -752,17 +753,17 @@ El JSON resultante debe ser una lista con este formato:
                     );
                   }
                 },
-                icon: const Icon(Icons.lock_open_rounded, size: 16, color: Colors.black),
-                label: const Text(
-                  'Limpiar Pausa y Reactivar Gemini',
-                  style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 12),
-                ),
-                style: ElevatedButton.styleFrom(
+  icon: Icons.lock_open_rounded,
+  iconSize: 16,
+  iconColor: Colors.black,
+  label: 'Limpiar Pausa y Reactivar Gemini',
+  textStyle: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 12),
+  style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFFFD600),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   padding: const EdgeInsets.symmetric(vertical: 10),
                 ),
-              ),
+),
             ),
           ],
         ],
@@ -832,15 +833,8 @@ El JSON resultante debe ser una lista con este formato:
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton.icon(
+            child: ElevatedButton(
               onPressed: _guardandoKey ? null : _guardarApiKey,
-              icon: _guardandoKey
-                  ? const SizedBox(
-                      width: 16, height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                    )
-                  : const Icon(Icons.save_rounded),
-              label: Text(_guardandoKey ? 'Guardando...' : 'Guardar API Key'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.purpleAccent,
                 foregroundColor: Colors.white,
@@ -849,12 +843,20 @@ El JSON resultante debe ser una lista con este formato:
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),
+              child: SafeButtonLoadingContent(
+                loading: _guardandoKey,
+                icon: Icons.save_rounded,
+                idleLabel: 'Guardar API Key',
+                loadingLabel: 'Guardando...',
+                textStyle: const TextStyle(color: Colors.white),
+                spinnerColor: Colors.white,
+              ),
             ),
           ),
           if (GeminiConfig.tieneApiKey) ...[
             const SizedBox(height: 8),
-            TextButton.icon(
-              onPressed: () async {
+            SafeTextIconButton(
+  onPressed: () async {
                 await GeminiConfig.setApiKey('');
                 setState(() => _apiKeyController.clear());
                 if (mounted) {
@@ -866,9 +868,12 @@ El JSON resultante debe ser una lista con este formato:
                   );
                 }
               },
-              icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 18),
-              label: const Text('Borrar API Key de la memoria local', style: TextStyle(color: Colors.redAccent, fontSize: 12)),
-            ),
+  icon: Icons.delete_outline_rounded,
+  iconSize: 18,
+  iconColor: Colors.redAccent,
+  label: 'Borrar API Key de la memoria local',
+  textStyle: TextStyle(color: Colors.redAccent, fontSize: 12),
+),
           ],
         ],
       ),
@@ -947,33 +952,38 @@ El JSON resultante debe ser una lista con este formato:
           Row(
             children: [
               Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: _guardandoKey ? null : _guardarGroqApiKey,
-                  icon: const Icon(Icons.save_rounded, size: 16),
-                  label: const Text('Guardar Guía', style: TextStyle(fontSize: 12)),
-                  style: ElevatedButton.styleFrom(
+                child: SafeElevatedIconButton(
+  onPressed: _guardandoKey ? null : _guardarGroqApiKey,
+  icon: Icons.save_rounded,
+  iconSize: 16,
+  label: 'Guardar Guía',
+  textStyle: TextStyle(fontSize: 12),
+  style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.cyan[700],
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
-                ),
+),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: OutlinedButton.icon(
+                child: OutlinedButton(
                   onPressed: _probandoGroq ? null : _probarConexionGroq,
-                  icon: _probandoGroq
-                      ? const SizedBox(
-                          width: 14, height: 14,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.cyanAccent),
-                        )
-                      : const Icon(Icons.wifi_tethering_rounded, size: 16, color: Colors.cyanAccent),
-                  label: const Text('Probar', style: TextStyle(color: Colors.cyanAccent, fontSize: 12)),
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: Colors.cyanAccent.withOpacity(0.5)),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  child: SafeButtonLoadingContent(
+                    loading: _probandoGroq,
+                    icon: Icons.wifi_tethering_rounded,
+                    iconSize: 16,
+                    iconColor: Colors.cyanAccent,
+                    idleLabel: 'Probar',
+                    loadingLabel: 'Probando...',
+                    textStyle: const TextStyle(color: Colors.cyanAccent, fontSize: 12),
+                    spinnerColor: Colors.cyanAccent,
                   ),
                 ),
               ),
@@ -1017,8 +1027,8 @@ El JSON resultante debe ser una lista con este formato:
           ],
           if (GroqConfig.tieneApiKey) ...[
             const SizedBox(height: 4),
-            TextButton.icon(
-              onPressed: () async {
+            SafeTextIconButton(
+  onPressed: () async {
                 await GroqConfig.setApiKeyGuia('');
                 setState(() => _groqApiKeyController.clear());
                 if (mounted) {
@@ -1027,9 +1037,12 @@ El JSON resultante debe ser una lista con este formato:
                   );
                 }
               },
-              icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 16),
-              label: const Text('Borrar clave Guía', style: TextStyle(color: Colors.redAccent, fontSize: 11)),
-            ),
+  icon: Icons.delete_outline_rounded,
+  iconSize: 16,
+  iconColor: Colors.redAccent,
+  label: 'Borrar clave Guía',
+  textStyle: TextStyle(color: Colors.redAccent, fontSize: 11),
+),
           ],
 
           const Divider(color: Colors.white12, height: 32),
@@ -1092,22 +1105,24 @@ El JSON resultante debe ser una lista con este formato:
           const SizedBox(height: 8),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: _guardandoKey ? null : _guardarGroqCentralitaKey,
-              icon: const Icon(Icons.save_rounded, size: 16),
-              label: const Text('Guardar Centralita', style: TextStyle(fontSize: 12)),
-              style: ElevatedButton.styleFrom(
+            child: SafeElevatedIconButton(
+  onPressed: _guardandoKey ? null : _guardarGroqCentralitaKey,
+  icon: Icons.save_rounded,
+  iconSize: 16,
+  label: 'Guardar Centralita',
+  textStyle: TextStyle(fontSize: 12),
+  style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orange[700],
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),
-            ),
+),
           ),
           if (GroqConfig.tieneApiKeyCentralita) ...[
             const SizedBox(height: 4),
-            TextButton.icon(
-              onPressed: () async {
+            SafeTextIconButton(
+  onPressed: () async {
                 await GroqConfig.setApiKeyCentralita('');
                 setState(() => _groqCentralitaController.clear());
                 if (mounted) {
@@ -1116,9 +1131,12 @@ El JSON resultante debe ser una lista con este formato:
                   );
                 }
               },
-              icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 16),
-              label: const Text('Borrar clave Centralita', style: TextStyle(color: Colors.redAccent, fontSize: 11)),
-            ),
+  icon: Icons.delete_outline_rounded,
+  iconSize: 16,
+  iconColor: Colors.redAccent,
+  label: 'Borrar clave Centralita',
+  textStyle: TextStyle(color: Colors.redAccent, fontSize: 11),
+),
           ],
         ],
       ),
@@ -1283,8 +1301,8 @@ El JSON resultante debe ser una lista con este formato:
           // Botón: recargar capacitación
           SizedBox(
             width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () {
+            child: SafeOutlinedIconButton(
+  onPressed: () {
                 CapacitacionService.invalidarCache();
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -1294,13 +1312,15 @@ El JSON resultante debe ser una lista con este formato:
                   ),
                 );
               },
-              icon: const Icon(Icons.refresh_rounded, color: Colors.white60),
-              label: const Text('Recargar base de conocimiento', style: TextStyle(color: Colors.white60, fontSize: 12)),
-              style: OutlinedButton.styleFrom(
+  icon: Icons.refresh_rounded,
+  iconColor: Colors.white60,
+  label: 'Recargar base de conocimiento',
+  textStyle: TextStyle(color: Colors.white60, fontSize: 12),
+  style: OutlinedButton.styleFrom(
                 side: BorderSide(color: Colors.white.withOpacity(0.2)),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-            ),
+),
           ),
         ],
       ),
@@ -1946,14 +1966,13 @@ El JSON resultante debe ser una lista con este formato:
           // CTA: convertir en conocimiento
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () => _convertirCarenciaAAprendizaje(item, preguntaOriginal),
-              icon: const Icon(Icons.school_rounded, size: 16),
-              label: const Text(
-                'Enseñarle esto al Guía',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-              ),
-              style: ElevatedButton.styleFrom(
+            child: SafeElevatedIconButton(
+  onPressed: () => _convertirCarenciaAAprendizaje(item, preguntaOriginal),
+  icon: Icons.school_rounded,
+  iconSize: 16,
+  label: 'Enseñarle esto al Guía',
+  textStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+  style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFF6600),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
@@ -1961,7 +1980,7 @@ El JSON resultante debe ser una lista con este formato:
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 10),
               ),
-            ),
+),
           ),
         ],
       ),
@@ -2090,8 +2109,8 @@ El JSON resultante debe ser una lista con este formato:
               child: const Text('Cancelar',
                   style: TextStyle(color: Colors.white38)),
             ),
-            ElevatedButton.icon(
-              onPressed: () async {
+            SafeElevatedIconButton(
+  onPressed: () async {
                 final newIntencion = intencionController.text.trim();
                 final newRespuesta = respuestaController.text.trim();
                 if (newIntencion.isEmpty || newRespuesta.isEmpty) return;
@@ -2142,13 +2161,14 @@ El JSON resultante debe ser una lista con este formato:
                   }
                 }
               },
-              icon: const Icon(Icons.school_rounded, size: 16),
-              label: const Text('Guardar y Aprobar'),
-              style: ElevatedButton.styleFrom(
+  icon: Icons.school_rounded,
+  iconSize: 16,
+  label: 'Guardar y Aprobar',
+  style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFF6600),
                 foregroundColor: Colors.white,
               ),
-            ),
+),
           ],
         );
       },
@@ -2291,28 +2311,37 @@ El JSON resultante debe ser una lista con este formato:
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              TextButton.icon(
-                onPressed: () => _showEditDialog(item),
-                icon: const Icon(Icons.edit_rounded, color: Colors.white60, size: 16),
-                label: const Text('Editar', style: TextStyle(color: Colors.white60, fontSize: 12)),
-              ),
+              SafeTextIconButton(
+  onPressed: () => _showEditDialog(item),
+  icon: Icons.edit_rounded,
+  iconSize: 16,
+  iconColor: Colors.white60,
+  label: 'Editar',
+  textStyle: TextStyle(color: Colors.white60, fontSize: 12),
+),
               const SizedBox(width: 8),
-              TextButton.icon(
-                onPressed: () => _rechazarIntencion(item),
-                icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 16),
-                label: const Text('Rechazar', style: TextStyle(color: Colors.redAccent, fontSize: 12)),
-              ),
+              SafeTextIconButton(
+  onPressed: () => _rechazarIntencion(item),
+  icon: Icons.delete_outline_rounded,
+  iconSize: 16,
+  iconColor: Colors.redAccent,
+  label: 'Rechazar',
+  textStyle: TextStyle(color: Colors.redAccent, fontSize: 12),
+),
               const SizedBox(width: 8),
-              ElevatedButton.icon(
-                onPressed: () => _aprobarIntencion(item),
-                icon: const Icon(Icons.check_rounded, color: Colors.black, size: 16),
-                label: const Text('Aprobar', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 12)),
-                style: ElevatedButton.styleFrom(
+              SafeElevatedIconButton(
+  onPressed: () => _aprobarIntencion(item),
+  icon: Icons.check_rounded,
+  iconSize: 16,
+  iconColor: Colors.black,
+  label: 'Aprobar',
+  textStyle: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 12),
+  style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF00E676),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 ),
-              ),
+),
             ],
           ),
         ],

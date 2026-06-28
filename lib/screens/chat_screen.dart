@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../widgets/safe_button.dart';
 
 import '../services/chat_service.dart';
 import '../services/voice_service.dart'; // 🔊 IMPORTAMOS EL NUEVO SERVICIO DE VOZ
@@ -415,8 +416,8 @@ class _ChatScreenState extends State<ChatScreen> {
               SizedBox(
                 width: double.infinity,
                 height: 44,
-                child: ElevatedButton.icon(
-                  onPressed: () {
+                child: SafeElevatedIconButton(
+  onPressed: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -424,21 +425,20 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                     ).then((_) => _cargarInfoViaje());
                   },
-                  icon: const Icon(Icons.star_rate_rounded, color: Colors.black87),
-                  label: const Text(
-                    'CALIFICAR EXPERIENCIA',
-                    style: TextStyle(
+  icon: Icons.star_rate_rounded,
+  iconColor: Colors.black87,
+  label: 'CALIFICAR EXPERIENCIA',
+  textStyle: TextStyle(
                       color: Colors.black87,
                       fontWeight: FontWeight.bold,
                     ),
-                  ),
-                  style: ElevatedButton.styleFrom(
+  style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF00E676),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
                   ),
-                ),
+),
               ),
             ],
           ],

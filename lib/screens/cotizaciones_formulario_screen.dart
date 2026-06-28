@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../widgets/safe_button.dart';
 
 import '../services/cotizaciones_service.dart';
 import '../services/supabase_service.dart';
@@ -352,15 +353,16 @@ class _CotizacionesFormularioScreenState extends State<CotizacionesFormularioScr
                   ),
                   const SizedBox(height: 20),
                     
-                  ElevatedButton.icon(
-                    onPressed: _agregarItemVacio,
-                    icon: const Icon(Icons.add, color: _blancoPuro),
-                    label: const Text('Agregar Item'),
-                    style: ElevatedButton.styleFrom(
+                  SafeElevatedIconButton(
+  onPressed: _agregarItemVacio,
+  icon: Icons.add,
+  iconColor: _blancoPuro,
+  label: 'Agregar Item',
+  style: ElevatedButton.styleFrom(
                       backgroundColor: _azulVibrante,
                       foregroundColor: _blancoPuro,
                     ),
-                  ),
+),
                 ],
               ),
               

@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -13,14 +13,15 @@ import '../services/gemini_ai_service.dart';
 import 'articulo_detalle_screen.dart';
 import 'articulo_offline_screen.dart';
 import 'youtube_player_screen.dart';
+import '../widgets/safe_button.dart';
 
-// ─── Paleta de Colores ───────────────────────────────────────────────────────
+// --- Paleta de Colores -------------------------------------------------------
 const Color darkBg    = Color(0xFF0A0E12);
 const Color cardBg    = Color(0xFF0F172A);
 const Color accentColor = Color(0xFF00E676);
 const Color cyanColor   = Color(0xFF00E5FF);
 
-// Clave del caché Hive del blog
+// Clave del cach� Hive del blog
 const String _kBoxBlog      = 'blog_cache_v2';
 const String _kKeyFeed      = 'feed_items';
 const String _kKeyReviews   = 'reviews';
@@ -37,7 +38,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
-  // ── Estado del feed ─────────────────────────────────────────────────────
+  // -- Estado del feed -----------------------------------------------------
   List<Map<String, dynamic>> _feedItems   = [];
   List<Map<String, dynamic>> _reviews     = [];
   bool   _isLoading       = true;
@@ -75,13 +76,13 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
     super.dispose();
   }
 
-  // ── Carga central del feed ──────────────────────────────────────────────
+  // -- Carga central del feed ----------------------------------------------
   Future<void> _cargarFeed({bool forzar = false}) async {
     if (_isSyncing) return;
     setState(() { _isLoading = true; _isSyncing = forzar; });
 
     try {
-      // 1. Intentar leer desde caché primero (respuesta instantánea)
+      // 1. Intentar leer desde cach� primero (respuesta instant�nea)
       final cached = await _leerCache();
       if (cached != null && !forzar) {
         setState(() {
@@ -91,20 +92,20 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
           _isLoading      = false;
           _isSyncing      = false;
         });
-        // Si hay señal, actualizar en background silenciosamente
+        // Si hay se�al, actualizar en background silenciosamente
         if (_haySenal) _actualizarEnBackground();
         return;
       }
 
-      // 2. Sin caché o forzado: descargar si hay señal
+      // 2. Sin cach� o forzado: descargar si hay se�al
       if (_haySenal) {
         await _descargarYGuardar();
       } else {
-        // Sin señal y sin caché: feed vacío con aviso
+        // Sin se�al y sin cach�: feed vac�o con aviso
         setState(() { _isLoading = false; _isSyncing = false; });
       }
     } catch (e) {
-      debugPrint('⚠️ [BLOG] Error en _cargarFeed: $e');
+      debugPrint('?? [BLOG] Error en _cargarFeed: $e');
       setState(() { _isLoading = false; _isSyncing = false; });
     }
   }
@@ -117,7 +118,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
 
   Future<void> _descargarYGuardar() async {
     try {
-      // FASE 1: Carga Rápida (YouTube RSS + Blogspot + Reviews + Supabase en paralelo)
+      // FASE 1: Carga R�pida (YouTube RSS + Blogspot + Reviews + Supabase en paralelo)
       final resultados = await Future.wait([
         NewsCompilerService.obtenerVideosRecientesYoutube(''),
         SupabaseService.obtenerReviewsPublicas(),
@@ -128,13 +129,13 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
       final List<Map<String, dynamic>> reviews  = List<Map<String, dynamic>>.from(resultados[1] as List);
       final List<Map<String, dynamic>> blogspot = List<Map<String, dynamic>>.from(resultados[2] as List);
 
-      // Intentar también artículos de Supabase (si los hay)
+      // Intentar tambi�n art�culos de Supabase (si los hay)
       List<ArticuloBlog> articulosBD = [];
       try {
         articulosBD = await SupabaseService.obtenerArticulosBlog();
       } catch (_) {}
 
-      // Convertir artículos de BD al formato unificado del feed
+      // Convertir art�culos de BD al formato unificado del feed
       final List<Map<String, dynamic>> articulosFeed = articulosBD.map((a) => {
         'tipo':     a.fuenteUrl != null &&
                     (a.fuenteUrl!.contains('youtube.com') || a.fuenteUrl!.contains('youtu.be'))
@@ -156,7 +157,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
       // Marcar videos
       for (final v in videos) { v['tipo'] = 'video'; }
 
-      // 1. Obtener ítems previamente guardados en el caché para no borrarlos al actualizar
+      // 1. Obtener �tems previamente guardados en el cach� para no borrarlos al actualizar
       List<Map<String, dynamic>> itemsViejos = [];
       try {
         final cached = await _leerCache();
@@ -164,13 +165,13 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
           itemsViejos = List<Map<String, dynamic>>.from(cached['feed'] as List);
         }
       } catch (e) {
-        debugPrint('⚠️ [BLOG] No se pudo leer el caché anterior para fusionar: $e');
+        debugPrint('?? [BLOG] No se pudo leer el cach� anterior para fusionar: $e');
       }
 
       final notasViejas = itemsViejos.where((i) => i['tipo'] == 'nota').toList();
       final videosViejas = itemsViejos.where((i) => i['tipo'] == 'video').toList();
 
-      // Fusionar las listas rápidas nuevas con las del caché
+      // Fusionar las listas r�pidas nuevas con las del cach�
       final notasNuevas = [
         ...blogspot,
         ...articulosFeed.where((i) => i['tipo'] == 'nota'),
@@ -184,7 +185,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
       final List<Map<String, dynamic>> todosLosVideos = _fusionarYFiltrar(videosNuevos, videosViejas);
 
       // Separar el Blog Oficial para que siempre aparezca primero en las notas,
-      // y ordenar el resto de forma cronológica
+      // y ordenar el resto de forma cronol�gica
       final notasOficiales = todasLasNotas.where((n) => n['fuente'] == 'Blog Oficial').toList();
       final notasRestantes = todasLasNotas.where((n) => n['fuente'] != 'Blog Oficial').toList();
 
@@ -194,7 +195,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
       final List<Map<String, dynamic>> notasOrdenadas = [...notasOficiales, ...notasRestantes];
       todosLosVideos.sort(_compararFechas);
 
-      // Intercalar: nota → video → nota → video…
+      // Intercalar: nota ? video ? nota ? video�
       final List<Map<String, dynamic>> feedIntercalado = [];
       final int maxLen = notasOrdenadas.length > todosLosVideos.length
           ? notasOrdenadas.length : todosLosVideos.length;
@@ -203,7 +204,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
         if (i < todosLosVideos.length) feedIntercalado.add(todosLosVideos[i]);
       }
 
-      // Guardar en Hive (Caché rápido inicial)
+      // Guardar en Hive (Cach� r�pido inicial)
       await _guardarCache(feedIntercalado, reviews);
 
       if (mounted) {
@@ -224,7 +225,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
       );
 
     } catch (e) {
-      debugPrint('⚠️ [BLOG] Error descargando: $e');
+      debugPrint('?? [BLOG] Error descargando: $e');
       if (mounted) setState(() { _isLoading = false; _isSyncing = false; });
     }
   }
@@ -274,7 +275,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
       // Esperar descargas y gemini en paralelo
       await Future.wait([...tareasDescripcion, ...tareasTexto]);
 
-      // 4. Leer el caché actualizado
+      // 4. Leer el cach� actualizado
       List<Map<String, dynamic>> itemsViejos = [];
       try {
         final cached = await _leerCache();
@@ -316,7 +317,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
         if (i < todosLosVideos.length) feedIntercalado.add(todosLosVideos[i]);
       }
 
-      // Guardar caché enriquecido definitivo
+      // Guardar cach� enriquecido definitivo
       await _guardarCache(feedIntercalado, reviews);
 
       final bool wasSyncing = _isSyncing;
@@ -331,7 +332,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
         if (wasSyncing) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('✅ Blog actualizado y guardado para usar sin señal'),
+              content: Text('? Blog actualizado y guardado para usar sin se�al'),
               backgroundColor: Color(0xFF00E676),
               behavior: SnackBarBehavior.floating,
             ),
@@ -339,7 +340,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
         }
       }
     } catch (e) {
-      debugPrint('⚠️ [BLOG] Error en background enrichment: $e');
+      debugPrint('?? [BLOG] Error en background enrichment: $e');
       if (mounted) setState(() { _isSyncing = false; });
     }
   }
@@ -378,7 +379,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
       if (key.isNotEmpty) mapa[key] = item;
     }
 
-    // Filtrar por fecha: sostener items externos por 7 días, oficiales no expiran
+    // Filtrar por fecha: sostener items externos por 7 d�as, oficiales no expiran
     final limite = DateTime.now().subtract(const Duration(days: 7));
     return mapa.values.where((item) {
       final fuente = item['fuente'] as String? ?? '';
@@ -397,7 +398,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
     }).toList();
   }
 
-  // ── Caché Hive ────────────────────────────────────────────────────────────
+  // -- Cach� Hive ------------------------------------------------------------
   Future<Map<String, dynamic>?> _leerCache() async {
     try {
       final box = await Hive.openBox(_kBoxBlog);
@@ -415,14 +416,14 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
               .map((e) => Map<String, dynamic>.from(e as Map))
               .toList();
 
-      String label = 'Caché local';
+      String label = 'Cach� local';
       if (ts != null) {
         final dt = DateTime.tryParse(ts);
         if (dt != null) label = 'Guardado ${DateFormat('dd/MM HH:mm').format(dt.toLocal())}';
       }
       return {'feed': feed, 'reviews': revs, 'label': label};
     } catch (e) {
-      debugPrint('⚠️ [BLOG_CACHE] Error leyendo caché: $e');
+      debugPrint('?? [BLOG_CACHE] Error leyendo cach�: $e');
       return null;
     }
   }
@@ -443,13 +444,13 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
       await box.put(_kKeyReviews,   reviews);
       await box.put(_kKeyTimestamp, DateTime.now().toIso8601String());
     } catch (e) {
-      debugPrint('⚠️ [BLOG_CACHE] Error guardando caché: $e');
+      debugPrint('?? [BLOG_CACHE] Error guardando cach�: $e');
     }
   }
 
   String _labelAhora() => 'Guardado ${DateFormat('dd/MM HH:mm').format(DateTime.now())}';
 
-  // ── Filtrado ──────────────────────────────────────────────────────────────
+  // -- Filtrado --------------------------------------------------------------
   List<Map<String, dynamic>> get _feedFiltrado {
     return _feedItems.where((item) {
       final tipo    = item['tipo'] as String? ?? '';
@@ -472,9 +473,9 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
     }).toList();
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // -------------------------------------------------------------------------
   //  BUILD
-  // ─────────────────────────────────────────────────────────────────────────
+  // -------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -503,7 +504,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
                 // Banner offline
                 if (!_haySenal) _buildOfflineBanner(),
 
-                // Banner de última sincronización (cuando hay caché)
+                // Banner de �ltima sincronizaci�n (cuando hay cach�)
                 if (_haySenal && _lastSyncLabel.isNotEmpty && !_isSyncing)
                   _buildSyncLabel(),
 
@@ -527,7 +528,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
     );
   }
 
-  // ── App Bar ───────────────────────────────────────────────────────────────
+  // -- App Bar ---------------------------------------------------------------
   Widget _buildAppBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -548,16 +549,16 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
                   ),
                 ),
                 Text(
-                  'Últimas noticias y videos de pesca deportiva',
+                  '�ltimas noticias y videos de pesca deportiva',
                   style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 10),
                 ),
               ],
             ),
           ),
-          // Botón "Sincronizar para llevar"
+          // Bot�n "Sincronizar para llevar"
           if (_haySenal)
             Tooltip(
-              message: 'Sincronizar para usar sin señal',
+              message: 'Sincronizar para usar sin se�al',
               child: _isSyncing
                   ? const SizedBox(
                       width: 36, height: 36,
@@ -581,7 +582,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
     );
   }
 
-  // ── Banner sin señal ──────────────────────────────────────────────────────
+  // -- Banner sin se�al ------------------------------------------------------
   Widget _buildOfflineBanner() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -600,13 +601,13 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  '📴 Sin señal — Modo Isla',
+                  '?? Sin se�al � Modo Isla',
                   style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold, fontSize: 12),
                 ),
                 Text(
                   _feedItems.isNotEmpty
-                      ? 'Mostrando contenido guardado · $_lastSyncLabel'
-                      : 'No hay caché guardado. Sincronizá antes de salir a la isla.',
+                      ? 'Mostrando contenido guardado � $_lastSyncLabel'
+                      : 'No hay cach� guardado. Sincroniz� antes de salir a la isla.',
                   style: TextStyle(color: Colors.orange.withOpacity(0.75), fontSize: 10),
                 ),
               ],
@@ -633,7 +634,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
     );
   }
 
-  // ── Search bar ────────────────────────────────────────────────────────────
+  // -- Search bar ------------------------------------------------------------
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -670,7 +671,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
     );
   }
 
-  // ── Tab bar ───────────────────────────────────────────────────────────────
+  // -- Tab bar ---------------------------------------------------------------
   Widget _buildTabBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
@@ -726,18 +727,18 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // -------------------------------------------------------------------------
   //  TAB 1: REVISTAS (feed de noticias + videos)
-  // ─────────────────────────────────────────────────────────────────────────
+  // -------------------------------------------------------------------------
   Widget _buildRevistasTab() {
     if (_isLoading) {
       return Center(child: CircularProgressIndicator(color: cyanColor));
     }
 
-    // Si no hay señal y tampoco hay ningún elemento en caché, mostrar estado vacío general
+    // Si no hay se�al y tampoco hay ning�n elemento en cach�, mostrar estado vac�o general
     if (_feedItems.isEmpty && !_haySenal) {
       return _buildEmptyState(
-        '📴 Sin caché guardado\n\nAndá a una zona con señal y tocá el botón ☁️ para guardar las noticias y llevarlas a la isla.',
+        '?? Sin cach� guardado\n\nAnd� a una zona con se�al y toc� el bot�n ?? para guardar las noticias y llevarlas a la isla.',
         icono: Icons.cloud_off_rounded,
         color: Colors.orange,
       );
@@ -754,7 +755,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
 
         return Column(
           children: [
-            // Chips de categorías
+            // Chips de categor�as
             SizedBox(
               height: 40,
               child: ListView.builder(
@@ -796,7 +797,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
 
             Expanded(
               child: feed.isEmpty
-                  ? _buildEmptyState('No se encontraron artículos.\nIntentá cambiar los filtros.')
+                  ? _buildEmptyState('No se encontraron art�culos.\nIntent� cambiar los filtros.')
                   : Center(
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 1200),
@@ -815,7 +816,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
                                   child: Padding(
                                     padding: const EdgeInsets.only(bottom: 14),
                                     child: Text(
-                                      'MÁS NOVEDADES Y VIDEOS',
+                                      'M�S NOVEDADES Y VIDEOS',
                                       style: GoogleFonts.outfit(
                                         color: Colors.white54,
                                         fontSize: 12,
@@ -851,7 +852,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
     );
   }
 
-  // ── Spotlight Card ─────────────────────────────────────────────────────────
+  // -- Spotlight Card ---------------------------------------------------------
   Widget _buildSpotlightCard(Map<String, dynamic> item) {
     final bool esVideo  = item['tipo'] == 'video';
     final String titulo = item['titulo'] as String? ?? '';
@@ -968,7 +969,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
     );
   }
 
-  // ── Feed card (grid) ───────────────────────────────────────────────────────
+  // -- Feed card (grid) -------------------------------------------------------
   Widget _buildFeedCard(Map<String, dynamic> item) {
     final bool esVideo  = item['tipo'] == 'video';
     final String titulo = item['titulo'] as String? ?? '';
@@ -1094,7 +1095,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
     );
   }
 
-  // ── Helpers de imagen ─────────────────────────────────────────────────────
+  // -- Helpers de imagen -----------------------------------------------------
   Widget _buildImageStack(String imagen, bool esVideo, {bool isWide = false}) {
     return Stack(
       fit: StackFit.expand,
@@ -1162,14 +1163,14 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
     );
   }
 
-  // ── Abrir ítem ─────────────────────────────────────────────────────────────
+  // -- Abrir �tem -------------------------------------------------------------
   void _abrirItem(Map<String, dynamic> item) {
     final bool desdeBD  = item['desde_bd'] == true;
     final String? artId = item['articulo_id'] as String?;
     final String tipo   = item['tipo'] as String? ?? '';
     final String url    = item['url'] as String? ?? '';
 
-    // Artículos de la base de datos de Supabase → pantalla de detalle completa
+    // Art�culos de la base de datos de Supabase ? pantalla de detalle completa
     if (desdeBD && artId != null && artId.isNotEmpty) {
       Navigator.push(
         context,
@@ -1178,7 +1179,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
       return;
     }
 
-    // Videos de YouTube → reproductor INLINE (sin salir de la app)
+    // Videos de YouTube ? reproductor INLINE (sin salir de la app)
     if (tipo == 'video') {
       if (url.isNotEmpty) {
         Navigator.push(
@@ -1197,8 +1198,8 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
       return;
     }
 
-    // Notas de revistas web → abrir en pantalla de lectura offline
-    // (muestra el texto guardado si hay señal o no)
+    // Notas de revistas web ? abrir en pantalla de lectura offline
+    // (muestra el texto guardado si hay se�al o no)
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -1207,9 +1208,9 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // -------------------------------------------------------------------------
   //  TAB 2: COMUNIDAD (piques de usuarios)
-  // ─────────────────────────────────────────────────────────────────────────
+  // -------------------------------------------------------------------------
   Widget _buildComunidadTab() {
     if (_isLoading) {
       return Center(child: CircularProgressIndicator(color: cyanColor));
@@ -1231,8 +1232,8 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
     if (reviews.isEmpty) {
       return _buildEmptyState(
         _haySenal
-            ? 'Aún no hay piques de la comunidad cargados.'
-            : '📴 Sin señal — los piques de la comunidad\nse muestran cuando hay caché guardado.',
+            ? 'A�n no hay piques de la comunidad cargados.'
+            : '?? Sin se�al � los piques de la comunidad\nse muestran cuando hay cach� guardado.',
         icono: Icons.people_outline,
       );
     }
@@ -1249,7 +1250,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
     );
   }
 
-  // ── Review Card ───────────────────────────────────────────────────────────
+  // -- Review Card -----------------------------------------------------------
   Widget _buildReviewCard({required Map<String, dynamic> review, bool showBadge = false}) {
     final aspectos  = review['aspectos_puntuados'] as Map<String, dynamic>? ?? {};
     final especie   = aspectos['especie_capturada'] as String? ?? 'Pesca Variada';
@@ -1257,7 +1258,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
     final fotos     = aspectos['fotos_capturas'] as List? ?? [];
     final comentario = review['comentario'] as String? ?? '';
     final rating    = (review['calificacion'] as num? ?? 5).toInt();
-    final zona      = aspectos['destino_zona'] as String? ?? 'Zona del Río';
+    final zona      = aspectos['destino_zona'] as String? ?? 'Zona del R�o';
     final fechaStr  = review['created_at'] as String? ?? '';
 
     String fechaF = 'Reciente';
@@ -1289,7 +1290,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   const Text('Pescador Deportivo',
                       style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
-                  Text('📍 $zona',
+                  Text('?? $zona',
                       style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 10)),
                 ]),
               ]),
@@ -1333,7 +1334,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            comentario.isNotEmpty ? comentario : '¡Gran jornada de pesca!',
+            comentario.isNotEmpty ? comentario : '�Gran jornada de pesca!',
             style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12.5, height: 1.3),
           ),
         ]),
@@ -1341,7 +1342,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
     );
   }
 
-  // ── Empty state ───────────────────────────────────────────────────────────
+  // -- Empty state -----------------------------------------------------------
   Widget _buildEmptyState(String mensaje, {IconData icono = Icons.waves_rounded, Color color = Colors.white}) {
     return Center(
       child: Padding(
@@ -1358,17 +1359,17 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
             ),
             if (_haySenal) ...[
               const SizedBox(height: 24),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
+              SafeElevatedIconButton(
+  onPressed: () => _cargarFeed(forzar: true),
+  icon: Icons.refresh,
+  label: 'Reintentar',
+  style: ElevatedButton.styleFrom(
                   backgroundColor: cyanColor.withOpacity(0.15),
                   foregroundColor: cyanColor,
                   side: BorderSide(color: cyanColor.withOpacity(0.4)),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
-                icon: const Icon(Icons.refresh),
-                label: const Text('Reintentar'),
-                onPressed: () => _cargarFeed(forzar: true),
-              ),
+),
             ],
           ],
         ),
@@ -1376,7 +1377,7 @@ class _BlogPiquesScreenState extends State<BlogPiquesScreen>
     );
   }
 
-  // ── Zoom foto ─────────────────────────────────────────────────────────────
+  // -- Zoom foto -------------------------------------------------------------
   void _mostrarZoomFoto(String url) {
     showDialog(
       context: context,

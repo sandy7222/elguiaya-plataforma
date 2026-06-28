@@ -8,6 +8,7 @@ import '../services/copilot_channel.dart';
 import '../services/viaje_lifecycle_service.dart';
 import 'ficha_contractual_screen.dart';
 import 'ficha_pescador_screen.dart';
+import '../widgets/safe_button.dart';
 
 /// Pantalla de pago real con Mercado Pago Checkout Pro.
 /// Flujo:
@@ -530,20 +531,19 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
     return SizedBox(
       width: double.infinity,
       height: 54,
-      child: OutlinedButton.icon(
+      child: SafeOutlinedIconButton(
         onPressed: _isProcessing ? null : _simularPagoExitoso,
+        icon: Icons.bug_report_outlined,
+        iconColor: Colors.orangeAccent,
+        label: 'Simular pago (modo test)',
+        textStyle: const TextStyle(
+          color: Colors.orangeAccent,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 0.5,
+        ),
         style: OutlinedButton.styleFrom(
           side: const BorderSide(color: Colors.orangeAccent, width: 1.5),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        ),
-        icon: const Icon(Icons.bug_report_outlined, color: Colors.orangeAccent),
-        label: const Text(
-          'SIMULAR PAGO (MODO TEST)',
-          style: TextStyle(
-            color: Colors.orangeAccent,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 0.5,
-          ),
         ),
       ),
     );

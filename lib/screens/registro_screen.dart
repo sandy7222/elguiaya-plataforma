@@ -1,4 +1,4 @@
-Ôªø
+
 import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -79,7 +79,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
   String _statusMsg = '';
   String _currentUserId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
 
-  // Configuraci√≥n de fondo (Din√°mica)
+  // ConfiguraciÛn de fondo (Din·mica)
   final String _bgUrl = 'https://ntitpizisremsryclmzv.supabase.co/storage/v1/object/public/branding/fondo_registro.jpg';
 
   Future<void> _avanzarAlPerfil() async {
@@ -92,7 +92,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
     // 2. Cache de Sesion: Si ya hay usuario, saltar Auth
     final existingUser = Supabase.instance.client.auth.currentUser;
     if (existingUser != null) {
-      print('üì¶ [ANTI-429] Sesion existente detectada (${existingUser.id}). Saltando Auth.');
+      print('?? [ANTI-429] Sesion existente detectada (${existingUser.id}). Saltando Auth.');
       setState(() {
         _currentUserId = existingUser.id;
         _currentStep = RegistroStep.profile;
@@ -117,7 +117,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
       _attemptsCount = 1;
       _lastAttemptTime = now;
     }
-    print('üö® [ANTI-429] Intento de Auth #$_attemptsCount en el ultimo minuto.');
+    print('?? [ANTI-429] Intento de Auth #$_attemptsCount en el ultimo minuto.');
 
     setState(() {
       _isLoading = true;
@@ -199,7 +199,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
         final String inputCodigo = _referidoController.text.trim().toUpperCase();
         final promotor = await SupabaseService.validarCodigoPromotor(inputCodigo);
         if (promotor == null) {
-          _showError('C√≥digo de referido no v√°lido. Registrando sin referido.');
+          _showError('CÛdigo de referido no v·lido. Registrando sin referido.');
         } else {
           comisionistaId = promotor['id']?.toString();
           codigoReferidoFinal = promotor['codigo_comision']?.toString().toUpperCase();
@@ -229,12 +229,12 @@ class _RegistroScreenState extends State<RegistroScreen> {
         referido: codigoReferidoFinal,
       );
 
-      print('üìù DEBUG DB: ${jsonEncode(guia.toMap())}');
+      print('?? DEBUG DB: ${jsonEncode(guia.toMap())}');
       await SupabaseService.guardarGuia(guia, referidoId: comisionistaId);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('¬°Bienvenido Capitan! Registro completado.'), backgroundColor: Colors.green),
+          const SnackBar(content: Text('°Bienvenido Capitan! Registro completado.'), backgroundColor: Colors.green),
         );
         Navigator.pop(context, true);
       }
@@ -335,7 +335,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                 children: [
                   const Expanded(
                     child: Text(
-                      '¬øFuiste referido por un promotor?',
+                      'øFuiste referido por un promotor?',
                       style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -352,7 +352,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
               ),
               if (_traeReferido) ...[
                 const SizedBox(height: 10),
-                _buildModernField(_referidoController, 'C√≥digo de Promotor', Icons.card_giftcard_rounded),
+                _buildModernField(_referidoController, 'CÛdigo de Promotor', Icons.card_giftcard_rounded),
               ],
               const SizedBox(height: 20),
               ElevatedButton(
@@ -394,7 +394,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                 children: [
                   Expanded(flex: 3, child: _buildModernField(_calleController, 'Calle', Icons.add_road)),
                   const SizedBox(width: 10),
-                  Expanded(flex: 1, child: _buildModernField(_alturaController, 'N¬∫', Icons.numbers, type: TextInputType.number)),
+                  Expanded(flex: 1, child: _buildModernField(_alturaController, 'N∫', Icons.numbers, type: TextInputType.number)),
                 ],
               ),
               Row(

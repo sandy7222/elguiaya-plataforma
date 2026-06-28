@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/gemini_config.dart';
@@ -8,17 +8,17 @@ import 'gemini_learner.dart';
 import 'el_guia_engine.dart';
 import 'el_guia_context.dart';
 
-/// GeminiService â€” El cerebro online de El Guía.
+/// GeminiService — El cerebro online de El Gu�a.
 ///
 /// Llama a la API de Gemini con la systemInstruction de CapacitacionService.
-/// Implementa la jerarquía de fallback completa:
-///   - Límite diario superado   â†’ motor local (silencioso)
-///   - Rate limit (429)         â†’ motor local + pausa 60min
-///   - Timeout > 8s             â†’ motor local (silencioso)
-///   - Cualquier error de API   â†’ motor local (silencioso)
+/// Implementa la jerarqu�a de fallback completa:
+///   - L�mite diario superado   → motor local (silencioso)
+///   - Rate limit (429)         → motor local + pausa 60min
+///   - Timeout > 8s             → motor local (silencioso)
+///   - Cualquier error de API   → motor local (silencioso)
 ///
 /// Usa http directamente para no requerir el paquete google_generative_ai
-/// hasta que esté disponible en pubspec. Compatible con REST v1beta.
+/// hasta que est� disponible en pubspec. Compatible con REST v1beta.
 class GeminiService {
   static const String _baseUrl =
       'https://generativelanguage.googleapis.com/v1beta/models';
@@ -26,12 +26,12 @@ class GeminiService {
   static final ElGuiaEngine _motorLocal = ElGuiaEngine();
 
   /// Responde la pregunta del pescador.
-  /// Si Gemini no está disponible, usa el motor local de forma invisible.
+  /// Si Gemini no est� disponible, usa el motor local de forma invisible.
   Future<ElGuiaRespuesta> responder(String pregunta) async {
-    // Precondición: ¿puede llamar a la API?
+    // Precondici�n: �puede llamar a la API?
     if (!GeminiConfig.puedeConsultar) {
       // ignore: avoid_print
-      print('[GeminiService] bloqueado — puedeConsultar=false. Estado: ${GeminiConfig.estadoDescripcion}');
+      print('[GeminiService] bloqueado � puedeConsultar=false. Estado: ${GeminiConfig.estadoDescripcion}');
       return _motorLocal.responder(pregunta);
     }
 
@@ -41,7 +41,7 @@ class GeminiService {
       // ignore: avoid_print
       print('[GeminiService] respuesta cruda (primeros 200 chars): ${respuestaCompleta.substring(0, respuestaCompleta.length.clamp(0, 200))}');
 
-      // Limpiar markdown si Gemini envolvió el JSON en ```json ... ```
+      // Limpiar markdown si Gemini envolvi� el JSON en ```json ... ```
       final respuestaLimpia = _limpiarMarkdown(respuestaCompleta);
 
       // Validar formato: necesita el token |||APRENDO|||
@@ -53,9 +53,9 @@ class GeminiService {
 
       if (!hasToken || bloque == null) {
         // ignore: avoid_print
-        print('[GeminiService] ⚠️ Strike registrado. hasToken=$hasToken, bloque=$bloque');
+        print('[GeminiService] ?? Strike registrado. hasToken=$hasToken, bloque=$bloque');
         await GeminiConfig.registrarStrike();
-        // Aun así intentamos mostrar la respuesta si hay texto visible
+        // Aun as� intentamos mostrar la respuesta si hay texto visible
         final textoVisible = hasToken
             ? GeminiLearner.extraerRespuestaUsuario(respuestaLimpia)
             : respuestaLimpia.split('|||APRENDO|||').first.trim();
@@ -71,7 +71,7 @@ class GeminiService {
         return _motorLocal.responder(pregunta);
       }
 
-      // Si tiene éxito, se resetean los strikes
+      // Si tiene �xito, se resetean los strikes
       GeminiConfig.resetStrikes();
 
       // Registrar la consulta exitosa
@@ -90,27 +90,27 @@ class GeminiService {
         origenGemini: true,
       );
     } on _RateLimitException {
-      // 429 → pausa automática + fallback silencioso
+      // 429 ? pausa autom�tica + fallback silencioso
       // ignore: avoid_print
-      print('[GeminiService] 🛑 Rate limit 429 — pausando API 60 min');
+      print('[GeminiService] ?? Rate limit 429 � pausando API 60 min');
       await GeminiConfig.activarPausaRateLimit();
       return _motorLocal.responder(pregunta);
     } on TimeoutException {
       // ignore: avoid_print
-      print('[GeminiService] ⏱️ Timeout — fallback local');
+      print('[GeminiService] ?? Timeout � fallback local');
       return _motorLocal.responder(pregunta);
     } catch (e) {
       // ignore: avoid_print
-      print('[GeminiService] ❌ Error inesperado: $e');
+      print('[GeminiService] ? Error inesperado: $e');
       return _motorLocal.responder(pregunta);
     }
   }
 
-  /// Llamada de prueba para el botón "Probar conexión" del panel admin.
-  /// Devuelve el texto crudo de Gemini o lanza excepción con el motivo.
+  /// Llamada de prueba para el bot�n "Probar conexi�n" del panel admin.
+  /// Devuelve el texto crudo de Gemini o lanza excepci�n con el motivo.
   Future<String> probarConexion() async {
     if (!GeminiConfig.tieneApiKey) throw Exception('Sin API key');
-    return await _llamarApi('¿Hola! ¿Estás funcionando? Respondé solo: "Sí, Gemini 1.5 Flash operativo"');
+    return await _llamarApi('�Hola! �Est�s funcionando? Respond� solo: "S�, Gemini 1.5 Flash operativo"');
   }
 
   /// Entrenamiento manual: el admin le pide a Gemini que aprenda un tema.
@@ -124,23 +124,23 @@ class GeminiService {
     );
 
     final promptEntrenamiento = '''
-Sos El Guía, el asistente de EL GUIA YA, una app de pesca deportiva argentina en el Río Paraná.
+Sos El Gu�a, el asistente de EL GUIA YA, una app de pesca deportiva argentina en el R�o Paran�.
 El administrador de la app te pide que aprendas sobre este tema para poder responderlo offline a los pescadores:
 
 TEMA A APRENDER: $tema
 
 Instrucciones:
-1. Buscá información sobre este tema.
-2. Sintetizá en máximo 3 líneas, en lenguaje ribereño argentino (usás "dale", "amigo", "tocá", "mirá").
+1. Busc� informaci�n sobre este tema.
+2. Sintetiz� en m�ximo 3 l�neas, en lenguaje ribere�o argentino (us�s "dale", "amigo", "toc�", "mir�").
 3. Sin markdown, sin asteriscos, texto plano.
-4. Luego escribí exactamente: |||APRENDO|||
-5. Luego el JSON de aprendizaje sin ningún texto extra.
+4. Luego escrib� exactamente: |||APRENDO|||
+5. Luego el JSON de aprendizaje sin ning�n texto extra.
 
 Formato obligatorio del JSON:
 {
   "intencion": "nombre_en_snake_case_descriptivo",
-  "activadores": ["frase 1 que podría preguntar un pescador", "frase 2", "frase 3", "frase 4"],
-  "respuesta_limpia": "tu respuesta de 3 líneas exactamente",
+  "activadores": ["frase 1 que podr�a preguntar un pescador", "frase 2", "frase 3", "frase 4"],
+  "respuesta_limpia": "tu respuesta de 3 l�neas exactamente",
   "gif": "hablaConMate",
   "puntaje": 9
 }
@@ -178,7 +178,7 @@ Formato obligatorio del JSON:
         )
         .timeout(const Duration(seconds: 20));
 
-    if (response.statusCode == 429) throw Exception('Límite de cuota alcanzado. Esperá unos minutos.');
+    if (response.statusCode == 429) throw Exception('L�mite de cuota alcanzado. Esper� unos minutos.');
     if (response.statusCode != 200) {
       throw Exception('Gemini API ${response.statusCode}: ${response.body}');
     }
@@ -206,7 +206,7 @@ Formato obligatorio del JSON:
     };
   }
 
-  // â”€â”€ Llamada HTTP a la API REST de Gemini â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Llamada HTTP a la API REST de Gemini ──────────────────────────────────
 
   Future<String> _llamarApi(String pregunta) async {
     final systemInstruction = await CapacitacionService.obtenerSystemInstruction(
@@ -287,7 +287,7 @@ Formato obligatorio del JSON:
     return bloque['gif']?.toString() ?? 'hablaConMate';
   }
 
-  /// Elimina bloques de código markdown (```json ... ```) que Gemini a veces
+  /// Elimina bloques de c�digo markdown (```json ... ```) que Gemini a veces
   /// agrega alrededor del JSON de aprendizaje, para que el parser no falle.
   String _limpiarMarkdown(String texto) {
     // Reemplazar ```json ... ``` y ``` ... ``` por el contenido desnudo
@@ -297,9 +297,9 @@ Formato obligatorio del JSON:
   }
 
   String _fallbackTexto() =>
-      'No pude procesar eso bien, amigo. Intentá de nuevo con otras palabras.';
+      'No pude procesar eso bien, amigo. Intent� de nuevo con otras palabras.';
 }
 
-/// Excepción interna para distinguir 429 de otros errores.
+/// Excepci�n interna para distinguir 429 de otros errores.
 class _RateLimitException implements Exception {}
 

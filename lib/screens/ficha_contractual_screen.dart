@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../models/contrato_viaje_snapshot.dart';
 import '../services/supabase_service.dart';
+import '../widgets/safe_button.dart';
 import 'capitan_vidriera_public_screen.dart';
 import 'chat_screen.dart';
 
@@ -467,53 +468,52 @@ class _FichaContractualScreenState extends State<FichaContractualScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: f.capitanId == null
-                  ? null
-                  : () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => CapitanVidrieraPublicScreen(
-                            capitanId: f.capitanId!,
-                            pedidoId: f.pedidoId,
-                            nombreCapitan: f.snapshot.txt('capitan', 'nombre'),
-                            fechaViaje: f.snapshot.viaje['fecha_ida']?.toString(),
-                          ),
+          SafeOutlinedButton(
+            onPressed: f.capitanId == null
+                ? null
+                : () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CapitanVidrieraPublicScreen(
+                          capitanId: f.capitanId!,
+                          pedidoId: f.pedidoId,
+                          nombreCapitan: f.snapshot.txt('capitan', 'nombre'),
+                          fechaViaje: f.snapshot.viaje['fecha_ida']?.toString(),
                         ),
-                      );
-                    },
-              icon: const Icon(Icons.storefront_outlined),
-              label: const Text('Ver Vidriera del capitán'),
-            ),
+                      ),
+                    );
+                  },
+            icon: Icons.storefront_outlined,
+            label: 'Ver Vidriera del capitán',
           ),
           const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: f.puedeVerContacto
-                  ? () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ChatScreen(
-                            reservaId: f.pedidoId,
-                            nombreServicio: f.snapshot.txt('viaje', 'descripcion', 'Viaje'),
-                            nombreCliente: f.snapshot.txt('capitan', 'nombre'),
-                          ),
+          SafeElevatedButton(
+            onPressed: f.puedeVerContacto
+                ? () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ChatScreen(
+                          reservaId: f.pedidoId,
+                          nombreServicio: f.snapshot.txt('viaje', 'descripcion', 'Viaje'),
+                          nombreCliente: f.snapshot.txt('capitan', 'nombre'),
                         ),
-                      );
-                    }
-                  : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _azul,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-              icon: const Icon(Icons.message_outlined),
-              label: const Text('Chatear con el capitán'),
+                      ),
+                    );
+                  }
+                : null,
+            icon: Icons.message_outlined,
+            label: 'Chatear con el capitán',
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _azul,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+            iconColor: Colors.white,
+            textStyle: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ],

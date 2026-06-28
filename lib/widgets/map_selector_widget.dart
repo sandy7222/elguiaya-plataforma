@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
@@ -19,6 +19,7 @@ class MapSelectorWidget extends StatefulWidget {
   final Map<String, dynamic>? partidaInicial;
   final Map<String, dynamic>? destinoInicial;
   final List<Map<String, dynamic>>? trackLogInicial;
+  final double bottomControlsInset;
 
   const MapSelectorWidget({
     super.key,
@@ -27,6 +28,7 @@ class MapSelectorWidget extends StatefulWidget {
     this.partidaInicial,
     this.destinoInicial,
     this.trackLogInicial,
+    this.bottomControlsInset = 12,
   });
 
   @override
@@ -51,7 +53,7 @@ class MapSelectorWidgetState extends State<MapSelectorWidget>
   double _downloadRadius = 15.0;
   Timer? _downloadTimer;
 
-  // 🚀 UNIFICADO: Solo un initState prolijo que contempla todos los casos iniciales
+  // ?? UNIFICADO: Solo un initState prolijo que contempla todos los casos iniciales
   @override
   void initState() {
     super.initState();
@@ -166,7 +168,7 @@ class MapSelectorWidgetState extends State<MapSelectorWidget>
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    'Descargá la geografía y trazados del río para poder navegar con total precisión en el mapa, incluso sin señal de celular ni consumo de datos.',
+                    'Descarg� la geograf�a y trazados del r�o para poder navegar con total precisi�n en el mapa, incluso sin se�al de celular ni consumo de datos.',
                     style: TextStyle(
                       color: Colors.white60,
                       fontSize: 12.5,
@@ -180,7 +182,7 @@ class MapSelectorWidgetState extends State<MapSelectorWidget>
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
-                          'Radio de Acción:',
+                          'Radio de Acci�n:',
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -222,7 +224,7 @@ class MapSelectorWidgetState extends State<MapSelectorWidget>
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text(
-                            'Tamaño estimado de descarga:',
+                            'Tama�o estimado de descarga:',
                             style: TextStyle(
                               color: Colors.white54,
                               fontSize: 12,
@@ -292,7 +294,7 @@ class MapSelectorWidgetState extends State<MapSelectorWidget>
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
-                          'Descargando imágenes satelitales...',
+                          'Descargando im�genes satelitales...',
                           style: TextStyle(color: Colors.white70, fontSize: 12),
                         ),
                         Text(
@@ -342,7 +344,7 @@ class MapSelectorWidgetState extends State<MapSelectorWidget>
                           ),
                           const SizedBox(height: 18),
                           const Text(
-                            '¡DESCARGA EXITOSA!',
+                            '�DESCARGA EXITOSA!',
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w900,
@@ -351,7 +353,7 @@ class MapSelectorWidgetState extends State<MapSelectorWidget>
                           ),
                           const SizedBox(height: 8),
                           const Text(
-                            'El mapa de esta zona ha sido encriptado y guardado en tu memoria interna. Podés navegar sin señal celular libremente.',
+                            'El mapa de esta zona ha sido encriptado y guardado en tu memoria interna. Pod�s navegar sin se�al celular libremente.',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: Colors.white60,
@@ -426,7 +428,7 @@ class MapSelectorWidgetState extends State<MapSelectorWidget>
         }
       }
     } catch (e) {
-      debugPrint('Error en búsqueda geográfica: $e');
+      debugPrint('Error en b�squeda geogr�fica: $e');
     }
   }
 
@@ -717,8 +719,8 @@ class MapSelectorWidgetState extends State<MapSelectorWidget>
     );
 
     String instructStr = _routePoints.isEmpty
-        ? '📍 Toca para colocar Punto A'
-        : '📌 Toca para agregar más puntos';
+        ? 'Toca para colocar Punto A'
+        : 'Toca para agregar más puntos';
 
     return Stack(
       children: [
@@ -746,10 +748,14 @@ class MapSelectorWidgetState extends State<MapSelectorWidget>
         ),
 
         if (_totalDistance > 0)
-          Positioned(bottom: 12, left: 8, child: _buildTelemetriaCard()),
+          Positioned(
+            bottom: widget.bottomControlsInset,
+            left: 8,
+            child: _buildTelemetriaCard(),
+          ),
 
         Positioned(
-          bottom: 12,
+          bottom: widget.bottomControlsInset,
           right: 8,
           child: Row(
             mainAxisSize: MainAxisSize.min,

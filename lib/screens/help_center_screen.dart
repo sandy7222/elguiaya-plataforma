@@ -1,6 +1,7 @@
-﻿import 'dart:ui';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../widgets/safe_button.dart';
 
 class HelpCenterScreen extends StatefulWidget {
   const HelpCenterScreen({super.key});
@@ -15,8 +16,8 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
   final FocusNode _searchFocusNode = FocusNode();
   bool _showSuggestions = false;
 
-  // Categorías de FAQs
-  final String _catEnvios = "Envíos";
+  // Categor�as de FAQs
+  final String _catEnvios = "Env�os";
   final String _catPagos = "Pagos";
   final String _catCambios = "Cambios";
   final String _catCancelaciones = "Cancelaciones";
@@ -25,7 +26,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
   late List<FaqItem> _faqs;
   List<FaqItem> _filteredFaqs = [];
 
-  // Categoría seleccionada por filtro rápido
+  // Categor�a seleccionada por filtro r�pido
   String? _selectedCategory;
 
   @override
@@ -34,58 +35,58 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
     _faqs = [
       FaqItem(
         category: _catEnvios,
-        question: '¿Cuánto tarda en llegar mi pedido?',
-        answer: 'Los envíos a CABA y GBA demoran entre 24 y 48 horas hábiles. Al interior del país, el plazo es de 3 a 5 días hábiles a través de Andreani.',
+        question: '�Cu�nto tarda en llegar mi pedido?',
+        answer: 'Los env�os a CABA y GBA demoran entre 24 y 48 horas h�biles. Al interior del pa�s, el plazo es de 3 a 5 d�as h�biles a trav�s de Andreani.',
       ),
       FaqItem(
         category: _catEnvios,
-        question: '¿Cómo realizo el seguimiento de mi envío?',
-        answer: 'Una vez despachado el producto, te enviaremos un email con el código de seguimiento de Andreani. También podés verlo en la sección "Mis Compras" dentro de tu perfil.',
+        question: '�C�mo realizo el seguimiento de mi env�o?',
+        answer: 'Una vez despachado el producto, te enviaremos un email con el c�digo de seguimiento de Andreani. Tambi�n pod�s verlo en la secci�n "Mis Compras" dentro de tu perfil.',
       ),
       FaqItem(
         category: _catEnvios,
-        question: '¿Puedo retirar mi compra en una sucursal?',
-        answer: 'Sí, ofrecemos retiro sin cargo en nuestro centro de distribución de San Fernando, Tigre o Rosario, de lunes a viernes de 9:00 a 18:00 hs.',
+        question: '�Puedo retirar mi compra en una sucursal?',
+        answer: 'S�, ofrecemos retiro sin cargo en nuestro centro de distribuci�n de San Fernando, Tigre o Rosario, de lunes a viernes de 9:00 a 18:00 hs.',
       ),
       FaqItem(
         category: _catPagos,
-        question: '¿Qué medios de pago aceptan?',
-        answer: 'Aceptamos todas las tarjetas de crédito y débito a través de Mercado Pago. También podés abonar con dinero en cuenta de Mercado Pago o mediante transferencia bancaria con un 10% de descuento.',
+        question: '�Qu� medios de pago aceptan?',
+        answer: 'Aceptamos todas las tarjetas de cr�dito y d�bito a trav�s de Mercado Pago. Tambi�n pod�s abonar con dinero en cuenta de Mercado Pago o mediante transferencia bancaria con un 10% de descuento.',
       ),
       FaqItem(
         category: _catPagos,
-        question: '¿Puedo pagar en cuotas?',
-        answer: 'Sí, ofrecemos hasta 3 cuotas sin interés con bancos seleccionados a través de Mercado Pago y promociones bancarias vigentes que podés ver al momento de abonar.',
+        question: '�Puedo pagar en cuotas?',
+        answer: 'S�, ofrecemos hasta 3 cuotas sin inter�s con bancos seleccionados a trav�s de Mercado Pago y promociones bancarias vigentes que pod�s ver al momento de abonar.',
       ),
       FaqItem(
         category: _catPagos,
-        question: '¿Cómo solicito mi factura A?',
-        answer: 'Durante el proceso de checkout podés ingresar tu CUIT y razón social para que nuestro sistema emita automáticamente la factura tipo A.',
+        question: '�C�mo solicito mi factura A?',
+        answer: 'Durante el proceso de checkout pod�s ingresar tu CUIT y raz�n social para que nuestro sistema emita autom�ticamente la factura tipo A.',
       ),
       FaqItem(
         category: _catCambios,
-        question: '¿Cuál es el plazo para realizar un cambio?',
-        answer: 'Tenés hasta 30 días corridos desde que recibiste el producto para solicitar un cambio por talle, color o modelo, siempre que el producto esté sin uso y en su empaque original.',
+        question: '�Cu�l es el plazo para realizar un cambio?',
+        answer: 'Ten�s hasta 30 d�as corridos desde que recibiste el producto para solicitar un cambio por talle, color o modelo, siempre que el producto est� sin uso y en su empaque original.',
       ),
       FaqItem(
         category: _catCambios,
-        question: '¿Qué costo tiene realizar un cambio?',
-        answer: 'El primer cambio por talle o falla de fábrica es totalmente gratuito. Para cambios posteriores o devoluciones por arrepentimiento, el cliente asume el costo de envío.',
+        question: '�Qu� costo tiene realizar un cambio?',
+        answer: 'El primer cambio por talle o falla de f�brica es totalmente gratuito. Para cambios posteriores o devoluciones por arrepentimiento, el cliente asume el costo de env�o.',
       ),
       FaqItem(
         category: _catCambios,
-        question: '¿Cómo gestiono una devolución?',
-        answer: 'Podés iniciar la devolución directamente desde la app en "Mis Compras" o contactando a nuestro soporte. Te enviaremos una etiqueta de correo para despachar el paquete de retorno sin cargo.',
+        question: '�C�mo gestiono una devoluci�n?',
+        answer: 'Pod�s iniciar la devoluci�n directamente desde la app en "Mis Compras" o contactando a nuestro soporte. Te enviaremos una etiqueta de correo para despachar el paquete de retorno sin cargo.',
       ),
       FaqItem(
         category: _catCancelaciones,
-        question: '¿Puedo cancelar un pedido antes de recibirlo?',
-        answer: 'Sí, siempre y cuando el pedido no haya sido despachado. Podés solicitar la cancelación inmediata desde tu panel de control o por soporte de WhatsApp.',
+        question: '�Puedo cancelar un pedido antes de recibirlo?',
+        answer: 'S�, siempre y cuando el pedido no haya sido despachado. Pod�s solicitar la cancelaci�n inmediata desde tu panel de control o por soporte de WhatsApp.',
       ),
       FaqItem(
         category: _catCancelaciones,
-        question: '¿Cuánto demora en acreditarse mi reembolso?',
-        answer: 'Una vez aprobada la devolución o cancelación, el reembolso se procesa de inmediato. Si pagaste con dinero en Mercado Pago se acredita al instante; si fue con tarjeta de crédito, puede demorar entre 2 y 10 días hábiles dependiendo del banco emisor.',
+        question: '�Cu�nto demora en acreditarse mi reembolso?',
+        answer: 'Una vez aprobada la devoluci�n o cancelaci�n, el reembolso se procesa de inmediato. Si pagaste con dinero en Mercado Pago se acredita al instante; si fue con tarjeta de cr�dito, puede demorar entre 2 y 10 d�as h�biles dependiendo del banco emisor.',
       ),
     ];
     _filteredFaqs = List.from(_faqs);
@@ -165,7 +166,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
   }
 
   Future<void> _launchWhatsApp() async {
-    final url = Uri.parse("https://wa.me/5491122334455?text=Hola,%20necesito%20ayuda%20con%20una%20compra%20en%20CapitánYA");
+    final url = Uri.parse("https://wa.me/5491122334455?text=Hola,%20necesito%20ayuda%20con%20una%20compra%20en%20Capit�nYA");
     try {
       if (await canLaunchUrl(url)) {
         await launchUrl(url, mode: LaunchMode.externalApplication);
@@ -226,7 +227,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 2. GRILLA DE ACCESOS RÁPIDOS
+                    // 2. GRILLA DE ACCESOS R�PIDOS
                     _buildQuickAccessGrid(isMobile),
                     const SizedBox(height: 48),
 
@@ -246,29 +247,29 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                           ),
                         ),
                         if (_selectedCategory != null || _searchQuery.isNotEmpty)
-                          TextButton.icon(
-                            onPressed: () {
+                          SafeTextIconButton(
+  onPressed: () {
                               setState(() {
                                 _selectedCategory = null;
                                 _clearSearch();
                               });
                             },
-                            icon: const Icon(Icons.refresh_rounded, color: Color(0xFF00E676), size: 16),
-                            label: const Text(
-                              'VER TODAS',
-                              style: TextStyle(color: Color(0xFF00E676), fontSize: 12, fontWeight: FontWeight.bold),
-                            ),
-                          ),
+  icon: Icons.refresh_rounded,
+  iconSize: 16,
+  iconColor: const Color(0xFF00E676),
+  label: 'VER TODAS',
+  textStyle: TextStyle(color: Color(0xFF00E676), fontSize: 12, fontWeight: FontWeight.bold),
+),
                       ],
                     ),
                     const SizedBox(height: 16),
 
-                    // 3. ACORDEÓN DE FAQ DINÁMICO
+                    // 3. ACORDE�N DE FAQ DIN�MICO
                     _buildFaqAccordion(),
 
                     const SizedBox(height: 54),
 
-                    // 4. BOTÓN DE ESCAPE
+                    // 4. BOT�N DE ESCAPE
                     _buildEscapeBanner(isMobile),
                   ],
                 ),
@@ -306,7 +307,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
           child: Column(
             children: [
               Text(
-                '¿Cómo podemos ayudarte hoy, chamigo?',
+                '�C�mo podemos ayudarte hoy, chamigo?',
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w900,
@@ -317,7 +318,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Navegá entre las dudas comunes de compras, pagos y despachos.',
+                'Naveg� entre las dudas comunes de compras, pagos y despachos.',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.6),
                   fontSize: isMobile ? 12 : 14,
@@ -356,7 +357,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                       focusNode: _searchFocusNode,
                       style: const TextStyle(color: Colors.white, fontSize: 14),
                       decoration: InputDecoration(
-                        hintText: '¿Qué pasa con tu compra? Buscá tu duda acá...',
+                        hintText: '�Qu� pasa con tu compra? Busc� tu duda ac�...',
                         hintStyle: TextStyle(color: Colors.white.withOpacity(0.35), fontSize: 13),
                         prefixIcon: const Icon(Icons.search_rounded, color: Colors.white54, size: 22),
                         suffixIcon: _searchQuery.isNotEmpty
@@ -371,7 +372,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                     ),
                   ),
 
-                  // Dropdown de sugerencias automáticas
+                  // Dropdown de sugerencias autom�ticas
                   if (_showSuggestions && _searchQuery.trim().isNotEmpty)
                     Positioned(
                       top: 58,
@@ -454,7 +455,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'ACCESOS RÁPIDOS',
+          'ACCESOS R�PIDOS',
           style: TextStyle(
             color: Colors.white70,
             fontSize: 12,
@@ -471,14 +472,14 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
               runSpacing: spacing,
               children: [
                 _buildQuickCard(
-                  title: 'Mi Envío / Seguimiento',
+                  title: 'Mi Env�o / Seguimiento',
                   subtitle: 'Estado de entrega Andreani',
                   icon: Icons.local_shipping_outlined,
                   category: _catEnvios,
                   width: width,
                 ),
                 _buildQuickCard(
-                  title: 'Pagos y Facturación',
+                  title: 'Pagos y Facturaci�n',
                   subtitle: 'Mercado Pago y Factura A',
                   icon: Icons.credit_card_rounded,
                   category: _catPagos,
@@ -486,7 +487,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                 ),
                 _buildQuickCard(
                   title: 'Cambios y Devoluciones',
-                  subtitle: 'Plazos y costos de envío',
+                  subtitle: 'Plazos y costos de env�o',
                   icon: Icons.loop_rounded,
                   category: _catCambios,
                   width: width,
@@ -608,13 +609,13 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
             const Icon(Icons.search_off_rounded, color: Colors.white38, size: 40),
             const SizedBox(height: 12),
             Text(
-              'No encontramos resultados para tu búsqueda.',
+              'No encontramos resultados para tu b�squeda.',
               style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 13),
             ),
             const SizedBox(height: 8),
             TextButton(
               onPressed: _clearSearch,
-              child: const Text('Limpiar búsqueda', style: TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold)),
+              child: const Text('Limpiar b�squeda', style: TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -669,12 +670,12 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                 ),
                 child: Text(
                   faq.category == _catEnvios
-                      ? '📦'
+                      ? '??'
                       : faq.category == _catPagos
-                          ? '💳'
+                          ? '??'
                           : faq.category == _catCambios
-                              ? '🔄'
-                              : '❌',
+                              ? '??'
+                              : '?',
                   style: const TextStyle(fontSize: 13),
                 ),
               ),
@@ -744,29 +745,31 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
           ),
           const SizedBox(height: 16),
           const Text(
-            '¿No encontraste lo que buscabas?',
+            '�No encontraste lo que buscabas?',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 6),
           Text(
-            'Charlá con un tripulante del equipo de soporte en tiempo real.',
+            'Charl� con un tripulante del equipo de soporte en tiempo real.',
             style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 13),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: _launchWhatsApp,
-            icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
-            label: const Text('HABLAR CON SOPORTE', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 0.5)),
-            style: ElevatedButton.styleFrom(
+          SafeElevatedIconButton(
+  onPressed: _launchWhatsApp,
+  icon: Icons.chat_bubble_outline_rounded,
+  iconSize: 18,
+  label: 'HABLAR CON SOPORTE',
+  textStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 0.5),
+  style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF00E676),
               foregroundColor: Colors.black87,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 15),
               elevation: 4,
             ),
-          ),
+),
         ],
       ),
     );
@@ -782,7 +785,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
           const Icon(Icons.anchor_rounded, color: Colors.white30, size: 28),
           const SizedBox(height: 8),
           Text(
-            'EL GUIA YA — Tienda Oficial',
+            'EL GUIA YA � Tienda Oficial',
             style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 10, letterSpacing: 1),
           ),
         ],

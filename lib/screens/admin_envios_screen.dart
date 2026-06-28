@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../widgets/safe_button.dart';
 
 /// Módulo de Gestión de Envíos del Administrador.
 /// Permite crear, editar y activar/desactivar servicios de transporte
@@ -232,14 +233,15 @@ class _AdminEnviosScreenState extends State<AdminEnviosScreen> {
               onPressed: () => Navigator.pop(ctx),
               child: const Text('Cancelar'),
             ),
-            ElevatedButton.icon(
+            SafeElevatedIconButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: _verde,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
-              icon: const Icon(Icons.save, size: 18),
-              label: const Text('Guardar'),
+              icon: Icons.save,
+              iconSize: 18,
+              label: 'Guardar',
               onPressed: () {
                 if (nombreCtrl.text.trim().isEmpty || tarifaCtrl.text.trim().isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -475,16 +477,12 @@ class _AdminEnviosScreenState extends State<AdminEnviosScreen> {
               children: [
                 // Toggle activo/inactivo
                 Expanded(
-                  child: OutlinedButton.icon(
+                  child: SafeOutlinedIconButton(
                     onPressed: () => _toggleActivo(id, activo),
-                    icon: Icon(
-                      activo ? Icons.toggle_on : Icons.toggle_off,
-                      color: activo ? _verde : Colors.grey,
-                    ),
-                    label: Text(
-                      activo ? 'Desactivar' : 'Activar',
-                      style: TextStyle(color: activo ? _verde : Colors.grey),
-                    ),
+                    icon: activo ? Icons.toggle_on : Icons.toggle_off,
+                    iconColor: activo ? _verde : Colors.grey,
+                    label: activo ? 'Desactivar' : 'Activar',
+                    textStyle: TextStyle(color: activo ? _verde : Colors.grey),
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: activo ? _verde : Colors.grey.shade300),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),

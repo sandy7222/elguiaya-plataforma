@@ -1,8 +1,9 @@
-﻿
+
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'safe_button.dart';
 
 import '../models/perfil_capitan.dart';
 
@@ -385,27 +386,27 @@ class _GeofencingConfigWidgetState extends State<GeofencingConfigWidget> {
           Row(
             children: [
               Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => _mostrarDialogoRadio(),
-                  icon: const Icon(Icons.radio_button_checked),
-                  label: const Text('Radio'),
-                  style: OutlinedButton.styleFrom(
+                child: SafeOutlinedIconButton(
+  onPressed: () => _mostrarDialogoRadio(),
+  icon: Icons.radio_button_checked,
+  label: 'Radio',
+  style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFF0D47A1),
                     side: const BorderSide(color: Color(0xFF0D47A1)),
                   ),
-                ),
+),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: _guardarConfiguracion,
-                  icon: const Icon(Icons.save),
-                  label: const Text('Guardar'),
-                  style: ElevatedButton.styleFrom(
+                child: SafeElevatedIconButton(
+  onPressed: _guardarConfiguracion,
+  icon: Icons.save,
+  label: 'Guardar',
+  style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0D47A1),
                     foregroundColor: Colors.white,
                   ),
-                ),
+),
               ),
             ],
           ),

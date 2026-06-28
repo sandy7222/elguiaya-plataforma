@@ -7,6 +7,7 @@ import 'package:capitanya_master/services/supabase_service.dart';
 import 'package:capitanya_master/services/storage_service.dart';
 import 'package:capitanya_master/utils/cya_styles.dart';
 import 'dart:ui' as ui;
+import '../widgets/safe_button.dart';
 
 class PortalCapitanSuspendidoScreen extends StatefulWidget {
   const PortalCapitanSuspendidoScreen({super.key});
@@ -253,8 +254,8 @@ class _PortalCapitanSuspendidoScreenState extends State<PortalCapitanSuspendidoS
                     const Text('Foto de la credencial:', style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     imagenSeleccionada == null
-                        ? OutlinedButton.icon(
-                            onPressed: () async {
+                        ? SafeOutlinedIconButton(
+  onPressed: () async {
                               final picker = ImagePicker();
                               final file = await picker.pickImage(
                                 source: ImageSource.camera,
@@ -266,14 +267,16 @@ class _PortalCapitanSuspendidoScreenState extends State<PortalCapitanSuspendidoS
                                 });
                               }
                             },
-                            icon: const Icon(Icons.camera_alt, color: Color(0xFFFFA000)),
-                            label: const Text('TOMAR FOTO', style: TextStyle(color: Colors.white70)),
-                            style: OutlinedButton.styleFrom(
+  icon: Icons.camera_alt,
+  iconColor: const Color(0xFFFFA000),
+  label: 'TOMAR FOTO',
+  textStyle: TextStyle(color: Colors.white70),
+  style: OutlinedButton.styleFrom(
                               side: BorderSide(color: const Color(0xFFFFA000).withOpacity(0.5)),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               minimumSize: const Size(double.infinity, 45),
                             ),
-                          )
+)
                         : Container(
                             height: 120,
                             width: double.infinity,
@@ -556,14 +559,13 @@ class _PortalCapitanSuspendidoScreenState extends State<PortalCapitanSuspendidoS
                         
                         const SizedBox(height: 16),
                         
-                        TextButton.icon(
-                          onPressed: _cerrarSesion,
-                          icon: const Icon(Icons.exit_to_app, color: Colors.white60),
-                          label: const Text(
-                            'Cerrar Sesión',
-                            style: TextStyle(color: Colors.white60, fontSize: 15, fontWeight: FontWeight.w600),
-                          ),
-                        ),
+                        SafeTextIconButton(
+  onPressed: _cerrarSesion,
+  icon: Icons.exit_to_app,
+  iconColor: Colors.white60,
+  label: 'Cerrar Sesión',
+  textStyle: TextStyle(color: Colors.white60, fontSize: 15, fontWeight: FontWeight.w600),
+),
                       ],
                     ),
                   ),

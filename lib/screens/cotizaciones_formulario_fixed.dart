@@ -1,6 +1,7 @@
-﻿
+
 
 import 'package:flutter/material.dart';
+import '../widgets/safe_button.dart';
 
 import '../services/cotizaciones_service.dart';
 
@@ -222,7 +223,7 @@ class _CotizacionesFormularioScreenState extends State<CotizacionesFormularioScr
             children: [
               // Informacion basica
               _buildSectionCard(
-                title: '📋 Informacion Basica',
+                title: '?? Informacion Basica',
                 children: [
                   TextFormField(
                     controller: _tituloController,
@@ -317,7 +318,7 @@ class _CotizacionesFormularioScreenState extends State<CotizacionesFormularioScr
               
               // Items del presupuesto
               _buildSectionCard(
-                title: '💰 Items del Presupuesto',
+                title: '?? Items del Presupuesto',
                 children: [
                   ..._items.asMap().entries.map((entry) {
                     final index = entry.key;
@@ -327,15 +328,16 @@ class _CotizacionesFormularioScreenState extends State<CotizacionesFormularioScr
                   
                   const SizedBox(height: 12),
                   
-                  ElevatedButton.icon(
-                    onPressed: _agregarItemVacio,
-                    icon: const Icon(Icons.add, color: _blancoPuro),
-                    label: const Text('Agregar Item'),
-                    style: ElevatedButton.styleFrom(
+                  SafeElevatedIconButton(
+  onPressed: _agregarItemVacio,
+  icon: Icons.add,
+  iconColor: _blancoPuro,
+  label: 'Agregar Item',
+  style: ElevatedButton.styleFrom(
                       backgroundColor: _azulVibrante,
                       foregroundColor: _blancoPuro,
                     ),
-                  ),
+),
                 ],
               ),
               
@@ -343,17 +345,17 @@ class _CotizacionesFormularioScreenState extends State<CotizacionesFormularioScr
               
               // Informacion adicional
               _buildSectionCard(
-                title: '📝 Informacion Adicional',
+                title: '?? Informacion Adicional',
                 children: [
                   TextFormField(
                     controller: _incluyeController,
-                    decoration: _buildInputDecoration('¿Que incluye? (separado por comas)'),
+                    decoration: _buildInputDecoration('�Que incluye? (separado por comas)'),
                     maxLines: 2,
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _noIncluyeController,
-                    decoration: _buildInputDecoration('¿Que NO incluye? (separado por comas)'),
+                    decoration: _buildInputDecoration('�Que NO incluye? (separado por comas)'),
                     maxLines: 2,
                   ),
                   const SizedBox(height: 12),
@@ -557,7 +559,7 @@ class _CotizacionesFormularioScreenState extends State<CotizacionesFormularioScr
       context: context,
       builder: (context) => AlertDialog(
         title: const Text(
-          '📤 Enviar Mensaje al Pescador',
+          '?? Enviar Mensaje al Pescador',
           style: TextStyle(
             color: _fondoOscuro,
             fontWeight: FontWeight.bold,

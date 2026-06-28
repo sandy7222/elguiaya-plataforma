@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../widgets/safe_button.dart';
 import '../services/supabase_service.dart';
 
 class AdminAlertasScreen extends StatefulWidget {
@@ -329,10 +330,10 @@ class _AdminAlertasScreenState extends State<AdminAlertasScreen>
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
-            child: ElevatedButton.icon(
+            child: SafeElevatedIconButton(
               onPressed: _marcarCotizacionesEnRiesgo,
-              icon: const Icon(Icons.search),
-              label: const Text('Buscar Cotizaciones en Riesgo'),
+              icon: Icons.search,
+              label: 'Buscar cotizaciones en riesgo',
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orange,
                 foregroundColor: Colors.white,
@@ -610,12 +611,12 @@ class _AdminAlertasScreenState extends State<AdminAlertasScreen>
               Row(
                 children: [
                   Expanded(
-                    child: ElevatedButton.icon(
+                    child: SafeElevatedIconButton(
                       onPressed: () {
                         // Navegar a detalles de cotizacion
                       },
-                      icon: const Icon(Icons.visibility),
-                      label: const Text('Ver Cotizacion'),
+                      icon: Icons.visibility,
+                      label: 'Ver cotización',
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF0D47A1),
                         foregroundColor: Colors.white,
@@ -624,10 +625,10 @@ class _AdminAlertasScreenState extends State<AdminAlertasScreen>
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: ElevatedButton.icon(
+                    child: SafeElevatedIconButton(
                       onPressed: () => _marcarComoNotificada(alertaData['id']),
-                      icon: const Icon(Icons.check),
-                      label: const Text('Marcar Notificada'),
+                      icon: Icons.check,
+                      label: 'Marcar notificada',
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                         foregroundColor: Colors.white,

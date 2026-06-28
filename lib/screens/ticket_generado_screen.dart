@@ -1,6 +1,7 @@
-ï»¿
+
 
 import 'package:flutter/material.dart';
+import '../widgets/safe_button.dart';
 
 class TicketGeneradoScreen extends StatelessWidget {
   const TicketGeneradoScreen({super.key, this.invoice, this.paymentData});
@@ -71,7 +72,7 @@ class TicketGeneradoScreen extends StatelessWidget {
                   Icon(Icons.check_circle, color: _blancoPuro, size: 48),
                   const SizedBox(height: 12),
                   Text(
-                    'âœ… TICKET FISCAL GENERADO',
+                    '? TICKET FISCAL GENERADO',
                     style: TextStyle(
                       color: _blancoPuro,
                       fontSize: 24,
@@ -157,21 +158,21 @@ class TicketGeneradoScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'â€¢ Este ticket es un comprobante fiscal valido',
+                          '• Este ticket es un comprobante fiscal valido',
                           style: TextStyle(
                             color: _fondoOscuro,
                             fontSize: 12,
                           ),
                         ),
                         Text(
-                          'â€¢ Se ha registrado en el sistema tributario',
+                          '• Se ha registrado en el sistema tributario',
                           style: TextStyle(
                             color: _fondoOscuro,
                             fontSize: 12,
                           ),
                         ),
                         Text(
-                          'â€¢ Para consultas fiscales, conservar este documento',
+                          '• Para consultas fiscales, conservar este documento',
                           style: TextStyle(
                             color: _fondoOscuro,
                             fontSize: 12,
@@ -194,8 +195,8 @@ class TicketGeneradoScreen extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     height: 56,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
+                    child: SafeElevatedIconButton(
+  onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Column(
@@ -209,12 +210,11 @@ class TicketGeneradoScreen extends StatelessWidget {
                           ),
                         );
                       },
-                      icon: Icon(Icons.download, color: _blancoPuro),
-                      label: Text(
-                        'DESCARGAR TICKET',
-                        style: TextStyle(color: _blancoPuro, fontWeight: FontWeight.bold),
-                      ),
-                      style: ElevatedButton.styleFrom(
+  icon: Icons.download,
+  iconColor: _blancoPuro,
+  label: 'DESCARGAR TICKET',
+  textStyle: TextStyle(color: _blancoPuro, fontWeight: FontWeight.bold),
+  style: ElevatedButton.styleFrom(
                         backgroundColor: _azulVibrante,
                         foregroundColor: _blancoPuro,
                         elevation: 6,
@@ -223,32 +223,31 @@ class TicketGeneradoScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                    ),
+),
                   ),
                   const SizedBox(height: 12),
                   SizedBox(
                     width: double.infinity,
                     height: 48,
-                    child: OutlinedButton.icon(
-                      onPressed: () {
+                    child: SafeOutlinedIconButton(
+  onPressed: () {
                         Navigator.of(context).pop();
                       },
-                      icon: Icon(Icons.arrow_back, color: _verdeBrillante),
-                      label: Text(
-                        'VOLVER AL INICIO',
-                        style: TextStyle(
+  icon: Icons.arrow_back,
+  iconColor: _verdeBrillante,
+  label: 'VOLVER AL INICIO',
+  textStyle: TextStyle(
                           color: _verdeBrillante,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
-                      ),
-                      style: OutlinedButton.styleFrom(
+  style: OutlinedButton.styleFrom(
                         side: BorderSide(color: _verdeBrillante),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                    ),
+),
                   ),
                 ],
               ),

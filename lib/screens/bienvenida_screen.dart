@@ -1,6 +1,7 @@
 
 
 import 'dart:async';
+import '../widgets/safe_button.dart';
 
 import 'package:flutter/material.dart';
 
@@ -218,34 +219,30 @@ class _BienvenidaScreenState extends State<BienvenidaScreen> {
                   ],
                 )
               : CYAStyles.glassCard(opacity: 0.08),
-          child: ElevatedButton.icon(
-            onPressed: () {
+          child: SafeElevatedIconButton(
+  onPressed: () {
               setState(() {
                 _rolSeleccionado = 'pescador';
               });
             },
-            icon: Icon(
-              Icons.sailing,
-              color: Colors.white,
-              size: 24,
-            ),
-            label: const Text(
-              'EL PESCADOR',
-              style: TextStyle(
+  icon: Icons.sailing,
+  iconSize: 24,
+  iconColor: Colors.white,
+  label: 'EL PESCADOR',
+  textStyle: TextStyle(
                 color: Colors.white,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1.2,
               ),
-            ),
-            style: ElevatedButton.styleFrom(
+  style: ElevatedButton.styleFrom(
               backgroundColor: Colors.transparent,
               shadowColor: Colors.transparent,
               shape: RoundedRectangleBorder(
                 borderRadius: CYAStyles.radiusMedium,
               ),
             ),
-          ),
+),
         ),
         
         const SizedBox(height: 16),
@@ -271,34 +268,30 @@ class _BienvenidaScreenState extends State<BienvenidaScreen> {
                   ],
                 )
               : CYAStyles.glassCard(opacity: 0.08),
-          child: ElevatedButton.icon(
-            onPressed: () {
+          child: SafeElevatedIconButton(
+  onPressed: () {
               setState(() {
                 _rolSeleccionado = 'capitan';
               });
             },
-            icon: Icon(
-              Icons.anchor,
-              color: Colors.white,
-              size: 24,
-            ),
-            label: const Text(
-              'EL CAPITAN',
-              style: TextStyle(
+  icon: Icons.anchor,
+  iconSize: 24,
+  iconColor: Colors.white,
+  label: 'EL CAPITAN',
+  textStyle: TextStyle(
                 color: Colors.white,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1.2,
               ),
-            ),
-            style: ElevatedButton.styleFrom(
+  style: ElevatedButton.styleFrom(
               backgroundColor: Colors.transparent,
               shadowColor: Colors.transparent,
               shape: RoundedRectangleBorder(
                 borderRadius: CYAStyles.radiusMedium,
               ),
             ),
-          ),
+),
         ),
       ],
     );

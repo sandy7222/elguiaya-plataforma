@@ -1,11 +1,11 @@
-Ôªøimport 'dart:ui';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Capitanes se califican con anclas ‚öì; pescadores con anzuelos ü™ù.
+/// Capitanes se califican con anclas ?; pescadores con anzuelos ??.
 enum ReputacionTipo { capitan, pescador }
 
-/// Widget reutilizable que muestra el promedio de reputaci√≥n de un usuario.
+/// Widget reutilizable que muestra el promedio de reputaciÛn de un usuario.
 ///
 /// Uso:
 ///   ReputacionBadgeWidget(userId: 'uuid', tipo: ReputacionTipo.pescador)
@@ -13,7 +13,7 @@ class ReputacionBadgeWidget extends StatefulWidget {
   final String userId;
   final ReputacionTipo tipo;
 
-  /// Si [compact] = true muestra solo el promedio num√©rico y 1 icono.
+  /// Si [compact] = true muestra solo el promedio numÈrico y 1 icono.
   /// Si false, muestra la fila completa con iconos y contador.
   final bool compact;
 
@@ -74,7 +74,7 @@ class _ReputacionBadgeWidgetState extends State<ReputacionBadgeWidget> {
       return;
     }
     try {
-      // 1) Intentar tabla de reputaci√≥n cacheada
+      // 1) Intentar tabla de reputaciÛn cacheada
       final tabla = widget.tipo == ReputacionTipo.pescador
           ? 'reputacion_pescadores'
           : 'reputacion_capitanes';
@@ -149,7 +149,7 @@ class _ReputacionBadgeWidgetState extends State<ReputacionBadgeWidget> {
   String get _nivelLabel {
     switch (_nivel) {
       case 'elite':
-        return '√âlite';
+        return '…lite';
       case 'experto':
         return 'Experto';
       case 'intermedio':
@@ -178,7 +178,7 @@ class _ReputacionBadgeWidgetState extends State<ReputacionBadgeWidget> {
           border: Border.all(color: Colors.white10),
         ),
         child: Text(
-          'Sin $_etiquetaTipo a√∫n',
+          'Sin $_etiquetaTipo a˙n',
           style: const TextStyle(color: Colors.white38, fontSize: 10),
         ),
       );
@@ -250,7 +250,7 @@ class _ReputacionBadgeWidgetState extends State<ReputacionBadgeWidget> {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    '$_total ¬∑ $_nivelLabel',
+                    '$_total ∑ $_nivelLabel',
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.5),
                       fontSize: 10,

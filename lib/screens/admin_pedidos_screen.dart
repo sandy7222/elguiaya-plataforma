@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../widgets/safe_button.dart';
 import '../services/supabase_service.dart';
 import '../services/pago_service.dart';
 import '../services/storage_service.dart';
@@ -295,13 +296,13 @@ class AdminPedidosScreen extends StatelessWidget {
                 const SizedBox(height: 12),
                 const Divider(),
                 const SizedBox(height: 8),
-                ElevatedButton.icon(
+                SafeElevatedIconButton(
                   onPressed: () {
                     Navigator.pop(context); // Cerrar dialog actual
                     _verificarYProcesarReembolso(context, pedidoIdRaw);
                   },
-                  icon: const Icon(Icons.settings_backup_restore_rounded),
-                  label: const Text('Procesar Reembolso MP 💸'),
+                  icon: Icons.settings_backup_restore_rounded,
+                  label: 'Procesar reembolso MP',
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFEF4444),
                     foregroundColor: Colors.white,
@@ -500,7 +501,7 @@ class AdminPedidosScreen extends StatelessWidget {
                         ? Row(
                             children: [
                               Expanded(
-                                child: ElevatedButton.icon(
+                                child: SafeElevatedIconButton(
                                   onPressed: isUploading ? null : () async {
                                     final picked = await StorageService.pickImageFromGallery();
                                     if (picked != null) {
@@ -509,8 +510,10 @@ class AdminPedidosScreen extends StatelessWidget {
                                       });
                                     }
                                   },
-                                  icon: const Icon(Icons.photo_library_outlined, size: 18),
-                                  label: const Text('Galería', style: TextStyle(fontSize: 12)),
+                                  icon: Icons.photo_library_outlined,
+                                  iconSize: 18,
+                                  label: 'Galería',
+                                  textStyle: const TextStyle(fontSize: 12, color: Colors.white),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFF334155),
                                     foregroundColor: Colors.white,
@@ -520,7 +523,7 @@ class AdminPedidosScreen extends StatelessWidget {
                               ),
                               const SizedBox(width: 8),
                               Expanded(
-                                child: ElevatedButton.icon(
+                                child: SafeElevatedIconButton(
                                   onPressed: isUploading ? null : () async {
                                     final captured = await StorageService.captureImageFromCamera();
                                     if (captured != null) {
@@ -529,8 +532,10 @@ class AdminPedidosScreen extends StatelessWidget {
                                       });
                                     }
                                   },
-                                  icon: const Icon(Icons.camera_alt_outlined, size: 18),
-                                  label: const Text('Cámara', style: TextStyle(fontSize: 12)),
+                                  icon: Icons.camera_alt_outlined,
+                                  iconSize: 18,
+                                  label: 'Cámara',
+                                  textStyle: const TextStyle(fontSize: 12, color: Colors.white),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFF334155),
                                     foregroundColor: Colors.white,

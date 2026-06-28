@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/supabase_service.dart';
+import '../widgets/safe_button.dart';
 
 class AdminLiquidacionScreen extends StatefulWidget {
   const AdminLiquidacionScreen({super.key});
@@ -647,11 +648,12 @@ class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
                                                   // Botón Confirmar Transferencia Realizada
                                                   SizedBox(
                                                     width: double.infinity,
-                                                    child: ElevatedButton.icon(
-                                                      onPressed: () => _confirmarPago(liq),
-                                                      icon: const Icon(Icons.check_circle_outline_rounded, size: 18),
-                                                      label: const Text('CONFIRMAR TRANSFERENCIA REALIZADA'),
-                                                      style: ElevatedButton.styleFrom(
+                                                    child: SafeElevatedIconButton(
+  onPressed: () => _confirmarPago(liq),
+  icon: Icons.check_circle_outline_rounded,
+  iconSize: 18,
+  label: 'CONFIRMAR TRANSFERENCIA REALIZADA',
+  style: ElevatedButton.styleFrom(
                                                         backgroundColor: const Color(0xFF00E676),
                                                         foregroundColor: Colors.black87,
                                                         textStyle: const TextStyle(
@@ -663,7 +665,7 @@ class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
                                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                                         elevation: 6,
                                                       ),
-                                                    ),
+),
                                                   ),
                                                 ],
                                               ),

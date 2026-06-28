@@ -2,6 +2,7 @@
 
 
 import 'dart:typed_data';
+import '../widgets/safe_button.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -740,30 +741,30 @@ class _BrandingEditorScreenState extends State<BrandingEditorScreen> {
                 const SizedBox(width: 16),
                 Column(
                   children: [
-                    ElevatedButton.icon(
-                      onPressed: _seleccionarLogo,
-                      icon: const Icon(Icons.photo_library),
-                      label: const Text('Seleccionar'),
-                      style: ElevatedButton.styleFrom(
+                    SafeElevatedIconButton(
+  onPressed: _seleccionarLogo,
+  icon: Icons.photo_library,
+  label: 'Seleccionar',
+  style: ElevatedButton.styleFrom(
                         backgroundColor: _colorPrimarioApp,
                         foregroundColor: Colors.white,
                       ),
-                    ),
+),
                     if (_selectedLogo != null) ...[
                       const SizedBox(height: 8),
-                      ElevatedButton.icon(
+                      ElevatedButton(
                         onPressed: _isUploading ? null : _subirLogo,
-                        icon: _isUploading
-                            ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : const Icon(Icons.upload),
-                        label: Text(_isUploading ? 'Subiendo...' : 'Subir'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
                           foregroundColor: Colors.white,
+                        ),
+                        child: SafeButtonLoadingContent(
+                          loading: _isUploading,
+                          icon: Icons.upload,
+                          idleLabel: 'Subir',
+                          loadingLabel: 'Subiendo...',
+                          textStyle: const TextStyle(color: Colors.white),
+                          spinnerColor: Colors.white,
                         ),
                       ),
                     ],
@@ -821,30 +822,30 @@ class _BrandingEditorScreenState extends State<BrandingEditorScreen> {
                 const SizedBox(width: 16),
                 Column(
                   children: [
-                    ElevatedButton.icon(
-                      onPressed: _seleccionarFavicon,
-                      icon: const Icon(Icons.photo_library),
-                      label: const Text('Seleccionar'),
-                      style: ElevatedButton.styleFrom(
+                    SafeElevatedIconButton(
+  onPressed: _seleccionarFavicon,
+  icon: Icons.photo_library,
+  label: 'Seleccionar',
+  style: ElevatedButton.styleFrom(
                         backgroundColor: _colorPrimarioApp,
                         foregroundColor: Colors.white,
                       ),
-                    ),
+),
                     if (_selectedFavicon != null) ...[
                       const SizedBox(height: 8),
-                      ElevatedButton.icon(
+                      ElevatedButton(
                         onPressed: _isUploading ? null : _subirFavicon,
-                        icon: _isUploading
-                            ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : const Icon(Icons.upload),
-                        label: Text(_isUploading ? 'Subiendo...' : 'Subir'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
                           foregroundColor: Colors.white,
+                        ),
+                        child: SafeButtonLoadingContent(
+                          loading: _isUploading,
+                          icon: Icons.upload,
+                          idleLabel: 'Subir',
+                          loadingLabel: 'Subiendo...',
+                          textStyle: const TextStyle(color: Colors.white),
+                          spinnerColor: Colors.white,
                         ),
                       ),
                     ],
@@ -975,30 +976,30 @@ class _BrandingEditorScreenState extends State<BrandingEditorScreen> {
             // Botones de accion
             Row(
               children: [
-                ElevatedButton.icon(
-                  onPressed: _seleccionarBackground,
-                  icon: const Icon(Icons.photo_library),
-                  label: const Text('Seleccionar Fondo'),
-                  style: ElevatedButton.styleFrom(
+                SafeElevatedIconButton(
+  onPressed: _seleccionarBackground,
+  icon: Icons.photo_library,
+  label: 'Seleccionar Fondo',
+  style: ElevatedButton.styleFrom(
                     backgroundColor: _colorPrimarioApp,
                     foregroundColor: Colors.white,
                   ),
-                ),
+),
                 if (_selectedBackground != null) ...[
                   const SizedBox(width: 8),
-                  ElevatedButton.icon(
+                  ElevatedButton(
                     onPressed: _isUploading ? null : _subirBackground,
-                    icon: _isUploading
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.upload),
-                    label: Text(_isUploading ? 'Subiendo...' : 'Subir'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                       foregroundColor: Colors.white,
+                    ),
+                    child: SafeButtonLoadingContent(
+                      loading: _isUploading,
+                      icon: Icons.upload,
+                      idleLabel: 'Subir',
+                      loadingLabel: 'Subiendo...',
+                      textStyle: const TextStyle(color: Colors.white),
+                      spinnerColor: Colors.white,
                     ),
                   ),
                 ],
@@ -1304,37 +1305,34 @@ class _BrandingEditorScreenState extends State<BrandingEditorScreen> {
             Row(
               children: [
                 Expanded(
-                  child: ElevatedButton.icon(
+                  child: ElevatedButton(
                     onPressed: _isLoading ? null : _guardarConfiguracion,
-                    icon: _isLoading
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Icon(Icons.save),
-                    label: Text(_isLoading ? 'Guardando...' : 'Guardar Configuracion'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _colorPrimarioApp,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
+                    child: SafeButtonLoadingContent(
+                      loading: _isLoading,
+                      icon: Icons.save,
+                      idleLabel: 'Guardar configuración',
+                      loadingLabel: 'Guardando...',
+                      textStyle: const TextStyle(color: Colors.white),
+                      spinnerColor: Colors.white,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
-                ElevatedButton.icon(
-                  onPressed: _restablecerValoresPorDefecto,
-                  icon: const Icon(Icons.restore),
-                  label: const Text('Restablecer'),
-                  style: ElevatedButton.styleFrom(
+                SafeElevatedIconButton(
+  onPressed: _restablecerValoresPorDefecto,
+  icon: Icons.restore,
+  label: 'Restablecer',
+  style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orange,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
-                ),
+),
               ],
             ),
           ],

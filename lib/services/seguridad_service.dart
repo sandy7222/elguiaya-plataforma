@@ -1,4 +1,4 @@
-Ôªø
+
 import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -296,7 +296,7 @@ class SeguridadService {
         LogAuditoria(
           id: 'mock-1',
           tipoAccion: 'info',
-          detalles: 'El sistema est√° operando en modo local/recuperaci√≥n. Por favor ejecuta el script sql/fix_seguridad_completo.sql en Supabase.',
+          detalles: 'El sistema est· operando en modo local/recuperaciÛn. Por favor ejecuta el script sql/fix_seguridad_completo.sql en Supabase.',
           creadoAt: DateTime.now(),
           adminEmail: 'sistema@El Guia YA.com',
           adminNombre: 'Sistema',
@@ -333,7 +333,7 @@ class SeguridadService {
         LogAuditoria(
           id: 'mock-1',
           tipoAccion: 'info',
-          detalles: 'El sistema est√° operando en modo local/recuperaci√≥n.',
+          detalles: 'El sistema est· operando en modo local/recuperaciÛn.',
           creadoAt: DateTime.now(),
           adminEmail: 'sistema@El Guia YA.com',
           adminNombre: 'Sistema',

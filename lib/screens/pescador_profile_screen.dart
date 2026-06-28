@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../widgets/safe_button.dart';
 
 import '../models/cotizacion.dart';
 import '../services/supabase_service.dart';
@@ -20,8 +21,7 @@ class _PescadorProfileScreenState extends State<PescadorProfileScreen>
   bool _isLoading = true;
   RealtimeChannel? _cotizacionesChannel;
   
-  // ID de prueba para el pescador (sin Auth)
-  final String _pescadorId = '11111111-1111-1111-1111-111111111111';
+  String get _pescadorId => SupabaseService.currentUserId ?? '';
 
   @override
   bool get wantKeepAlive => true;
@@ -457,18 +457,18 @@ class _PescadorProfileScreenState extends State<PescadorProfileScreen>
                   Container(
                     width: double.infinity,
                     margin: const EdgeInsets.all(16),
-                    child: ElevatedButton.icon(
-                      onPressed: _crearNuevaCotizacion,
-                      icon: const Icon(Icons.add),
-                      label: const Text('Nueva Solicitud de Cotizacion'),
-                      style: ElevatedButton.styleFrom(
+                    child: SafeElevatedIconButton(
+  onPressed: _crearNuevaCotizacion,
+  icon: Icons.add,
+  label: 'Nueva Solicitud de Cotizacion',
+  style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF0D47A1),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         elevation: 2,
                       ),
-                    ),
+),
                   ),
                   
                   // Lista de cotizaciones

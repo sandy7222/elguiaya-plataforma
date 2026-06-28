@@ -16,16 +16,17 @@ import 'capitan_identidad_screen.dart';
 import 'capitan_zona_config_screen.dart';
 import 'viajes_programados_screen.dart';
 import '../services/viaje_lifecycle_service.dart';
-import '../services/viaje_tracking_service.dart';
-import '../services/gps_tracker_service.dart';
+import '../services/viaje_gps_coordinator.dart';
 import '../services/core_business_logic.dart';
 import 'solicitud_detalle_screen.dart';
 import '../widgets/notification_quick_view.dart';
 import '../widgets/calendario_viajes_widget.dart';
+import '../utils/view_insets.dart';
 import 'mi_calendario_screen.dart'; // Pantalla de administración de disponibilidad del Capitán (Almanaque)
 import 'capitan_vidriera_screen.dart'; // Pantalla de la Góndola del Capitán
 import '../widgets/calificacion_pescador_dialog.dart';
 import '../widgets/reputacion_badge_widget.dart';
+import '../widgets/safe_button.dart';
 import '../widgets/radar_scanner_widget.dart';
 
 class CapitanPanelScreen extends StatefulWidget {
@@ -51,9 +52,7 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
   String? _mensajeAlertaRuta;
   String _estadoCuenta = 'activo';
 
-  // ID centralizado del Modo Obra
-  String get _capitanId =>
-      SupabaseService.currentUserId ?? '22222222-2222-2222-2222-222222222222';
+  String get _capitanId => SupabaseService.currentUserId ?? '';
 
   @override
   bool get wantKeepAlive => true;
@@ -437,7 +436,12 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
                   color: Colors.blueAccent,
                   backgroundColor: const Color(0xFF0A192F),
                   child: ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: EdgeInsets.fromLTRB(
+                      16,
+                      12,
+                      16,
+                      ViewInsets.systemBottomPadding(context, extra: 24),
+                    ),
                     children: [
                       _buildUserInfoHeader(),
                       const SizedBox(height: 12),
@@ -475,7 +479,6 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
                       
                       _buildHistoryHeader(),
                       _buildListaCotizaciones(),
-                      const SizedBox(height: 100),
                     ],
                   ),
                 ),
@@ -1433,13 +1436,11 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
                             pedidoId: cot.id,
                             capitanId: _capitanId,
                           );
-                          // 🚀 Activar GPS tracking del capitán
-                          GpsTrackerService().startTracking(_capitanId);
                           _cargarDatos();
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('⛵ Viaje ${cot.codigoCorto} INICIADO — GPS activo'),
+                                content: Text('⛵ Viaje ${cot.codigoCorto} iniciado'),
                                 backgroundColor: const Color(0xFF00E676),
                                 behavior: SnackBarBehavior.floating,
                               ),
@@ -1481,8 +1482,6 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
                                 pedidoId: cot.id,
                                 capitanId: _capitanId,
                               );
-                              // 🛑 Detener GPS tracking al finalizar el viaje
-                              GpsTrackerService().stopTracking();
                               _cargarDatos();
                               if (mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -1629,13 +1628,17 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
           children: [
             Icon(icon, color: textColor, size: 24),
             const SizedBox(height: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: textColor,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-                letterSpacing: 0.5,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: SafeButtonText(
+                label,
+                style: TextStyle(
+                  color: textColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11,
+                  letterSpacing: 0.3,
+                ),
+                maxLines: 2,
               ),
             ),
           ],
@@ -1669,10 +1672,6 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
       if (nuevoEstado == Cotizacion.ESTADO_RECHAZADO) {
         await SupabaseService.rechazarCotizacion(id, 'Descartado por el Capitán');
         await _cargarDatos();
-      } else if (nuevoEstado == 'en_curso') {
-        await ViajeTrackingService().startTracking(tripId: id);
-      } else if (nuevoEstado == 'finalizado' || nuevoEstado == 'cancelado') {
-        await ViajeTrackingService().stopTracking();
       }
     } catch (e) {
       print('⚠️ Error al actualizar estado de cotización: $e');
@@ -2137,7 +2136,7 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
               const SizedBox(width: 8),
               
               // Indicador GPS en vivo o Chevron simple
-              if (ViajeTrackingService().isTracking)
+              if (ViajeGpsCoordinator().isActive)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(

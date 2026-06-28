@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../widgets/safe_button.dart';
 
 import 'chat_screen.dart';
 
@@ -130,8 +131,8 @@ class _CapitanVidrieraPublicScreenState extends State<CapitanVidrieraPublicScree
               style: GoogleFonts.outfit(fontSize: 15, color: Colors.grey.shade700),
             ),
             const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: () {
+            SafeElevatedIconButton(
+  onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -145,9 +146,9 @@ class _CapitanVidrieraPublicScreenState extends State<CapitanVidrieraPublicScree
                   ),
                 );
               },
-              icon: const Icon(Icons.message_outlined),
-              label: const Text('Consultar al capitán'),
-            ),
+  icon: Icons.message_outlined,
+  label: 'Consultar al capitán',
+),
           ],
         ),
       ),

@@ -1,11 +1,11 @@
-Ôªøimport 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../services/chat_service.dart';
-import '../services/intent_service.dart'; // El cable para las intenciones de navegaci√≥n por voz/texto
-import '../services/voz_service.dart'; // üîä IMPORTAMOS EL NUEVO SERVICIO DE VOZ
+import '../services/intent_service.dart'; // El cable para las intenciones de navegaciÛn por voz/texto
+import '../services/voz_service.dart'; // ?? IMPORTAMOS EL NUEVO SERVICIO DE VOZ
 
 class ChatScreenSimple extends StatefulWidget {
   final String reservaId;
@@ -48,7 +48,7 @@ class _ChatScreenSimpleState extends State<ChatScreenSimple> {
       reservaId: 'test',
       emisorId: 'el_guia_bot',
       texto:
-          '¬°Hola chamigo! Soy El GuIA, tu robot baqueano. ¬øEn qu√© te puedo ayudar hoy en el r√≠o?',
+          '°Hola chamigo! Soy El GuIA, tu robot baqueano. øEn quÈ te puedo ayudar hoy en el rÌo?',
       tipoEmisor: 'capitan',
       creadoAt: DateTime.now().subtract(const Duration(minutes: 5)),
       leido: true,
@@ -61,7 +61,7 @@ class _ChatScreenSimpleState extends State<ChatScreenSimple> {
     // Forzamos valores fijos para que no rompa si el servicio intenta buscar credenciales
     _tipoEmisorActual = 'pescador';
 
-    // üîä CALENTAMOS LOS MOTORES DE AUDIO DE EL GuIA
+    // ?? CALENTAMOS LOS MOTORES DE AUDIO DE EL GuIA
     VozService.inicializar();
   }
 
@@ -70,7 +70,7 @@ class _ChatScreenSimpleState extends State<ChatScreenSimple> {
     _messageController.dispose();
     _scrollController.dispose();
     _focusNode.dispose();
-    VozService.detener(); // üõë Frenamos la voz si el usuario sale del chat
+    VozService.detener(); // ?? Frenamos la voz si el usuario sale del chat
     super.dispose();
   }
 
@@ -79,11 +79,11 @@ class _ChatScreenSimpleState extends State<ChatScreenSimple> {
     if (texto.isEmpty) return;
 
     // =========================================================
-    // üì° INTERCEPTOR DE COMANDOS CRUCIAL (Navegaci√≥n al Instante)
+    // ?? INTERCEPTOR DE COMANDOS CRUCIAL (NavegaciÛn al Instante)
     // =========================================================
     final textoLimpio = texto.toLowerCase().trim();
 
-    // üó∫Ô∏è 1. MAPA SATELITAL
+    // ??? 1. MAPA SATELITAL
     if (textoLimpio == 'mapa' ||
         textoLimpio.contains('ver mapa') ||
         textoLimpio == 'ver mapa') {
@@ -93,11 +93,11 @@ class _ChatScreenSimpleState extends State<ChatScreenSimple> {
       return;
     }
 
-    // üõí 2. PORTADA DE LA TIENDA
+    // ?? 2. PORTADA DE LA TIENDA
     if (textoLimpio == 'tienda' ||
         textoLimpio.contains('ir a la tienda') ||
         textoLimpio == 'tienda oficial' ||
-        textoLimpio.contains('dir√≠geme a la tienda') ||
+        textoLimpio.contains('dirÌgeme a la tienda') ||
         textoLimpio.contains('dirigeme a la tienda')) {
       _messageController.clear();
       _focusNode.unfocus();
@@ -105,11 +105,11 @@ class _ChatScreenSimpleState extends State<ChatScreenSimple> {
       return;
     }
 
-    // üìã 3. FORMULARIO DE COTIZACI√ìN DE VIAJE
-    if (textoLimpio == 'cotizaci√≥n de viaje' ||
+    // ?? 3. FORMULARIO DE COTIZACI”N DE VIAJE
+    if (textoLimpio == 'cotizaciÛn de viaje' ||
         textoLimpio == 'cotizacion de viaje' ||
         textoLimpio.contains('pedir viaje') ||
-        textoLimpio.contains('formulario de cotizaci√≥n') ||
+        textoLimpio.contains('formulario de cotizaciÛn') ||
         textoLimpio.contains('formulario de cotizacion')) {
       _messageController.clear();
       _focusNode.unfocus();
@@ -117,7 +117,7 @@ class _ChatScreenSimpleState extends State<ChatScreenSimple> {
       return;
     }
 
-    // üì• 4. BANDEJA DE NOTIFICACIONES
+    // ?? 4. BANDEJA DE NOTIFICACIONES
     if (textoLimpio == 'notificaciones' ||
         textoLimpio.contains('ver notificaciones') ||
         textoLimpio.contains('bandeja de notificaciones')) {
@@ -127,7 +127,7 @@ class _ChatScreenSimpleState extends State<ChatScreenSimple> {
       return;
     }
 
-    // üíµ 5. HISTORIAL DE COTIZACIONES Y PRESUPUESTOS
+    // ?? 5. HISTORIAL DE COTIZACIONES Y PRESUPUESTOS
     if (textoLimpio == 'cotizaciones' ||
         textoLimpio.contains('ver cotizaciones') ||
         textoLimpio.contains('mis cotizaciones') ||
@@ -142,7 +142,7 @@ class _ChatScreenSimpleState extends State<ChatScreenSimple> {
 
     setState(() {
       _isSending = true;
-      // Insertamos tu mensaje de forma local e instant√°nea para verlo en pantalla
+      // Insertamos tu mensaje de forma local e instant·nea para verlo en pantalla
       _mensajesSimulados.insert(
         0,
         Mensaje(
@@ -157,16 +157,16 @@ class _ChatScreenSimpleState extends State<ChatScreenSimple> {
       );
     });
 
-    // Simulamos respuesta autom√°tica de El GuIA para probar la voz al toque
+    // Simulamos respuesta autom·tica de El GuIA para probar la voz al toque
     Future.delayed(const Duration(seconds: 1), () {
       if (mounted) {
         setState(() {
           String respuestaBot =
-              "Copiado, chamigo. Analizando tus coordenadas en el Paran√°.";
+              "Copiado, chamigo. Analizando tus coordenadas en el Paran·.";
 
           if (textoLimpio.contains('pesca') || textoLimpio.contains('dorado')) {
             respuestaBot =
-                "Para el dorado en la corredera, metele se√±uelo de paleta larga y tiralo donde el agua remansa, chamigo.";
+                "Para el dorado en la corredera, metele seÒuelo de paleta larga y tiralo donde el agua remansa, chamigo.";
           } else if (textoLimpio.contains('raya') ||
               textoLimpio.contains('picadura')) {
             respuestaBot =
@@ -368,7 +368,7 @@ class _ChatScreenSimpleState extends State<ChatScreenSimple> {
         final ultimo = _mensajesSimulados.first;
         if (ultimo.emisorId == 'el_guia_bot' && !ultimo.leido) {
           ultimo.leido = true; // Lo marcamos como hablado
-          VozService.hablar(ultimo.texto); // üó£Ô∏è ¬°Habla!
+          VozService.hablar(ultimo.texto); // ??? °Habla!
         }
       }
     });
@@ -381,7 +381,7 @@ class _ChatScreenSimpleState extends State<ChatScreenSimple> {
           Expanded(
             child: ListView.builder(
               reverse:
-                  true, // Cambiamos a reverse para manejar la inserci√≥n desde el √≠ndice 0 c√≥modamente
+                  true, // Cambiamos a reverse para manejar la inserciÛn desde el Ìndice 0 cÛmodamente
               controller: _scrollController,
               padding: const EdgeInsets.symmetric(vertical: 8),
               itemCount: _mensajesSimulados.length,
@@ -397,7 +397,7 @@ class _ChatScreenSimpleState extends State<ChatScreenSimple> {
   }
 }
 
-// üì¶ Clase auxiliar local obligatoria para mapear los objetos sin depender del modelo externo
+// ?? Clase auxiliar local obligatoria para mapear los objetos sin depender del modelo externo
 class Mensaje {
   final String id;
   final String reservaId;

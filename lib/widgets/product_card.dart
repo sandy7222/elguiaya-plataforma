@@ -3,6 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'safe_button.dart';
 
 import '../models/producto.dart';
 import '../providers/favoritos_provider.dart';
@@ -165,9 +166,16 @@ class ProductCard extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     height: 34,
-                    child: ElevatedButton.icon(
-                      onPressed: producto.stock > 0 ? onAddToCart : null,
-                      style: ElevatedButton.styleFrom(
+                    child: SafeElevatedIconButton(
+  onPressed: producto.stock > 0 ? onAddToCart : null,
+  icon: Icons.add_shopping_cart,
+  iconSize: 14,
+  label: 'Agregar',
+  textStyle: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+  style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF0D47A1),
                         foregroundColor: Colors.white,
                         disabledBackgroundColor: Colors.grey[200],
@@ -178,15 +186,7 @@ class ProductCard extends StatelessWidget {
                         ),
                         elevation: 0,
                       ),
-                      icon: const Icon(Icons.add_shopping_cart, size: 14),
-                      label: const Text(
-                        'Agregar',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+),
                   ),
                 ],
               ),

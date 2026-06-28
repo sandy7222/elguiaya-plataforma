@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../widgets/safe_button.dart';
 
 import '../services/supabase_service.dart';
 import '../services/billetera_virtual_service.dart';
@@ -23,9 +24,7 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
   Timer? _actualizacionTimer;
   RealtimeChannel? _realtimeChannel;
   
-  // ID centralizado del Modo Obra o usuario autenticado
-  String get _capitanId =>
-      SupabaseService.currentUserId ?? '22222222-2222-2222-2222-222222222222';
+  String get _capitanId => SupabaseService.currentUserId ?? '';
 
   @override
   bool get wantKeepAlive => true;
@@ -742,14 +741,13 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
         borderRadius: BorderRadius.circular(15),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: ElevatedButton.icon(
-            onPressed: _solicitarLiquidacion,
-            icon: const Icon(Icons.account_balance_wallet_rounded, size: 18),
-            label: const Text(
-              'SOLICITAR LIQUIDACIÓN',
-              style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.0),
-            ),
-            style: ElevatedButton.styleFrom(
+          child: SafeElevatedIconButton(
+  onPressed: _solicitarLiquidacion,
+  icon: Icons.account_balance_wallet_rounded,
+  iconSize: 18,
+  label: 'SOLICITAR LIQUIDACIÓN',
+  textStyle: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.0),
+  style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF00E676).withOpacity(0.2),
               foregroundColor: const Color(0xFF00E676),
               elevation: 0,
@@ -759,7 +757,7 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
                 side: BorderSide(color: const Color(0xFF00E676).withOpacity(0.3)),
               ),
             ),
-          ),
+),
         ),
       ),
     );
@@ -1088,7 +1086,7 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
                     backgroundColor: const Color(0xFF0A192F),
                     child: ListView(
                       physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                       children: [
                         // Tarjeta Principal Glassmorphic de Saldo Total
                         _buildTotalBalanceCard(totalBalance, saldoDisponible, saldoAConfirmar),

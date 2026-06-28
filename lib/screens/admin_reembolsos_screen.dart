@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/safe_button.dart';
 import '../services/supabase_service.dart';
 import '../services/pago_service.dart';
 import '../services/mercado_pago_service.dart';
@@ -552,10 +553,11 @@ class _AdminReembolsosScreenState extends State<AdminReembolsosScreen> {
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
                                         if (metodo == 'mercado_pago' && transaccionId != 'N/A' && transaccionId.isNotEmpty) ...[
-                                          OutlinedButton.icon(
+                                          SafeOutlinedIconButton(
                                             onPressed: () => _verificarEstadoMP(transaccionId),
-                                            icon: const Icon(Icons.cloud_sync_rounded, size: 16),
-                                            label: const Text('Verificar MP'),
+                                            icon: Icons.cloud_sync_rounded,
+                                            iconSize: 16,
+                                            label: 'Verificar MP',
                                             style: OutlinedButton.styleFrom(
                                               foregroundColor: _azulNautico,
                                               side: const BorderSide(color: _azulNautico),
@@ -564,10 +566,11 @@ class _AdminReembolsosScreenState extends State<AdminReembolsosScreen> {
                                           const SizedBox(width: 8),
                                         ],
                                         if (estado == 'confirmado')
-                                          ElevatedButton.icon(
+                                          SafeElevatedIconButton(
                                             onPressed: () => _confirmarReembolso(pago),
-                                            icon: const Icon(Icons.settings_backup_restore_rounded, size: 16),
-                                            label: const Text('Reembolsar'),
+                                            icon: Icons.settings_backup_restore_rounded,
+                                            iconSize: 16,
+                                            label: 'Reembolsar',
                                             style: ElevatedButton.styleFrom(
                                               backgroundColor: _rojoReembolsado,
                                               foregroundColor: Colors.white,

@@ -497,7 +497,7 @@ class SupabaseService {
           'avatar_url': profile['avatar_url'],
           'carnet_timonel': numeroCarnet ?? profile['carnet_url'],
           'poliza_seguro': numeroPoliza ?? profile['seguro_url'],
-          'expediente': profile['expediente'] ?? 'CAP-2026-TEMP',
+          'expediente': profile['expediente'],
           'capacidad_personas': profile['capacidad_personas'] ?? 0,
           'referido': profile['referido'],
           'cbu': profile['cbu'],
@@ -4959,6 +4959,21 @@ class SupabaseService {
         return List<Map<String, dynamic>>.from(response);
       } catch (_) {}
       throw Exception('Error al obtener presupuestos del pescador: $e');
+    }
+  }
+
+  /// Marca un presupuesto como descartado por el pescador (oculto en Mis Viajes y panel).
+  static Future<bool> descartarPresupuestoPescador(String presupuestoId) async {
+    if (presupuestoId.isEmpty) return false;
+    try {
+      await supabase
+          .from('presupuestos')
+          .update({'estado': 'descartado'})
+          .eq('id', presupuestoId);
+      return true;
+    } catch (e) {
+      debugPrint('⚠️ descartarPresupuestoPescador($presupuestoId): $e');
+      return false;
     }
   }
 

@@ -1,7 +1,8 @@
-﻿
+
 
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../widgets/safe_button.dart';
 
 class PescadorTicketScreen extends StatefulWidget {
   const PescadorTicketScreen({super.key});
@@ -21,13 +22,17 @@ class _PescadorTicketScreenState extends State<PescadorTicketScreen> {
   static const Color _amarilloVivo = Color(0xFFFFFF00);       // Amarillo vivo
 
   // Datos simulados del JSON final ($68.500)
+  // Pantalla demo � IDs ficticios, no usar en producci�n.
+  static const _kDemoCotizacionId = 'demo-cotizacion-local';
+  static const _kDemoCapitanId = 'demo-capitan-local';
+
   final Map<String, dynamic> _ticketData = {
     "oferta_recibida": {
-      "cotizacion_id": "11111111-1111-1111-1111-111111111111",
+      "cotizacion_id": _kDemoCotizacionId,
       "fecha_oferta": "2026-03-20T09:00:00Z",
       "estado": "cotizado",
       "capitan": {
-        "id": "22222222-2222-2222-2222-222222222222",
+        "id": _kDemoCapitanId,
         "nombre": "Capitan Juan Perez",
         "telefono": "+5492231234567",
         "calificacion": 4.8,
@@ -178,7 +183,7 @@ class _PescadorTicketScreenState extends State<PescadorTicketScreen> {
       child: Column(
         children: [
           const Text(
-            '¡OFERTA RECIBIDA!',
+            '�OFERTA RECIBIDA!',
             style: TextStyle(
               color: _blancoPuro,
               fontSize: 24,
@@ -297,14 +302,13 @@ class _PescadorTicketScreenState extends State<PescadorTicketScreen> {
           SizedBox(
             width: double.infinity,
             height: 48,
-            child: ElevatedButton.icon(
-              onPressed: () => _llamarCapitan(capitan['telefono']),
-              icon: const Icon(Icons.phone, color: _blancoPuro),
-              label: const Text(
-                'Llamar al Capitan',
-                style: TextStyle(color: _blancoPuro, fontWeight: FontWeight.bold),
-              ),
-              style: ElevatedButton.styleFrom(
+            child: SafeElevatedIconButton(
+  onPressed: () => _llamarCapitan(capitan['telefono']),
+  icon: Icons.phone,
+  iconColor: _blancoPuro,
+  label: 'Llamar al Capitan',
+  textStyle: TextStyle(color: _blancoPuro, fontWeight: FontWeight.bold),
+  style: ElevatedButton.styleFrom(
                 backgroundColor: _verdeBrillante,
                 foregroundColor: _blancoPuro,
                 elevation: 4,
@@ -312,7 +316,7 @@ class _PescadorTicketScreenState extends State<PescadorTicketScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-            ),
+),
           ),
         ],
       ),
@@ -577,26 +581,8 @@ class _PescadorTicketScreenState extends State<PescadorTicketScreen> {
           SizedBox(
             width: double.infinity,
             height: 56,
-            child: ElevatedButton.icon(
+            child: ElevatedButton(
               onPressed: _isProcessing ? null : _aceptarOferta,
-              icon: _isProcessing 
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: _blancoPuro,
-                      ),
-                    )
-                  : const Icon(Icons.check_circle, color: _blancoPuro),
-              label: Text(
-                _isProcessing ? 'Procesando...' : 'ACEPTAR',
-                style: const TextStyle(
-                  color: _blancoPuro,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: _verdeBrillante,
                 foregroundColor: _blancoPuro,
@@ -606,6 +592,19 @@ class _PescadorTicketScreenState extends State<PescadorTicketScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
+              child: SafeButtonLoadingContent(
+                loading: _isProcessing,
+                icon: Icons.check_circle,
+                iconColor: _blancoPuro,
+                idleLabel: 'Aceptar',
+                loadingLabel: 'Procesando...',
+                textStyle: const TextStyle(
+                  color: _blancoPuro,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+                spinnerColor: _blancoPuro,
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -613,24 +612,23 @@ class _PescadorTicketScreenState extends State<PescadorTicketScreen> {
           SizedBox(
             width: double.infinity,
             height: 48,
-            child: OutlinedButton.icon(
-              onPressed: () => _rechazarOferta(),
-              icon: const Icon(Icons.close, color: _rojoFuerte),
-              label: const Text(
-                'RECHAZAR',
-                style: TextStyle(
+            child: SafeOutlinedIconButton(
+  onPressed: () => _rechazarOferta(),
+  icon: Icons.close,
+  iconColor: _rojoFuerte,
+  label: 'RECHAZAR',
+  textStyle: TextStyle(
                   color: _rojoFuerte,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),
-              ),
-              style: OutlinedButton.styleFrom(
+  style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: _rojoFuerte),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-            ),
+),
           ),
         ],
       ),
@@ -668,7 +666,7 @@ class _PescadorTicketScreenState extends State<PescadorTicketScreen> {
               children: [
                 Icon(Icons.check_circle, color: _blancoPuro),
                 SizedBox(width: 8),
-                Text('¡Oferta aceptada exitosamente!'),
+                Text('�Oferta aceptada exitosamente!'),
               ],
             ),
             backgroundColor: _verdeBrillante,
@@ -698,7 +696,7 @@ class _PescadorTicketScreenState extends State<PescadorTicketScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Rechazar Oferta'),
-        content: const Text('¿Estas seguro que deseas rechazar esta oferta?'),
+        content: const Text('�Estas seguro que deseas rechazar esta oferta?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),

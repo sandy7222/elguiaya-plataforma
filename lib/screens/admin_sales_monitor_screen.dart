@@ -5,6 +5,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../widgets/safe_button.dart';
 
 import '../models/pedido.dart';
 import '../models/pedido_item.dart';
@@ -144,34 +145,34 @@ class _AdminSalesMonitorScreenState extends State<AdminSalesMonitorScreen>
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
+                child: SafeElevatedIconButton(
+  onPressed: () {
                     Navigator.pop(context);
                     _actualizarEstadoEnvio(pedidoData['id'], Pedido.ESTADO_ENVIO_DESPACHADO);
                   },
-                  icon: const Icon(Icons.local_shipping),
-                  label: const Text('Despachado'),
-                  style: ElevatedButton.styleFrom(
+  icon: Icons.local_shipping,
+  label: 'Despachado',
+  style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
                   ),
-                ),
+),
               ),
               const SizedBox(height: 8),
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
+                child: SafeElevatedIconButton(
+  onPressed: () {
                     Navigator.pop(context);
                     _actualizarEstadoEnvio(pedidoData['id'], Pedido.ESTADO_ENVIO_ENTREGADO);
                   },
-                  icon: const Icon(Icons.check_circle),
-                  label: const Text('Entregado'),
-                  style: ElevatedButton.styleFrom(
+  icon: Icons.check_circle,
+  label: 'Entregado',
+  style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
                     foregroundColor: Colors.white,
                   ),
-                ),
+),
               ),
             ],
           ],
@@ -198,40 +199,40 @@ class _AdminSalesMonitorScreenState extends State<AdminSalesMonitorScreen>
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () async {
+              child: SafeElevatedIconButton(
+  onPressed: () async {
                   final XFile? imagen = await StorageService.pickImageFromGallery();
                   if (imagen != null) {
                     Navigator.pop(context);
                     await _subirComprobanteEnvio(pedidoData['id'], imagen);
                   }
                 },
-                icon: const Icon(Icons.photo_library),
-                label: const Text('Seleccionar de Galeria'),
-                style: ElevatedButton.styleFrom(
+  icon: Icons.photo_library,
+  label: 'Seleccionar de Galeria',
+  style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0D47A1),
                   foregroundColor: Colors.white,
                 ),
-              ),
+),
             ),
             const SizedBox(height: 8),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () async {
+              child: SafeElevatedIconButton(
+  onPressed: () async {
                   final XFile? imagen = await StorageService.captureImageFromCamera();
                   if (imagen != null) {
                     Navigator.pop(context);
                     await _subirComprobanteEnvio(pedidoData['id'], imagen);
                   }
                 },
-                icon: const Icon(Icons.camera_alt),
-                label: const Text('Tomar Foto'),
-                style: ElevatedButton.styleFrom(
+  icon: Icons.camera_alt,
+  label: 'Tomar Foto',
+  style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
                   foregroundColor: Colors.white,
                 ),
-              ),
+),
             ),
           ],
         ),
@@ -507,8 +508,8 @@ class _AdminSalesMonitorScreenState extends State<AdminSalesMonitorScreen>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 // Boton de imprimir ticket
-                ElevatedButton.icon(
-                  onPressed: () {
+                SafeElevatedIconButton(
+  onPressed: () {
                     TicketPrinter.imprimirTicket(
                       context: context,
                       pedido: pedido,
@@ -516,9 +517,10 @@ class _AdminSalesMonitorScreenState extends State<AdminSalesMonitorScreen>
                       items: items,
                     );
                   },
-                  icon: const Icon(Icons.print, size: 16),
-                  label: const Text('Imprimir Ticket'),
-                  style: ElevatedButton.styleFrom(
+  icon: Icons.print,
+  iconSize: 16,
+  label: 'Imprimir Ticket',
+  style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.purple,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -526,27 +528,29 @@ class _AdminSalesMonitorScreenState extends State<AdminSalesMonitorScreen>
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                ),
+),
                 
                 // Botones de despacho
                 if (pedido.estadoEnvio != Pedido.ESTADO_ENVIO_DESPACHADO)
                   Row(
                     children: [
-                      OutlinedButton.icon(
-                        onPressed: () => _mostrarOpcionesDespacho(pedidoData),
-                        icon: const Icon(Icons.local_shipping, size: 16),
-                        label: const Text('Despachar'),
-                        style: OutlinedButton.styleFrom(
+                      SafeOutlinedIconButton(
+  onPressed: () => _mostrarOpcionesDespacho(pedidoData),
+  icon: Icons.local_shipping,
+  iconSize: 16,
+  label: 'Despachar',
+  style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.blue,
                           side: const BorderSide(color: Colors.blue),
                         ),
-                      ),
+),
                       const SizedBox(width: 8),
-                      ElevatedButton.icon(
-                        onPressed: () => _mostrarSubidaComprobante(pedidoData),
-                        icon: const Icon(Icons.upload, size: 16),
-                        label: const Text('Subir Comprobante'),
-                        style: ElevatedButton.styleFrom(
+                      SafeElevatedIconButton(
+  onPressed: () => _mostrarSubidaComprobante(pedidoData),
+  icon: Icons.upload,
+  iconSize: 16,
+  label: 'Subir Comprobante',
+  style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -554,7 +558,7 @@ class _AdminSalesMonitorScreenState extends State<AdminSalesMonitorScreen>
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                      ),
+),
                     ],
                   )
                 else

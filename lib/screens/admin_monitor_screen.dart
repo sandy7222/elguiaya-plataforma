@@ -1,4 +1,4 @@
-﻿
+
 
 import 'dart:async';
 
@@ -98,7 +98,7 @@ class _AdminMonitorScreenState extends State<AdminMonitorScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Center(child: Text(
-              '✅ Vigilante ejecutado: ${resultado['cotizaciones_procesadas']} procesadas, '
+              '? Vigilante ejecutado: ${resultado['cotizaciones_procesadas']} procesadas, '
               '${resultado['alertas_creadas']} alertas creadas'
             )),
             backgroundColor: _verdeExito,

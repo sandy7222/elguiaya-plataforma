@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'safe_button.dart';
 
 import '../models/pedido.dart';
 import '../models/pedido_item.dart';
@@ -190,34 +191,34 @@ class TicketPrinter {
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
+              child: SafeElevatedIconButton(
+  onPressed: () {
                   Navigator.pop(context);
                   _mostrarTicketTexto(context, pedido, usuario, items);
                 },
-                icon: const Icon(Icons.print),
-                label: const Text('Impresora Termica'),
-                style: ElevatedButton.styleFrom(
+  icon: Icons.print,
+  label: 'Impresora Termica',
+  style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0D47A1),
                   foregroundColor: Colors.white,
                 ),
-              ),
+),
             ),
             const SizedBox(height: 8),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
+              child: SafeElevatedIconButton(
+  onPressed: () {
                   Navigator.pop(context);
                   _mostrarTicketHTML(context, pedido, usuario, items);
                 },
-                icon: const Icon(Icons.picture_as_pdf),
-                label: const Text('PDF'),
-                style: ElevatedButton.styleFrom(
+  icon: Icons.picture_as_pdf,
+  label: 'PDF',
+  style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
                   foregroundColor: Colors.white,
                 ),
-              ),
+),
             ),
           ],
         ),

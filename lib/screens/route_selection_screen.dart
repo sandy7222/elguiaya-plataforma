@@ -1,6 +1,7 @@
 
 
 import 'package:flutter/material.dart';
+import '../widgets/safe_button.dart';
 
 import '../widgets/map_selector_widget.dart';
 
@@ -193,18 +194,18 @@ class _RouteSelectionScreenState extends State<RouteSelectionScreen> {
                 ],
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: _enviarSolicitud,
-                    icon: const Icon(Icons.send),
-                    label: const Text('Enviar Solicitud de Cotizacion'),
-                    style: ElevatedButton.styleFrom(
+                  child: SafeElevatedIconButton(
+  onPressed: _enviarSolicitud,
+  icon: Icons.send,
+  label: 'Enviar Solicitud de Cotizacion',
+  style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF0D47A1),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       elevation: 2,
                     ),
-                  ),
+),
                 ),
               ],
             ),

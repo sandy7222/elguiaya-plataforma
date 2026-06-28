@@ -1,11 +1,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:geolocator/geolocator.dart';
-import '../widgets/auditor_map_widget.dart';
-import 'manifiesto_pasajeros_screen.dart';
 import 'admin_detalle_viaje_screen.dart';
 import '../widgets/reputacion_badge_widget.dart';
+import '../widgets/viaje_track_auditor_sheet.dart';
 
 class AdminViajesScreen extends StatefulWidget {
   const AdminViajesScreen({super.key});
@@ -249,7 +247,17 @@ class _AdminViajesScreenState extends State<AdminViajesScreen> {
             ),
           ],
         ),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: Icon(Icons.map_rounded, color: enCurso ? _verde : _azulNautico, size: 22),
+              tooltip: 'Ver recorrido GPS',
+              onPressed: () => ViajeTrackAuditorSheet.show(context, viaje),
+            ),
+            const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+          ],
+        ),
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
@@ -276,140 +284,6 @@ class _AdminViajesScreenState extends State<AdminViajesScreen> {
           label,
           style: TextStyle(color: selected ? Colors.white : Colors.black54, fontSize: 11, fontWeight: selected ? FontWeight.bold : FontWeight.normal),
         ),
-      ),
-    );
-  }
-
-  // --- ADMIN FORENSIC VIEW ---
-  void _mostrarDetalleForense(Map<String, dynamic> viaje) {
-    final trackLog = viaje['track_log'] as List<dynamic>? ?? [];
-    
-    // Cálculo de Distancia y Tiempo
-    double distanciaTotal = 0;
-    Duration duracion = Duration.zero;
-
-    if (trackLog.length > 1) {
-      for (int i = 0; i < trackLog.length - 1; i++) {
-        distanciaTotal += Geolocator.distanceBetween(
-          trackLog[i]['lat'], trackLog[i]['lng'],
-          trackLog[i+1]['lat'], trackLog[i+1]['lng']
-        );
-      }
-      distanciaTotal = distanciaTotal / 1000; // Convertir a KM
-
-      final inicio = DateTime.parse(trackLog.first['ts']);
-      final fin = DateTime.parse(trackLog.last['ts']);
-      duracion = fin.difference(inicio);
-    }
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.85,
-        decoration: const BoxDecoration(
-          color: Color(0xFF001F3F),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-        ),
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header Forense
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('AUDITORÍA DE VIAJE', 
-                      style: TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.w900, letterSpacing: 2, fontSize: 10)),
-                    Text('ID: ${viaje['id'].toString().substring(0, 8)}', 
-                      style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close, color: Colors.white54),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            
-            // MAPA DE AUDITORÍA
-            AuditorMapWidget(trackLog: trackLog),
-            
-            const SizedBox(height: 24),
-            
-            // PANEL LATERAL DE KPIs (Ahora como fila de tarjetas)
-            Row(
-              children: [
-                Expanded(child: _buildForensicKPI('DISTANCIA', '${distanciaTotal.toStringAsFixed(2)} KM', Icons.straighten)),
-                const SizedBox(width: 12),
-                Expanded(child: _buildForensicKPI('DURACIÓN', '${duracion.inMinutes} MIN', Icons.timer)),
-              ],
-            ),
-            const SizedBox(height: 24),
-            
-            // Datos del Capitán y Lancha
-            _buildInfoRow('CAPITÁN', viaje['capitan']?['nombre'] ?? 'N/A'),
-            _buildInfoRow('CLIENTE', viaje['pescador']?['nombre'] ?? 'N/A'),
-            _buildInfoRow('ESTADO', viaje['estado'].toString().toUpperCase(), color: Colors.greenAccent),
-
-            const Spacer(),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => ManifiestoPasajerosScreen(
-                    pedidoId: viaje['id']?.toString() ?? '',
-                  )));
-                },
-                icon: const Icon(Icons.assignment),
-                label: const Text('VER MANIFIESTO DE PASAJEROS'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white.withOpacity(0.1),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildForensicKPI(String label, String value, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.white10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: const Color(0xFF00E676), size: 20),
-          const SizedBox(height: 8),
-          Text(label, style: const TextStyle(color: Colors.white38, fontSize: 10, fontWeight: FontWeight.bold)),
-          Text(value, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value, {Color color = Colors.white70}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(color: Colors.white38, fontSize: 12, fontWeight: FontWeight.bold)),
-          Text(value, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
-        ],
       ),
     );
   }

@@ -10,6 +10,7 @@ import '../widgets/safe_product_image.dart';
 import 'checkout_payment_screen.dart';
 import 'formulario_pasajeros_screen.dart';
 import 'formulario_envio_screen.dart';
+import '../widgets/safe_button.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -313,19 +314,19 @@ class _CartScreenState extends State<CartScreen> {
           const Text('Agregá productos desde la tienda.',
               style: TextStyle(color: Colors.grey)),
           const SizedBox(height: 32),
-          ElevatedButton.icon(
-            onPressed: () => Navigator.pop(context),
-            style: ElevatedButton.styleFrom(
+          SafeElevatedIconButton(
+  onPressed: () => Navigator.pop(context),
+  icon: Icons.storefront_outlined,
+  label: 'VOLVER A LA TIENDA',
+  textStyle: TextStyle(fontWeight: FontWeight.bold),
+  style: ElevatedButton.styleFrom(
               backgroundColor: _azul,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
             ),
-            icon: const Icon(Icons.storefront_outlined),
-            label: const Text('VOLVER A LA TIENDA',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
+),
         ],
       ),
     );
@@ -787,19 +788,19 @@ class _CartScreenState extends State<CartScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              TextButton.icon(
-                onPressed: onTapDesistir,
-                icon: const Icon(Icons.delete_outline, size: 16, color: Colors.redAccent),
-                label: Text(
-                  desistirLabel,
-                  style: const TextStyle(color: Colors.redAccent, fontSize: 11, fontWeight: FontWeight.bold),
-                ),
-                style: TextButton.styleFrom(
+              SafeTextIconButton(
+  onPressed: onTapDesistir,
+  icon: Icons.delete_outline,
+  iconSize: 16,
+  iconColor: Colors.redAccent,
+  label: desistirLabel,
+  textStyle: const TextStyle(color: Colors.redAccent, fontSize: 11, fontWeight: FontWeight.bold),
+  style: TextButton.styleFrom(
                   padding: EdgeInsets.zero,
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-              ),
+),
             ],
           ),
         ],
