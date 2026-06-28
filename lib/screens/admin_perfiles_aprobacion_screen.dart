@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/supabase_service.dart';
 import '../services/notificacion_helper.dart';
 import 'dart:ui';
+import '../widgets/safe_button.dart';
 
 class AdminPerfilValidationScreen extends StatefulWidget {
   const AdminPerfilValidationScreen({super.key});
@@ -486,11 +487,13 @@ class _AdminPerfilValidationScreenState extends State<AdminPerfilValidationScree
                   ),
                 ),
                 const SizedBox(height: 20),
-                TextButton.icon(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close, color: Colors.white),
-                  label: const Text('CERRAR', style: TextStyle(color: Colors.white)),
-                ),
+                SafeTextIconButton(
+  onPressed: () => Navigator.pop(context),
+  icon: Icons.close,
+  iconColor: Colors.white,
+  label: 'CERRAR',
+  textStyle: TextStyle(color: Colors.white),
+),
               ],
             ),
           ],

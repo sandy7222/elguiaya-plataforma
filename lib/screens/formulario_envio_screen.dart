@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
@@ -6,9 +6,10 @@ import 'package:url_launcher/url_launcher.dart';
 import '../services/mercado_pago_service.dart';
 import '../providers/cart_provider.dart';
 import 'checkout_payment_screen.dart';
+import '../widgets/safe_button.dart';
 
-/// Formulario de Envío a Domicilio.
-/// Captura los datos logísticos de entrega y exige la aceptación obligatoria
+/// Formulario de Env�o a Domicilio.
+/// Captura los datos log�sticos de entrega y exige la aceptaci�n obligatoria
 /// del aviso legal de entrega fallida por ausencia.
 class FormularioEnvioScreen extends StatefulWidget {
   final String pedidoId;
@@ -65,14 +66,14 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
     super.dispose();
   }
 
-  // ─── Guardar en Supabase ───────────────────────────────────────────────────
+  // --- Guardar en Supabase ---------------------------------------------------
   Future<void> _guardar() async {
     if (!_formKey.currentState!.validate()) return;
 
     if (!_aceptaAvisoAusencia) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('⚠️ Debes aceptar la declaración de ausencia del correo.'),
+          content: Text('?? Debes aceptar la declaraci�n de ausencia del correo.'),
           backgroundColor: Colors.orangeAccent,
         ),
       );
@@ -103,7 +104,7 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
 
       if (mounted) {
         if (widget.amount != null) {
-          // ─── 🚀 PROCEDER DIRECTAMENTE A MERCADO PAGO DESDE EL FORMULARIO ───
+          // --- ?? PROCEDER DIRECTAMENTE A MERCADO PAGO DESDE EL FORMULARIO ---
           final preferencia = await MercadoPagoService.crearPreferencia(
             reservaId: widget.pedidoId,
             titulo: widget.description ?? 'Compra de Equipo EL GUIA YA',
@@ -122,7 +123,7 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
             Provider.of<CartProvider>(context, listen: false).vaciarCarrito();
           }
 
-          // Reemplazar la pantalla del formulario por la de espera y confirmación (imperceptible)
+          // Reemplazar la pantalla del formulario por la de espera y confirmaci�n (imperceptible)
           if (mounted) {
             Navigator.pushReplacement(
               context,
@@ -139,10 +140,10 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
             );
           }
         } else {
-          // Flujo estándar simple de guardado
+          // Flujo est�ndar simple de guardado
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('📦 Dirección de envío guardada correctamente'),
+              content: Text('?? Direcci�n de env�o guardada correctamente'),
               backgroundColor: Colors.green,
             ),
           );
@@ -171,7 +172,7 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
         backgroundColor: _azul,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: const Text('Dirección de Envío',
+        title: const Text('Direcci�n de Env�o',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
         actions: [
           if (_guardando)
@@ -208,7 +209,7 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'ENVÍO DIRECTO A DOMICILIO',
+                            'ENV�O DIRECTO A DOMICILIO',
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 11,
@@ -217,7 +218,7 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Tus compras serán despachadas a tu dirección postal por correo postal de forma segura.',
+                            'Tus compras ser�n despachadas a tu direcci�n postal por correo postal de forma segura.',
                             style: TextStyle(
                                 fontSize: 11, color: Colors.grey.shade700, height: 1.4),
                           ),
@@ -229,7 +230,7 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
               ),
               const SizedBox(height: 20),
 
-              // 📦 SECCIÓN 1: RECEPTOR DE LA COMPRA (Diseñado como Tarjeta Premium)
+              // ?? SECCI�N 1: RECEPTOR DE LA COMPRA (Dise�ado como Tarjeta Premium)
               _buildSectionCard(
                 title: 'RECEPTOR DE LA COMPRA',
                 icon: Icons.person_pin_rounded,
@@ -243,21 +244,21 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
                   const SizedBox(height: 12),
                   _buildField(
                     controller: _telefonoReceptorController,
-                    label: 'Teléfono de contacto',
+                    label: 'Tel�fono de contacto',
                     icon: Icons.phone,
                     keyboardType: TextInputType.phone,
-                    validator: (v) => v == null || v.trim().isEmpty ? 'Ingresa un teléfono de contacto' : null,
+                    validator: (v) => v == null || v.trim().isEmpty ? 'Ingresa un tel�fono de contacto' : null,
                   ),
                 ],
               ),
               const SizedBox(height: 20),
 
-              // 🏠 SECCIÓN 2: DIRECCIÓN DE DESPACHO
+              // ?? SECCI�N 2: DIRECCI�N DE DESPACHO
               _buildSectionCard(
-                title: 'DIRECCIÓN DE DESPACHO',
+                title: 'DIRECCI�N DE DESPACHO',
                 icon: Icons.home_work_rounded,
                 children: [
-                  // ⚠️ Advertencia logística sobre entregas terrestres
+                  // ?? Advertencia log�stica sobre entregas terrestres
                   Container(
                     padding: const EdgeInsets.all(12),
                     margin: const EdgeInsets.only(bottom: 16),
@@ -273,7 +274,7 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
                         const SizedBox(width: 10),
                         const Expanded(
                           child: Text(
-                            'ATENCIÓN: Por cuestiones logísticas, NO se puede colocar como dirección de envío el punto de encuentro con el capitán. La entrega de los productos de la tienda se realiza de forma terrestre tradicional por una empresa de transporte externa.',
+                            'ATENCI�N: Por cuestiones log�sticas, NO se puede colocar como direcci�n de env�o el punto de encuentro con el capit�n. La entrega de los productos de la tienda se realiza de forma terrestre tradicional por una empresa de transporte externa.',
                             style: TextStyle(
                               color: Color(0xFF7F5F00),
                               fontSize: 12,
@@ -298,11 +299,11 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
                         flex: 3,
                         child: _buildField(
                           controller: _numeroController,
-                          label: 'Número',
+                          label: 'N�mero',
                           prefixWidget: Container(
                             width: 48,
                             alignment: Alignment.center,
-                            child: Text('N°', style: TextStyle(color: _azul, fontWeight: FontWeight.bold, fontSize: 16)),
+                            child: Text('N�', style: TextStyle(color: _azul, fontWeight: FontWeight.bold, fontSize: 16)),
                           ),
                           keyboardType: TextInputType.number,
                           validator: (v) => v == null || v.trim().isEmpty ? 'Requerido' : null,
@@ -342,7 +343,7 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
                         flex: 4,
                         child: _buildField(
                           controller: _codigoPostalController,
-                          label: 'Cód. Postal',
+                          label: 'C�d. Postal',
                           icon: Icons.markunread_mailbox,
                           validator: (v) => v == null || v.trim().isEmpty ? 'C.P. requerido' : null,
                         ),
@@ -358,10 +359,10 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
                   ),
                   const SizedBox(height: 12),
                   
-                  // ⚓ NUEVO: Referencias de Domicilio para hacer la entrega 100% clara e independiente
+                  // ? NUEVO: Referencias de Domicilio para hacer la entrega 100% clara e independiente
                   _buildField(
                     controller: _instruccionesController,
-                    label: 'Referencias del Domicilio (Ej: Portón blanco, timbre roto - Opcional)',
+                    label: 'Referencias del Domicilio (Ej: Port�n blanco, timbre roto - Opcional)',
                     icon: Icons.comment_bank_outlined,
                     maxLines: 2,
                   ),
@@ -369,7 +370,7 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
               ),
               const SizedBox(height: 20),
 
-              // ─── AVISO LEGAL OBLIGATORIO ─────────────────────────────────────
+              // --- AVISO LEGAL OBLIGATORIO -------------------------------------
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -386,7 +387,7 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            'POLÍTICA DE ENTREGA LOGÍSTICA',
+                            'POL�TICA DE ENTREGA LOG�STICA',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 11,
@@ -405,7 +406,7 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
                       checkColor: Colors.white,
                       contentPadding: EdgeInsets.zero,
                       title: const Text(
-                        'Acepto que si el correo realiza la visita y no encuentra a nadie en el domicilio, deberé retirar el pedido en la sucursal de correo correspondiente.',
+                        'Acepto que si el correo realiza la visita y no encuentra a nadie en el domicilio, deber� retirar el pedido en la sucursal de correo correspondiente.',
                         style: TextStyle(fontSize: 11, color: Colors.black87, height: 1.4),
                       ),
                       controlAffinity: ListTileControlAffinity.leading,
@@ -415,11 +416,11 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Botón Guardar Flotante
+              // Bot�n Guardar Flotante
               SizedBox(
                 width: double.infinity,
                 height: 58,
-                child: ElevatedButton.icon(
+                child: ElevatedButton(
                   onPressed: _guardando ? null : _guardar,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: widget.amount != null ? const Color(0xFF009EE3) : _azul,
@@ -428,12 +429,17 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
                         borderRadius: BorderRadius.circular(16)),
                     elevation: 6,
                   ),
-                  icon: Icon(widget.amount != null ? Icons.payment : Icons.check_circle_outline),
-                  label: Text(
-                    _guardando 
-                        ? (widget.amount != null ? 'CONECTANDO CON MERCADO PAGO...' : 'GUARDANDO DESPACHO...')
-                        : (widget.amount != null ? 'PAGAR \$ ${widget.amount!.toStringAsFixed(0)} CON MERCADO PAGO' : 'CONFIRMAR DIRECCIÓN'),
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 0.5),
+                  child: SafeButtonLoadingContent(
+                    loading: _guardando,
+                    icon: widget.amount != null ? Icons.payment : Icons.check_circle_outline,
+                    idleLabel: widget.amount != null
+                        ? 'Pagar \$${widget.amount!.toStringAsFixed(0)} con Mercado Pago'
+                        : 'Confirmar direcci�n',
+                    loadingLabel: widget.amount != null
+                        ? 'Conectando con Mercado Pago...'
+                        : 'Guardando despacho...',
+                    textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 0.5, color: Colors.white),
+                    spinnerColor: Colors.white,
                   ),
                 ),
               ),
@@ -445,7 +451,7 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
     );
   }
 
-  // Tarjeta de sección premium
+  // Tarjeta de secci�n premium
   Widget _buildSectionCard({
     required String title,
     required IconData icon,

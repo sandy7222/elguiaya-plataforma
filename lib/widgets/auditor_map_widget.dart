@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../services/viaje_tracking_service.dart';
@@ -6,19 +6,24 @@ import '../services/viaje_tracking_service.dart';
 class AuditorMapWidget extends StatelessWidget {
   final dynamic trackLog;
   final LatLng? puntoInicial;
+  final bool showRolesSeparately;
 
   const AuditorMapWidget({
-    super.key, 
+    super.key,
     required this.trackLog,
     this.puntoInicial,
+    this.showRolesSeparately = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final List<LatLng> puntos = ViajeTrackingService.parseTrackLog(trackLog);
-    
-    // Si no hay puntos, mostrar un estado vacío elegante
-    if (puntos.isEmpty) {
+    final capitanPts = ViajeTrackingService.parseTrackLogCapitan(trackLog);
+    final pescadorPts = ViajeTrackingService.parseTrackLogPescador(trackLog);
+    final allPts = showRolesSeparately && pescadorPts.isNotEmpty
+        ? [...capitanPts, ...pescadorPts]
+        : ViajeTrackingService.parseTrackLog(trackLog);
+
+    if (allPts.isEmpty) {
       return Container(
         height: 200,
         decoration: BoxDecoration(
@@ -32,16 +37,59 @@ class AuditorMapWidget extends StatelessWidget {
             children: [
               Icon(Icons.gps_off, color: Colors.white24, size: 40),
               SizedBox(height: 12),
-              Text('No hay registros de GPS para este viaje aún.', 
-                style: TextStyle(color: Colors.white38, fontSize: 12)),
+              Text(
+                'No hay registros de GPS para este viaje a�n.',
+                style: TextStyle(color: Colors.white38, fontSize: 12),
+              ),
             ],
           ),
         ),
       );
     }
 
-    // Calcular el centro del mapa basado en el primer punto si no se provee uno
-    final center = puntoInicial ?? puntos.first;
+    final center = puntoInicial ?? allPts.first;
+    final polylines = <Polyline>[];
+
+    if (showRolesSeparately && capitanPts.isNotEmpty) {
+      polylines.add(Polyline(
+        points: capitanPts,
+        color: const Color(0xFF00E676),
+        strokeWidth: 4.0,
+      ));
+    }
+    if (showRolesSeparately && pescadorPts.isNotEmpty) {
+      polylines.add(Polyline(
+        points: pescadorPts,
+        color: Colors.blueAccent,
+        strokeWidth: 3.5,
+      ));
+    }
+    if (!showRolesSeparately || polylines.isEmpty) {
+      polylines.add(Polyline(
+        points: allPts,
+        color: const Color(0xFF00E676),
+        strokeWidth: 4.0,
+      ));
+    }
+
+    final markers = <Marker>[];
+    if (capitanPts.isNotEmpty) {
+      markers.add(Marker(
+        point: capitanPts.first,
+        width: 40,
+        height: 40,
+        child: const Icon(Icons.anchor, color: Colors.blue, size: 30),
+      ));
+    }
+    final endPts = pescadorPts.isNotEmpty ? pescadorPts : capitanPts;
+    if (endPts.isNotEmpty) {
+      markers.add(Marker(
+        point: endPts.last,
+        width: 40,
+        height: 40,
+        child: const Icon(Icons.location_on, color: Colors.red, size: 30),
+      ));
+    }
 
     return Container(
       height: 300,
@@ -67,33 +115,8 @@ class AuditorMapWidget extends StatelessWidget {
               urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
               userAgentPackageName: 'com.El Guia YA.app',
             ),
-            // La Polilínea del Auditor
-            PolylineLayer(
-              polylines: [
-                Polyline(
-                  points: puntos,
-                  color: const Color(0xFF00E676),
-                  strokeWidth: 4.0,
-                ),
-              ],
-            ),
-            // Marcadores de inicio y fin
-            MarkerLayer(
-              markers: [
-                Marker(
-                  point: puntos.first,
-                  width: 40,
-                  height: 40,
-                  child: const Icon(Icons.anchor, color: Colors.blue, size: 30),
-                ),
-                Marker(
-                  point: puntos.last,
-                  width: 40,
-                  height: 40,
-                  child: const Icon(Icons.location_on, color: Colors.red, size: 30),
-                ),
-              ],
-            ),
+            PolylineLayer(polylines: polylines),
+            if (markers.isNotEmpty) MarkerLayer(markers: markers),
           ],
         ),
       ),

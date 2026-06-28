@@ -53,6 +53,7 @@ import 'package:capitanya_master/screens/viajes_programados_screen.dart';
 import 'package:capitanya_master/widgets/solunar_card_widget.dart';
 import 'package:capitanya_master/services/deep_link_service.dart';
 import 'package:capitanya_master/services/recordatorios_service.dart';
+import 'package:capitanya_master/services/viaje_gps_coordinator.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -141,9 +142,33 @@ class MyApp extends StatelessWidget {
           style: ElevatedButton.styleFrom(
             elevation: 8,
             shadowColor: Colors.blue.withValues(alpha: 0.5),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            visualDensity: VisualDensity.compact,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15),
             ),
+          ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            visualDensity: VisualDensity.compact,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            visualDensity: VisualDensity.compact,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+        ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            visualDensity: VisualDensity.compact,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
         ),
       ),
@@ -234,7 +259,7 @@ class SessionWrapper extends StatefulWidget {
   State<SessionWrapper> createState() => _SessionWrapperState();
 }
 
-class _SessionWrapperState extends State<SessionWrapper> {
+class _SessionWrapperState extends State<SessionWrapper> with WidgetsBindingObserver {
   StreamSubscription<AuthState>? _authSubscription;
   Session? _currentSession;
   Map<String, dynamic>? _perfil;
@@ -245,13 +270,23 @@ class _SessionWrapperState extends State<SessionWrapper> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _listenToAuth();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _authSubscription?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed &&
+        Supabase.instance.client.auth.currentSession != null) {
+      ViajeGpsCoordinator().resumeIfNeeded();
+    }
   }
 
   void _listenToAuth() {
@@ -320,6 +355,7 @@ class _SessionWrapperState extends State<SessionWrapper> {
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
           FCMService.registrarDispositivo();
+          ViajeGpsCoordinator().resumeIfNeeded();
         });
       }
     } catch (e) {

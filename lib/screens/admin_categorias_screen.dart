@@ -1,4 +1,4 @@
-Ôªøimport 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/categoria.dart';
 import '../models/rubro.dart';
@@ -26,7 +26,7 @@ class _AdminCategoriasScreenState extends State<AdminCategoriasScreen> {
   final double _brightness = 1.0;
   final Color _azulVibrante = const Color(0xFF0066FF);
 
-  // Dise√±o Premium El Guia YA
+  // DiseÒo Premium El Guia YA
   static const Color _capitanAzul = Color(0xFF001F3F);
   static const Color _capitanNaranja = Color(0xFF00E676);
   static const Color _capitanAzulClaro = Color(0xFF7FDBFF);
@@ -283,7 +283,7 @@ class _AdminCategoriasScreenState extends State<AdminCategoriasScreen> {
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('¬øEliminar Categoria?'),
+        title: const Text('øEliminar Categoria?'),
         content: Text('Esto eliminara "${cat.nombre}". Si tiene subcategorias o productos asociados, la operacion podria fallar por integridad.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('CANCELAR')),
@@ -329,7 +329,7 @@ class _AdminCategoriasScreenState extends State<AdminCategoriasScreen> {
               backgroundColor: Colors.transparent,
               elevation: 0,
               flexibleSpace: FlexibleSpaceBar(
-                title: const Text('CATEGOR√çAS', 
+                title: const Text('CATEGORÕAS', 
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 2.5, color: Colors.white)),
                 centerTitle: true,
                 background: Stack(
@@ -504,16 +504,16 @@ class _AdminCategoriasScreenState extends State<AdminCategoriasScreen> {
                       final url = '/categoria?id=${cat.id}';
                       Navigator.pushNamed(context, url);
                     },
-                    tooltip: 'Ver P√°gina Publicada',
+                    tooltip: 'Ver P·gina Publicada',
                   ),
                   IconButton(
                     icon: const Icon(Icons.link, color: _capitanAzulClaro, size: 22),
                     onPressed: () {
                       final url = 'http://localhost:8080/#/categoria?id=${cat.id}';
                       Clipboard.setData(ClipboardData(text: url));
-                      _mostrarNotificacion('Link de categor√≠a copiado');
+                      _mostrarNotificacion('Link de categorÌa copiado');
                     },
-                    tooltip: 'Copiar Link P√∫blico',
+                    tooltip: 'Copiar Link P˙blico',
                   ),
                   if (isParent)
                     IconButton(

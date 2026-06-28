@@ -1,8 +1,9 @@
-﻿
+
 
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../widgets/safe_button.dart';
 import '../services/supabase_service.dart';
 
 class SeguimientoEnviosScreen extends StatefulWidget {
@@ -33,9 +34,13 @@ class _SeguimientoEnviosScreenState extends State<SeguimientoEnviosScreen> {
     try {
       setState(() => _isLoading = true);
       
-      final envios = await SupabaseService.getSeguimientoPescador(
-        '11111111-1111-1111-1111-111111111111', // ID de prueba pescador
-      );
+      final pescadorId = SupabaseService.currentUserId;
+      if (pescadorId == null) {
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      final envios = await SupabaseService.getSeguimientoPescador(pescadorId);
       
       setState(() {
         _envios = envios;
@@ -58,7 +63,7 @@ class _SeguimientoEnviosScreenState extends State<SeguimientoEnviosScreen> {
     if (trackingUrl.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Center(child: Text('⏳ Codigo de tracking aun no disponible')),
+          content: Center(child: Text('? Codigo de tracking aun no disponible')),
           backgroundColor: _naranjaAlerta,
         ),
       );
@@ -88,7 +93,7 @@ class _SeguimientoEnviosScreenState extends State<SeguimientoEnviosScreen> {
     // Aqui implementariamos el copiado al portapapeles
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Center(child: Text('📋 Codigo copiado al portapapeles')),
+        content: Center(child: Text('?? Codigo copiado al portapapeles')),
         backgroundColor: _verdeExito,
       ),
     );
@@ -374,12 +379,10 @@ class _SeguimientoEnviosScreenState extends State<SeguimientoEnviosScreen> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton.icon(
+                  child: SafeOutlinedIconButton(
                     onPressed: () => _abrirSeguimiento(envio['enlace_seguimiento'] ?? ''),
-                    icon: const Icon(Icons.open_in_browser),
-                    label: Text(
-                      tieneTracking ? 'Seguir en Correo Argentino' : 'Ver Detalles',
-                    ),
+                    icon: Icons.open_in_browser,
+                    label: tieneTracking ? 'Seguir en Correo Argentino' : 'Ver detalles',
                     style: OutlinedButton.styleFrom(
                       foregroundColor: _azulNautico,
                     ),

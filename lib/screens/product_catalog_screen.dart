@@ -9,6 +9,7 @@ import '../services/supabase_service.dart';
 import '../widgets/cart_floating_button.dart';
 import '../widgets/hover_card_wrapper.dart';
 import 'product_detail_screen.dart';
+import '../widgets/safe_button.dart';
 
 class ProductCatalogScreen extends StatefulWidget {
   final String? initialCategoryId;
@@ -486,11 +487,14 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
         children: [
           Text('${_productosFiltrados.length} productos encontrados', style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
           const Spacer(),
-          TextButton.icon(
-            onPressed: _showFilterSheet,
-            icon: const Icon(Icons.tune, size: 18, color: Color(0xFF0D47A1)),
-            label: const Text('FILTROS', style: TextStyle(color: Color(0xFF0D47A1), fontWeight: FontWeight.bold, fontSize: 12)),
-          ),
+          SafeTextIconButton(
+  onPressed: _showFilterSheet,
+  icon: Icons.tune,
+  iconSize: 18,
+  iconColor: const Color(0xFF0D47A1),
+  label: 'FILTROS',
+  textStyle: TextStyle(color: Color(0xFF0D47A1), fontWeight: FontWeight.bold, fontSize: 12),
+),
         ],
       ),
     );

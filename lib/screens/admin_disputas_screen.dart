@@ -1,9 +1,10 @@
-﻿
+
 
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../widgets/safe_button.dart';
 import '../services/supabase_service.dart';
 
 class AdminDisputasScreen extends StatefulWidget {
@@ -147,7 +148,7 @@ class _AdminDisputasScreenState extends State<AdminDisputasScreen>
               
               // Opciones de resolucion
               const Text(
-                '¿A quien favoreces en esta disputa?',
+                '�A quien favoreces en esta disputa?',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -339,7 +340,7 @@ class _AdminDisputasScreenState extends State<AdminDisputasScreen>
   }
 
   Future<void> _procesarLiberacionPago(String pedidoId, bool favorCapitan, String observaciones) async {
-    // Mostrar diálogo de carga indicando que se contacta a Mercado Pago
+    // Mostrar di�logo de carga indicando que se contacta a Mercado Pago
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -351,7 +352,7 @@ class _AdminDisputasScreenState extends State<AdminDisputasScreen>
             Expanded(
               child: Text(
                 favorCapitan 
-                    ? 'Liberando pago al capitán...' 
+                    ? 'Liberando pago al capit�n...' 
                     : 'Procesando reembolso en Mercado Pago...',
                 style: const TextStyle(fontSize: 14),
               ),
@@ -370,7 +371,7 @@ class _AdminDisputasScreenState extends State<AdminDisputasScreen>
         if (resultado['exito'] == true) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Center(child: Text('✅ ${resultado['mensaje']}')),
+              content: Center(child: Text('? ${resultado['mensaje']}')),
               backgroundColor: _verdeExito,
             ),
           );
@@ -537,7 +538,7 @@ class _AdminDisputasScreenState extends State<AdminDisputasScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            'Todos los viajes estan resueltos.\n¡Buen trabajo!',
+            'Todos los viajes estan resueltos.\n�Buen trabajo!',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
@@ -545,10 +546,10 @@ class _AdminDisputasScreenState extends State<AdminDisputasScreen>
             ),
           ),
           const SizedBox(height: 24),
-          ElevatedButton.icon(
+          SafeElevatedIconButton(
             onPressed: _cargarViajesEnDisputa,
-            icon: const Icon(Icons.refresh),
-            label: const Text('Verificar Nuevamente'),
+            icon: Icons.refresh,
+            label: 'Verificar nuevamente',
             style: ElevatedButton.styleFrom(
               backgroundColor: _azulNautico,
               foregroundColor: Colors.white,
@@ -758,10 +759,10 @@ class _AdminDisputasScreenState extends State<AdminDisputasScreen>
             // Boton de accion
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton.icon(
+              child: SafeElevatedIconButton(
                 onPressed: () => _mostrarDialogoResolucion(disputa),
-                icon: const Icon(Icons.gavel),
-                label: const Text('Resolver Disputa'),
+                icon: Icons.gavel,
+                label: 'Resolver disputa',
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _azulNautico,
                   foregroundColor: Colors.white,

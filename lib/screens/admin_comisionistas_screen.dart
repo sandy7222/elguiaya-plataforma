@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/supabase_service.dart';
+import '../widgets/safe_button.dart';
 
 class AdminComisionistasScreen extends StatefulWidget {
   const AdminComisionistasScreen({super.key});
@@ -485,17 +486,19 @@ class _AdminComisionistasScreenState extends State<AdminComisionistasScreen> wit
                   padding: const EdgeInsets.only(top: 4),
                   child: SizedBox(
                     height: 52,
-                    child: ElevatedButton.icon(
-                      onPressed: _generarCodigoAutomatico,
-                      icon: const Icon(Icons.bolt_rounded, size: 20),
-                      label: const Text('GENERAR', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
-                      style: ElevatedButton.styleFrom(
+                    child: SafeElevatedIconButton(
+  onPressed: _generarCodigoAutomatico,
+  icon: Icons.bolt_rounded,
+  iconSize: 20,
+  label: 'GENERAR',
+  textStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+  style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.cyanAccent,
                         foregroundColor: Colors.black87,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                       ),
-                    ),
+),
                   ),
                 ),
               ],

@@ -1,4 +1,4 @@
-﻿
+
 
 import 'dart:convert';
 
@@ -137,20 +137,20 @@ class WebhookTester {
 
   /// Simula el flujo completo de un pago
   static Future<void> simulateCompletePaymentFlow() async {
-    print('🚀 Iniciando simulacion de flujo de pago completo...');
+    print('?? Iniciando simulacion de flujo de pago completo...');
     
     // 1. Crear pago pendiente
-    print('\n📝 1. Creando pago pendiente...');
+    print('\n?? 1. Creando pago pendiente...');
     await testPaymentCreated();
     
     // Esperar un momento
     await Future.delayed(const Duration(seconds: 2));
     
     // 2. Aprobar pago
-    print('\n✅ 2. Aprobando pago...');
+    print('\n? 2. Aprobando pago...');
     await testPaymentApproved();
     
-    print('\n🎉 Flujo completo simulado exitosamente!');
+    print('\n?? Flujo completo simulado exitosamente!');
     print('El StreamBuilder del Portal del Capitan deberia haberse actualizado automaticamente.');
   }
 

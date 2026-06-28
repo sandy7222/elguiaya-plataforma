@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../widgets/safe_button.dart';
 import '../services/supabase_service.dart';
 
 class AdminCentroComputosScreen extends StatefulWidget {
@@ -718,10 +719,12 @@ class _AdminCentroComputosScreenState extends State<AdminCentroComputosScreen> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               if (isSuspended)
-                ElevatedButton.icon(
+                SafeElevatedIconButton(
                   onPressed: () => _mostrarDialogoActivacion(cap),
-                  icon: const Icon(Icons.check_rounded, size: 14),
-                  label: const Text('ACTIVAR ACCESO', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  icon: Icons.check_rounded,
+                  iconSize: 14,
+                  label: 'Activar acceso',
+                  textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF00E676),
                     foregroundColor: Colors.black,
@@ -729,10 +732,13 @@ class _AdminCentroComputosScreenState extends State<AdminCentroComputosScreen> {
                   ),
                 )
               else
-                OutlinedButton.icon(
+                SafeOutlinedIconButton(
                   onPressed: () => _cambiarEstadoManual(cap['user_id'], 'suspendido'),
-                  icon: const Icon(Icons.block_flipped, size: 14, color: Colors.redAccent),
-                  label: const Text('SUSPENDER SOCIO', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white70)),
+                  icon: Icons.block_flipped,
+                  iconSize: 14,
+                  iconColor: Colors.redAccent,
+                  label: 'Suspender socio',
+                  textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white70),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Colors.redAccent),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),

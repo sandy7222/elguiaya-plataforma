@@ -1,7 +1,8 @@
-﻿
+
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../widgets/safe_button.dart';
 
 import '../services/disponibilidad_service_final.dart';
 
@@ -487,27 +488,29 @@ class _MiCalendarioScreenState extends State<MiCalendarioScreen> {
           Row(
             children: [
               Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: _bloquearSemanaActual,
-                  icon: Icon(Icons.block, color: _blancoPuro),
-                  label: Text('Bloquear Semana'),
-                  style: ElevatedButton.styleFrom(
+                child: SafeElevatedIconButton(
+  onPressed: _bloquearSemanaActual,
+  icon: Icons.block,
+  iconColor: _blancoPuro,
+  label: 'Bloquear Semana',
+  style: ElevatedButton.styleFrom(
                     backgroundColor: _naranjaIntenso,
                     foregroundColor: _blancoPuro,
                   ),
-                ),
+),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: _desbloquearMes,
-                  icon: Icon(Icons.check_circle, color: _blancoPuro),
-                  label: Text('Desbloquear Mes'),
-                  style: ElevatedButton.styleFrom(
+                child: SafeElevatedIconButton(
+  onPressed: _desbloquearMes,
+  icon: Icons.check_circle,
+  iconColor: _blancoPuro,
+  label: 'Desbloquear Mes',
+  style: ElevatedButton.styleFrom(
                     backgroundColor: _verdeBrillante,
                     foregroundColor: _blancoPuro,
                   ),
-                ),
+),
               ),
             ],
           ),

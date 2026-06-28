@@ -1,6 +1,7 @@
-Ôªøimport 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../services/supabase_service.dart';
 import '../services/pdf_service.dart';
+import '../widgets/safe_button.dart';
 
 class DirectorioCapitanesScreen extends StatefulWidget {
   const DirectorioCapitanesScreen({super.key});
@@ -74,7 +75,7 @@ class _DirectorioCapitanesScreenState extends State<DirectorioCapitanesScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Encabezado Premium Capit√°nYA
+              // Encabezado Premium Capit·nYA
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: const BoxDecoration(
@@ -125,10 +126,10 @@ class _DirectorioCapitanesScreenState extends State<DirectorioCapitanesScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
                   child: Column(
                     children: [
-                      _buildInfoBlock('INFORMACI√ìN PERSONAL', [
+                      _buildInfoBlock('INFORMACI”N PERSONAL', [
                         _buildDataRow('DNI', cap['dni']?.toString() ?? 'N/A'),
-                        _buildDataRow('MATR√çCULA', cap['expediente'] ?? 'PENDIENTE'),
-                        _buildDataRow('TEL√âFONO', cap['telefono'] ?? 'N/A'),
+                        _buildDataRow('MATRÕCULA', cap['expediente'] ?? 'PENDIENTE'),
+                        _buildDataRow('TEL…FONO', cap['telefono'] ?? 'N/A'),
                         _buildDataRow('EMAIL', cap['email'] ?? cap['user_email'] ?? 'No registrado'),
                         _buildDataRow('CAPACIDAD', '${cap['capacidad_personas'] ?? 0} PERSONAS'),
                       ]),
@@ -146,7 +147,7 @@ class _DirectorioCapitanesScreenState extends State<DirectorioCapitanesScreen> {
                         _buildDataRow('BANCO / ENTIDAD', cap['banco_nombre'] ?? 'No declarado'),
                       ]),
                       const SizedBox(height: 20),
-                      const _SectionHeader(title: 'REVISI√ìN DE DOCUMENTACI√ìN', icon: Icons.verified_user),
+                      const _SectionHeader(title: 'REVISI”N DE DOCUMENTACI”N', icon: Icons.verified_user),
                       const SizedBox(height: 12),
                       Wrap(
                         spacing: 12,
@@ -170,17 +171,17 @@ class _DirectorioCapitanesScreenState extends State<DirectorioCapitanesScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Icon(Icons.anchor, color: Color(0xFFE2E8F0), size: 40),
-                    ElevatedButton.icon(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.check_circle_outline),
-                      label: const Text('CERRAR ARCHIVO'),
-                      style: ElevatedButton.styleFrom(
+                    SafeElevatedIconButton(
+  onPressed: () => Navigator.pop(context),
+  icon: Icons.check_circle_outline,
+  label: 'CERRAR ARCHIVO',
+  style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF001F3F),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                       ),
-                    ),
+),
                   ],
                 ),
               ),
@@ -222,7 +223,7 @@ class _DirectorioCapitanesScreenState extends State<DirectorioCapitanesScreen> {
         title: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('GESTI√ìN N√ÅUTICA', style: TextStyle(fontSize: 14, letterSpacing: 1.2, fontWeight: FontWeight.w400)),
+            Text('GESTI”N N¡UTICA', style: TextStyle(fontSize: 14, letterSpacing: 1.2, fontWeight: FontWeight.w400)),
             Text('Directorio de Capitanes', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           ],
         ),
@@ -276,7 +277,7 @@ class _DirectorioCapitanesScreenState extends State<DirectorioCapitanesScreen> {
     return LayoutBuilder(
       builder: (context, constraints) {
         if (constraints.maxWidth < 600) {
-          // MODO M√ìVIL: Lista de Tarjetas (Fichas de Capit√°n)
+          // MODO M”VIL: Lista de Tarjetas (Fichas de Capit·n)
           return ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: _capitanes.length,
@@ -306,12 +307,12 @@ class _DirectorioCapitanesScreenState extends State<DirectorioCapitanesScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  c['nombre'] ?? 'Capit√°n N/A',
+                                  c['nombre'] ?? 'Capit·n N/A',
                                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 Text(
-                                  'Matr√≠cula: ${c['expediente'] ?? 'S/N'}',
+                                  'MatrÌcula: ${c['expediente'] ?? 'S/N'}',
                                   style: TextStyle(color: _accentColor, fontWeight: FontWeight.w600, fontSize: 12),
                                 ),
                               ],
@@ -369,12 +370,12 @@ class _DirectorioCapitanesScreenState extends State<DirectorioCapitanesScreen> {
                   columnSpacing: 20,
                   dataRowHeight: 70,
                   columns: [
-                    const DataColumn(label: Text('MATR√çCULA', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
-                    const DataColumn(label: Text('CAPIT√ÅN', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
-                    const DataColumn(label: Text('DIRECCI√ìN', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+                    const DataColumn(label: Text('MATRÕCULA', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+                    const DataColumn(label: Text('CAPIT¡N', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+                    const DataColumn(label: Text('DIRECCI”N', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
                     if (MediaQuery.of(context).orientation == Orientation.landscape) ...[
                       const DataColumn(label: Text('LOCALIDAD', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
-                      const DataColumn(label: Text('TEL√âFONO', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+                      const DataColumn(label: Text('TEL…FONO', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
                     ],
                     const DataColumn(label: Text('EXPORTAR', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
                     const DataColumn(label: Text('FICHA', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),

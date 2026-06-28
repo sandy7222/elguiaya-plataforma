@@ -1,6 +1,7 @@
 
 
 import 'package:flutter/material.dart';
+import '../widgets/safe_button.dart';
 
 import '../models/documento.dart';
 import '../models/perfil_capitan.dart';
@@ -20,8 +21,7 @@ class _CapitanConfigScreenState extends State<CapitanConfigScreen> {
   bool _isLoading = true;
   bool _guardando = false;
   
-  // ID de prueba para el capitan (sin Auth)
-  final String _capitanId = '22222222-2222-2222-2222-222222222222';
+  String get _capitanId => SupabaseService.currentUserId ?? '';
 
   @override
   void initState() {
@@ -180,17 +180,17 @@ class _CapitanConfigScreenState extends State<CapitanConfigScreen> {
             else
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: _guardarCambios,
-                  icon: const Icon(Icons.save),
-                  label: const Text('Guardar Todo'),
-                  style: ElevatedButton.styleFrom(
+                child: SafeElevatedIconButton(
+  onPressed: _guardarCambios,
+  icon: Icons.save,
+  label: 'Guardar Todo',
+  style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0D47A1),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                ),
+),
               ),
           ],
         ),

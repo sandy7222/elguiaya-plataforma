@@ -1,9 +1,15 @@
+import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+
+import 'despacho_pna_service.dart';
 
 class PdfService {
   /// Función auxiliar para descargar imágenes desde una URL
@@ -190,6 +196,183 @@ class PdfService {
     await Printing.layoutPdf(
       onLayout: (PdfPageFormat format) async => pdf.save(),
       name: 'Legajo_Socio_${data['nombre']}.pdf',
+    );
+  }
+
+  static Future<Uint8List> buildDespachoPnaPdf(DespachoPnaData data) async {
+    final pdf = pw.Document();
+    final now = DateTime.now();
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(28),
+        build: (context) => [
+          pw.Center(
+            child: pw.Text(
+              'PREFECTURA NAVAL ARGENTINA',
+              style: pw.TextStyle(
+                fontSize: 14,
+                fontWeight: pw.FontWeight.bold,
+              ),
+            ),
+          ),
+          pw.SizedBox(height: 4),
+          pw.Center(
+            child: pw.Text(
+              'DESPACHO DE EMBARCACIONES DEPORTIVAS',
+              style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+            ),
+          ),
+          pw.SizedBox(height: 6),
+          pw.Center(
+            child: pw.Text(
+              'Generado por El Guía YA — revisar, firmar y presentar si corresponde',
+              style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700),
+            ),
+          ),
+          pw.SizedBox(height: 16),
+          _despachoCampo('NOMBRE Y DESCRIPCIÓN EMBARCACIÓN', data.nombreEmbarcacion),
+          _despachoCampo('NACIONALIDAD EMBARCACIÓN', data.nacionalidadEmbarcacion),
+          _despachoCampo('HABILITACIÓN CAPITÁN N°', data.habilitacionCapitan),
+          _despachoCampo('NOMBRE CAPITÁN', data.nombreCapitan),
+          _despachoCampo('FECHA Y HORA DE ZARPADA', data.fechaHoraZarpada),
+          _despachoCampo('LUGAR DE ZARPADA', data.lugarZarpada),
+          pw.SizedBox(height: 12),
+          pw.Text(
+            'LISTA DE TRIPULANTES (Crewmembers)',
+            style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+          ),
+          pw.SizedBox(height: 6),
+          _despachoTablaPersonas(data.tripulantes),
+          pw.SizedBox(height: 12),
+          pw.Text(
+            'LISTA DE ACOMPAÑANTES (List of other persons on board)',
+            style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+          ),
+          pw.SizedBox(height: 6),
+          _despachoTablaPersonas(data.acompanantes),
+          pw.SizedBox(height: 12),
+          _despachoCampo(
+            'PUNTO DE CONTACTO EN TIERRA',
+            '${data.contactoTierraNombre} — Tel: ${data.contactoTierraTelefono} — Email: ${data.contactoTierraEmail}',
+          ),
+          _despachoCampo('CORREO ELECTRÓNICO DEL CAPITÁN', data.emailCapitan),
+          _despachoCampo('TELÉFONO DEL CAPITÁN', data.telefonoCapitan),
+          pw.SizedBox(height: 10),
+          pw.Text(
+            'VALIDEZ DEL DESPACHO (24 HS.) VEINTICUATRO HORAS.',
+            style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
+          ),
+          pw.SizedBox(height: 6),
+          pw.Text(
+            'Por el presente me hago responsable a partir de mi zarpada de informar a la Prefectura Naval Argentina, '
+            'a través de los medios de comunicación que dispongo, una (1) vez por día los datos relativos a mi embarcación '
+            'mientras navegue en aguas de jurisdicción argentina.',
+            style: const pw.TextStyle(fontSize: 7.5),
+          ),
+          pw.SizedBox(height: 16),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Text(
+                'FECHA, FIRMA Y SELLO DEL CAPITÁN',
+                style: const pw.TextStyle(fontSize: 8),
+              ),
+              pw.Text(
+                'Pedido ${data.pedidoId.substring(0, 8).toUpperCase()}',
+                style: const pw.TextStyle(fontSize: 8),
+              ),
+            ],
+          ),
+          pw.SizedBox(height: 8),
+          pw.Text(
+            'Documento generado el ${now.day}/${now.month}/${now.year}',
+            style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey600),
+          ),
+        ],
+      ),
+    );
+
+    return pdf.save();
+  }
+
+  static pw.Widget _despachoCampo(String label, String value) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.only(bottom: 8),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            label,
+            style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
+          ),
+          pw.Container(
+            width: double.infinity,
+            padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            decoration: pw.BoxDecoration(
+              border: pw.Border.all(color: PdfColors.grey500, width: 0.5),
+              borderRadius: pw.BorderRadius.circular(2),
+            ),
+            child: pw.Text(value, style: const pw.TextStyle(fontSize: 9)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static pw.Widget _despachoTablaPersonas(List<PersonaDespachoPna> personas) {
+    return pw.TableHelper.fromTextArray(
+      headerStyle: pw.TextStyle(
+        fontSize: 7,
+        fontWeight: pw.FontWeight.bold,
+        color: PdfColors.white,
+      ),
+      headerDecoration: const pw.BoxDecoration(color: PdfColors.blueGrey800),
+      cellStyle: const pw.TextStyle(fontSize: 7.5),
+      cellAlignment: pw.Alignment.centerLeft,
+      data: <List<String>>[
+        <String>[
+          'Nombre y apellido',
+          'Nacionalidad',
+          'Fecha nac.',
+          'Lugar nac.',
+          'Documento',
+        ],
+        ...personas.map(
+          (p) => <String>[
+            p.nombreApellido,
+            p.nacionalidad,
+            p.fechaNacimiento,
+            p.lugarNacimiento,
+            p.documento,
+          ],
+        ),
+      ],
+    );
+  }
+
+  static Future<void> generarDespachoPna(DespachoPnaData data) async {
+    final bytes = await buildDespachoPnaPdf(data);
+    final fileName = 'Despacho_PNA_${data.pedidoId.substring(0, 8)}.pdf';
+
+    await Printing.layoutPdf(
+      onLayout: (_) async => bytes,
+      name: fileName,
+    );
+  }
+
+  static Future<void> compartirDespachoPna(DespachoPnaData data) async {
+    final bytes = await buildDespachoPnaPdf(data);
+    final dir = await getTemporaryDirectory();
+    final fileName = 'Despacho_PNA_${data.pedidoId.substring(0, 8)}.pdf';
+    final file = File('${dir.path}/$fileName');
+    await file.writeAsBytes(bytes, flush: true);
+    await Share.shareXFiles(
+      [XFile(file.path, mimeType: 'application/pdf', name: fileName)],
+      subject: 'Despacho PNA — El Guía YA',
+      text:
+          'Despacho PNA pre-completado. Revisá, firmá y presentá si corresponde antes de zarpar.',
     );
   }
 }

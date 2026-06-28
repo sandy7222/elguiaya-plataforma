@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../widgets/safe_button.dart';
 import '../services/supabase_service.dart';
 
 class AdminAlertasSeguridadScreen extends StatefulWidget {
@@ -152,9 +153,11 @@ class _AdminAlertasSeguridadScreenState extends State<AdminAlertasSeguridadScree
 
   Future<void> _procesarAdvertencia(Map<String, dynamic> alerta, String mensaje) async {
     try {
+      final adminId = SupabaseService.currentUserId;
+      if (adminId == null) return;
       final resultado = await SupabaseService.enviarAdvertenciaCapitan(
         alerta['id'],
-        '11111111-1111-1111-1111-111111111111', // ID de prueba admin
+        adminId,
         mensaje.isEmpty ? null : mensaje,
       );
       
@@ -285,9 +288,11 @@ class _AdminAlertasSeguridadScreenState extends State<AdminAlertasSeguridadScree
 
   Future<void> _procesarSuspension(Map<String, dynamic> alerta, int dias, String motivo) async {
     try {
+      final adminId = SupabaseService.currentUserId;
+      if (adminId == null) return;
       final resultado = await SupabaseService.suspenderCapitan(
         alerta['id'],
-        '11111111-1111-1111-1111-111111111111', // ID de prueba admin
+        adminId,
         'temporal',
         dias,
         motivo.isEmpty ? null : motivo,
@@ -725,27 +730,27 @@ class _AdminAlertasSeguridadScreenState extends State<AdminAlertasSeguridadScree
               spacing: 8,
               runSpacing: 8,
               children: [
-                TextButton.icon(
+                SafeTextIconButton(
                   onPressed: () => _verMensajeCompleto(alerta),
-                  icon: const Icon(Icons.visibility),
-                  label: const Text('Ver Mensaje'),
+                  icon: Icons.visibility,
+                  label: 'Ver Mensaje',
                   style: TextButton.styleFrom(
                     foregroundColor: _azulNautico,
                   ),
                 ),
-                ElevatedButton.icon(
+                SafeElevatedIconButton(
                   onPressed: () => _enviarAdvertencia(alerta),
-                  icon: const Icon(Icons.warning),
-                  label: const Text('Advertencia'),
+                  icon: Icons.warning,
+                  label: 'Advertencia',
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _naranjaAlerta,
                     foregroundColor: Colors.white,
                   ),
                 ),
-                ElevatedButton.icon(
+                SafeElevatedIconButton(
                   onPressed: () => _suspenderCapitan(alerta),
-                  icon: const Icon(Icons.block),
-                  label: const Text('Suspension'),
+                  icon: Icons.block,
+                  label: 'Suspensión',
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _rojoProblema,
                     foregroundColor: Colors.white,

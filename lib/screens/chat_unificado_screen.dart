@@ -4,6 +4,7 @@ import '../services/voice_service.dart';
 import '../services/connectivity_bridge.dart';
 import '../services/ia_router_state.dart';
 import '../widgets/guia_overlay.dart';
+import '../utils/view_insets.dart';
 
 /// Chat unificado con El Guía — único punto de entrada para el usuario.
 ///
@@ -440,10 +441,13 @@ class _ChatUnificadoScreenState extends State<ChatUnificadoScreen>
   }
 
   Widget _buildInputBar() {
-    final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
+    final keyboardInset = MediaQuery.of(context).viewInsets.bottom;
+    final bottom = keyboardInset > 0
+        ? keyboardInset + 8
+        : ViewInsets.portalNavOverlap(context);
 
     return Container(
-      padding: EdgeInsets.fromLTRB(8, 8, 8, bottomPadding > 0 ? bottomPadding + 8 : 16),
+      padding: EdgeInsets.fromLTRB(8, 8, 8, bottom),
       decoration: BoxDecoration(
         color: const Color(0xFF001529).withOpacity(0.95),
         border: Border(

@@ -1,8 +1,9 @@
-﻿
+
 
 import 'package:flutter/material.dart';
 
 import '../services/stress_test_service.dart';
+import '../widgets/safe_button.dart';
 
 class StressTestDemoScreen extends StatefulWidget {
   const StressTestDemoScreen({super.key});
@@ -37,7 +38,7 @@ class _StressTestDemoScreenState extends State<StressTestDemoScreen> {
       _resultados = null;
     });
 
-    _addLog('🔥 INICIANDO PRUEBA DE ESTRES COMPLETA - EL GUIA YA');
+    _addLog('?? INICIANDO PRUEBA DE ESTRES COMPLETA - EL GUIA YA');
     _addLog('=' * 70);
 
     try {
@@ -49,9 +50,9 @@ class _StressTestDemoScreenState extends State<StressTestDemoScreen> {
       });
 
       if (resultados['prueba_completada'] == true) {
-        _addLog('\n🎉 PRUEBA COMPLETADA EXITOSAMENTE');
-        _addLog('✅ Todos los pasos ejecutados sin errores');
-        _addLog('✅ Datos guardados correctamente en Supabase (simulado)');
+        _addLog('\n?? PRUEBA COMPLETADA EXITOSAMENTE');
+        _addLog('? Todos los pasos ejecutados sin errores');
+        _addLog('? Datos guardados correctamente en Supabase (simulado)');
         
         // Mostrar resumen
         final solicitudes = resultados['solicitudes_enviadas'] as List;
@@ -59,19 +60,19 @@ class _StressTestDemoScreenState extends State<StressTestDemoScreen> {
         final pago = resultados['pago_procesado'] as Map;
         final puntuacion = resultados['puntuacion_registrada'] as Map;
         
-        _addLog('\n📊 RESUMEN DE RESULTADOS:');
-        _addLog('• Solicitudes enviadas: ${solicitudes.length}');
-        _addLog('• Precio cotizado: \$${respuesta['precio_cotizado'].toStringAsFixed(0)}');
-        _addLog('• Pagos generados: ${pago['pagos_generados'].length}');
-        _addLog('• Calificacion del servicio: ${puntuacion['calificacion']}/5');
-        _addLog('• Comentario del pescador: "${puntuacion['comentario']}"');
+        _addLog('\n?? RESUMEN DE RESULTADOS:');
+        _addLog('� Solicitudes enviadas: ${solicitudes.length}');
+        _addLog('� Precio cotizado: \$${respuesta['precio_cotizado'].toStringAsFixed(0)}');
+        _addLog('� Pagos generados: ${pago['pagos_generados'].length}');
+        _addLog('� Calificacion del servicio: ${puntuacion['calificacion']}/5');
+        _addLog('� Comentario del pescador: "${puntuacion['comentario']}"');
         
       } else {
-        _addLog('\n❌ ERROR EN PRUEBA DE ESTRES');
+        _addLog('\n? ERROR EN PRUEBA DE ESTRES');
         _addLog('Error: ${resultados['error']}');
       }
     } catch (e) {
-      _addLog('\n💥 ERROR CRITICO: $e');
+      _addLog('\n?? ERROR CRITICO: $e');
     } finally {
       setState(() {
         _isRunning = false;
@@ -123,7 +124,7 @@ class _StressTestDemoScreenState extends State<StressTestDemoScreen> {
                       const Icon(Icons.info_outline, color: _azulVibrante),
                       const SizedBox(width: 8),
                       const Text(
-                        '📋 Prueba de Estres y Flujo de Cierre',
+                        '?? Prueba de Estres y Flujo de Cierre',
                         style: TextStyle(
                           color: _azulVibrante,
                           fontSize: 16,
@@ -141,11 +142,11 @@ class _StressTestDemoScreenState extends State<StressTestDemoScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  _buildPasoItem('1️⃣', 'Generacion de 5 solicitudes desde Portal Pescador'),
-                  _buildPasoItem('2️⃣', 'Validacion de Inbox con Baqueano-IA'),
-                  _buildPasoItem('3️⃣', 'Cierre de ciclo: Marcar como "Pagada"'),
-                  _buildPasoItem('4️⃣', 'Ejecutar "Finalizar Mision"'),
-                  _buildPasoItem('5️⃣', 'Completar formulario de puntuacion'),
+                  _buildPasoItem('1??', 'Generacion de 5 solicitudes desde Portal Pescador'),
+                  _buildPasoItem('2??', 'Validacion de Inbox con Baqueano-IA'),
+                  _buildPasoItem('3??', 'Cierre de ciclo: Marcar como "Pagada"'),
+                  _buildPasoItem('4??', 'Ejecutar "Finalizar Mision"'),
+                  _buildPasoItem('5??', 'Completar formulario de puntuacion'),
                 ],
               ),
             ),
@@ -155,26 +156,8 @@ class _StressTestDemoScreenState extends State<StressTestDemoScreen> {
             // Boton de ejecucion
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton.icon(
+              child: ElevatedButton(
                 onPressed: _isRunning ? null : _ejecutarPruebaDeEstres,
-                icon: _isRunning
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(_blancoPuro),
-                        ),
-                      )
-                    : const Icon(Icons.play_arrow, color: _blancoPuro),
-                label: Text(
-                  _isRunning ? 'Ejecutando Prueba...' : 'Ejecutar Prueba de Estres',
-                  style: const TextStyle(
-                    color: _blancoPuro,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _azulVibrante,
                   foregroundColor: _blancoPuro,
@@ -182,6 +165,19 @@ class _StressTestDemoScreenState extends State<StressTestDemoScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
+                ),
+                child: SafeButtonLoadingContent(
+                  loading: _isRunning,
+                  icon: Icons.play_arrow,
+                  iconColor: _blancoPuro,
+                  idleLabel: 'Ejecutar prueba de estr�s',
+                  loadingLabel: 'Ejecutando prueba...',
+                  textStyle: const TextStyle(
+                    color: _blancoPuro,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  spinnerColor: _blancoPuro,
                 ),
               ),
             ),
@@ -212,7 +208,7 @@ class _StressTestDemoScreenState extends State<StressTestDemoScreen> {
                         const Icon(Icons.terminal, color: _blancoPuro, size: 16),
                         const SizedBox(width: 8),
                         const Text(
-                          '📟 Logs de Consola',
+                          '?? Logs de Consola',
                           style: TextStyle(
                             color: _blancoPuro,
                             fontWeight: FontWeight.bold,
@@ -312,7 +308,7 @@ class _StressTestDemoScreenState extends State<StressTestDemoScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                exito ? '✅ Prueba Completada Exitosamente' : '❌ Error en Prueba',
+                exito ? '? Prueba Completada Exitosamente' : '? Error en Prueba',
                 style: TextStyle(
                   color: exito ? _verdeBrillante : _rojoFuerte,
                   fontSize: 16,
@@ -328,7 +324,7 @@ class _StressTestDemoScreenState extends State<StressTestDemoScreen> {
             _buildResultadoItem('Precio Cotizado', '\$${resultados['respuesta_capitan']['precio_cotizado'].toStringAsFixed(0)}'),
             _buildResultadoItem('Pagos Generados', '${resultados['pago_procesado']['pagos_generados'].length}'),
             _buildResultadoItem('Calificacion', '${resultados['puntuacion_registrada']['calificacion']}/5'),
-            _buildResultadoItem('Guardado en Supabase', resultados['puntuacion_registrada']['guardado_en_supabase'] ? '✅ Si' : '❌ No'),
+            _buildResultadoItem('Guardado en Supabase', resultados['puntuacion_registrada']['guardado_en_supabase'] ? '? Si' : '? No'),
           ] else ...[
             const SizedBox(height: 12),
             Text(

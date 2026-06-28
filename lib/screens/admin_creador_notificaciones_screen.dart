@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/notificacion_service.dart';
 import '../services/supabase_service.dart';
+import '../widgets/safe_button.dart';
 
 class AdminCreadorNotificacionesScreen extends StatefulWidget {
   const AdminCreadorNotificacionesScreen({super.key});
@@ -209,7 +210,7 @@ class _AdminCreadorNotificacionesScreenState extends State<AdminCreadorNotificac
               SizedBox(
                 width: double.infinity,
                 height: 56,
-                child: ElevatedButton.icon(
+                child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF00E676),
                     foregroundColor: Colors.white,
@@ -217,8 +218,14 @@ class _AdminCreadorNotificacionesScreenState extends State<AdminCreadorNotificac
                     elevation: 5,
                   ),
                   onPressed: _enviando ? null : _enviarNotificacion,
-                  icon: _enviando ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Icon(Icons.send_rounded),
-                  label: Text(_enviando ? 'Enviando...' : 'Publicar Notificación', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  child: SafeButtonLoadingContent(
+                    loading: _enviando,
+                    icon: Icons.send_rounded,
+                    idleLabel: 'Publicar notificación',
+                    loadingLabel: 'Enviando...',
+                    textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                    spinnerColor: Colors.white,
+                  ),
                 ),
               ),
             ],

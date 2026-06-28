@@ -5,12 +5,14 @@ import '../services/supabase_service.dart';
 class OfertaCapitanCard extends StatefulWidget {
   final Map<String, dynamic> oferta;
   final VoidCallback onAccept;
+  final VoidCallback? onDiscard;
   final bool isProcessing;
 
   const OfertaCapitanCard({
     super.key,
     required this.oferta,
     required this.onAccept,
+    this.onDiscard,
     this.isProcessing = false,
   });
 
@@ -294,6 +296,28 @@ class _OfertaCapitanCardState extends State<OfertaCapitanCard>
                   ),
                 ),
               ),
+              if (widget.onDiscard != null)
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  child: Material(
+                    color: Colors.black.withOpacity(0.55),
+                    shape: const CircleBorder(),
+                    child: IconButton(
+                      onPressed: widget.isProcessing ? null : widget.onDiscard,
+                      icon: const Icon(Icons.delete_outline_rounded),
+                      color: const Color(0xFFEF4444),
+                      iconSize: 22,
+                      tooltip: 'Descartar presupuesto',
+                      visualDensity: VisualDensity.compact,
+                      padding: const EdgeInsets.all(8),
+                      constraints: const BoxConstraints(
+                        minWidth: 40,
+                        minHeight: 40,
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
           Padding(

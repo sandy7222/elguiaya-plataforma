@@ -1,6 +1,7 @@
-﻿
+
 
 import 'dart:async';
+import '../widgets/safe_button.dart';
 
 import 'package:flutter/material.dart';
 
@@ -95,7 +96,7 @@ class _AdminCierresScreenState extends State<AdminCierresScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Center(child: Text(
-              '✅ Vigilancia ejecutada: ${resultado['pedidos_procesados']} procesados, '
+              '? Vigilancia ejecutada: ${resultado['pedidos_procesados']} procesados, '
               '${resultado['notificaciones_enviadas']} notificaciones, '
               '${resultado['alertas_demora_creadas']} alertas'
             )),
@@ -293,7 +294,7 @@ class _AdminCierresScreenState extends State<AdminCierresScreen>
         if (resultado['exito'] == true) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Center(child: Text('✅ ${resultado['mensaje']}')),
+              content: Center(child: Text('? ${resultado['mensaje']}')),
               backgroundColor: _verdeExito,
             ),
           );
@@ -577,7 +578,7 @@ class _AdminCierresScreenState extends State<AdminCierresScreen>
                         ),
                       ),
                       Text(
-                        '$clienteNombre ← $capitanNombre',
+                        '$clienteNombre ? $capitanNombre',
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey[600],
@@ -672,16 +673,16 @@ class _AdminCierresScreenState extends State<AdminCierresScreen>
             if (estadoActual != 'cerrado_manual' && estadoActual != 'confirmado')
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () => _mostrarDialogoCierreManual(viaje),
-                  icon: const Icon(Icons.gavel),
-                  label: const Text('Cierre Manual'),
-                  style: ElevatedButton.styleFrom(
+                child: SafeElevatedIconButton(
+  onPressed: () => _mostrarDialogoCierreManual(viaje),
+  icon: Icons.gavel,
+  label: 'Cierre Manual',
+  style: ElevatedButton.styleFrom(
                     backgroundColor: _azulNautico,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
-                ),
+),
               ),
           ],
         ),

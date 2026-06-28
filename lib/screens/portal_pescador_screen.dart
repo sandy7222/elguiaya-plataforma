@@ -8,10 +8,13 @@ import '../widgets/ia_status_badge.dart';
 import 'pescador_dashboard_screen.dart';
 import 'mis_viajes_screen.dart';
 import 'bienvenida_definitiva_screen.dart';
+import '../widgets/safe_button.dart';
 import '../services/supabase_service.dart';
 import '../services/branding_service.dart';
 import '../services/ia_router_state.dart';
 import '../widgets/notification_quick_view.dart';
+import '../widgets/el_guia_ya_home_button.dart';
+import '../utils/view_insets.dart';
 import 'capitan_tracker_screen.dart';
 
 class PortalPescadorScreen extends StatefulWidget {
@@ -182,10 +185,11 @@ class _PortalPescadorScreenState extends State<PortalPescadorScreen> {
               style: TextStyle(color: Colors.white54, fontSize: 14),
             ),
           ),
-          ElevatedButton.icon(
+          SafeElevatedIconButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            icon: const Icon(Icons.gps_fixed_rounded, size: 18),
-            label: const Text('Activar GPS'),
+            icon: Icons.gps_fixed_rounded,
+            iconSize: 18,
+            label: 'Activar GPS',
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF00E676),
               foregroundColor: Colors.black,
@@ -203,6 +207,10 @@ class _PortalPescadorScreenState extends State<PortalPescadorScreen> {
     if (aceptado == true) {
       await Geolocator.requestPermission();
     }
+  }
+
+  void _irAlPanel() {
+    setState(() => _selectedIndex = 0);
   }
 
   Widget _buildBody() {
@@ -236,10 +244,9 @@ class _PortalPescadorScreenState extends State<PortalPescadorScreen> {
       backgroundColor: const Color(0xFF001F3F),
       extendBody: true,
       appBar: AppBar(
-        title: const Text(
-          'EL GUIA YA',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.2),
-        ),
+        title: ElGuiaYaHomeButton(onTap: _irAlPanel),
+        centerTitle: false,
+        titleSpacing: 0,
         backgroundColor: Colors.black.withOpacity(0.4),
         elevation: 0,
         actions: [
@@ -286,6 +293,18 @@ class _PortalPescadorScreenState extends State<PortalPescadorScreen> {
           child: BottomNavigationBar(
             currentIndex: _selectedIndex,
             onTap: (index) async {
+              if (index == 0) {
+                final result = await Navigator.push<Object?>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MisViajesScreen(),
+                  ),
+                );
+                if (mounted && result == 'panel') {
+                  setState(() => _selectedIndex = 0);
+                }
+                return;
+              }
               // Índice 1 = Mapa de Ruta: pedir GPS en contexto antes de mostrarlo
               if (index == 1) {
                 await _solicitarGPSParaMapa();
@@ -453,6 +472,10 @@ class _MapSectionState extends State<_MapSection> {
               Stack(
                 children: [
                   MapSelectorWidget(
+                    bottomControlsInset: ViewInsets.portalBottomPadding(
+                      context,
+                      extra: 16,
+                    ),
                     onRouteSelected: (p0, p1, p2) {
                       setState(() {
                         _partida = p0;
@@ -468,15 +491,15 @@ class _MapSectionState extends State<_MapSection> {
                   ),
                   if (_partida != null && _destino != null)
                     Positioned(
-                      bottom: 90,
+                      bottom: ViewInsets.portalBottomPadding(context, extra: 16) + 56,
                       left: 20,
                       right: 20,
-                      child: ElevatedButton.icon(
+                      child: SafeElevatedButton(
                         onPressed: () {
                           widget.onRequestQuote(_partida!, _destino!, _trackLog, _distancia);
                         },
-                        icon: const Icon(Icons.request_quote),
-                        label: const Text('PEDIR PRESUPUESTO AHORA'),
+                        icon: Icons.request_quote,
+                        label: 'Pedir presupuesto ahora',
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF00E676),
                           foregroundColor: Colors.black,
@@ -489,7 +512,12 @@ class _MapSectionState extends State<_MapSection> {
                 ],
               ),
               // Sub-pestaña 1: GPS Tracker del Pescador
-              const CapitanTrackerScreen(esCapitan: false),
+              Padding(
+                padding: EdgeInsets.only(
+                  bottom: ViewInsets.portalNavOverlap(context),
+                ),
+                child: const CapitanTrackerScreen(esCapitan: false),
+              ),
             ],
           ),
         ),

@@ -1,4 +1,4 @@
-Ôªøimport 'dart:ui';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -69,7 +69,7 @@ class _SalaEsperaPescadorScreenState extends State<SalaEsperaPescadorScreen> wit
             if (_cotizacionData != null) _buildCountdownTimer(),
             const SizedBox(height: 10),
             Text(
-              _expirado ? '¬°TIEMPO AGOTADO! Elige tu mejor opci√≥n' : 'Tu solicitud est√° navegando por el radar...',
+              _expirado ? '°TIEMPO AGOTADO! Elige tu mejor opciÛn' : 'Tu solicitud est· navegando por el radar...',
               style: TextStyle(color: _expirado ? Colors.orange : Colors.white54, fontSize: 13, fontWeight: _expirado ? FontWeight.bold : FontWeight.normal),
             ),
             const Expanded(
@@ -171,7 +171,7 @@ class _SalaEsperaPescadorScreenState extends State<SalaEsperaPescadorScreen> wit
                   children: [
                     Row(
                       children: [
-                        // Avatar con Aura Din√°mica
+                        // Avatar con Aura Din·mica
                         Container(
                           padding: const EdgeInsets.all(3),
                           decoration: BoxDecoration(
@@ -341,12 +341,12 @@ class _SalaEsperaPescadorScreenState extends State<SalaEsperaPescadorScreen> wit
       );
       
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('‚úÖ ¬°Trato cerrado! El GPS ya est√° activo.'), backgroundColor: Colors.green),
+        const SnackBar(content: Text('? °Trato cerrado! El GPS ya est· activo.'), backgroundColor: Colors.green),
       );
     } catch (e) {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('‚ùå Error: $e'), backgroundColor: Colors.red),
+        SnackBar(content: Text('? Error: $e'), backgroundColor: Colors.red),
       );
     }
   }
@@ -409,7 +409,7 @@ class _RadarAnimationState extends State<RadarAnimation> with SingleTickerProvid
         return Stack(
           alignment: Alignment.center,
           children: [
-            // C√≠rculos de onda expansiva
+            // CÌrculos de onda expansiva
             ...List.generate(3, (index) {
               final progress = (_controller.value + index / 3) % 1.0;
               return Container(
@@ -424,7 +424,7 @@ class _RadarAnimationState extends State<RadarAnimation> with SingleTickerProvid
                 ),
               );
             }),
-            // L√≠nea de barrido rotativa
+            // LÌnea de barrido rotativa
             Transform.rotate(
               angle: _controller.value * 2 * 3.14159,
               child: Container(

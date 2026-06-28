@@ -458,12 +458,12 @@ class _AdminHomeTabState extends State<AdminHomeTab> {
       ),
       (
         Icons.gps_fixed_rounded,
-        'Tracking GPS',
-        'Ver viajes en mapa',
+        'Recorrido de viajes',
+        'Mapa GPS de viajes en curso',
         Colors.blueAccent,
         false,
         () => Navigator.push(context,
-            MaterialPageRoute(builder: (_) => const AdminTrackingScreen())),
+            MaterialPageRoute(builder: (_) => const AdminViajesScreen())),
       ),
       (
         Icons.gavel_rounded,

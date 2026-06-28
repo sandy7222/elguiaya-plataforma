@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../widgets/safe_button.dart';
 
 import '../models/user_profile.dart';
 import '../services/storage_service.dart';
@@ -380,27 +381,27 @@ class _ProfileScreenState extends State<ProfileScreen>
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _seleccionarFotoDni,
-                    icon: const Icon(Icons.photo_library),
-                    label: const Text('Seleccionar de Galeria'),
-                    style: OutlinedButton.styleFrom(
+                  child: SafeOutlinedIconButton(
+  onPressed: _seleccionarFotoDni,
+  icon: Icons.photo_library,
+  label: 'Seleccionar de Galeria',
+  style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFF0D47A1),
                       side: const BorderSide(color: Color(0xFF0D47A1)),
                     ),
-                  ),
+),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: _tomarFotoDni,
-                    icon: const Icon(Icons.camera_alt),
-                    label: const Text('Tomar Foto'),
-                    style: ElevatedButton.styleFrom(
+                  child: SafeElevatedIconButton(
+  onPressed: _tomarFotoDni,
+  icon: Icons.camera_alt,
+  label: 'Tomar Foto',
+  style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF0D47A1),
                       foregroundColor: Colors.white,
                     ),
-                  ),
+),
                 ),
               ],
             ),
@@ -524,25 +525,22 @@ class _ProfileScreenState extends State<ProfileScreen>
   Widget _buildGuardarButton() {
     return SizedBox(
       width: double.infinity,
-      child: ElevatedButton.icon(
+      child: ElevatedButton(
         onPressed: _isSaving ? null : _guardarPerfil,
-        icon: _isSaving
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
-            : const Icon(Icons.save),
-        label: Text(_isSaving ? 'Guardando...' : 'Guardar Perfil'),
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF0D47A1),
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           elevation: 2,
+        ),
+        child: SafeButtonLoadingContent(
+          loading: _isSaving,
+          icon: Icons.save,
+          idleLabel: 'Guardar perfil',
+          loadingLabel: 'Guardando...',
+          textStyle: const TextStyle(color: Colors.white),
+          spinnerColor: Colors.white,
         ),
       ),
     );

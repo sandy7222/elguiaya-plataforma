@@ -1,6 +1,7 @@
 
 import 'dart:io';
 import 'dart:typed_data';
+import '../widgets/safe_button.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -236,15 +237,15 @@ class _BannerManagerScreenState extends State<BannerManagerScreen>
                         ),
                       ),
                       const SizedBox(height: 24),
-                      ElevatedButton.icon(
-                        onPressed: () => _mostrarFormularioBanner(),
-                        icon: const Icon(Icons.add),
-                        label: const Text('Crear Banner'),
-                        style: ElevatedButton.styleFrom(
+                      SafeElevatedIconButton(
+  onPressed: () => _mostrarFormularioBanner(),
+  icon: Icons.add,
+  label: 'Crear Banner',
+  style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF0D47A1),
                           foregroundColor: Colors.white,
                         ),
-                      ),
+),
                     ],
                   ),
                 )
@@ -691,19 +692,19 @@ class _BannerFormDialogState extends State<_BannerFormDialog> {
                 Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: _seleccionarImagen,
-                        icon: const Icon(Icons.photo_library),
-                        label: const Text('Galería'),
-                      ),
+                      child: SafeOutlinedIconButton(
+  onPressed: _seleccionarImagen,
+  icon: Icons.photo_library,
+  label: 'Galería',
+),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: _tomarFoto,
-                        icon: const Icon(Icons.camera_alt),
-                        label: const Text('Cámara'),
-                      ),
+                      child: SafeOutlinedIconButton(
+  onPressed: _tomarFoto,
+  icon: Icons.camera_alt,
+  label: 'Cámara',
+),
                     ),
                   ],
                 ),

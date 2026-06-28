@@ -17,6 +17,8 @@ import '../providers/favoritos_provider.dart';
 import 'favoritos_screen.dart';
 import 'help_center_screen.dart';
 import 'order_history_screen.dart';
+import '../widgets/safe_button.dart';
+import '../utils/view_insets.dart';
 
 class CategoriesGridScreen extends StatefulWidget {
   final Categoria? categoriaPadre;
@@ -267,7 +269,12 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
                           ).toList();
 
                           return SliverPadding(
-                            padding: const EdgeInsets.all(20),
+                            padding: EdgeInsets.fromLTRB(
+                              20,
+                              20,
+                              20,
+                              20 + ViewInsets.storeBottomPadding(context),
+                            ),
                             sliver: matchingProducts.isEmpty 
                               ? SliverToBoxAdapter(
                                   child: Center(
@@ -375,9 +382,7 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
                               ),
                             ),
 
-                            const SizedBox(height: 80),
                             _buildInstitutionalFooter(),
-                            const SizedBox(height: 0),
                           ]),
                         );
                       },
@@ -2028,7 +2033,12 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
   Widget _buildInstitutionalFooter() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(32),
+      padding: EdgeInsets.fromLTRB(
+        32,
+        32,
+        32,
+        32 + ViewInsets.storeBottomPadding(context),
+      ),
       color: const Color(0xFF1A1A1A),
       child: Column(
         children: [
@@ -2077,7 +2087,7 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
             Icons.description_outlined,
             onTap: () => _mostrarTerminosCondiciones(context),
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 24),
           Wrap(
             alignment: WrapAlignment.center,
             crossAxisAlignment: WrapCrossAlignment.center,
@@ -2495,16 +2505,14 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
                         SizedBox(
                           width: double.infinity,
                           height: 50,
-                          child: ElevatedButton.icon(
-                            onPressed: () {
+                          child: SafeElevatedIconButton(
+  onPressed: () {
                               Navigator.of(context).pop();
                             },
-                            icon: const Icon(Icons.arrow_back_rounded),
-                            label: const Text(
-                              'VOLVER AL PANEL',
-                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 0.5),
-                            ),
-                            style: ElevatedButton.styleFrom(
+  icon: Icons.arrow_back_rounded,
+  label: 'VOLVER AL PANEL',
+  textStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+  style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white.withOpacity(0.08),
                               foregroundColor: Colors.white,
                               side: BorderSide(color: Colors.white.withOpacity(0.15)),
@@ -2512,7 +2520,7 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
                                 borderRadius: BorderRadius.circular(16),
                               ),
                             ),
-                          ),
+),
                         ),
                       ],
                     ),

@@ -1,4 +1,4 @@
-ï»¿
+
 
 import 'dart:async';
 import 'dart:convert';
@@ -46,96 +46,96 @@ class WhatsAppService {
   /// Plantillas de mensajes predefinidas
   static const Map<String, String> _plantillas = {
     'confirmacion_pago': '''
-ğŸ£ *EL GUIA YA - Confirmacion de Pago*
+?? *EL GUIA YA - Confirmacion de Pago*
 
-Â¡Hola {{nombre_cliente}}! Soy el Asistente El Guia YA.
+¡Hola {{nombre_cliente}}! Soy el Asistente El Guia YA.
 
-âœ… *Pago Confirmado*
-â€¢ Reserva: {{codigo_reserva}}
-â€¢ Monto: \${{monto}}
-â€¢ Fecha: {{fecha_pago}}
-â€¢ Metodo: {{metodo_pago}}
+? *Pago Confirmado*
+• Reserva: {{codigo_reserva}}
+• Monto: \${{monto}}
+• Fecha: {{fecha_pago}}
+• Metodo: {{metodo_pago}}
 
-ğŸ“… *Detalles de tu Salida*
-â€¢ Capitan: {{nombre_capitan}}
-â€¢ Fecha: {{fecha_salida}}
-â€¢ Hora: {{hora_salida}}
-â€¢ Ubicacion: {{punto_encuentro}}
+?? *Detalles de tu Salida*
+• Capitan: {{nombre_capitan}}
+• Fecha: {{fecha_salida}}
+• Hora: {{hora_salida}}
+• Ubicacion: {{punto_encuentro}}
 
-ğŸ“± *Proximos Pasos*
+?? *Proximos Pasos*
 1. Te enviaremos un recordatorio 24hs antes
 2. El capitan te contactara para confirmar detalles
 3. Presenta este codigo al llegar: {{codigo_acceso}}
 
-ğŸŒŠ *Â¡Nos vemos en el agua!*
+?? *¡Nos vemos en el agua!*
 
 _Asistente El Guia YA_
 Tu experto en pesca segura
     ''',
 
     'recordatorio_salida': '''
-â° *EL GUIA YA - Recordatorio de Salida*
+? *EL GUIA YA - Recordatorio de Salida*
 
-Â¡Hola {{nombre_cliente}}! Soy el Asistente El Guia YA.
+¡Hola {{nombre_cliente}}! Soy el Asistente El Guia YA.
 
-ğŸ“… *Manana es tu dia de pesca*
-â€¢ Salida: {{fecha_salida}}
-â€¢ Hora: {{hora_salida}}
-â€¢ Punto: {{punto_encuentro}}
-â€¢ Capitan: {{nombre_capitan}}
+?? *Manana es tu dia de pesca*
+• Salida: {{fecha_salida}}
+• Hora: {{hora_salida}}
+• Punto: {{punto_encuentro}}
+• Capitan: {{nombre_capitan}}
 
-ğŸ“‹ * checklist para manana:*
-â˜ Protector solar
-â˜ Gorra y lentes
-â˜ Ropa comoda
-â˜ Camara (opcional)
-â˜ Animo y energia
+?? * checklist para manana:*
+? Protector solar
+? Gorra y lentes
+? Ropa comoda
+? Camara (opcional)
+? Animo y energia
 
-ğŸ“ *Contacto del Capitan*
-â€¢ {{telefono_capitan}}
-â€¢ {{whatsapp_capitan}}
+?? *Contacto del Capitan*
+• {{telefono_capitan}}
+• {{whatsapp_capitan}}
 
-ğŸŒ¤ï¸ *Estado del tiempo*
+??? *Estado del tiempo*
 {{pronostico_clima}}
 
-âš ï¸ *Importante*
+?? *Importante*
 - Llegar 15 minutos antes
 - Confirmar asistencia al capitan
 - Seguir sus indicaciones de seguridad
 
 _Asistente El Guia YA_
-Â¡Preparate para una gran aventura!
+¡Preparate para una gran aventura!
     ''',
 
     'alerta_seguridad': '''
-ğŸš¨ *EL GUIA YA - Alerta de Seguridad*
+?? *EL GUIA YA - Alerta de Seguridad*
 
-Â¡Hola Admin! Soy el Asistente El Guia YA.
+¡Hola Admin! Soy el Asistente El Guia YA.
 
-âš ï¸ *Deteccion de Actividad Sospechosa*
+?? *Deteccion de Actividad Sospechosa*
 
-ğŸ“Š *Detalles del Incidente*
-â€¢ Tipo: {{tipo_alerta}}
-â€¢ Usuario: {{nombre_usuario}}
-â€¢ Chat ID: {{chat_id}}
-â€¢ Severidad: {{severidad}}/10
-â€¢ Hora: {{fecha_hora}}
+?? *Detalles del Incidente*
+• Tipo: {{tipo_alerta}}
+• Usuario: {{nombre_usuario}}
+• Chat ID: {{chat_id}}
+• Severidad: {{severidad}}/10
+• Hora: {{fecha_hora}}
 
-ğŸ” *Patron Detectado*
+?? *Patron Detectado*
 {{descripcion_patron}}
 
-ğŸ’¬ *Mensaje Analizado*
+?? *Mensaje Analizado*
 "{{mensaje_detectado}}"
 
-ğŸ¯ *Recomendacion*
+?? *Recomendacion*
 {{accion_recomendada}}
 
-ğŸ“± *Acciones Inmediatas*
+?? *Acciones Inmediatas*
 1. Revisar el chat: {{enlace_chat}}
 2. Evaluar sancion: {{opciones_sancion}}
 3. Contactar usuario si es necesario
 
-ğŸ” *Proteccion de la Plataforma*
+?? *Proteccion de la Plataforma*
 Esta alerta ayuda a mantener la integridad y seguridad de El Guia YA.
 
 _Asistente El Guia YA_
@@ -143,24 +143,24 @@ Vigilando tu comunidad
     ''',
 
     'cancelacion_reserva': '''
-âŒ *EL GUIA YA - Cancelacion de Reserva*
+? *EL GUIA YA - Cancelacion de Reserva*
 
-Â¡Hola {{nombre_cliente}}! Soy el Asistente El Guia YA.
+¡Hola {{nombre_cliente}}! Soy el Asistente El Guia YA.
 
-ğŸ“‹ *Cancelacion Procesada*
-â€¢ Reserva: {{codigo_reserva}}
-â€¢ Fecha cancelacion: {{fecha_cancelacion}}
-â€¢ Motivo: {{motivo_cancelacion}}
+?? *Cancelacion Procesada*
+• Reserva: {{codigo_reserva}}
+• Fecha cancelacion: {{fecha_cancelacion}}
+• Motivo: {{motivo_cancelacion}}
 
-ğŸ’° *Informacion de Reembolso*
+?? *Informacion de Reembolso*
 {{detalle_reembolso}}
 
-ğŸ“ *Â¿Necesitas ayuda?*
-â€¢ Contacta soporte: {{telefono_soporte}}
-â€¢ Email: {{email_soporte}}
-â€¢ WhatsApp: {{whatsapp_soporte}}
+?? *¿Necesitas ayuda?*
+• Contacta soporte: {{telefono_soporte}}
+• Email: {{email_soporte}}
+• WhatsApp: {{whatsapp_soporte}}
 
-ğŸ”„ *Â¿Quieres reagendar?*
+?? *¿Quieres reagendar?*
 Visita nuestra web o habla con tu Asistente El Guia YA
 
 _Asistente El Guia YA_
@@ -168,22 +168,22 @@ Aqui para ayudarte
     ''',
 
     'bienvenida_pescador': '''
-ğŸ£ *Â¡Bienvenido a EL GUIA YA!*
+?? *¡Bienvenido a EL GUIA YA!*
 
-Â¡Hola {{nombre}}! Soy el Asistente El Guia YA, tu experto personal en pesca.
+¡Hola {{nombre}}! Soy el Asistente El Guia YA, tu experto personal en pesca.
 
-ğŸŒŠ *Â¿Lista para tu proxima aventura?*
+?? *¿Lista para tu proxima aventura?*
 
-âœ… *Â¿Que puedo hacer por ti?*
-â€¢ Encontrar el capitan perfecto
-â€¢ Verificar disponibilidad en tiempo real
-â€¢ Recomendaciones personalizadas
-â€¢ Asistencia 24/7
+? *¿Que puedo hacer por ti?*
+• Encontrar el capitan perfecto
+• Verificar disponibilidad en tiempo real
+• Recomendaciones personalizadas
+• Asistencia 24/7
 
-ğŸ¯ *Tip Rapido*
-Â¿Buscas pesca de costa o embarcada? Preguntame y te recomiendo el mejor guia disponible hoy.
+?? *Tip Rapido*
+¿Buscas pesca de costa o embarcada? Preguntame y te recomiendo el mejor guia disponible hoy.
 
-ğŸ“± *Comunicate conmigo*
+?? *Comunicate conmigo*
 Escribe "ayuda" o dime que tipo de pesca te interesa.
 
 _Asistente El Guia YA_
@@ -191,24 +191,24 @@ Tu puerta de entrada al mundo de la pesca
     ''',
 
     'bienvenida_capitan': '''
-âš“ *Â¡Bienvenido Capitan a EL GUIA YA!*
+? *¡Bienvenido Capitan a EL GUIA YA!*
 
-Â¡Hola {{nombre}}! Soy el Asistente El Guia YA, aqui para potenciar tu negocio.
+¡Hola {{nombre}}! Soy el Asistente El Guia YA, aqui para potenciar tu negocio.
 
-ğŸš¢ *Herramientas para tu exito*
+?? *Herramientas para tu exito*
 
-âœ… *Â¿Que puedo hacer por ti?*
-â€¢ Gestionar tu calendario de disponibilidad
-â€¢ Conectar con pescadores calificados
-â€¢ Optimizar tus reservas
-â€¢ Asistencia con pagos y logistica
+? *¿Que puedo hacer por ti?*
+• Gestionar tu calendario de disponibilidad
+• Conectar con pescadores calificados
+• Optimizar tus reservas
+• Asistencia con pagos y logistica
 
-ğŸ“ˆ *Tips para Capitanes*
-â€¢ Manten tu perfil actualizado
-â€¢ Responde rapidamente a las consultas
-â€¢ Solicita verificacion para mas confianza
+?? *Tips para Capitanes*
+• Manten tu perfil actualizado
+• Responde rapidamente a las consultas
+• Solicita verificacion para mas confianza
 
-ğŸ¯ *Â¿Listo para mas reservas?*
+?? *¿Listo para mas reservas?*
 Dime "disponibilidad" y te ayudo a gestionar tu agenda.
 
 _Asistente El Guia YA_
@@ -509,7 +509,7 @@ Tu partner en el exito
   /// Obtener pronostico del clima (simulado)
   static Future<String> _obtenerPronosticoClima(String ubicacion) async {
     // En produccion, integrar con API de clima
-    return 'â˜€ï¸ Soleado, 22Â°C, viento 10km/h, olas 1.5m. Condiciones excelentes para la pesca.';
+    return '?? Soleado, 22°C, viento 10km/h, olas 1.5m. Condiciones excelentes para la pesca.';
   }
 
   /// Verificar estado del servicio

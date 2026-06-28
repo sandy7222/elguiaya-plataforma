@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../widgets/safe_button.dart';
 
 import '../providers/cart_provider.dart';
 import '../providers/favoritos_provider.dart';
@@ -141,15 +142,15 @@ class _FavoritosScreenState extends State<FavoritosScreen>
                     ),
                   ),
                   const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.shopping_bag_outlined),
-                    label: const Text('Explorar Tienda'),
-                    style: ElevatedButton.styleFrom(
+                  SafeElevatedIconButton(
+  onPressed: () => Navigator.pop(context),
+  icon: Icons.shopping_bag_outlined,
+  label: 'Explorar Tienda',
+  style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF0D47A1),
                       foregroundColor: Colors.white,
                     ),
-                  ),
+),
                 ],
               ),
             );

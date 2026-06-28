@@ -1,30 +1,30 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
-/// Sistema Centralizado de Diseño y Estética Premium de EL GUIA YA.
+/// Sistema Centralizado de Dise�o y Est�tica Premium de EL GUIA YA.
 /// Contiene tokens de color, decoraciones y constructores de UI estandarizados
-/// para lograr consistencia visual total en las plataformas Pescador, Capitán y Administrador.
+/// para lograr consistencia visual total en las plataformas Pescador, Capit�n y Administrador.
 class CYAStyles {
-  // ─── PALETA DE COLORES PREMIUM ─────────────────────────────────────────────
+  // --- PALETA DE COLORES PREMIUM ---------------------------------------------
   static const Color primaryDark = Color(0xFF001326);   // Fondo marino ultra profundo
-  static const Color primaryNavy = Color(0xFF001F3F);   // Azul náutico clásico
-  static const Color primaryLight = Color(0xFF002D59);  // Azul náutico intermedio
+  static const Color primaryNavy = Color(0xFF001F3F);   // Azul n�utico cl�sico
+  static const Color primaryLight = Color(0xFF002D59);  // Azul n�utico intermedio
   
-  static const Color accentGreen = Color(0xFF00E676);   // Verde vibrante (Éxito, Compras, Pagos)
-  static const Color accentOrange = Color(0xFFFF6600);  // Naranja intenso (Capitán, Alertas)
-  static const Color accentBlue = Color(0xFF0066FF);    // Azul brillante (Pescador, Información)
+  static const Color accentGreen = Color(0xFF00E676);   // Verde vibrante (�xito, Compras, Pagos)
+  static const Color accentOrange = Color(0xFFFF6600);  // Naranja intenso (Capit�n, Alertas)
+  static const Color accentBlue = Color(0xFF0066FF);    // Azul brillante (Pescador, Informaci�n)
   
   static const Color textWhite = Colors.white;
   static const Color textMuted = Colors.white70;
   static const Color textSubMuted = Colors.white54;
 
-  // ─── BORDES REDONDEADOS ──────────────────────────────────────────────────
+  // --- BORDES REDONDEADOS --------------------------------------------------
   static final BorderRadius radiusSmall = BorderRadius.circular(8);
   static final BorderRadius radiusMedium = BorderRadius.circular(14);
   static final BorderRadius radiusLarge = BorderRadius.circular(20);
   static final BorderRadius radiusExtraLarge = BorderRadius.circular(28);
 
-  // ─── DECORACIÓN DE TARJETAS GLASSMORPHIC ──────────────────────────────────
-  /// Crea una tarjeta translúcida y premium que flota en el fondo oscuro.
+  // --- DECORACI�N DE TARJETAS GLASSMORPHIC ----------------------------------
+  /// Crea una tarjeta transl�cida y premium que flota en el fondo oscuro.
   static BoxDecoration glassCard({
     Color? borderOverride,
     double opacity = 0.06,
@@ -47,9 +47,9 @@ class CYAStyles {
     );
   }
 
-  // ─── BOTONES ESTANDARIZADOS ──────────────────────────────────────────────
+  // --- BOTONES ESTANDARIZADOS ----------------------------------------------
   
-  /// Botón principal premium con gradiente.
+  /// Bot�n principal premium con gradiente.
   static Widget primaryButton({
     required String label,
     required VoidCallback? onPressed,
@@ -127,7 +127,7 @@ class CYAStyles {
     );
   }
 
-  /// Botón secundario de aspecto vítreo (Glassmorphic).
+  /// Bot�n secundario de aspecto v�treo (Glassmorphic).
   static Widget secondaryButton({
     required String label,
     required VoidCallback onPressed,
@@ -177,7 +177,7 @@ class CYAStyles {
     );
   }
 
-  /// Botón Outline (Contorno fino) con color de acento.
+  /// Bot�n Outline (Contorno fino) con color de acento.
   static Widget outlineButton({
     required String label,
     required VoidCallback onPressed,
@@ -228,9 +228,9 @@ class CYAStyles {
     );
   }
 
-  // ─── DECORACIÓN DE ENTRADAS DE TEXTO ───────────────────────────────────────
+  // --- DECORACI�N DE ENTRADAS DE TEXTO ---------------------------------------
   
-  /// Estilo de decoración para TextFields premium y oscuros.
+  /// Estilo de decoraci�n para TextFields premium y oscuros.
   static InputDecoration inputDecoration({
     required String label,
     required IconData icon,

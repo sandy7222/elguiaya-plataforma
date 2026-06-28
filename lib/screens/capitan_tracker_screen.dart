@@ -11,13 +11,21 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/viaje_tracking_service.dart';
+import '../services/viaje_gps_coordinator.dart';
 import '../services/mapa_offline_service.dart';
 import '../services/guia_copilot_brain.dart';
 import '../services/copilot_channel.dart';
+import '../widgets/safe_button.dart';
 
 class CapitanTrackerScreen extends StatefulWidget {
   final bool esCapitan;
-  const CapitanTrackerScreen({super.key, this.esCapitan = true});
+  final String? pedidoId;
+
+  const CapitanTrackerScreen({
+    super.key,
+    this.esCapitan = true,
+    this.pedidoId,
+  });
 
   @override
   State<CapitanTrackerScreen> createState() => _CapitanTrackerScreenState();
@@ -51,13 +59,24 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
   List<LatLng>? _selectedHistoryRoute;
   String? _selectedHistoryName;
   String? _perfilNombre;
+  String? _activePedidoId;
+  List<LatLng> _serverCapitanRoute = [];
+  List<LatLng> _serverPescadorRoute = [];
+  Timer? _trackRefreshTimer;
 
   @override
   void initState() {
     super.initState();
+    _activePedidoId = widget.pedidoId ?? ViajeGpsCoordinator().activePedidoId;
     _checkTrackingState();
     _loadSavedTracks();
     _loadUserProfile();
+    _loadTripTrackFromServer();
+    _trackRefreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (_activePedidoId != null && !_isManual) {
+        _loadTripTrackFromServer();
+      }
+    });
 
     GuiaCopilotBrain.instance.pantallaCargada(
       ScreenContext.mapa,
@@ -100,17 +119,68 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
     _positionSubscription?.cancel();
     _durationTimer?.cancel();
     _downloadTimer?.cancel();
+    _trackRefreshTimer?.cancel();
     super.dispose();
+  }
+
+  Future<void> _loadTripTrackFromServer() async {
+    final pedidoId = _activePedidoId;
+    if (pedidoId == null || pedidoId.startsWith('manual-')) return;
+
+    final log = await ViajeTrackingService.fetchTrackLog(pedidoId);
+    if (!mounted) return;
+
+    final capitanPts = ViajeTrackingService.parseTrackLogCapitan(log);
+    final pescadorPts = ViajeTrackingService.parseTrackLogPescador(log);
+
+    setState(() {
+      _serverCapitanRoute = capitanPts;
+      _serverPescadorRoute = pescadorPts;
+      _mergeServerRouteIntoLive();
+    });
+  }
+
+  void _mergeServerRouteIntoLive() {
+    if (_isManual) return;
+    final ownRole = widget.esCapitan ? 'capitan' : 'pescador';
+    final ownServer = ownRole == 'capitan' ? _serverCapitanRoute : _serverPescadorRoute;
+    if (ownServer.isEmpty) return;
+
+    if (_routePoints.isEmpty) {
+      _routePoints.addAll(ownServer);
+      return;
+    }
+
+    final merged = <LatLng>[...ownServer];
+    for (final p in _routePoints) {
+      if (merged.isEmpty ||
+          Geolocator.distanceBetween(
+                merged.last.latitude,
+                merged.last.longitude,
+                p.latitude,
+                p.longitude,
+              ) >
+              8) {
+        merged.add(p);
+      }
+    }
+    _routePoints
+      ..clear()
+      ..addAll(merged);
   }
 
   void _checkTrackingState() async {
     final bool active = ViajeTrackingService().isTracking;
+    _activePedidoId ??=
+        ViajeTrackingService().currentTripId ?? ViajeGpsCoordinator().activePedidoId;
+
     setState(() {
       _isLive = active;
       _isManual = false;
     });
 
     if (active) {
+      await _loadTripTrackFromServer();
       _startLiveGPSListening();
     } else {
       setState(() {
@@ -913,7 +983,7 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
                 onPressed: () => Navigator.pop(context),
                 child: const Text('CERRAR', style: TextStyle(color: Colors.white54)),
               ),
-              ElevatedButton.icon(
+              SafeElevatedIconButton(
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: 'https://maps.google.com/?q=${position.latitude},${position.longitude}'));
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -925,13 +995,14 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
                   );
                   Navigator.pop(context);
                 },
+                icon: Icons.copy,
+                iconSize: 16,
+                label: 'Copiar Maps',
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF00E676),
                   foregroundColor: Colors.black,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
-                icon: const Icon(Icons.copy, size: 16),
-                label: const Text('COPIAR MAPS'),
               ),
             ],
           ),
@@ -1228,34 +1299,38 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ElevatedButton.icon(
-                  onPressed: _startManualTracking,
-                  icon: const Icon(Icons.navigation_rounded, color: Colors.black, size: 16),
-                  label: Text(
-                    widget.esCapitan ? 'INICIAR TRACKER' : 'INICIAR SALIDA',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5, letterSpacing: 0.5),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF00E676),
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                    shadowColor: const Color(0xFF00E676).withOpacity(0.3),
-                    elevation: 6,
+                Expanded(
+                  child: SafeElevatedIconButton(
+                    onPressed: _startManualTracking,
+                    icon: Icons.navigation_rounded,
+                    iconSize: 16,
+                    iconColor: Colors.black,
+                    label: widget.esCapitan ? 'Iniciar tracker' : 'Iniciar salida',
+                    textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5, letterSpacing: 0.5),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF00E676),
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      shadowColor: const Color(0xFF00E676).withOpacity(0.3),
+                      elevation: 6,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
-                OutlinedButton.icon(
-                  onPressed: _showOfflineDownloadSheet,
-                  icon: const Icon(Icons.cloud_download_rounded, color: Color(0xFF00E676), size: 16),
-                  label: const Text(
-                    'MAPAS OFFLINE',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5, color: Colors.white),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.white24),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                Expanded(
+                  child: SafeOutlinedIconButton(
+                    onPressed: _showOfflineDownloadSheet,
+                    icon: Icons.cloud_download_rounded,
+                    iconSize: 16,
+                    iconColor: const Color(0xFF00E676),
+                    label: 'Mapas offline',
+                    textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5, color: Colors.white),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.white24),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                    ),
                   ),
                 ),
               ],
@@ -1265,31 +1340,35 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                TextButton.icon(
-                  onPressed: _showCoordinatesDialog,
-                  icon: const Icon(Icons.settings_input_antenna_rounded, color: Color(0xFF00E676), size: 18),
-                  label: const Text(
-                    '📍 GPS RÁPIDO',
-                    style: TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold, fontSize: 11),
-                  ),
-                  style: TextButton.styleFrom(
-                    backgroundColor: Colors.white.withOpacity(0.05),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                Expanded(
+                  child: SafeTextIconButton(
+                    onPressed: _showCoordinatesDialog,
+                    icon: Icons.settings_input_antenna_rounded,
+                    iconSize: 18,
+                    iconColor: const Color(0xFF00E676),
+                    label: 'GPS rápido',
+                    textStyle: const TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold, fontSize: 11),
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.white.withOpacity(0.05),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
-                TextButton.icon(
-                  onPressed: _showPanicAction,
-                  icon: const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 18),
-                  label: const Text(
-                    '🚨 AVISO PERSONAL',
-                    style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 11),
-                  ),
-                  style: TextButton.styleFrom(
-                    backgroundColor: Colors.redAccent.withOpacity(0.1),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                Expanded(
+                  child: SafeTextIconButton(
+                    onPressed: _showPanicAction,
+                    icon: Icons.warning_amber_rounded,
+                    iconSize: 18,
+                    iconColor: Colors.redAccent,
+                    label: 'Aviso personal',
+                    textStyle: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 11),
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.redAccent.withOpacity(0.1),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 4),
@@ -1544,9 +1623,21 @@ class _CapitanTrackerScreenState extends State<CapitanTrackerScreen> {
         // Polyline para la cola del viaje
         PolylineLayer(
           polylines: [
+            if (_serverCapitanRoute.isNotEmpty && !widget.esCapitan)
+              Polyline(
+                points: _serverCapitanRoute,
+                color: const Color(0xFF00E676),
+                strokeWidth: 4.0,
+              ),
+            if (_serverPescadorRoute.isNotEmpty && widget.esCapitan)
+              Polyline(
+                points: _serverPescadorRoute,
+                color: Colors.blueAccent,
+                strokeWidth: 3.5,
+              ),
             Polyline(
               points: _routePoints,
-              color: const Color(0xFF00E676),
+              color: widget.esCapitan ? const Color(0xFF00E676) : Colors.blueAccent,
               strokeWidth: 4.5,
               borderColor: Colors.black.withOpacity(0.6),
               borderStrokeWidth: 1.5,

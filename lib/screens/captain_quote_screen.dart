@@ -1,4 +1,4 @@
-﻿
+
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,6 +6,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../services/supabase_service.dart';
 import '../services/disponibilidad_service_final.dart';
+import '../widgets/safe_button.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CaptainQuoteScreen extends StatefulWidget {
@@ -64,7 +65,7 @@ class _CaptainQuoteScreenState extends State<CaptainQuoteScreen> {
           'id': data['id'],
           'pescador_id': data['pescador_id'],
           'pescador_nombre': data['profiles']?['nombre'] ?? 'Pescador',
-          'descripcion': data['descripcion'] ?? 'Sin descripción',
+          'descripcion': data['descripcion'] ?? 'Sin descripci�n',
           'fecha_ida': data['fecha_ida'] != null 
               ? data['fecha_ida'].toString().split('T').first 
               : 'Fecha no definida',
@@ -143,7 +144,7 @@ class _CaptainQuoteScreenState extends State<CaptainQuoteScreen> {
         respuesta,
       );
 
-      // Reservar fecha en el calendario del capitán
+      // Reservar fecha en el calendario del capit�n
       try {
         final capId = Supabase.instance.client.auth.currentUser?.id;
         final fechaIdaStr = _cotizacionData?['fecha_ida'];
@@ -162,7 +163,7 @@ class _CaptainQuoteScreenState extends State<CaptainQuoteScreen> {
           SnackBar(
             content: Center(
               child: Text(
-                '✅ Presupuesto de \$${presupuesto.toStringAsFixed(2)} enviado exitosamente'
+                '? Presupuesto de \$${presupuesto.toStringAsFixed(2)} enviado exitosamente'
               ),
             ),
             backgroundColor: _verdeBrillante,
@@ -690,10 +691,10 @@ class _CaptainQuoteScreenState extends State<CaptainQuoteScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '• El presupuesto sera visible para el pescador\n'
-                    '• Tu mensaje sera enviado directamente\n'
-                    '• Los datos de contacto estan protegidos\n'
-                    '• No compartas informacion personal',
+                    '� El presupuesto sera visible para el pescador\n'
+                    '� Tu mensaje sera enviado directamente\n'
+                    '� Los datos de contacto estan protegidos\n'
+                    '� No compartas informacion personal',
                     style: TextStyle(
                       color: _fondoOscuro,
                       fontSize: 11,
@@ -710,25 +711,8 @@ class _CaptainQuoteScreenState extends State<CaptainQuoteScreen> {
             SizedBox(
               width: double.infinity,
               height: 56, // Altura estandar para botones moviles
-              child: ElevatedButton.icon(
+              child: ElevatedButton(
                 onPressed: _isEnviando ? null : _enviarPresupuesto,
-                icon: _isEnviando 
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: _blancoPuro,
-                        ),
-                      )
-                    : const Icon(Icons.send),
-                label: Text(
-                  _isEnviando ? 'Enviando...' : 'Enviar Presupuesto',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _verdeBrillante,
                   foregroundColor: _blancoPuro,
@@ -736,6 +720,18 @@ class _CaptainQuoteScreenState extends State<CaptainQuoteScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
+                ),
+                child: SafeButtonLoadingContent(
+                  loading: _isEnviando,
+                  icon: Icons.send,
+                  idleLabel: 'Enviar presupuesto',
+                  loadingLabel: 'Enviando...',
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: _blancoPuro,
+                  ),
+                  spinnerColor: _blancoPuro,
                 ),
               ),
             ),

@@ -1,6 +1,7 @@
 
 
 import 'dart:async';
+import '../widgets/safe_button.dart';
 
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -23,8 +24,7 @@ class _MonitorVentasScreenState extends State<MonitorVentasScreen>
   Timer? _contadorTimer;
   RealtimeChannel? _alertasChannel;
   
-  // ID de prueba para el capitan (sin Auth)
-  final String _capitanId = '22222222-2222-2222-2222-222222222222';
+  String get _capitanId => SupabaseService.currentUserId ?? '';
 
   @override
   bool get wantKeepAlive => true;
@@ -565,33 +565,33 @@ class _MonitorVentasScreenState extends State<MonitorVentasScreen>
               Row(
                 children: [
                   Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () {
+                    child: SafeElevatedIconButton(
+  onPressed: () {
                         // Navegar para presupuestar
                       },
-                      icon: const Icon(Icons.attach_money),
-                      label: const Text('Presupuestar'),
-                      style: ElevatedButton.styleFrom(
+  icon: Icons.attach_money,
+  label: 'Presupuestar',
+  style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF0D47A1),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
-                    ),
+),
                   ),
                   if (estado == 'en_riesgo') ...[
                     const SizedBox(width: 8),
-                    ElevatedButton.icon(
-                      onPressed: () {
+                    SafeElevatedIconButton(
+  onPressed: () {
                         // Llamar al pescador
                       },
-                      icon: const Icon(Icons.phone),
-                      label: const Text('Llamar'),
-                      style: ElevatedButton.styleFrom(
+  icon: Icons.phone,
+  label: 'Llamar',
+  style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
-                    ),
+),
                   ],
                 ],
               ),

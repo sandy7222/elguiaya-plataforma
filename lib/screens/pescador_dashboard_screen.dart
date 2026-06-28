@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import '../widgets/safe_button.dart';
 
 import '../models/cotizacion.dart';
 import '../services/supabase_service.dart';
@@ -19,11 +20,12 @@ import '../widgets/reputacion_badge_widget.dart';
 import '../services/core_business_logic.dart';
 import '../services/viaje_lifecycle_service.dart';
 import '../widgets/oferta_capitan_card.dart';
+import '../utils/presupuesto_pescador_actions.dart';
+import '../utils/view_insets.dart';
 import '../widgets/radar_scanner_widget.dart';
 import 'resumen_reserva_screen.dart';
 import '../services/gps_tracker_service.dart';
 import 'capitan_tracker_screen.dart';
-import 'mis_viajes_screen.dart';
 import 'checkout_payment_screen.dart';
 
 class PescadorDashboardScreen extends StatefulWidget {
@@ -184,6 +186,27 @@ class _PescadorDashboardScreenState extends State<PescadorDashboardScreen>
           },
         )
         .subscribe();
+  }
+
+  Future<void> _descartarPresupuesto(Map<String, dynamic> presupuesto) async {
+    final pid = PresupuestoPescadorActions.idDe(presupuesto);
+    if (pid.isEmpty) return;
+
+    final resultado = await PresupuestoPescadorActions.descartarConConfirmacion(
+      context,
+      presupuesto,
+    );
+    if (resultado == null || !mounted) return;
+    if (!resultado) {
+      PresupuestoPescadorActions.mostrarSnackError(context);
+      return;
+    }
+
+    setState(() {
+      _presupuestos.removeWhere((p) => p['id']?.toString() == pid);
+    });
+
+    PresupuestoPescadorActions.mostrarSnackDescartado(context, presupuesto);
   }
 
   void _mostrarFormularioCotizacion({Map<String, dynamic>? initialData}) {
@@ -394,17 +417,6 @@ class _PescadorDashboardScreenState extends State<PescadorDashboardScreen>
         foregroundColor: Colors.white,
         actions: [
           IconButton(
-            icon: const Icon(Icons.folder_open_rounded, color: Color(0xFF00E676)),
-            tooltip: 'Mis Viajes',
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const MisViajesScreen(),
-              ),
-            ).then((_) => _cargarDatos()),
-          ),
-
-          IconButton(
             onPressed: _cargarDatos,
             icon: const Icon(Icons.refresh, color: Colors.white70),
             tooltip: 'Recargar',
@@ -417,9 +429,10 @@ class _PescadorDashboardScreenState extends State<PescadorDashboardScreen>
           : RefreshIndicator(
               onRefresh: _cargarDatos,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
+                padding: ViewInsets.scrollPadding(
+                  context,
+                  top: 8,
+                  extra: 28,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -474,88 +487,22 @@ class _PescadorDashboardScreenState extends State<PescadorDashboardScreen>
                           const SizedBox(height: 16),
                           SizedBox(
                             width: double.infinity,
-                            child: ElevatedButton.icon(
-                              onPressed: _mostrarFormularioCotizacion,
-                              icon: const Icon(Icons.add),
-                              label: const Text('Nueva Solicitud de Viaje'),
-                              style: ElevatedButton.styleFrom(
+                            child: SafeElevatedIconButton(
+  onPressed: _mostrarFormularioCotizacion,
+  icon: Icons.add,
+  label: 'Nueva Solicitud de Viaje',
+  style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white,
                                 foregroundColor: _azulNautico,
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 16,
                                 ),
                               ),
-                            ),
+),
                           ),
                         ],
                       ),
                     ),
-
-                    const SizedBox(height: 12),
-
-                    // 📁 Acceso rápido a la carpeta de Mis Viajes
-                    GestureDetector(
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const MisViajesScreen(),
-                        ),
-                      ),
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 14),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF0D2847),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                              color: const Color(0xFF1A3A5C)),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF00C853)
-                                    .withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Icon(Icons.folder_open_rounded,
-                                  color: Color(0xFF00C853), size: 22),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Mis Viajes',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                  Text(
-                                    _cotizaciones.isEmpty && _presupuestos.isEmpty
-                                        ? 'No tenés viajes activos'
-                                        : '${_cotizaciones.length} solicitud(es) • ${_presupuestos.length} presupuesto(s)',
-                                    style: const TextStyle(
-                                      color: Color(0xFF8BA4BC),
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const Icon(Icons.arrow_forward_ios_rounded,
-                                color: Color(0xFF8BA4BC), size: 16),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
 
                     if (_cotizaciones.isNotEmpty) ...[
                       Builder(
@@ -588,6 +535,7 @@ class _PescadorDashboardScreenState extends State<PescadorDashboardScreen>
                                     key: ValueKey(o['id']?.toString() ?? ''),
                                     oferta: o,
                                     isProcessing: _isProcessingDeal,
+                                    onDiscard: () => _descartarPresupuesto(o),
                                     onAccept: () {
                                       final cotizacionId =
                                           o['cotizacion_id']?.toString() ?? '';
@@ -628,10 +576,6 @@ class _PescadorDashboardScreenState extends State<PescadorDashboardScreen>
                       ),
                     ],
 
-                    if (_presupuestos.isEmpty && _cotizaciones.isEmpty) ...[
-                      const SizedBox(height: 40),
-                      _buildEstadoVacio(),
-                    ],
                   ],
                 ),
               ),
@@ -747,6 +691,7 @@ class _PescadorDashboardScreenState extends State<PescadorDashboardScreen>
     return OfertaCapitanCard(
       oferta: oferta,
       isProcessing: _isProcessingDeal,
+      onDiscard: () => _descartarPresupuesto(oferta),
       onAccept: () {
         final cotizacionId = (oferta['cotizacion_id']?.toString()) ?? 
             (_cotizaciones.isNotEmpty ? _cotizaciones.first.id : '');
@@ -878,52 +823,6 @@ class _PescadorDashboardScreenState extends State<PescadorDashboardScreen>
             ],
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildEstadoVacio() {
-    return Center(
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: _azulNautico.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.sailing_outlined, size: 64, color: _azulNautico),
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            'No tienes solicitudes activas',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: _azulNautico,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Crea tu primera solicitud de viaje\ny recibe presupuestos en tiempo real',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: _mostrarFormularioCotizacion,
-            icon: const Icon(Icons.add),
-            label: const Text('Nueva Solicitud de Viaje'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _azulNautico,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -1245,8 +1144,8 @@ class FormularioCotizacionTecnicaState
 
                     SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: () {
+                      child: SafeElevatedIconButton(
+  onPressed: () {
                           _cerrarTeclado();
                           final query =
                               '${_localidadController.text} ${_provinciaController.text}';
@@ -1262,9 +1161,9 @@ class FormularioCotizacionTecnicaState
                             );
                           }
                         },
-                        icon: const Icon(Icons.location_searching),
-                        label: const Text('LOCALIZAR EN MAPA'),
-                        style: ElevatedButton.styleFrom(
+  icon: Icons.location_searching,
+  label: 'LOCALIZAR EN MAPA',
+  style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF1565C0),
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 12),
@@ -1272,7 +1171,7 @@ class FormularioCotizacionTecnicaState
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                      ),
+),
                     ),
                     const SizedBox(height: 16),
 
@@ -1954,6 +1853,7 @@ class _ManifiestoTripulantesDialogState
     extends State<_ManifiestoTripulantesDialog> {
   final List<TextEditingController> _nombreControllers = [];
   final List<TextEditingController> _dniControllers = [];
+  final List<DateTime?> _fechasNacimiento = [];
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -1962,6 +1862,7 @@ class _ManifiestoTripulantesDialogState
     for (int i = 0; i < widget.amountOfPeople; i++) {
       _nombreControllers.add(TextEditingController());
       _dniControllers.add(TextEditingController());
+      _fechasNacimiento.add(null);
     }
   }
 
@@ -2031,6 +1932,8 @@ class _ManifiestoTripulantesDialogState
                         _dniControllers[index],
                         isDni: true,
                       ),
+                      const SizedBox(height: 8),
+                      _buildFechaNacimiento(index),
                     ],
                   ),
                 );
@@ -2050,11 +1953,26 @@ class _ManifiestoTripulantesDialogState
         ElevatedButton(
           onPressed: () {
             if (_formKey.currentState!.validate()) {
+              for (int i = 0; i < widget.amountOfPeople; i++) {
+                if (_fechasNacimiento[i] == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Seleccioná la fecha de nacimiento del tripulante ${i + 1}',
+                      ),
+                      backgroundColor: Colors.orangeAccent,
+                    ),
+                  );
+                  return;
+                }
+              }
               final List<Map<String, String>> tripulantes = [];
               for (int i = 0; i < widget.amountOfPeople; i++) {
                 tripulantes.add({
                   'nombre': _nombreControllers[i].text.trim(),
                   'dni': _dniControllers[i].text.trim(),
+                  'fecha_nacimiento':
+                      _fechasNacimiento[i]!.toIso8601String().split('T').first,
                 });
               }
               widget.onConfirm(tripulantes);
@@ -2099,6 +2017,53 @@ class _ManifiestoTripulantesDialogState
         ),
       ),
       validator: (val) => val == null || val.isEmpty ? 'Requerido' : null,
+    );
+  }
+
+  Widget _buildFechaNacimiento(int index) {
+    final fecha = _fechasNacimiento[index];
+    final label = fecha == null
+        ? 'Fecha de nacimiento *'
+        : '${fecha.day.toString().padLeft(2, '0')}/${fecha.month.toString().padLeft(2, '0')}/${fecha.year}';
+
+    return InkWell(
+      onTap: () async {
+        final picked = await showDatePicker(
+          context: context,
+          initialDate:
+              fecha ?? DateTime.now().subtract(const Duration(days: 365 * 30)),
+          firstDate: DateTime.now().subtract(const Duration(days: 365 * 120)),
+          lastDate: DateTime.now(),
+          helpText: 'Fecha de nacimiento',
+        );
+        if (picked != null) {
+          setState(() => _fechasNacimiento[index] = picked);
+        }
+      },
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.white24),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: fecha == null ? Colors.white24 : Colors.white,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+            const Icon(Icons.calendar_today, color: Colors.white54, size: 18),
+          ],
+        ),
+      ),
     );
   }
 }

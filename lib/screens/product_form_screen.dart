@@ -1,6 +1,7 @@
-Ôªø
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../widgets/safe_button.dart';
 
 import '../models/categoria.dart';
 import '../models/producto.dart';
@@ -36,7 +37,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   bool _isLoading = false;
   bool _isInicializando = true;
   
-  // Galer√≠a de Im√°genes (Multi-Upload As√≠ncrono)
+  // GalerÌa de Im·genes (Multi-Upload AsÌncrono)
   final List<Map<String, dynamic>> _gallerySlots = []; // { 'url': String?, 'isUploading': bool, 'fileName': String? }
   
   // Atributos dinamicos
@@ -60,14 +61,14 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     final text = _nombreController.text.toLowerCase();
     if (text.length < 3) return;
 
-    // L√≥gica Predictiva (AI Mock)
+    // LÛgica Predictiva (AI Mock)
     Rubro? rubroSugerido;
     Categoria? catSugerida;
 
-    if (text.contains('ca√±a') || text.contains('reel') || text.contains('multifilamento') || text.contains('shimano') || text.contains('spinning')) {
+    if (text.contains('caÒa') || text.contains('reel') || text.contains('multifilamento') || text.contains('shimano') || text.contains('spinning')) {
       rubroSugerido = _rubros.firstWhere((r) => r.nombre.toLowerCase().contains('pesca'), orElse: () => _rubros.first);
-      if (text.contains('ca√±a')) {
-        catSugerida = _todasCategorias.firstWhere((c) => c.nombre.toLowerCase().contains('ca√±a'), orElse: () => Categoria.empty());
+      if (text.contains('caÒa')) {
+        catSugerida = _todasCategorias.firstWhere((c) => c.nombre.toLowerCase().contains('caÒa'), orElse: () => Categoria.empty());
       } else if (text.contains('reel')) {
         catSugerida = _todasCategorias.firstWhere((c) => c.nombre.toLowerCase().contains('reel'), orElse: () => Categoria.empty());
       }
@@ -89,9 +90,9 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   void _actualizarAtributosPorRubro() {
     if (_rubroSeleccionado == null) return;
     
-    // Si es PESCA, inyectamos campos t√©cnicos autom√°ticamente
+    // Si es PESCA, inyectamos campos tÈcnicos autom·ticamente
     if (_rubroSeleccionado!.nombre.toLowerCase().contains('pesca')) {
-      final technicalKeys = ['Rulemanes', 'Acci√≥n', 'Libra', 'Material', 'Tramos'];
+      final technicalKeys = ['Rulemanes', 'AcciÛn', 'Libra', 'Material', 'Tramos'];
       
       for (var key in technicalKeys) {
         final def = _todosLosAtributos.firstWhere(
@@ -242,7 +243,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       }
 
       if (mounted) {
-        _mostrarNotificacion('¬°Producto publicado exitosamente!');
+        _mostrarNotificacion('°Producto publicado exitosamente!');
         Navigator.pop(context); // Volver al catalogo
       }
     } catch (e) {
@@ -314,7 +315,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('GALER√çA DE MEDIOS (Carga Directa)', style: TextStyle(fontWeight: FontWeight.bold, color: _azulProfundo, fontSize: 12)),
+        const Text('GALERÕA DE MEDIOS (Carga Directa)', style: TextStyle(fontWeight: FontWeight.bold, color: _azulProfundo, fontSize: 12)),
         const SizedBox(height: 12),
         GridView.builder(
           shrinkWrap: true,
@@ -465,7 +466,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
               value: sub,
               child: Padding(
                 padding: const EdgeInsets.only(left: 20),
-                child: Text('‚îî ${sub.nombre}', style: TextStyle(color: Colors.grey.shade700)),
+                child: Text('+ ${sub.nombre}', style: TextStyle(color: Colors.grey.shade700)),
               ),
             )
           ),
@@ -495,11 +496,11 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         const SizedBox(height: 16),
         TextFormField(
           controller: _descripcionController,
-          decoration: _inputStyle('Descripci√≥n', Icons.description),
+          decoration: _inputStyle('DescripciÛn', Icons.description),
           maxLines: 3,
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
-              return 'La descripci√≥n es requerida';
+              return 'La descripciÛn es requerida';
             }
             return null;
           },
@@ -517,7 +518,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                     return 'El precio es requerido';
                   }
                   if (double.tryParse(value) == null) {
-                    return 'Precio inv√°lido';
+                    return 'Precio inv·lido';
                   }
                   return null;
                 },
@@ -534,7 +535,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                     return 'El stock es requerido';
                   }
                   if (int.tryParse(value) == null) {
-                    return 'Stock inv√°lido';
+                    return 'Stock inv·lido';
                   }
                   return null;
                 },
@@ -557,7 +558,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           decoration: _inputStyle('URL de Video (YouTube/Vimeo)', Icons.play_circle_fill),
         ),
         const SizedBox(height: 8),
-        Text('Pega aqu√≠ el link del video demostrativo para que los clientes puedan verlo.',
+        Text('Pega aquÌ el link del video demostrativo para que los clientes puedan verlo.',
           style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
       ],
     );
@@ -601,12 +602,14 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('FICHA T√âCNICA (ATRIBUTOS)', style: TextStyle(fontWeight: FontWeight.bold, color: _azulProfundo, fontSize: 12)),
-            TextButton.icon(
-              onPressed: _mostrarSelectorAtributos,
-              icon: const Icon(Icons.add_circle_outline, size: 16),
-              label: const Text('A√ëADIR', style: TextStyle(fontSize: 12)),
-            ),
+            const Text('FICHA T…CNICA (ATRIBUTOS)', style: TextStyle(fontWeight: FontWeight.bold, color: _azulProfundo, fontSize: 12)),
+            SafeTextIconButton(
+  onPressed: _mostrarSelectorAtributos,
+  icon: Icons.add_circle_outline,
+  iconSize: 16,
+  label: 'A—ADIR',
+  textStyle: TextStyle(fontSize: 12),
+),
           ],
         ),
         const SizedBox(height: 8),
@@ -614,7 +617,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(color: Colors.grey.withOpacity(0.05), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade200)),
-            child: const Center(child: Text('No hay especificaciones t√©cnicas a√±adidas.', style: TextStyle(fontSize: 12, color: Colors.grey))),
+            child: const Center(child: Text('No hay especificaciones tÈcnicas aÒadidas.', style: TextStyle(fontSize: 12, color: Colors.grey))),
           )
         else
           ListView.builder(

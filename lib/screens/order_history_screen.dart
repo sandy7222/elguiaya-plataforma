@@ -3,6 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../widgets/safe_button.dart';
 
 import '../models/pedido.dart';
 import '../models/pedido_item.dart';
@@ -185,24 +186,26 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 // Boton de ver detalles
-                TextButton.icon(
-                  onPressed: () {
+                SafeTextIconButton(
+  onPressed: () {
                     _mostrarDetallesPedido(pedido);
                   },
-                  icon: const Icon(Icons.info_outline, size: 16),
-                  label: const Text('Ver detalles'),
-                  style: TextButton.styleFrom(
+  icon: Icons.info_outline,
+  iconSize: 16,
+  label: 'Ver detalles',
+  style: TextButton.styleFrom(
                     foregroundColor: const Color(0xFF0D47A1),
                   ),
-                ),
+),
                 
                 // Boton de ticket de envio
                 if (pedido.tieneTicketEnvio)
-                  ElevatedButton.icon(
-                    onPressed: () => _abrirTicketEnvio(pedido.ticketEnvioUrl!),
-                    icon: const Icon(Icons.description, size: 16),
-                    label: const Text('Ticket'),
-                    style: ElevatedButton.styleFrom(
+                  SafeElevatedIconButton(
+  onPressed: () => _abrirTicketEnvio(pedido.ticketEnvioUrl!),
+  icon: Icons.description,
+  iconSize: 16,
+  label: 'Ticket',
+  style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -210,7 +213,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                  ),
+),
               ],
             ),
           ],
@@ -461,17 +464,17 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
                         ),
                       ),
                       const SizedBox(height: 24),
-                      ElevatedButton.icon(
-                        onPressed: () {
+                      SafeElevatedIconButton(
+  onPressed: () {
                           Navigator.pop(context);
                         },
-                        icon: const Icon(Icons.shopping_bag_outlined),
-                        label: const Text('Ir a la Tienda'),
-                        style: ElevatedButton.styleFrom(
+  icon: Icons.shopping_bag_outlined,
+  label: 'Ir a la Tienda',
+  style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF0D47A1),
                           foregroundColor: Colors.white,
                         ),
-                      ),
+),
                     ],
                   ),
                 )

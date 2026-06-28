@@ -8,6 +8,7 @@ import 'package:capitanya_master/providers/cart_provider.dart';
 import 'package:capitanya_master/services/storage_service.dart';
 import 'package:capitanya_master/services/supabase_service.dart';
 import 'package:capitanya_master/screens/checkout_payment_screen.dart';
+import 'package:capitanya_master/widgets/safe_button.dart';
 // import '../widgets/product_cart_item.dart'; // Removido por no existir y no usarse
 
 class SmartCheckoutScreen extends StatefulWidget {
@@ -376,10 +377,10 @@ class _SmartCheckoutScreenState extends State<SmartCheckoutScreen>
                     ),
                   ),
                   const SizedBox(height: 24),
-                  ElevatedButton.icon(
+                  SafeElevatedIconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.shopping_bag_outlined),
-                    label: const Text('Seguir Comprando'),
+                    icon: Icons.shopping_bag_outlined,
+                    label: 'Seguir comprando',
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF0D47A1),
                       foregroundColor: Colors.white,
@@ -838,25 +839,31 @@ class _SmartCheckoutScreenState extends State<SmartCheckoutScreen>
             // Boton de guardar direccion
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton.icon(
+              child: ElevatedButton(
                 onPressed: _isLoadingDireccion ? null : _guardarDireccionEnvio,
-                icon: _isLoadingDireccion
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      )
-                    : const Icon(Icons.save),
-                label: Text(_isLoadingDireccion ? 'Guardando...' : 'Guardar Datos de Envio'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0D47A1),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
+                child: _isLoadingDireccion
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Flexible(child: SafeButtonText('Guardando...', style: const TextStyle(color: Colors.white))),
+                        ],
+                      )
+                    : const SafeButtonContent(icon: Icons.save, label: 'Guardar datos de envío'),
               ),
             ),
           ],
@@ -1012,10 +1019,10 @@ class _SmartCheckoutScreenState extends State<SmartCheckoutScreen>
             // Boton de agregar pasajero
             SizedBox(
               width: double.infinity,
-              child: OutlinedButton.icon(
+              child: SafeOutlinedIconButton(
                 onPressed: readOnly ? null : _agregarPasajero,
-                icon: const Icon(Icons.add),
-                label: const Text('Agregar Pasajero'),
+                icon: Icons.add,
+                label: 'Agregar pasajero',
                 style: OutlinedButton.styleFrom(
                   foregroundColor: const Color(0xFF0D47A1),
                   side: const BorderSide(color: Color(0xFF0D47A1)),
@@ -1034,19 +1041,8 @@ class _SmartCheckoutScreenState extends State<SmartCheckoutScreen>
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(top: 16),
-      child: ElevatedButton.icon(
+      child: ElevatedButton(
         onPressed: (_isLoading || !cartProvider.puedeProcederAlPago) ? null : _procederAlPago,
-        icon: _isLoading
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
-            : const Icon(Icons.lock),
-        label: Text(_isLoading ? 'Procesando...' : 'Proceder al Pago'),
         style: ElevatedButton.styleFrom(
           backgroundColor: cartProvider.puedeProcederAlPago ? const Color(0xFF0D47A1) : Colors.grey,
           foregroundColor: Colors.white,
@@ -1054,6 +1050,23 @@ class _SmartCheckoutScreenState extends State<SmartCheckoutScreen>
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           elevation: 2,
         ),
+        child: _isLoading
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Flexible(child: SafeButtonText('Procesando...', style: const TextStyle(color: Colors.white))),
+                ],
+              )
+            : const SafeButtonContent(icon: Icons.lock, label: 'Proceder al pago'),
       ),
     );
   }
@@ -1592,10 +1605,10 @@ class _PasajeroFormDialogState extends State<_PasajeroFormDialog> {
                 Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton.icon(
+                      child: SafeOutlinedIconButton(
                         onPressed: _seleccionarFotoDni,
-                        icon: const Icon(Icons.photo_library),
-                        label: const Text('Seleccionar de Galeria'),
+                        icon: Icons.photo_library,
+                        label: 'Galería',
                         style: OutlinedButton.styleFrom(
                           foregroundColor: const Color(0xFF0D47A1),
                           side: const BorderSide(color: Color(0xFF0D47A1)),
@@ -1604,10 +1617,10 @@ class _PasajeroFormDialogState extends State<_PasajeroFormDialog> {
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: ElevatedButton.icon(
+                      child: SafeElevatedIconButton(
                         onPressed: _tomarFotoDni,
-                        icon: const Icon(Icons.camera_alt),
-                        label: const Text('Tomar Foto'),
+                        icon: Icons.camera_alt,
+                        label: 'Tomar foto',
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF0D47A1),
                           foregroundColor: Colors.white,

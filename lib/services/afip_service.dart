@@ -1,7 +1,7 @@
-﻿
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Resultado de una operación de facturación AFIP.
+/// Resultado de una operaci�n de facturaci�n AFIP.
 class ResultadoFactura {
   final bool exito;
   final String pedidoId;
@@ -26,52 +26,52 @@ class ResultadoFactura {
       'ResultadoFactura(pedidoId: $pedidoId, estado: $estado, mensaje: $mensaje)';
 }
 
-/// ─────────────────────────────────────────────────────────────────────────────
-/// AfipService — Motor de Facturación Electrónica de El Guia YA
+/// -----------------------------------------------------------------------------
+/// AfipService � Motor de Facturaci�n Electr�nica de El Guia YA
 ///
-/// Diseño de Interruptor Maestro:
-///   • Cuando `afip_facturacion_activa = false` el servicio escribe un log
+/// Dise�o de Interruptor Maestro:
+///   � Cuando `afip_facturacion_activa = false` el servicio escribe un log
 ///     explicativo y NO emite ninguna factura (estado de standby).
-///   • Cuando `afip_facturacion_activa = true` y `afip_entorno = 'sandbox'`
-///     simula la generación (útil durante desarrollo/homologación).
-///   • Cuando `afip_facturacion_activa = true` y `afip_entorno = 'produccion'`
+///   � Cuando `afip_facturacion_activa = true` y `afip_entorno = 'sandbox'`
+///     simula la generaci�n (�til durante desarrollo/homologaci�n).
+///   � Cuando `afip_facturacion_activa = true` y `afip_entorno = 'produccion'`
 ///     se conecta al endpoint real de AFIP con el token configurado.
 ///
-/// Para activar en producción:
+/// Para activar en producci�n:
 ///   1. Ejecutar `sql/add_afip_facturacion.sql` en Supabase.
 ///   2. Ingresar el token real en `config_sistema.afip_api_token`.
 ///   3. Cambiar `afip_facturacion_activa` a TRUE y `afip_entorno` a 'produccion'.
-/// ─────────────────────────────────────────────────────────────────────────────
+/// -----------------------------------------------------------------------------
 class AfipService {
   static final SupabaseClient _supabase = Supabase.instance.client;
 
-  // Endpoint de producción (reemplazar stub con cliente HTTP real)
+  // Endpoint de producci�n (reemplazar stub con cliente HTTP real)
   static const String _endpointProduccion =
       'https://serviciosjava.afip.gob.ar/wsmtxca/services/MTXCAService';
 
-  // ── Tipo de comprobante por defecto ─────────────────────────────────────────
+  // -- Tipo de comprobante por defecto -----------------------------------------
   static const String _tipoComprobanteDefault = 'FC_B';
 
-  /// ──────────────────────────────────────────────────────────────────────────
-  /// Método principal: genera una factura electrónica para un pedido cerrado.
+  /// --------------------------------------------------------------------------
+  /// M�todo principal: genera una factura electr�nica para un pedido cerrado.
   ///
-  /// Parámetros:
-  ///   • [pedidoId]    — ID del pedido en la tabla `pedidos`.
-  ///   • [monto]       — Monto total a facturar (con IVA si aplica).
-  ///   • [dniCliente]  — DNI/CUIT del cliente para el comprobante.
+  /// Par�metros:
+  ///   � [pedidoId]    � ID del pedido en la tabla `pedidos`.
+  ///   � [monto]       � Monto total a facturar (con IVA si aplica).
+  ///   � [dniCliente]  � DNI/CUIT del cliente para el comprobante.
   ///
   /// Flujo:
-  ///   1. Lee la configuración AFIP desde `config_sistema`.
-  ///   2. Si `afip_facturacion_activa = false` → registra omisión y retorna.
-  ///   3. Si activa → genera el comprobante (sandbox o producción).
+  ///   1. Lee la configuraci�n AFIP desde `config_sistema`.
+  ///   2. Si `afip_facturacion_activa = false` ? registra omisi�n y retorna.
+  ///   3. Si activa ? genera el comprobante (sandbox o producci�n).
   ///   4. Persiste el resultado en `facturas_afip` para audit trail.
-  /// ──────────────────────────────────────────────────────────────────────────
+  /// --------------------------------------------------------------------------
   static Future<ResultadoFactura> generarFacturaAutomatica({
     required String pedidoId,
     required double monto,
     required String dniCliente,
   }) async {
-    // ── PASO 1: Leer configuración AFIP desde Supabase ──────────────────────
+    // -- PASO 1: Leer configuraci�n AFIP desde Supabase ----------------------
     final Map<String, dynamic>? config = await _obtenerConfigAfip();
 
     final bool facturacionActiva =
@@ -80,15 +80,15 @@ class AfipService {
         config?['afip_entorno']?.toString() ?? 'sandbox';
     final String? apiToken = config?['afip_api_token']?.toString();
 
-    // ── PASO 2: Interruptor maestro — sistema en standby ───────────────────
+    // -- PASO 2: Interruptor maestro � sistema en standby -------------------
     if (!facturacionActiva) {
       final mensajeOmision =
-          'AFIP: Facturación inactiva. Omitiendo emisión para el pedido $pedidoId';
+          'AFIP: Facturaci�n inactiva. Omitiendo emisi�n para el pedido $pedidoId';
 
       // Log en consola (visible en flutter run / debugger)
-      print('📋 $mensajeOmision');
+      print('?? $mensajeOmision');
 
-      // Persistir registro de omisión en audit trail
+      // Persistir registro de omisi�n en audit trail
       final facturaId = await _registrarOmision(
         pedidoId: pedidoId,
         dniCliente: dniCliente,
@@ -98,7 +98,7 @@ class AfipService {
       );
 
       return ResultadoFactura(
-        exito: true, // Es exitoso porque el sistema funcionó como se esperaba
+        exito: true, // Es exitoso porque el sistema funcion� como se esperaba
         pedidoId: pedidoId,
         facturaId: facturaId,
         estado: 'omitida',
@@ -106,8 +106,8 @@ class AfipService {
       );
     }
 
-    // ── PASO 3: Facturación activa — generar comprobante ───────────────────
-    print('🧾 AFIP: Iniciando emisión de factura para pedido $pedidoId '
+    // -- PASO 3: Facturaci�n activa � generar comprobante -------------------
+    print('?? AFIP: Iniciando emisi�n de factura para pedido $pedidoId '
         '| Monto: \$$monto | DNI: $dniCliente | Entorno: $entorno');
 
     try {
@@ -124,7 +124,7 @@ class AfipService {
               dniCliente: dniCliente,
             );
 
-      // ── PASO 4: Persistir resultado en audit trail ────────────────────────
+      // -- PASO 4: Persistir resultado en audit trail ------------------------
       final facturaId = await _persistirFactura(
         pedidoId: pedidoId,
         dniCliente: dniCliente,
@@ -137,7 +137,7 @@ class AfipService {
         payloadResponse: resultado['response'],
       );
 
-      print('✅ AFIP: Factura emitida correctamente. CAE: ${resultado['cae']} '
+      print('? AFIP: Factura emitida correctamente. CAE: ${resultado['cae']} '
           '| Vence: ${resultado['vencimiento_cae']}');
 
       return ResultadoFactura(
@@ -152,9 +152,9 @@ class AfipService {
       );
     } catch (e) {
       final errorMsg = 'AFIP: Error al emitir factura para pedido $pedidoId: $e';
-      print('❌ $errorMsg');
+      print('? $errorMsg');
 
-      // Persistir el error para revisión posterior
+      // Persistir el error para revisi�n posterior
       await _persistirFactura(
         pedidoId: pedidoId,
         dniCliente: dniCliente,
@@ -173,11 +173,11 @@ class AfipService {
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // MÉTODOS PRIVADOS
-  // ═══════════════════════════════════════════════════════════════════════════
+  // ---------------------------------------------------------------------------
+  // M�TODOS PRIVADOS
+  // ---------------------------------------------------------------------------
 
-  /// Lee únicamente las columnas AFIP de config_sistema.
+  /// Lee �nicamente las columnas AFIP de config_sistema.
   static Future<Map<String, dynamic>?> _obtenerConfigAfip() async {
     try {
       return await _supabase
@@ -186,17 +186,17 @@ class AfipService {
           .limit(1)
           .maybeSingle();
     } catch (e) {
-      print('⚠️ AFIP: No se pudo leer config_sistema, asumiendo inactivo: $e');
+      print('?? AFIP: No se pudo leer config_sistema, asumiendo inactivo: $e');
       return null;
     }
   }
 
-  /// Lee la configuración de AFIP expuesta públicamente para la UI.
+  /// Lee la configuraci�n de AFIP expuesta p�blicamente para la UI.
   static Future<Map<String, dynamic>?> obtenerConfigAfip() async {
     return _obtenerConfigAfip();
   }
 
-  /// Guarda la configuración de AFIP en config_sistema.
+  /// Guarda la configuraci�n de AFIP en config_sistema.
   static Future<void> guardarConfigAfip({
     required bool activa,
     required String entorno,
@@ -227,13 +227,13 @@ class AfipService {
             .insert(data);
       }
     } catch (e) {
-      print('❌ AFIP: Error al guardar config en config_sistema: $e');
-      throw Exception('Error al guardar la configuración de AFIP: $e');
+      print('? AFIP: Error al guardar config en config_sistema: $e');
+      throw Exception('Error al guardar la configuraci�n de AFIP: $e');
     }
   }
 
-  /// Simula la emisión en sandbox/homologación.
-  /// En producción, reemplazar por la llamada HTTP real al WS de AFIP.
+  /// Simula la emisi�n en sandbox/homologaci�n.
+  /// En producci�n, reemplazar por la llamada HTTP real al WS de AFIP.
   static Future<Map<String, dynamic>> _emitirFacturaSandbox({
     required String pedidoId,
     required double monto,
@@ -242,7 +242,7 @@ class AfipService {
     // Simular latencia de red
     await Future.delayed(const Duration(milliseconds: 300));
 
-    // CAE simulado con formato AFIP (14 dígitos)
+    // CAE simulado con formato AFIP (14 d�gitos)
     final caeSim = '${DateTime.now().millisecondsSinceEpoch}'.padLeft(14, '0').substring(0, 14);
     final vencimiento = DateTime.now().add(const Duration(days: 10));
     final vencStr =
@@ -274,8 +274,8 @@ class AfipService {
     };
   }
 
-  /// Conecta al endpoint real de AFIP en producción.
-  /// Pendiente: reemplazar el stub con la implementación del cliente SOAP/REST.
+  /// Conecta al endpoint real de AFIP en producci�n.
+  /// Pendiente: reemplazar el stub con la implementaci�n del cliente SOAP/REST.
   static Future<Map<String, dynamic>> _emitirFacturaProduccion({
     required String pedidoId,
     required double monto,
@@ -284,26 +284,26 @@ class AfipService {
   }) async {
     if (apiToken == null || apiToken.isEmpty) {
       throw Exception(
-        'AFIP en modo PRODUCCIÓN pero afip_api_token no está configurado. '
-        'Configure el token en el panel de administración antes de activar la facturación.',
+        'AFIP en modo PRODUCCI�N pero afip_api_token no est� configurado. '
+        'Configure el token en el panel de administraci�n antes de activar la facturaci�n.',
       );
     }
 
     // TODO: Implementar cliente HTTP/SOAP contra el WS de AFIP.
     // Endpoint real: $_endpointProduccion
-    // Autenticación: WSAA + WSFEv1 (Ticket de Acceso)
-    // SDK sugerido: integración con wsfev1 o librería dart_afip cuando esté disponible.
+    // Autenticaci�n: WSAA + WSFEv1 (Ticket de Acceso)
+    // SDK sugerido: integraci�n con wsfev1 o librer�a dart_afip cuando est� disponible.
     //
-    // Stub temporal — lanza excepción para prevenir emisiones accidentales
-    // hasta que el cliente real esté implementado.
+    // Stub temporal � lanza excepci�n para prevenir emisiones accidentales
+    // hasta que el cliente real est� implementado.
     throw UnimplementedError(
-      'AFIP Producción: El cliente real aún no está implementado. '
-      'Integrá el SDK de AFIP y reemplazá este stub. '
+      'AFIP Producci�n: El cliente real a�n no est� implementado. '
+      'Integr� el SDK de AFIP y reemplaz� este stub. '
       'Endpoint: $_endpointProduccion',
     );
   }
 
-  /// Persiste un registro de omisión (facturación inactiva) en facturas_afip.
+  /// Persiste un registro de omisi�n (facturaci�n inactiva) en facturas_afip.
   static Future<String?> _registrarOmision({
     required String pedidoId,
     required String dniCliente,
@@ -353,7 +353,7 @@ class AfipService {
 
       return row['id']?.toString();
     } catch (e) {
-      print('⚠️ AFIP: No se pudo persistir el registro en facturas_afip: $e');
+      print('?? AFIP: No se pudo persistir el registro en facturas_afip: $e');
       return null;
     }
   }

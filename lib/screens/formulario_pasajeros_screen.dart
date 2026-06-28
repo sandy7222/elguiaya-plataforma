@@ -6,6 +6,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:capitanya_master/services/storage_service.dart';
 import 'package:capitanya_master/services/supabase_service.dart';
+import '../widgets/safe_button.dart';
+import '../utils/fecha_nacimiento_utils.dart';
 
 /// Formulario de Declaración de Pasajeros.
 /// El titular aparece pre-cargado. Con el botón [+] se agregan invitados.
@@ -164,11 +166,12 @@ class _FormularioPasajerosScreenState
       final p = _pasajeros[i];
       if (p.nombreCtrl.text.trim().isEmpty ||
           p.apellidoCtrl.text.trim().isEmpty ||
-          p.dniCtrl.text.trim().isEmpty) {
+          p.dniCtrl.text.trim().isEmpty ||
+          p.fechaNacimiento == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-                '⚠️ Completá todos los campos del ${i == 0 ? "titular" : "invitado $i"}'),
+                '⚠️ Completá todos los campos del ${i == 0 ? "titular" : "invitado $i"} (incluida fecha de nacimiento)'),
             backgroundColor: Colors.orangeAccent,
           ),
         );
@@ -256,6 +259,7 @@ class _FormularioPasajerosScreenState
             'nombre': p.nombreCtrl.text.trim(),
             'apellido': apellidoConInfo,
             'dni': int.tryParse(p.dniCtrl.text.trim()) ?? 0,
+            'fecha_nacimiento': FechaNacimientoUtils.toIsoDate(p.fechaNacimiento),
             'es_titular': p.esTitular,
             'foto_dni_url': fotoUrl,
           });
@@ -317,6 +321,65 @@ class _FormularioPasajerosScreenState
     }
   }
 
+  // ─── Seleccionar fecha de nacimiento ───────────────────────────────────────
+  Future<void> _seleccionarFechaNacimiento(int index) async {
+    final p = _pasajeros[index];
+    final fecha = await showDatePicker(
+      context: context,
+      initialDate: p.fechaNacimiento ??
+          DateTime.now().subtract(const Duration(days: 365 * 30)),
+      firstDate: DateTime.now().subtract(const Duration(days: 365 * 120)),
+      lastDate: DateTime.now(),
+      helpText: 'Fecha de nacimiento',
+    );
+    if (fecha != null && mounted) {
+      setState(() => p.fechaNacimiento = fecha);
+    }
+  }
+
+  Widget _buildFechaNacimientoTile(_PasajeroForm p, int index) {
+    final label = p.fechaNacimiento == null
+        ? 'Seleccionar fecha de nacimiento *'
+        : FechaNacimientoUtils.formatearLegible(p.fechaNacimiento);
+    return InkWell(
+      onTap: () => _seleccionarFechaNacimiento(index),
+      borderRadius: BorderRadius.circular(12),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: 'Fecha de nacimiento *',
+          labelStyle: const TextStyle(fontSize: 13),
+          prefixIcon: const Icon(Icons.cake_outlined, color: _azul, size: 18),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          border:
+              OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: p.fechaNacimiento == null
+                      ? Colors.grey.shade500
+                      : Colors.black87,
+                ),
+              ),
+            ),
+            const Icon(Icons.calendar_today, size: 18, color: _azul),
+          ],
+        ),
+      ),
+    );
+  }
+
   // ─── BUILD ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
@@ -339,13 +402,15 @@ class _FormularioPasajerosScreenState
                       color: Colors.white, strokeWidth: 2)),
             )
           else
-            TextButton.icon(
-              onPressed: _guardar,
-              icon: const Icon(Icons.save, color: Colors.white, size: 18),
-              label: const Text('GUARDAR',
-                  style: TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold)),
-            ),
+            SafeTextIconButton(
+  onPressed: _guardar,
+  icon: Icons.save,
+  iconSize: 18,
+  iconColor: Colors.white,
+  label: 'GUARDAR',
+  textStyle: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold),
+),
         ],
       ),
       body: Column(
@@ -393,7 +458,7 @@ class _FormularioPasajerosScreenState
           child: SizedBox(
             width: double.infinity,
             height: 56,
-            child: ElevatedButton.icon(
+            child: ElevatedButton(
               onPressed: _guardando ? null : _guardar,
               style: ElevatedButton.styleFrom(
                 backgroundColor: _verde,
@@ -402,13 +467,14 @@ class _FormularioPasajerosScreenState
                     borderRadius: BorderRadius.circular(14)),
                 elevation: 4,
               ),
-              icon: const Icon(Icons.check_circle_outline),
-              label: Text(
-                _guardando
-                    ? 'Procesando carga...'
-                    : 'CONFIRMAR ${_pasajeros.length} PASAJERO${_pasajeros.length != 1 ? "S" : ""}',
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 15),
+              child: SafeButtonLoadingContent(
+                loading: _guardando,
+                icon: Icons.check_circle_outline,
+                idleLabel:
+                    'Confirmar ${_pasajeros.length} pasajero${_pasajeros.length != 1 ? "s" : ""}',
+                loadingLabel: 'Procesando carga...',
+                textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white),
+                spinnerColor: Colors.white,
               ),
             ),
           ),
@@ -627,6 +693,8 @@ class _FormularioPasajerosScreenState
                         ),
                       ],
                     ),
+                    const SizedBox(height: 12),
+                    _buildFechaNacimientoTile(p, index),
                     const SizedBox(height: 16),
                     const Divider(color: Colors.black12),
                     const SizedBox(height: 8),
@@ -699,6 +767,8 @@ class _FormularioPasajerosScreenState
                         ),
                       ],
                     ),
+                    const SizedBox(height: 12),
+                    _buildFechaNacimientoTile(p, index),
                   ],
                   
                   const SizedBox(height: 16),
@@ -878,6 +948,7 @@ class _PasajeroForm {
   final TextEditingController emailCtrl;
   final TextEditingController emergenciaCtrl;
   final bool esTitular;
+  DateTime? fechaNacimiento;
   String? avatarUrl;
   XFile? xFile;
   bool subiendo = false;

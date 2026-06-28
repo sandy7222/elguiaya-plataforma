@@ -1,4 +1,4 @@
-ï»¿
+
 
 import 'dart:async';
 
@@ -163,7 +163,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               TextButton(
                 onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
                 child: const Text(
-                  'Â¿Ya tienes cuenta? Ingresa aqui',
+                  '¿Ya tienes cuenta? Ingresa aqui',
                   style: TextStyle(color: Colors.white70, fontSize: 16),
                 ),
               ),
@@ -277,7 +277,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Â¡Cuenta creada exitosamente! ${_selectedRole == 'Pescador' ? 'Revisa tu correo para confirmar la cuenta.' : 'Ya puedes iniciar sesion.'}'
+              '¡Cuenta creada exitosamente! ${_selectedRole == 'Pescador' ? 'Revisa tu correo para confirmar la cuenta.' : 'Ya puedes iniciar sesion.'}'
             ),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 4),

@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../widgets/safe_button.dart';
 import '../services/supabase_service.dart';
 import '../services/storage_service.dart';
 import '../services/viaje_lifecycle_service.dart';
@@ -26,11 +27,11 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
   bool _isLoading = true;
   Timer? _actualizacionTimer;
   
-  // ID del pescador autenticado — usa el usuario actual de Supabase
+  // ID del pescador autenticado � usa el usuario actual de Supabase
   String get _pescadorId =>
       Supabase.instance.client.auth.currentUser?.id ??
       SupabaseService.currentUserId ??
-      ''; // Si es vacío, los métodos fallarán con gracia
+      ''; // Si es vac�o, los m�todos fallar�n con gracia
   
   // Colores El Guia YA
   static const Color _azulNautico = Color(0xFF1565C0);
@@ -101,7 +102,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
 
   Future<void> _confirmarViajeExitoso(String pedidoId) async {
     try {
-      // 1. Mostrar estado de verificación
+      // 1. Mostrar estado de verificaci�n
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Row(
@@ -112,7 +113,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                 child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
               ),
               SizedBox(width: 16),
-              Text('Verificando ubicación satelital GPS...'),
+              Text('Verificando ubicaci�n satelital GPS...'),
             ],
           ),
           backgroundColor: _azulNautico,
@@ -120,17 +121,17 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
         ),
       );
 
-      // 2. Verificar permisos de geolocalización
+      // 2. Verificar permisos de geolocalizaci�n
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
       }
 
       if (permission == LocationPermission.deniedForever || permission == LocationPermission.denied) {
-        throw Exception('Se requieren permisos de ubicación para verificar la finalización del viaje.');
+        throw Exception('Se requieren permisos de ubicaci�n para verificar la finalizaci�n del viaje.');
       }
 
-      // 3. Capturar ubicación en tiempo real del pescador
+      // 3. Capturar ubicaci�n en tiempo real del pescador
       Position pescadorPos = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
@@ -140,12 +141,12 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
         'lon': pescadorPos.longitude,
       };
 
-      // 4. Obtener coordenadas del capitán y puerto de destino
+      // 4. Obtener coordenadas del capit�n y puerto de destino
       final coordenadasVerificacion = await SupabaseService.obtenerCoordenadasVerificacion(pedidoId);
       final coordenadasCapitan = coordenadasVerificacion['capitan']!;
       final coordenadasPuertoDestino = coordenadasVerificacion['puerto']!;
 
-      // 5. Confirmar viaje con parámetros de geofencing
+      // 5. Confirmar viaje con par�metros de geofencing
       final resultado = await SupabaseService.confirmarViajeExitoso(
         pedidoId,
         _pescadorId,
@@ -158,7 +159,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
         if (resultado['exito'] == true) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Center(child: Text('✅ ¡Viaje confirmado exitosamente!')),
+              content: Center(child: Text('? �Viaje confirmado exitosamente!')),
               backgroundColor: _verdeExito,
             ),
           );
@@ -212,17 +213,17 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
         descripcion.contains('transporte') ||
         descripcion.contains('cruce') ||
         descripcion.contains('isla');
-    final tipoServicio = esTraslado ? 'Transporte/Traslado' : 'Guía de Pesca';
+    final tipoServicio = esTraslado ? 'Transporte/Traslado' : 'Gu�a de Pesca';
     final etiquetasDisponibles = esTraslado
-        ? ['Puntualidad en Cruce', 'Puntualidad en Retiro', 'Viaje Seguro/Tranquilo', 'Buena Comunicación']
-        : ['Buena Embarcación', 'Puntual', 'Conoce los Pozos de Pesca', 'Atento/Asesoró bien'];
+        ? ['Puntualidad en Cruce', 'Puntualidad en Retiro', 'Viaje Seguro/Tranquilo', 'Buena Comunicaci�n']
+        : ['Buena Embarcaci�n', 'Puntual', 'Conoce los Pozos de Pesca', 'Atento/Asesor� bien'];
 
     int rating = 5;
     final Set<String> selectedTags = {};
     final commentController = TextEditingController();
     bool isSaving = false;
 
-    // --- Nuevos estados para información de pesca ---
+    // --- Nuevos estados para informaci�n de pesca ---
     XFile? capturaFoto;
     final especieController = TextEditingController();
     final pesoController = TextEditingController();
@@ -270,7 +271,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Por favor, califica al Capitán del viaje.',
+                            'Por favor, califica al Capit�n del viaje.',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.6),
@@ -354,7 +355,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                           ),
                           const SizedBox(height: 16),
                           
-                          // Chips rápidos
+                          // Chips r�pidos
                           Wrap(
                             spacing: 8,
                             runSpacing: 8,
@@ -385,7 +386,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                             maxLines: 3,
                             style: const TextStyle(color: Colors.white, fontSize: 14),
                             decoration: InputDecoration(
-                              hintText: 'Cuéntanos más sobre el viaje (opcional)...',
+                              hintText: 'Cu�ntanos m�s sobre el viaje (opcional)...',
                               hintStyle: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 13),
                               fillColor: Colors.white.withOpacity(0.04),
                               filled: true,
@@ -406,7 +407,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                           ),
                           const SizedBox(height: 20),
                           
-                          // Sección Detalles de Pesca (Blog de Piques & Gu-IA)
+                          // Secci�n Detalles de Pesca (Blog de Piques & Gu-IA)
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
@@ -440,7 +441,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                                         controller: especieController,
                                         style: const TextStyle(color: Colors.white, fontSize: 13),
                                         decoration: InputDecoration(
-                                          hintText: 'Especie (ej. Dorado, Surubí)',
+                                          hintText: 'Especie (ej. Dorado, Surub�)',
                                           hintStyle: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 12),
                                           fillColor: Colors.white.withOpacity(0.03),
                                           filled: true,
@@ -504,7 +505,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                                               ),
                                               const SizedBox(width: 6),
                                               Text(
-                                                capturaFoto != null ? 'Foto Cargada' : 'Galería',
+                                                capturaFoto != null ? 'Foto Cargada' : 'Galer�a',
                                                 style: const TextStyle(color: Colors.white, fontSize: 12),
                                               ),
                                             ],
@@ -536,7 +537,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                                               Icon(Icons.camera_alt, color: Color(0xFF00E5FF), size: 18),
                                               SizedBox(width: 6),
                                               Text(
-                                                'Cámara',
+                                                'C�mara',
                                                 style: TextStyle(color: Colors.white, fontSize: 12),
                                               ),
                                             ],
@@ -565,7 +566,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           const Text(
-                                            '¿Compartir en el Blog de Piques?',
+                                            '�Compartir en el Blog de Piques?',
                                             style: TextStyle(
                                               color: Colors.white,
                                               fontSize: 12,
@@ -574,7 +575,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                                           ),
                                           const SizedBox(height: 2),
                                           Text(
-                                            'Publicará tu reseña, fotos y especie de forma pública en la sección de Comunidad de la tienda.',
+                                            'Publicar� tu rese�a, fotos y especie de forma p�blica en la secci�n de Comunidad de la tienda.',
                                             style: TextStyle(
                                               color: Colors.white.withOpacity(0.4),
                                               fontSize: 10,
@@ -599,7 +600,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                           ),
                           const SizedBox(height: 24),
                           
-                          // Botones de acción
+                          // Botones de acci�n
                           Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
@@ -644,7 +645,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                                               lat = currentPos?.latitude ?? 0.0;
                                               lon = currentPos?.longitude ?? 0.0;
                                             } catch (locErr) {
-                                              print('⚠️ Error al obtener ubicación para coordenadas: $locErr');
+                                              print('?? Error al obtener ubicaci�n para coordenadas: $locErr');
                                             }
                                           }
 
@@ -658,7 +659,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                                             'longitud': lon != 0.0 ? lon : null,
                                           };
 
-                                          // 1. Guardar calificación
+                                          // 1. Guardar calificaci�n
                                           await SupabaseService.crearCalificacionViaje(
                                             pedidoId: viaje['id'],
                                             calificadorId: _pescadorId,
@@ -668,7 +669,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                                             aspectosPuntuados: aspectos,
                                           );
 
-                                          // 2. Si dio su consentimiento y el GPS está activo, registrar en PiquePulse local
+                                          // 2. Si dio su consentimiento y el GPS est� activo, registrar en PiquePulse local
                                           if (permitirPublicarBlog) {
                                             try {
                                               final box = await Hive.openBox<PiquePulse>('guia_piques');
@@ -681,15 +682,15 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                                                 especieDetectada: especieController.text.trim().isEmpty ? 'Desconocido' : especieController.text.trim(),
                                               );
                                               await box.add(pulse);
-                                              print('✅ PiquePulse guardado en Hive box: guia_piques');
+                                              print('? PiquePulse guardado en Hive box: guia_piques');
                                             } catch (hiveErr) {
-                                              print('⚠️ Error al registrar PiquePulse local: $hiveErr');
+                                              print('?? Error al registrar PiquePulse local: $hiveErr');
                                             }
                                           }
 
                                           if (context.mounted) {
-                                            Navigator.pop(context); // Cerrar diálogo
-                                            // 2. Confirmar viaje utilizando el método de la pantalla
+                                            Navigator.pop(context); // Cerrar di�logo
+                                            // 2. Confirmar viaje utilizando el m�todo de la pantalla
                                             await _confirmarViajeExitoso(viaje['id']);
                                           }
                                         } catch (e) {
@@ -726,7 +727,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                                         ),
                                       )
                                     : const Text(
-                                        'Guardar Calificación',
+                                        'Guardar Calificaci�n',
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                               ),
@@ -747,8 +748,8 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
 
   void _reportarProblema(String pedidoId, String descripcion) async {
     final motivosDisputa = [
-      'El capitán/pescador no se presentó',
-      'Problema mecánico en la embarcación',
+      'El capit�n/pescador no se present�',
+      'Problema mec�nico en la embarcaci�n',
       'Incumplimiento de lo pactado',
       'Maltrato o falta de seguridad',
     ];
@@ -801,7 +802,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Detalla el inconveniente para iniciar la retención del pago.',
+                            'Detalla el inconveniente para iniciar la retenci�n del pago.',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.6),
@@ -903,7 +904,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    'El saldo del viaje quedará bloqueado de forma preventiva en el sistema y en Mercado Pago hasta su resolución por administración.',
+                                    'El saldo del viaje quedar� bloqueado de forma preventiva en el sistema y en Mercado Pago hasta su resoluci�n por administraci�n.',
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: const Color(0xFFFFB300).withOpacity(0.85),
@@ -916,7 +917,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                           ),
                           const SizedBox(height: 24),
                           
-                          // Botones de acción
+                          // Botones de acci�n
                           Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
@@ -956,11 +957,11 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                                           );
 
                                           if (context.mounted) {
-                                            Navigator.pop(context); // Cerrar diálogo
+                                            Navigator.pop(context); // Cerrar di�logo
                                             if (resultado['exito'] == true) {
                                               ScaffoldMessenger.of(context).showSnackBar(
                                                 const SnackBar(
-                                                  content: Center(child: Text('⚠️ Disputa iniciada. Fondos retenidos.')),
+                                                  content: Center(child: Text('?? Disputa iniciada. Fondos retenidos.')),
                                                   backgroundColor: Color(0xFFFFB300),
                                                 ),
                                               );
@@ -1171,10 +1172,10 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
             ),
           ),
           const SizedBox(height: 24),
-          ElevatedButton.icon(
+          SafeElevatedIconButton(
             onPressed: _cargarViajes,
-            icon: const Icon(Icons.refresh),
-            label: const Text('Verificar Nuevamente'),
+            icon: Icons.refresh,
+            label: 'Verificar Nuevamente',
             style: ElevatedButton.styleFrom(
               backgroundColor: _azulNautico,
               foregroundColor: Colors.white,
@@ -1297,10 +1298,10 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
             Row(
               children: [
                 Expanded(
-                  child: ElevatedButton.icon(
+                  child: SafeElevatedIconButton(
                     onPressed: () => _mostrarDialogoCalificacion(viaje),
-                    icon: const Icon(Icons.check_circle),
-                    label: const Text('Viaje Exitoso'),
+                    icon: Icons.check_circle,
+                    label: 'Viaje Exitoso',
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _verdeExito,
                       foregroundColor: Colors.white,
@@ -1310,10 +1311,10 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: OutlinedButton.icon(
+                  child: SafeOutlinedIconButton(
                     onPressed: () => _reportarProblema(viaje['id'], descripcion),
-                    icon: const Icon(Icons.warning),
-                    label: const Text('Reportar Problema'),
+                    icon: Icons.warning,
+                    label: 'Reportar Problema',
                     style: OutlinedButton.styleFrom(
                       foregroundColor: _naranjaAlerta,
                       side: const BorderSide(color: _naranjaAlerta),

@@ -4,6 +4,7 @@ import '../providers/cart_provider.dart';
 import '../models/cart_item.dart';
 import '../services/branding_service.dart';
 import '../widgets/safe_product_image.dart';
+import '../widgets/safe_button.dart';
 import 'dart:ui';
 
 class CheckoutScreen extends StatefulWidget {
@@ -202,10 +203,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         const SizedBox(height: 24),
         ...List.generate(_tripulantes.length, (index) => _buildTripulanteCard(index)),
         const SizedBox(height: 16),
-        OutlinedButton.icon(
+        SafeOutlinedIconButton(
           onPressed: () => setState(() => _tripulantes.add({'nombre': '', 'dni': '', 'foto': null})),
-          icon: const Icon(Icons.person_add_alt_1),
-          label: const Text('AÑADIR ACOMPAÑANTE'),
+          icon: Icons.person_add_alt_1,
+          label: 'Añadir acompañante',
         ),
       ],
     );

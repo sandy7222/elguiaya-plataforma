@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import '../widgets/safe_button.dart';
+import 'package:flutter/material.dart';
 
 class ReintegroScreen extends StatelessWidget {
   const ReintegroScreen({super.key});
@@ -290,8 +291,8 @@ class ReintegroScreen extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     height: 56,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
+                    child: SafeElevatedIconButton(
+  onPressed: () {
                         showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
@@ -370,12 +371,11 @@ class ReintegroScreen extends StatelessWidget {
                           ),
                         );
                       },
-                      icon: const Icon(Icons.refresh, color: _blancoPuro),
-                      label: const Text(
-                        'SOLICITAR REINTEGRO',
-                        style: TextStyle(color: _blancoPuro, fontWeight: FontWeight.bold),
-                      ),
-                      style: ElevatedButton.styleFrom(
+  icon: Icons.refresh,
+  iconColor: _blancoPuro,
+  label: 'SOLICITAR REINTEGRO',
+  textStyle: TextStyle(color: _blancoPuro, fontWeight: FontWeight.bold),
+  style: ElevatedButton.styleFrom(
                         backgroundColor: _azulVibrante,
                         foregroundColor: _blancoPuro,
                         elevation: 6,
@@ -384,32 +384,31 @@ class ReintegroScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                    ),
+),
                   ),
                   const SizedBox(height: 12),
                   SizedBox(
                     width: double.infinity,
                     height: 48,
-                    child: OutlinedButton.icon(
-                      onPressed: () {
+                    child: SafeOutlinedIconButton(
+  onPressed: () {
                         Navigator.of(context).pop();
                       },
-                      icon: const Icon(Icons.arrow_back, color: _azulVibrante),
-                      label: const Text(
-                        'VOLVER',
-                        style: TextStyle(
+  icon: Icons.arrow_back,
+  iconColor: _azulVibrante,
+  label: 'VOLVER',
+  textStyle: TextStyle(
                           color: _azulVibrante,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
-                      ),
-                      style: OutlinedButton.styleFrom(
+  style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: _azulVibrante),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                    ),
+),
                   ),
                 ],
               ),

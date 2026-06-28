@@ -4,11 +4,12 @@ import 'package:geolocator/geolocator.dart';
 import '../services/supabase_service.dart';
 import '../services/mercado_pago_service.dart';
 import '../services/viaje_lifecycle_service.dart';
-import '../services/gps_tracker_service.dart';
-import '../services/viaje_tracking_service.dart';
+import '../widgets/safe_button.dart';
 import '../widgets/failsafe_background.dart';
 import '../widgets/calificacion_pescador_dialog.dart';
 import '../widgets/reputacion_badge_widget.dart';
+import '../utils/fecha_nacimiento_utils.dart';
+import '../widgets/descargar_despacho_pna_button.dart';
 import 'ficha_contractual_screen.dart';
 import 'ficha_pescador_screen.dart';
 import 'chat_screen.dart';
@@ -227,13 +228,9 @@ class _ViajesProgramadosScreenState extends State<ViajesProgramadosScreen> {
     try {
       await ViajeLifecycleService.iniciarViaje(
           pedidoId: pedidoId, capitanId: capitanId);
-      // GPS en vivo del capitán (posición actual en su perfil)
-      GpsTrackerService().startTracking(capitanId);
-      // Auditor de ruta del viaje: graba el recorrido en pedidos.track_log
-      ViajeTrackingService().startTracking(tripId: pedidoId);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('⛵ Viaje iniciado — GPS activo'),
+            content: Text('⛵ Viaje iniciado'),
             backgroundColor: Color(0xFF00E676),
             behavior: SnackBarBehavior.floating));
         _cargarViajes();
@@ -254,9 +251,6 @@ class _ViajesProgramadosScreenState extends State<ViajesProgramadosScreen> {
     try {
       await ViajeLifecycleService.finalizarViaje(
           pedidoId: pedidoId, capitanId: capitanId);
-      GpsTrackerService().stopTracking();
-      // Cierra el auditor de ruta y guarda el recorrido final
-      await ViajeTrackingService().stopTracking();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text('🏁 Viaje finalizado. Calificá al pescador.'),
@@ -293,21 +287,21 @@ class _ViajesProgramadosScreenState extends State<ViajesProgramadosScreen> {
 
   Widget _accionBoton(
       String label, IconData icon, Color color, VoidCallback onTap) {
-    return SizedBox(
-      width: double.infinity,
-      height: 46,
-      child: ElevatedButton.icon(
-        onPressed: onTap,
-        icon: Icon(icon, color: Colors.black87),
-        label: Text(label,
-            style: const TextStyle(
-                color: Colors.black87,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.0)),
-        style: ElevatedButton.styleFrom(
-            backgroundColor: color,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
+    return SafeElevatedButton(
+      onPressed: onTap,
+      icon: icon,
+      label: label,
+      iconColor: Colors.black87,
+      textStyle: const TextStyle(
+        color: Colors.black87,
+        fontWeight: FontWeight.bold,
+        letterSpacing: 0.5,
+        fontSize: 13,
+      ),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        minimumSize: const Size(double.infinity, 46),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       ),
     );
   }
@@ -386,22 +380,16 @@ class _ViajesProgramadosScreenState extends State<ViajesProgramadosScreen> {
           _accionBoton('CALIFICAR CAPITÁN', Icons.star_rate_rounded,
               const Color(0xFF00E676), _irAConfirmarFinalizacion),
           const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            height: 44,
-            child: OutlinedButton.icon(
-              onPressed: _irAConfirmarFinalizacion,
-              icon: const Icon(Icons.warning_amber_rounded,
-                  color: Colors.orangeAccent, size: 18),
-              label: const Text('Reportar un problema',
-                  style: TextStyle(
-                      color: Colors.orangeAccent,
-                      fontWeight: FontWeight.bold)),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Colors.orangeAccent),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15)),
-              ),
+          SafeOutlinedButton(
+            onPressed: _irAConfirmarFinalizacion,
+            icon: Icons.warning_amber_rounded,
+            label: 'Reportar un problema',
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: Colors.orangeAccent),
+              foregroundColor: Colors.orangeAccent,
+              minimumSize: const Size(double.infinity, 44),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15)),
             ),
           ),
         ],
@@ -1062,6 +1050,14 @@ class _ViajeDetallesSheetContentState extends State<_ViajeDetallesSheetContent> 
                                               fontSize: 12,
                                             ),
                                           ),
+                                          if (p['fecha_nacimiento'] != null)
+                                            Text(
+                                              'Nac.: ${FechaNacimientoUtils.formatearLegible(p['fecha_nacimiento'])}',
+                                              style: const TextStyle(
+                                                color: Colors.white38,
+                                                fontSize: 11,
+                                              ),
+                                            ),
                                         ],
                                       ),
                                     ),
@@ -1075,6 +1071,12 @@ class _ViajeDetallesSheetContentState extends State<_ViajeDetallesSheetContent> 
                                 ),
                               );
                             }).toList(),
+
+                          const SizedBox(height: 16),
+                          DescargarDespachoPnaButton(
+                            pedidoId: widget.viajeId,
+                            compact: true,
+                          ),
 
                           const SizedBox(height: 24),
                           const Divider(color: Colors.white10),

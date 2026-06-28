@@ -1,4 +1,4 @@
-ï»¿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/categoria.dart';
 import '../models/producto.dart';
@@ -120,8 +120,8 @@ class _AdminInventarioScreenState extends State<AdminInventarioScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: _capitanAzul,
-        title: const Text('Â¿Eliminar producto?', style: TextStyle(color: Colors.white)),
-        content: Text('Esta acciÃ³n eliminarÃ¡ "${producto.nombre}" de forma permanente.', style: const TextStyle(color: Colors.white70)),
+        title: const Text('¿Eliminar producto?', style: TextStyle(color: Colors.white)),
+        content: Text('Esta acción eliminará "${producto.nombre}" de forma permanente.', style: const TextStyle(color: Colors.white70)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('CANCELAR')),
           TextButton(
@@ -279,7 +279,7 @@ class _AdminInventarioScreenState extends State<AdminInventarioScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. Parte Superior: InformaciÃ³n Principal (Imagen, TÃ­tulo, Precio y Stock)
+          // 1. Parte Superior: Información Principal (Imagen, Título, Precio y Stock)
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
             child: Row(
@@ -335,7 +335,7 @@ class _AdminInventarioScreenState extends State<AdminInventarioScreen> {
           
           const Divider(color: Colors.white10, height: 1, thickness: 1),
           
-          // 2. Parte Inferior: Botones de AcciÃ³n RÃ¡pidos y Responsivos
+          // 2. Parte Inferior: Botones de Acción Rápidos y Responsivos
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: Row(
@@ -351,7 +351,7 @@ class _AdminInventarioScreenState extends State<AdminInventarioScreen> {
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     Text(
-                      p.activo ? 'PÃºblico' : 'Pausado',
+                      p.activo ? 'Público' : 'Pausado',
                       style: TextStyle(
                         color: p.activo ? _capitanNaranja : Colors.white38,
                         fontSize: 10,
@@ -362,7 +362,7 @@ class _AdminInventarioScreenState extends State<AdminInventarioScreen> {
                 ),
                 const Spacer(),
                 
-                // BotÃ³n Previa
+                // Botón Previa
                 IconButton(
                   icon: const Icon(Icons.visibility, color: Colors.white70, size: 18),
                   onPressed: () {
@@ -376,18 +376,18 @@ class _AdminInventarioScreenState extends State<AdminInventarioScreen> {
                   tooltip: 'Ver Previa Exacta',
                 ),
                 
-                // BotÃ³n Copiar Link
+                // Botón Copiar Link
                 IconButton(
                   icon: const Icon(Icons.link, color: _capitanAzulClaro, size: 18),
                   onPressed: () {
                     final url = 'http://localhost:8080/#/producto?id=${p.id}';
                     Clipboard.setData(ClipboardData(text: url));
-                    _notificar('Â¡Link copiado para compartir!');
+                    _notificar('¡Link copiado para compartir!');
                   },
                   tooltip: 'Copiar Link para WhatsApp',
                 ),
                 
-                // BotÃ³n Eliminar
+                // Botón Eliminar
                 IconButton(
                   icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 18),
                   onPressed: () => _eliminarProducto(p),

@@ -1,11 +1,14 @@
-﻿
+
 
 import 'package:flutter/material.dart';
 
 import '../services/supabase_service.dart';
+import '../widgets/safe_button.dart';
 
 class CheckoutDobleScreen extends StatefulWidget {
-  const CheckoutDobleScreen({super.key});
+  final String? cotizacionId;
+
+  const CheckoutDobleScreen({super.key, this.cotizacionId});
 
   @override
   State<CheckoutDobleScreen> createState() => _CheckoutDobleScreenState();
@@ -422,7 +425,7 @@ class _CheckoutDobleScreenState extends State<CheckoutDobleScreen> {
                   child: TextFormField(
                     controller: _numeroController,
                     decoration: const InputDecoration(
-                      labelText: 'N°',
+                      labelText: 'N�',
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -499,7 +502,7 @@ class _CheckoutDobleScreenState extends State<CheckoutDobleScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '⚠️ No se permiten coordenadas de mapa. Use campos de texto para especificar la direccion.',
+                      '?? No se permiten coordenadas de mapa. Use campos de texto para especificar la direccion.',
                       style: TextStyle(
                         fontSize: 12,
                         color: _rojoProblema,
@@ -577,21 +580,27 @@ class _CheckoutDobleScreenState extends State<CheckoutDobleScreen> {
         // Boton de checkout de tienda
         SizedBox(
           width: double.infinity,
-          child: ElevatedButton.icon(
+          child: ElevatedButton(
             onPressed: _checkoutTiendaCompletado || _procesando ? null : _procesarCheckoutTienda,
-            icon: _procesando 
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                  )
-                : const Icon(Icons.shopping_cart),
-            label: Text(_procesando ? 'Procesando...' : 'Procesar Pedido Tienda'),
             style: ElevatedButton.styleFrom(
               backgroundColor: _checkoutTiendaCompletado ? _verdeExito : _azulNautico,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
+            child: _procesando
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(child: SafeButtonText('Procesando...', style: const TextStyle(color: Colors.white))),
+                    ],
+                  )
+                : const SafeButtonContent(icon: Icons.shopping_cart, label: 'Procesar pedido tienda'),
           ),
         ),
         
@@ -600,21 +609,27 @@ class _CheckoutDobleScreenState extends State<CheckoutDobleScreen> {
         // Boton de checkout de viaje
         SizedBox(
           width: double.infinity,
-          child: ElevatedButton.icon(
+          child: ElevatedButton(
             onPressed: _checkoutViajeCompletado || _procesando ? null : _procesarCheckoutViaje,
-            icon: _procesando 
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                  )
-                : const Icon(Icons.directions_boat),
-            label: Text(_procesando ? 'Procesando...' : 'Procesar Reserva Viaje'),
             style: ElevatedButton.styleFrom(
               backgroundColor: _checkoutViajeCompletado ? _verdeExito : _azulNautico,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
+            child: _procesando
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(child: SafeButtonText('Procesando...', style: const TextStyle(color: Colors.white))),
+                    ],
+                  )
+                : const SafeButtonContent(icon: Icons.directions_boat, label: 'Procesar reserva viaje'),
           ),
         ),
         
@@ -634,7 +649,7 @@ class _CheckoutDobleScreenState extends State<CheckoutDobleScreen> {
                 Icon(Icons.check_circle, color: Colors.white, size: 32),
                 SizedBox(height: 8),
                 Text(
-                  '¡Checkout Completado!',
+                  '�Checkout Completado!',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -706,7 +721,7 @@ class _CheckoutDobleScreenState extends State<CheckoutDobleScreen> {
 
       // Crear pedido_tienda
       final resultado = await SupabaseService.crearPedidoTienda(
-        '11111111-1111-1111-1111-111111111111', // ID de prueba pescador
+        SupabaseService.currentUserId ?? '',
         productos,
         direccion,
         'domicilio',
@@ -723,7 +738,7 @@ class _CheckoutDobleScreenState extends State<CheckoutDobleScreen> {
 
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Center(child: Text('✅ Pedido de tienda procesado exitosamente')),
+              content: Center(child: Text('? Pedido de tienda procesado exitosamente')),
               backgroundColor: _verdeExito,
             ),
           );
@@ -787,10 +802,19 @@ class _CheckoutDobleScreenState extends State<CheckoutDobleScreen> {
         },
       ];
 
+      final pescadorId = SupabaseService.currentUserId;
+      final cotizacionId = widget.cotizacionId;
+      if (pescadorId == null || pescadorId.isEmpty) {
+        throw Exception('Inici� sesi�n para reservar el viaje');
+      }
+      if (cotizacionId == null || cotizacionId.isEmpty) {
+        throw Exception('Falta la cotizaci�n asociada al viaje');
+      }
+
       // Crear reserva_viaje
       final resultado = await SupabaseService.crearReservaViaje(
-        '11111111-1111-1111-1111-111111111111', // ID de prueba pescador
-        '22222222-2222-2222-2222-222222222222', // ID de prueba cotizacion
+        pescadorId,
+        cotizacionId,
         datosPasajeros,
         productosTienda,
       );
@@ -808,14 +832,14 @@ class _CheckoutDobleScreenState extends State<CheckoutDobleScreen> {
             await SupabaseService.vincularPedidoReserva(
               _pedidoTiendaId!,
               _reservaViajeId!,
-              '11111111-1111-1111-1111-111111111111',
+              SupabaseService.currentUserId ?? '',
               'combinado',
             );
           }
 
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Center(child: Text('✅ Reserva de viaje procesada exitosamente')),
+              content: Center(child: Text('? Reserva de viaje procesada exitosamente')),
               backgroundColor: _verdeExito,
             ),
           );

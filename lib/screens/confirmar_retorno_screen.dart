@@ -1,6 +1,7 @@
-﻿
+
 
 import 'dart:async';
+import '../widgets/safe_button.dart';
 
 import 'package:flutter/material.dart';
 
@@ -19,8 +20,7 @@ class _ConfirmarRetornoScreenState extends State<ConfirmarRetornoScreen>
   bool _isLoading = true;
   Timer? _actualizacionTimer;
   
-  // ID de prueba para el pescador
-  final String _pescadorId = '11111111-1111-1111-1111-111111111111';
+  String get _pescadorId => SupabaseService.currentUserId ?? '';
   
   // Colores El Guia YA
   static const Color _azulNautico = Color(0xFF1565C0);
@@ -97,7 +97,7 @@ class _ConfirmarRetornoScreenState extends State<ConfirmarRetornoScreen>
         if (resultado['exito'] == true) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Center(child: Text('✅ ¡Retorno confirmado! Pago liberado al capitan')),
+              content: Center(child: Text('? �Retorno confirmado! Pago liberado al capitan')),
               backgroundColor: _verdeExito,
             ),
           );
@@ -267,15 +267,15 @@ class _ConfirmarRetornoScreenState extends State<ConfirmarRetornoScreen>
             ),
           ),
           const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: _cargarViajes,
-            icon: const Icon(Icons.refresh),
-            label: const Text('Verificar Nuevamente'),
-            style: ElevatedButton.styleFrom(
+          SafeElevatedIconButton(
+  onPressed: _cargarViajes,
+  icon: Icons.refresh,
+  label: 'Verificar Nuevamente',
+  style: ElevatedButton.styleFrom(
               backgroundColor: _azulNautico,
               foregroundColor: Colors.white,
             ),
-          ),
+),
         ],
       ),
     );
@@ -477,19 +477,18 @@ class _ConfirmarRetornoScreenState extends State<ConfirmarRetornoScreen>
                   end: Alignment.bottomRight,
                 ),
               ),
-              child: ElevatedButton.icon(
-                onPressed: () => _confirmarRetornoYLibrerarPago(viaje['pedido_id']),
-                icon: const Icon(Icons.check_circle, color: Colors.white),
-                label: const Text(
-                  'Confirmar Regreso y Liberar Pago',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                ),
-                style: ElevatedButton.styleFrom(
+              child: SafeElevatedIconButton(
+  onPressed: () => _confirmarRetornoYLibrerarPago(viaje['pedido_id']),
+  icon: Icons.check_circle,
+  iconColor: Colors.white,
+  label: 'Confirmar Regreso y Liberar Pago',
+  textStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+  style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
                   shadowColor: Colors.transparent,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-              ),
+),
             ),
           ],
         ),

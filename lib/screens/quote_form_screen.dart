@@ -1,10 +1,11 @@
-﻿
+
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../services/supabase_service.dart';
+import '../widgets/safe_button.dart';
 
 class QuoteFormScreen extends StatefulWidget {
   final String cotizacionId;
@@ -103,7 +104,7 @@ class _QuoteFormScreenState extends State<QuoteFormScreen> {
       setState(() {
         _cotizacionData = {
           'id': widget.cotizacionId,
-          'pescador_id': '11111111-1111-1111-1111-111111111111',
+          'pescador_id': null,
           'pescador_nombre': 'Pescador Test', // Solo nombre, sin apellido
           'descripcion': 'Viaje de pesca maritima con amigos',
           'fecha_ida': '2026-03-15',
@@ -188,7 +189,7 @@ class _QuoteFormScreenState extends State<QuoteFormScreen> {
           SnackBar(
             content: Center(
               child: Text(
-                '✅ Presupuesto de ${_formatCurrency(presupuesto.toInt())} enviado exitosamente'
+                '? Presupuesto de ${_formatCurrency(presupuesto.toInt())} enviado exitosamente'
               ),
             ),
             backgroundColor: _verdeBrillante,
@@ -222,7 +223,7 @@ class _QuoteFormScreenState extends State<QuoteFormScreen> {
       final notificacionData = {
         'evento': 'presupuesto_enviado',
         'cotizacion_id': widget.cotizacionId,
-        'capitan_id': '22222222-2222-2222-2222-222222222222',
+        'capitan_id': SupabaseService.currentUserId,
         'pescador_id': _cotizacionData!['pescador_id'],
         'presupuesto': presupuesto,
         'respuesta': respuesta,
@@ -237,10 +238,10 @@ class _QuoteFormScreenState extends State<QuoteFormScreen> {
       // Aqui iria la llamada real a la API de Glew
       // await GlewService.sendNotification(notificacionData);
       
-      print('📢 Notificacion enviada a Glew: $notificacionData');
+      print('?? Notificacion enviada a Glew: $notificacionData');
       
     } catch (e) {
-      print('❌ Error al notificar a Glew: $e');
+      print('? Error al notificar a Glew: $e');
       // No fallamos el flujo principal si falla la notificacion a Glew
     }
   }
@@ -463,7 +464,7 @@ class _QuoteFormScreenState extends State<QuoteFormScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                '🛡️ Datos Protegidos',
+                                '??? Datos Protegidos',
                                 style: TextStyle(
                                   color: _amarilloVivo,
                                   fontWeight: FontWeight.bold,
@@ -796,10 +797,10 @@ class _QuoteFormScreenState extends State<QuoteFormScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '• El presupuesto sera visible para el pescador\n'
-                      '• Tu mensaje sera enviado directamente\n'
-                      '• Los datos de contacto estan protegidos\n'
-                      '• No compartas informacion personal',
+                      '� El presupuesto sera visible para el pescador\n'
+                      '� Tu mensaje sera enviado directamente\n'
+                      '� Los datos de contacto estan protegidos\n'
+                      '� No compartas informacion personal',
                       style: TextStyle(
                         color: _fondoOscuro,
                         fontSize: 11,
@@ -816,25 +817,8 @@ class _QuoteFormScreenState extends State<QuoteFormScreen> {
               SizedBox(
                 width: double.infinity,
                 height: 56, // Altura estandar para botones moviles
-                child: ElevatedButton.icon(
+                child: ElevatedButton(
                   onPressed: _isEnviando ? null : _enviarPresupuesto,
-                  icon: _isEnviando 
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: _blancoPuro,
-                          ),
-                        )
-                      : const Icon(Icons.send),
-                  label: Text(
-                    _isEnviando ? 'Enviando...' : 'Enviar Presupuesto',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _verdeBrillante,
                     foregroundColor: _blancoPuro,
@@ -842,6 +826,18 @@ class _QuoteFormScreenState extends State<QuoteFormScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
+                  ),
+                  child: SafeButtonLoadingContent(
+                    loading: _isEnviando,
+                    icon: Icons.send,
+                    idleLabel: 'Enviar presupuesto',
+                    loadingLabel: 'Enviando...',
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: _blancoPuro,
+                    ),
+                    spinnerColor: _blancoPuro,
                   ),
                 ),
               ),

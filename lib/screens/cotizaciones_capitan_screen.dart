@@ -1,10 +1,11 @@
-﻿
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../widgets/safe_button.dart';
 import '../services/cotizaciones_service.dart';
 import 'cotizaciones_formulario_fixed.dart';
 
@@ -23,7 +24,7 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
   int _paginaActual = 1;
   final int _limitePorPagina = 10;
 
-  // ── Bloqueo blando: documentación vencida ──────────────────────────
+  // -- Bloqueo blando: documentaci�n vencida --------------------------
   bool _docsVencidos = false;
   String _motivoVencimiento = '';
   String _capitanUuid = '';
@@ -62,7 +63,7 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
       if (perfil['vencimiento_seguro'] != null) {
         final fecha = DateTime.tryParse(perfil['vencimiento_seguro'] as String);
         if (fecha != null && fecha.isBefore(hoy)) {
-          motivosVencidos.add('Seguro de Embarcación');
+          motivosVencidos.add('Seguro de Embarcaci�n');
         }
       }
       if (perfil['vencimiento_carnet'] != null) {
@@ -79,7 +80,7 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
         });
       }
     } catch (e) {
-      // No bloquear la app si falla la verificación
+      // No bloquear la app si falla la verificaci�n
     }
   }
 
@@ -193,7 +194,7 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
       ),
       body: Column(
         children: [
-          // ── Banner bloqueo blando (doc vencida) ────────────────────────
+          // -- Banner bloqueo blando (doc vencida) ------------------------
           if (_docsVencidos) _buildBannerDocsVencidos(),
 
           Container(
@@ -338,10 +339,10 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
     );
   }
 
-  // ── BLOQUEO BLANDO: Banner y pantalla de documentación vencida ──────────
+  // -- BLOQUEO BLANDO: Banner y pantalla de documentaci�n vencida ----------
 
   /// Banner sutil que aparece en la parte superior de la pantalla.
-  /// No bloquea la navegación, solo informa la situación.
+  /// No bloquea la navegaci�n, solo informa la situaci�n.
   Widget _buildBannerDocsVencidos() {
     return Container(
       width: double.infinity,
@@ -361,7 +362,7 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'ⓘ  $_motivoVencimiento vencido. Para regularizar tu documentación, contactá a soporte.',
+              '?  $_motivoVencimiento vencido. Para regularizar tu documentaci�n, contact� a soporte.',
               style: const TextStyle(
                 color: Color(0xFFFF6600),
                 fontSize: 12,
@@ -385,7 +386,7 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
     );
   }
 
-  /// Reemplaza la lista de cotizaciones cuando los docs están vencidos.
+  /// Reemplaza la lista de cotizaciones cuando los docs est�n vencidos.
   Widget _buildContenidoBloqueado() {
     return Center(
       child: Padding(
@@ -421,9 +422,9 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
             ),
             const SizedBox(height: 10),
             Text(
-              'Tu $_motivoVencimiento está vencido.\n'
+              'Tu $_motivoVencimiento est� vencido.\n'
               'Para volver a recibir solicitudes de pescadores,\n'
-              'regularizá tu documentación con el equipo de EL GUIA YA.',
+              'regulariz� tu documentaci�n con el equipo de EL GUIA YA.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: _blancoPuro.withOpacity(0.7),
@@ -432,13 +433,12 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
               ),
             ),
             const SizedBox(height: 28),
-            ElevatedButton.icon(
+            SafeElevatedIconButton(
               onPressed: _contactarSoporteWhatsApp,
-              icon: const Icon(Icons.chat, size: 18),
-              label: const Text(
-                'Contactar Soporte por WhatsApp',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
+              icon: Icons.chat,
+              iconSize: 18,
+              label: 'Contactar Soporte por WhatsApp',
+              textStyle: const TextStyle(fontWeight: FontWeight.bold),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF25D366),
                 foregroundColor: Colors.white,
@@ -462,14 +462,14 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
     );
   }
 
-  /// Abre WhatsApp incluyendo el UUID del capitán en el mensaje
+  /// Abre WhatsApp incluyendo el UUID del capit�n en el mensaje
   /// para que soporte lo identifique sin pedirle datos al usuario.
   Future<void> _contactarSoporteWhatsApp() async {
     final uuid = _capitanUuid.isNotEmpty ? _capitanUuid : 'no-identificado';
     final mensaje = Uri.encodeComponent(
-      'Hola, soy el capitán con UUID: $uuid\n'
-      'Necesito regularizar mi documentación ($_motivoVencimiento).\n'
-      'Quedo a disposición. Gracias.',
+      'Hola, soy el capit�n con UUID: $uuid\n'
+      'Necesito regularizar mi documentaci�n ($_motivoVencimiento).\n'
+      'Quedo a disposici�n. Gracias.',
     );
     final url = Uri.parse('https://wa.me/5493624000000?text=$mensaje');
     if (await canLaunchUrl(url)) {
@@ -512,27 +512,27 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
       case 'pendiente':
         statusColor = _naranjaIntenso;
         statusIcon = Icons.pending;
-        statusText = '⏳ Pendiente';
+        statusText = '? Pendiente';
         break;
       case 'enviado':
         statusColor = _azulVibrante;
         statusIcon = Icons.send;
-        statusText = '📤 Enviado';
+        statusText = '?? Enviado';
         break;
       case 'aceptado':
         statusColor = _verdeBrillante;
         statusIcon = Icons.check_circle;
-        statusText = '✅ Aceptado';
+        statusText = '? Aceptado';
         break;
       case 'rechazado':
         statusColor = _rojoFuerte;
         statusIcon = Icons.cancel;
-        statusText = '❌ Rechazado';
+        statusText = '? Rechazado';
         break;
       case 'vencido':
         statusColor = _rojoFuerte;
         statusIcon = Icons.timer_off;
-        statusText = '⏰ Vencido';
+        statusText = '? Vencido';
         break;
       default:
         statusColor = _blancoPuro;
@@ -586,7 +586,7 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
                   ),
                 ),
                 Text(
-                  '📏 ${(cotizacion['distancia_km'] ?? 0.0).toStringAsFixed(1)} km',
+                  '?? ${(cotizacion['distancia_km'] ?? 0.0).toStringAsFixed(1)} km',
                   style: const TextStyle(
                     color: _blancoPuro,
                     fontSize: 11,
@@ -625,29 +625,31 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfoRow('📅 Fecha Solicitud', _formatearFecha(fechaSolicitud)),
+                _buildInfoRow('?? Fecha Solicitud', _formatearFecha(fechaSolicitud)),
                 Row(
                   children: [
-                    Expanded(child: _buildInfoRow('📏 Recorrido Trazado', '${(cotizacion['distancia_km'] ?? 0.0).toStringAsFixed(1)} km')),
+                    Expanded(child: _buildInfoRow('?? Recorrido Trazado', '${(cotizacion['distancia_km'] ?? 0.0).toStringAsFixed(1)} km')),
                     if (cotizacion['coordenadas_partida'] != null && cotizacion['coordenadas_destino'] != null)
-                      TextButton.icon(
+                      SafeTextIconButton(
                         onPressed: () => _mostrarMapaRecorrido(cotizacion),
-                        icon: const Icon(Icons.map, color: _azulVibrante),
-                        label: const Text('VER RECORRIDO', style: TextStyle(color: _azulVibrante, fontWeight: FontWeight.bold, fontSize: 12)),
+                        icon: Icons.map,
+                        iconColor: _azulVibrante,
+                        label: 'VER RECORRIDO',
+                        textStyle: const TextStyle(color: _azulVibrante, fontWeight: FontWeight.bold, fontSize: 12),
                       ),
                   ],
                 ),
-                _buildInfoRow('📧 Pescador', cotizacion['pescador_email']),
-                _buildInfoRow('📞 Telefono', cotizacion['pescador_telefono']),
-                _buildInfoRow('📅 Viaje', '${cotizacion['viaje_fecha_salida']} - ${cotizacion['viaje_fecha_llegada']}'),
-                _buildInfoRow('⏰ Vigencia', CotizacionesService.calcularVigencia(cotizacion['fecha_vigencia'])),
+                _buildInfoRow('?? Pescador', cotizacion['pescador_email']),
+                _buildInfoRow('?? Telefono', cotizacion['pescador_telefono']),
+                _buildInfoRow('?? Viaje', '${cotizacion['viaje_fecha_salida']} - ${cotizacion['viaje_fecha_llegada']}'),
+                _buildInfoRow('? Vigencia', CotizacionesService.calcularVigencia(cotizacion['fecha_vigencia'])),
                 
                 const SizedBox(height: 12),
                 
                 // Descripcion
                 if (cotizacion['descripcion'] != null) ...[
                   const Text(
-                    '📝 Descripcion:',
+                    '?? Descripcion:',
                     style: TextStyle(
                       color: _blancoPuro,
                       fontWeight: FontWeight.bold,
@@ -668,7 +670,7 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
                 // Detalles de items
                 if (cotizacion['detalles'] != null) ...[
                   const Text(
-                    '💰 Detalles del Presupuesto:',
+                    '?? Detalles del Presupuesto:',
                     style: TextStyle(
                       color: _blancoPuro,
                       fontWeight: FontWeight.bold,
@@ -684,7 +686,7 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
                 if (cotizacion['archivos_adjuntos'] != null && 
                     (cotizacion['archivos_adjuntos'] as List).isNotEmpty) ...[
                   const Text(
-                    '📎 Archivos Adjuntos:',
+                    '?? Archivos Adjuntos:',
                     style: TextStyle(
                       color: _blancoPuro,
                       fontWeight: FontWeight.bold,
@@ -701,10 +703,11 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
                   children: [
                     if (status == 'pendiente') ...[
                       Expanded(
-                        child: ElevatedButton.icon(
+                        child: SafeElevatedIconButton(
                           onPressed: () => _actualizarEstado(cotizacion['id'], 'enviado'),
-                          icon: const Icon(Icons.send, size: 16),
-                          label: const Text('Enviar al Pescador'),
+                          icon: Icons.send,
+                          iconSize: 16,
+                          label: 'Enviar al Pescador',
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _azulVibrante,
                             foregroundColor: _blancoPuro,
@@ -713,10 +716,11 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: ElevatedButton.icon(
+                        child: SafeElevatedIconButton(
                           onPressed: () => _actualizarEstado(cotizacion['id'], 'rechazado'),
-                          icon: const Icon(Icons.cancel, size: 16),
-                          label: const Text('Rechazar'),
+                          icon: Icons.cancel,
+                          iconSize: 16,
+                          label: 'Rechazar',
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _rojoFuerte,
                             foregroundColor: _blancoPuro,
@@ -727,10 +731,11 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
                     
                     if (status == 'enviado') ...[
                       Expanded(
-                        child: ElevatedButton.icon(
+                        child: SafeElevatedIconButton(
                           onPressed: () => _actualizarEstado(cotizacion['id'], 'aceptado'),
-                          icon: const Icon(Icons.check_circle, size: 16),
-                          label: const Text('Aceptar'),
+                          icon: Icons.check_circle,
+                          iconSize: 16,
+                          label: 'Aceptar',
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _verdeBrillante,
                             foregroundColor: _blancoPuro,
@@ -739,10 +744,11 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: ElevatedButton.icon(
+                        child: SafeElevatedIconButton(
                           onPressed: () => _actualizarEstado(cotizacion['id'], 'rechazado'),
-                          icon: const Icon(Icons.cancel, size: 16),
-                          label: const Text('Rechazar'),
+                          icon: Icons.cancel,
+                          iconSize: 16,
+                          label: 'Rechazar',
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _rojoFuerte,
                             foregroundColor: _blancoPuro,
@@ -904,7 +910,7 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
         context: context,
         builder: (context) => AlertDialog(
           title: const Text(
-            '📊 Estadisticas del Capitan',
+            '?? Estadisticas del Capitan',
             style: TextStyle(
               color: Color(0xFF1A1A1A),
               fontWeight: FontWeight.bold,
@@ -938,7 +944,7 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
       );
     } catch (e) {
       if (mounted) {
-        Navigator.pop(context); // Cerrar loader si está abierto
+        Navigator.pop(context); // Cerrar loader si est� abierto
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al cargar estadisticas: $e'),
