@@ -2,8 +2,9 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../services/supabase_service.dart';
 import '../services/billetera_virtual_service.dart';
+import '../services/supabase_service.dart';
+import '../utils/format_utils.dart';
 
 class CapitanSaldosScreen extends StatefulWidget {
   final bool showAppBar;
@@ -14,10 +15,10 @@ class CapitanSaldosScreen extends StatefulWidget {
   });
 
   @override
-  State<CapitanSaldosScreen> createState() => _CapitanSaldosScreenState();
+  State<CapitanSaldosScreen> createState() => CapitanSaldosScreenState();
 }
 
-class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
+class CapitanSaldosScreenState extends State<CapitanSaldosScreen>
     with AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
   Map<String, dynamic> _saldos = {};
   List<Map<String, dynamic>> _movimientos = [];
@@ -28,6 +29,7 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
   double _totalComisionAcumulada = 0.0;
   double _totalNetoAcumulado = 0.0;
   String? _cbuCapitan;
+  String? _bancoCapitan;
   bool _isLoading = true;
   Timer? _actualizacionTimer;
   RealtimeChannel? _realtimeChannel;
@@ -37,10 +39,17 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
   @override
   bool get wantKeepAlive => true;
 
+  /// Llamar al entrar a la pestaña Ganancias (IndexedStack no reinicia initState).
+  void refrescar() {
+    _cargarCbuCapitan();
+    _cargarSaldos();
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _cargarCbuCapitan();
     _cargarSaldos();
     _iniciarActualizacionAutomatica();
     _setupRealtime();
@@ -109,6 +118,19 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
             if (mounted) _cargarSaldos();
           },
         )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'guias',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'id',
+            value: _capitanId,
+          ),
+          callback: (payload) {
+            if (mounted) _cargarCbuCapitan();
+          },
+        )
         .subscribe();
   }
 
@@ -170,7 +192,6 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
         _isLoading = false;
       });
       _cargarProyeccionMes();
-      _cargarCbuCapitan();
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
@@ -181,22 +202,25 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
           ),
         );
       }
+    } finally {
+      await _cargarCbuCapitan();
     }
   }
 
   Future<void> _cargarCbuCapitan() async {
+    if (_capitanId.isEmpty) return;
+
     try {
-      final guia = await Supabase.instance.client
-          .from('guias')
-          .select('cbu, banco, alias')
-          .eq('id', _capitanId)
-          .maybeSingle();
+      final datos = await SupabaseService.getDatosBancariosCapitan(_capitanId);
       if (mounted) {
         setState(() {
-          _cbuCapitan = guia?['cbu']?.toString();
+          _cbuCapitan = datos['cbu'];
+          _bancoCapitan = datos['banco_nombre'];
         });
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('CapitanSaldosScreen: error cargando CBU: $e');
+    }
   }
 
   Future<void> _cargarProyeccionMes() async {
@@ -228,11 +252,7 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
     }
   }
 
-  String _enmascararCbu(String? cbu) {
-    final limpio = cbu?.replaceAll(RegExp(r'[\s\-]'), '') ?? '';
-    if (limpio.length < 8) return 'Sin CBU cargado';
-    return '${limpio.substring(0, 4)}...${limpio.substring(limpio.length - 4)}';
-  }
+  String _enmascararCbu(String? cbu) => FormatUtils.enmascararCbu(cbu);
 
   Future<void> _solicitarRetiroTotal() async {
     final saldoDisponible =
@@ -349,6 +369,20 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
     showDialog(
       context: context,
       builder: (context) {
+        var usarMontoTotal = true;
+
+        ButtonStyle estiloCapsula(bool activa) {
+          return OutlinedButton.styleFrom(
+            foregroundColor: activa ? Colors.cyanAccent : Colors.white70,
+            backgroundColor:
+                activa ? Colors.cyanAccent.withOpacity(0.12) : Colors.transparent,
+            side: BorderSide(
+              color: activa ? Colors.cyanAccent : Colors.white.withOpacity(0.3),
+              width: activa ? 1.5 : 1,
+            ),
+          );
+        }
+
         return StatefulBuilder(
           builder: (context, setDialogState) {
             final texto = montoController.text.replaceAll(',', '.');
@@ -400,13 +434,12 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
                           Expanded(
                             child: OutlinedButton(
                               onPressed: () {
-                                montoController.text = saldoDisponible.toStringAsFixed(0);
+                                usarMontoTotal = true;
+                                montoController.text =
+                                    saldoDisponible.toStringAsFixed(0);
                                 setDialogState(() {});
                               },
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.cyanAccent,
-                                side: const BorderSide(color: Colors.cyanAccent),
-                              ),
+                              style: estiloCapsula(usarMontoTotal),
                               child: const Text('Monto total', style: TextStyle(fontSize: 12)),
                             ),
                           ),
@@ -414,13 +447,11 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
                           Expanded(
                             child: OutlinedButton(
                               onPressed: () {
+                                usarMontoTotal = false;
                                 montoController.text = '';
                                 setDialogState(() {});
                               },
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.white70,
-                                side: BorderSide(color: Colors.white.withOpacity(0.3)),
-                              ),
+                              style: estiloCapsula(!usarMontoTotal),
                               child: const Text('Otro monto', style: TextStyle(fontSize: 12)),
                             ),
                           ),
@@ -445,7 +476,13 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
                             borderSide: const BorderSide(color: Colors.cyanAccent),
                           ),
                         ),
-                        onChanged: (_) => setDialogState(() {}),
+                        onChanged: (_) {
+                          final limpio = montoController.text.replaceAll(',', '.');
+                          final ingresado = double.tryParse(limpio);
+                          usarMontoTotal = ingresado != null &&
+                              (ingresado - saldoDisponible).abs() < 0.01;
+                          setDialogState(() {});
+                        },
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -522,6 +559,7 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
         capitanId: _capitanId,
         monto: monto,
         cbu: cbu,
+        banco: _bancoCapitan,
       );
 
       if (!mounted) return;
@@ -1097,7 +1135,27 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
               ),
             ),
           ],
-          if (!cbuOk) ...[
+          if (cbuOk) ...[
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF00E676).withOpacity(0.08),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFF00E676).withOpacity(0.25)),
+              ),
+              child: Text(
+                'Destino: ${_enmascararCbu(_cbuCapitan)}'
+                '${(_bancoCapitan?.trim().isNotEmpty ?? false) ? ' · ${_bancoCapitan!.trim()}' : ''}',
+                style: const TextStyle(
+                  color: Color(0xFF00E676),
+                  fontSize: 11,
+                  height: 1.35,
+                ),
+              ),
+            ),
+          ] else ...[
             const SizedBox(height: 10),
             Container(
               width: double.infinity,

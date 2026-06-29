@@ -101,8 +101,8 @@ class IARouterState {
       _timerPerdidaSenal = Timer(const Duration(seconds: 3), () {
         if (supabaseSano.value == false && !_anuncioPerdidaSenal) {
           _anuncioPerdidaSenal = true;
-          // Notificación por AudioService TTS (es-ES, rate 0.9)
-          AudioService().speak('Capitán, perdimos la señal. Trabajando en modo local.');
+          // Notificación por AudioService TTS (Desactivada a petición del usuario)
+          // AudioService().speak('Capitán, perdimos la señal. Trabajando en modo local.');
         }
       });
     } else {

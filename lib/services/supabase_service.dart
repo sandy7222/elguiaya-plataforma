@@ -447,6 +447,38 @@ class SupabaseService {
     }
   }
 
+  /// CBU y banco del capitán desde tabla guias (fuente usada por Identidad del Capitán).
+  static Future<Map<String, String?>> getDatosBancariosCapitan(
+    String capitanId,
+  ) async {
+    if (capitanId.isEmpty) {
+      return {'cbu': null, 'banco_nombre': null};
+    }
+
+    try {
+      final guia = await supabase
+          .from('guias')
+          .select('cbu, banco_nombre')
+          .eq('id', capitanId)
+          .maybeSingle();
+
+      if (guia == null) {
+        return {'cbu': null, 'banco_nombre': null};
+      }
+
+      final cbu = guia['cbu']?.toString().trim();
+      final banco = guia['banco_nombre']?.toString().trim();
+
+      return {
+        'cbu': (cbu != null && cbu.isNotEmpty) ? cbu : null,
+        'banco_nombre': (banco != null && banco.isNotEmpty) ? banco : null,
+      };
+    } catch (e) {
+      print('❌ [SUPABASE] getDatosBancariosCapitan($capitanId): $e');
+      rethrow;
+    }
+  }
+
   /// Obtener cantidad total de cotizaciones
   static Future<int> getContadorCotizaciones() async {
     try {
@@ -1641,25 +1673,55 @@ class SupabaseService {
 
   // ========== METODOS DE ADMIN VENTAS ==========
 
-  /// Consulta maestra de todos los pedidos con relaciones
+  /// Consulta maestra de pedidos de la tienda (e-commerce) con ítems y comprador.
+  /// pedidos.usuario_id apunta a auth.users, no a una tabla `usuarios`; el comprador
+  /// se resuelve vía profiles en un segundo paso.
   static Future<List<Map<String, dynamic>>> getPedidosMaestro() async {
     try {
       final response = await supabase
           .from('pedidos')
           .select('''
             *,
-            pedido_items(*, producto:productos(*, categoria:categorias(nombre))),
-            usuarios!inner(
-              id,
-              email,
-              nombre,
-              telefono,
-              created_at
-            )
+            pedido_items(*, producto:productos(*, categoria:categorias(nombre)))
           ''')
           .order('created_at', ascending: false);
-      
-      return List<Map<String, dynamic>>.from(response);
+
+      final pedidos = List<Map<String, dynamic>>.from(response);
+      if (pedidos.isEmpty) return [];
+
+      final userIds = pedidos
+          .map((p) => p['usuario_id']?.toString())
+          .whereType<String>()
+          .toSet()
+          .toList();
+
+      final profilesMap = <String, Map<String, dynamic>>{};
+      if (userIds.isNotEmpty) {
+        final profilesResponse = await supabase
+            .from('profiles')
+            .select('user_id, nombre, telefono, created_at')
+            .inFilter('user_id', userIds);
+        for (final p in profilesResponse) {
+          final id = p['user_id']?.toString();
+          if (id != null) {
+            profilesMap[id] = Map<String, dynamic>.from(p);
+          }
+        }
+      }
+
+      for (final pedido in pedidos) {
+        final uid = pedido['usuario_id']?.toString();
+        final profile = uid != null ? profilesMap[uid] : null;
+        pedido['usuarios'] = {
+          'id': uid ?? '',
+          'email': profile?['email']?.toString() ?? '',
+          'nombre': profile?['nombre']?.toString() ?? 'Cliente tienda',
+          'telefono': profile?['telefono']?.toString(),
+          'created_at': profile?['created_at'] ?? pedido['created_at'],
+        };
+      }
+
+      return pedidos;
     } catch (e) {
       throw Exception('Error al obtener pedidos maestro de Supabase: $e');
     }
@@ -1738,25 +1800,13 @@ class SupabaseService {
   }
 
   /// Obtener pedidos por estado de envio
-  static Future<List<Map<String, dynamic>>> getPedidosPorEstadoEnvio(String estadoEnvio) async {
+  static Future<List<Map<String, dynamic>>> getPedidosPorEstadoEnvio(
+      String estadoEnvio) async {
     try {
-      final response = await supabase
-          .from('pedidos')
-          .select('''
-            *,
-            pedido_items(*, productos(*)),
-            usuarios!inner(
-              id,
-              email,
-              nombre,
-              telefono,
-              created_at
-            )
-          ''')
-          .eq('estado_envio', estadoEnvio)
-          .order('created_at', ascending: false);
-      
-      return List<Map<String, dynamic>>.from(response);
+      final todos = await getPedidosMaestro();
+      return todos
+          .where((p) => p['estado_envio']?.toString() == estadoEnvio)
+          .toList();
     } catch (e) {
       throw Exception('Error al obtener pedidos por estado de envio: $e');
     }
@@ -2621,14 +2671,19 @@ class SupabaseService {
     try {
       final response = await supabase.rpc('marcar_cotizaciones_en_riesgo');
       
-      // Registrar alertas de negocio
-      for (final alerta in response) {
-        await _crearAlertaNegocio(alerta);
+      if (response != null && response is List) {
+        // Registrar alertas de negocio
+        for (final alerta in response) {
+          if (alerta is Map<String, dynamic>) {
+            await _crearAlertaNegocio(alerta);
+          }
+        }
+        return List<Map<String, dynamic>>.from(response);
       }
-      
-      return List<Map<String, dynamic>>.from(response);
+      return [];
     } catch (e) {
-      throw Exception('Error al marcar cotizaciones en riesgo: $e');
+      print('⚠️ [ALERTAS] La funcion RPC marcar_cotizaciones_en_riesgo no esta disponible en Supabase: $e');
+      return [];
     }
   }
 
@@ -3427,17 +3482,25 @@ class SupabaseService {
     }
   }
 
-  /// Obtener liquidaciones pendientes para el módulo de administración
-  static Future<List<Map<String, dynamic>>> fetchPendingLiquidacionesAdmin() async {
+  /// Obtener liquidaciones pendientes para el módulo de administración (paginado)
+  static Future<({List<Map<String, dynamic>> items, bool hasMore})>
+      fetchPendingLiquidacionesAdmin({
+    int limit = 50,
+    int offset = 0,
+  }) async {
     try {
       final liquidacionesResponse = await supabase
           .from('liquidaciones')
           .select('*')
           .inFilter('estado', ['solicitado', 'procesando', 'pendiente'])
-          .order('created_at', ascending: false);
+          .order('created_at', ascending: false)
+          .range(offset, offset + limit - 1);
 
-      final liquidaciones = List<Map<String, dynamic>>.from(liquidacionesResponse);
-      if (liquidaciones.isEmpty) return [];
+      final liquidaciones =
+          List<Map<String, dynamic>>.from(liquidacionesResponse);
+      if (liquidaciones.isEmpty) {
+        return (items: <Map<String, dynamic>>[], hasMore: false);
+      }
 
       final userIds = liquidaciones
           .map((l) => (l['capitan_id'] ?? l['usuario_id'])?.toString())
@@ -3445,7 +3508,12 @@ class SupabaseService {
           .toSet()
           .toList();
 
-      if (userIds.isEmpty) return liquidaciones;
+      if (userIds.isEmpty) {
+        return (
+          items: liquidaciones,
+          hasMore: liquidaciones.length >= limit,
+        );
+      }
 
       final profilesResponse = await supabase
           .from('profiles')
@@ -3481,7 +3549,8 @@ class SupabaseService {
         if (capId == null) continue;
 
         final profile = profilesMap[capId];
-        liq['nombre'] = profile?['nombre'] ?? 'Usuario ID: ${capId.substring(0, 8)}';
+        liq['nombre'] =
+            profile?['nombre'] ?? 'Usuario ID: ${capId.substring(0, 8)}';
         liq['avatar_url'] = profile?['avatar_url'];
         final bool esCap = profile?['es_capitan'] == true;
         liq['rol'] = esCap ? 'Capitán' : 'Vendedor/Promotor';
@@ -3505,10 +3574,67 @@ class SupabaseService {
         resultadoFiltrado.add(liq);
       }
 
-      return resultadoFiltrado;
+      final pendientesPorCapitan = <String, List<Map<String, dynamic>>>{};
+      for (final liq in resultadoFiltrado) {
+        final capId = (liq['capitan_id'] ?? liq['usuario_id'])?.toString();
+        if (capId == null) continue;
+        pendientesPorCapitan.putIfAbsent(capId, () => []).add(liq);
+      }
+      for (final entry in pendientesPorCapitan.entries) {
+        final grupo = entry.value;
+        final totalGrupo = grupo.fold<double>(
+          0,
+          (sum, l) => sum + ((l['monto'] as num?)?.toDouble() ?? 0),
+        );
+        for (var i = 0; i < grupo.length; i++) {
+          grupo[i]['pendientes_grupo_count'] = grupo.length;
+          grupo[i]['pendientes_grupo_total'] = totalGrupo;
+          grupo[i]['pendientes_grupo_indice'] = i + 1;
+        }
+      }
+
+      return (
+        items: resultadoFiltrado,
+        hasMore: liquidaciones.length >= limit,
+      );
     } catch (e) {
       print('Error en fetchPendingLiquidacionesAdmin: $e');
-      return [];
+      return (items: <Map<String, dynamic>>[], hasMore: false);
+    }
+  }
+
+  /// Libro de transferencias completadas (admin, paginado)
+  static Future<({List<Map<String, dynamic>> items, int totalCount})>
+      fetchLibroTransferenciasAdmin({
+    int limit = 50,
+    int offset = 0,
+    DateTime? desde,
+    DateTime? hasta,
+    String? busqueda,
+  }) async {
+    try {
+      final response = await supabase.rpc('list_libro_transferencias_admin', params: {
+        'p_limit': limit,
+        'p_offset': offset,
+        'p_desde': desde?.toUtc().toIso8601String(),
+        'p_hasta': hasta?.toUtc().toIso8601String(),
+        'p_busqueda': busqueda?.trim().isEmpty == true ? null : busqueda?.trim(),
+      });
+
+      final rows = response is List
+          ? List<Map<String, dynamic>>.from(
+              response.map((e) => Map<String, dynamic>.from(e as Map)),
+            )
+          : <Map<String, dynamic>>[];
+
+      final totalCount = rows.isNotEmpty
+          ? (rows.first['total_count'] as num?)?.toInt() ?? rows.length
+          : 0;
+
+      return (items: rows, totalCount: totalCount);
+    } catch (e) {
+      print('Error en fetchLibroTransferenciasAdmin: $e');
+      return (items: <Map<String, dynamic>>[], totalCount: 0);
     }
   }
 
@@ -3518,16 +3644,21 @@ class SupabaseService {
     required String usuarioId,
     required double monto,
     required String cbuDestino,
-    String? comprobante,
+    required String comprobante,
+    required String comprobanteStoragePath,
   }) async {
     try {
-      final adminId = currentUserId ?? 'admin';
+      final adminId = currentUserId;
+      if (adminId == null) {
+        throw Exception('Sesión admin inválida. Volvé a iniciar sesión.');
+      }
 
       final response = await supabase.rpc('completar_retiro_billetera', params: {
         'p_liquidacion_id': liquidacionId,
         'p_admin_id': adminId,
         'p_monto_depositado': monto,
-        'p_comprobante': comprobante,
+        'p_comprobante': comprobante.trim(),
+        'p_comprobante_storage_path': comprobanteStoragePath.trim(),
       });
 
       final row = response is List && response.isNotEmpty
@@ -3538,8 +3669,12 @@ class SupabaseService {
         throw Exception(row?['mensaje']?.toString() ?? 'No se pudo completar el retiro');
       }
 
-      final capitanId = row['capitan_id']?.toString() ?? usuarioId;
-      final montoConfirmado = (row['monto'] as num?)?.toDouble() ?? monto;
+      final capitanId = row['ret_capitan_id']?.toString() ??
+          row['capitan_id']?.toString() ??
+          usuarioId;
+      final montoConfirmado = (row['ret_monto'] as num?)?.toDouble() ??
+          (row['monto'] as num?)?.toDouble() ??
+          monto;
 
       String nombreCapitan = 'Capitán';
       try {
@@ -3551,9 +3686,7 @@ class SupabaseService {
         nombreCapitan = profileData?['nombre']?.toString() ?? nombreCapitan;
       } catch (_) {}
 
-      final refText = (comprobante != null && comprobante.trim().isNotEmpty)
-          ? ' Referencia: ${comprobante.trim()}.'
-          : '';
+      final refText = ' Referencia: ${comprobante.trim()}.';
 
       await NotificacionHelper.enviar(
         usuarioId: capitanId,
@@ -3566,7 +3699,7 @@ class SupabaseService {
           'liquidacion_id': liquidacionId,
           'monto': montoConfirmado,
           'cbu': cbuDestino,
-          if (comprobante != null) 'comprobante': comprobante,
+          'comprobante': comprobante.trim(),
         },
       );
 
@@ -3598,8 +3731,11 @@ class SupabaseService {
         throw Exception(row?['mensaje']?.toString() ?? 'No se pudo rechazar el retiro');
       }
 
-      final capitanId = row['capitan_id']?.toString();
-      final monto = (row['monto'] as num?)?.toDouble() ?? 0.0;
+      final capitanId = row['ret_capitan_id']?.toString() ??
+          row['capitan_id']?.toString();
+      final monto = (row['ret_monto'] as num?)?.toDouble() ??
+          (row['monto'] as num?)?.toDouble() ??
+          0.0;
 
       if (capitanId != null && capitanId.isNotEmpty) {
         await NotificacionHelper.enviar(
@@ -4131,7 +4267,9 @@ class SupabaseService {
     try {
       final response = await supabase
           .from('logs_comisiones')
-          .select('*')
+          .select(
+            '*, comisionistas:vendedor_id(nombre, codigo_comision, cuenta_mp, estado)',
+          )
           .order('created_at', ascending: false);
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
@@ -4268,7 +4406,10 @@ class SupabaseService {
     try {
       guia = await supabase
           .from('guias')
-          .select('nombre, avatar_url, embarcacion_url')
+          .select(
+            'nombre, avatar_url, embarcacion_url, nombre_embarcacion, '
+            'matricula_embarcacion, nacionalidad_embarcacion',
+          )
           .eq('id', capitanId)
           .maybeSingle();
     } catch (_) {}
@@ -4276,7 +4417,11 @@ class SupabaseService {
     try {
       profile = await supabase
           .from('profiles')
-          .select('nombre, avatar_url, embarcacion_url, bio_pescador')
+          .select(
+            'nombre, avatar_url, embarcacion_url, bio_pescador, '
+            'nombre_embarcacion, matricula_embarcacion, nacionalidad_embarcacion, '
+            'tipo_embarcacion, puerto_base',
+          )
           .eq('user_id', capitanId)
           .maybeSingle();
     } catch (_) {}
@@ -4321,8 +4466,14 @@ class SupabaseService {
         profile?['embarcacion_url']?.toString(),
       ),
       'barco_nombre': firstNonEmpty(
-            guia?['barco_nombre']?.toString(),
-            guia?['nombre'] != null ? 'Embarcación de ${guia!['nombre']}' : null,
+            profile?['nombre_embarcacion']?.toString(),
+            firstNonEmpty(
+              guia?['nombre_embarcacion']?.toString(),
+              firstNonEmpty(
+                guia?['barco_nombre']?.toString(),
+                guia?['nombre'] != null ? 'Embarcación de ${guia!['nombre']}' : null,
+              ),
+            ),
           ) ??
           'Embarcación Principal',
       'calificacion_promedio': null,
@@ -4350,7 +4501,9 @@ class SupabaseService {
             'nombre, telefono, expediente, numero_carnet, aseguradora, tipo_seguro, '
             'numero_poliza, vencimiento_carnet, vencimiento_seguro, embarcacion_url, '
             'servicio_carnada, servicio_lenia, servicio_almacen, bio_pescador, '
-            'capacidad_personas, capacidad_kilos',
+            'capacidad_personas, capacidad_kilos, '
+            'nombre_embarcacion, matricula_embarcacion, nacionalidad_embarcacion, '
+            'tipo_embarcacion, puerto_base',
           )
           .eq('user_id', capitanId)
           .maybeSingle();
@@ -4359,7 +4512,11 @@ class SupabaseService {
     try {
       guia = await supabase
           .from('guias')
-          .select('nombre, embarcacion_url, expediente, carnet_timonel, poliza_seguro')
+          .select(
+            'nombre, embarcacion_url, expediente, carnet_timonel, poliza_seguro, '
+            'nombre_embarcacion, matricula_embarcacion, nacionalidad_embarcacion, '
+            'tipo_embarcacion, puerto_base',
+          )
           .eq('id', capitanId)
           .maybeSingle();
     } catch (_) {}
@@ -4423,7 +4580,29 @@ class SupabaseService {
         'telefono': profile?['telefono']?.toString(),
       },
       'embarcacion': {
-        'barco_nombre': visual['barco_nombre']?.toString() ?? 'Embarcación Principal',
+        'barco_nombre': firstNonEmpty(
+              profile?['nombre_embarcacion']?.toString(),
+              guia?['nombre_embarcacion']?.toString(),
+              visual['barco_nombre']?.toString(),
+            ) ??
+            'Embarcación Principal',
+        'matricula_embarcacion': firstNonEmpty(
+          profile?['matricula_embarcacion']?.toString(),
+          guia?['matricula_embarcacion']?.toString(),
+        ),
+        'nacionalidad_embarcacion': firstNonEmpty(
+              profile?['nacionalidad_embarcacion']?.toString(),
+              guia?['nacionalidad_embarcacion']?.toString(),
+            ) ??
+            'Argentina',
+        'tipo_embarcacion': firstNonEmpty(
+          profile?['tipo_embarcacion']?.toString(),
+          guia?['tipo_embarcacion']?.toString(),
+        ),
+        'puerto_base': firstNonEmpty(
+          profile?['puerto_base']?.toString(),
+          guia?['puerto_base']?.toString(),
+        ),
         'embarcacion_url': firstNonEmpty(
           visual['embarcacion_url']?.toString(),
           guia?['embarcacion_url']?.toString(),

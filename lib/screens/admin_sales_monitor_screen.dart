@@ -682,7 +682,7 @@ class _AdminSalesMonitorScreenState extends State<AdminSalesMonitorScreen>
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
         title: const Text(
-          'Monitor de Ventas',
+          'Monitor de Ventas de la Tienda',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: const Color(0xFF0D47A1),

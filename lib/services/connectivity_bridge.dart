@@ -107,8 +107,8 @@ class ConnectivityBridge {
       conectado: true,
     );
 
-    // Notificación de voz sobre la recuperación de señal
-    AudioService().speak('Chamigo, recuperamos señal — vuelvo a estar con todo el motor online.');
+    // Notificación de voz sobre la recuperación de señal (Desactivada a petición del usuario)
+    // AudioService().speak('Chamigo, recuperamos señal — vuelvo a estar con todo el motor online.');
 
     // Vaciar buzón offline en segundo plano
     await _sincronizarBuzonOffline();

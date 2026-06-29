@@ -227,17 +227,28 @@ class PdfService {
           pw.SizedBox(height: 6),
           pw.Center(
             child: pw.Text(
-              'Generado por El Guía YA — revisar, firmar y presentar si corresponde',
+              'Datos precargados desde la reserva de El Guía YA',
               style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700),
             ),
           ),
+          pw.SizedBox(height: 4),
+          pw.Center(
+            child: pw.Text(
+              'Imprimí · firmá · presentá en Prefectura Naval Argentina',
+              style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
+            ),
+          ),
           pw.SizedBox(height: 16),
+          _despachoCampo('N° REFERENCIA RESERVA', data.referenciaReserva),
           _despachoCampo('NOMBRE Y DESCRIPCIÓN EMBARCACIÓN', data.nombreEmbarcacion),
+          _despachoCampo('MATRÍCULA / IDENTIFICACIÓN EMBARCACIÓN', data.matriculaEmbarcacion),
           _despachoCampo('NACIONALIDAD EMBARCACIÓN', data.nacionalidadEmbarcacion),
           _despachoCampo('HABILITACIÓN CAPITÁN N°', data.habilitacionCapitan),
           _despachoCampo('NOMBRE CAPITÁN', data.nombreCapitan),
           _despachoCampo('FECHA Y HORA DE ZARPADA', data.fechaHoraZarpada),
           _despachoCampo('LUGAR DE ZARPADA', data.lugarZarpada),
+          _despachoCampo('FECHA Y HORA DE REGRESO ESTIMADA', data.fechaHoraRegreso),
+          _despachoCampo('LUGAR DE REGRESO ESTIMADO', data.lugarRegreso),
           pw.SizedBox(height: 12),
           pw.Text(
             'LISTA DE TRIPULANTES (Crewmembers)',
@@ -259,6 +270,22 @@ class PdfService {
           ),
           _despachoCampo('CORREO ELECTRÓNICO DEL CAPITÁN', data.emailCapitan),
           _despachoCampo('TELÉFONO DEL CAPITÁN', data.telefonoCapitan),
+          pw.SizedBox(height: 10),
+          pw.Container(
+            width: double.infinity,
+            padding: const pw.EdgeInsets.all(8),
+            decoration: pw.BoxDecoration(
+              color: PdfColors.blue50,
+              border: pw.Border.all(color: PdfColors.blue200, width: 0.5),
+              borderRadius: pw.BorderRadius.circular(4),
+            ),
+            child: pw.Text(
+              'Documento precargado automáticamente con los datos del viaje contratado '
+              '(capitán, pasajeros, horarios y contacto). Solo falta la firma del capitán '
+              'antes de presentarlo personalmente en Prefectura.',
+              style: const pw.TextStyle(fontSize: 7.5),
+            ),
+          ),
           pw.SizedBox(height: 10),
           pw.Text(
             'VALIDEZ DEL DESPACHO (24 HS.) VEINTICUATRO HORAS.',
@@ -372,7 +399,7 @@ class PdfService {
       [XFile(file.path, mimeType: 'application/pdf', name: fileName)],
       subject: 'Despacho PNA — El Guía YA',
       text:
-          'Despacho PNA pre-completado. Revisá, firmá y presentá si corresponde antes de zarpar.',
+          'Despacho PNA precargado por El Guía YA. Imprimí, firmá y presentá en Prefectura Naval Argentina.',
     );
   }
 }

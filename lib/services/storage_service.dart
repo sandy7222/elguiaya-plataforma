@@ -1,5 +1,6 @@
 
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:typed_data';
 import 'package:image_picker/image_picker.dart';
@@ -166,6 +167,89 @@ class StorageService {
   static Future<String> uploadDniViaje({required dynamic file, required String userId}) async {
     if (file is XFile) return await uploadXFile(xFile: file, bucket: 'documentacion_privada', folderPath: userId, fileNamePrefix: 'dni_viaje');
     throw 'Tipo de archivo no compatible';
+  }
+
+  static const String _bucketPrivado = 'documentacion_privada';
+
+  /// Seleccionar comprobante desde el explorador de archivos local (imagen o PDF).
+  static Future<XFile?> pickComprobanteArchivoLocal() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: const ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
+        allowMultiple: false,
+        withData: kIsWeb,
+      );
+      if (result == null || result.files.isEmpty) return null;
+
+      final picked = result.files.first;
+      if (picked.bytes != null) {
+        return XFile.fromData(
+          picked.bytes!,
+          name: picked.name,
+          mimeType: _mimeFromFileName(picked.name),
+        );
+      }
+      if (picked.path != null) {
+        return XFile(picked.path!, name: picked.name);
+      }
+      return null;
+    } catch (e) {
+      print('❌ Error al elegir archivo local: $e');
+      rethrow;
+    }
+  }
+
+  static String _mimeFromFileName(String fileName) {
+    final ext = p.extension(fileName).toLowerCase();
+    switch (ext) {
+      case '.pdf':
+        return 'application/pdf';
+      case '.png':
+        return 'image/png';
+      case '.webp':
+        return 'image/webp';
+      default:
+        return 'image/jpeg';
+    }
+  }
+
+  /// Sube ticket MP de liquidación y devuelve la ruta interna (no URL pública).
+  static Future<String> uploadLiquidacionComprobante({
+    required XFile file,
+    required String liquidacionId,
+  }) async {
+    final Uint8List bytes = await file.readAsBytes();
+    final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+    final String extension = p.extension(file.name).toLowerCase().isEmpty
+        ? '.jpg'
+        : p.extension(file.name).toLowerCase();
+    final String fullPath =
+        'liquidaciones/$liquidacionId/comprobante_mp_$timestamp$extension';
+    final contentType = _mimeFromFileName(file.name);
+
+    await _supabase.storage.from(_bucketPrivado).uploadBinary(
+      fullPath,
+      bytes,
+      fileOptions: FileOptions(
+        cacheControl: '3600',
+        upsert: true,
+        contentType: contentType,
+      ),
+    );
+
+    return fullPath;
+  }
+
+  /// URL firmada temporal para ver comprobantes privados (solo admin).
+  static Future<String> getSignedComprobanteUrl(
+    String storagePath, {
+    int expiresInSeconds = 3600,
+  }) async {
+    final signed = await _supabase.storage
+        .from(_bucketPrivado)
+        .createSignedUrl(storagePath, expiresInSeconds);
+    return signed;
   }
 
   /// Elimina una imagen de banner usando su URL pública

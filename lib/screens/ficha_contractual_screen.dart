@@ -135,6 +135,7 @@ class _FichaContractualScreenState extends State<FichaContractualScreen> {
       ..writeln('Venc. seguro: ${_fmtVencimiento(s.capitan["vencimiento_seguro"]?.toString())}')
       ..writeln('')
       ..writeln('EMBARCACIÓN: ${s.txt("embarcacion", "barco_nombre")}')
+      ..writeln('Matrícula: ${s.txt("embarcacion", "matricula_embarcacion")}')
       ..writeln('')
       ..writeln('VIAJE: ${s.txt("viaje", "descripcion")}')
       ..writeln('Fecha: ${_fmtFecha(s.viaje["fecha_ida"]?.toString())}')
@@ -241,6 +242,7 @@ class _FichaContractualScreenState extends State<FichaContractualScreen> {
                   Icons.directions_boat,
                   [
                     _row('Nombre', s.txt('embarcacion', 'barco_nombre')),
+                    _row('Matrícula', s.txt('embarcacion', 'matricula_embarcacion')),
                     _row(
                       'Capacidad',
                       '${s.txt("embarcacion", "capacidad_personas", "—")} pers. / '
