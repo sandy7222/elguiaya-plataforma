@@ -332,9 +332,16 @@ class _CapitanIdentidadScreenState extends State<CapitanIdentidadScreen> {
         }
       }
 
-      // 4. Actualizar CBU y Banco en guias
+      // 4. Validar y actualizar CBU/CVU en guias
+      final cbuLimpio = _cbuController.text.replaceAll(RegExp(r'[\s\-]'), '');
+      if (cbuLimpio.isNotEmpty &&
+          cbuLimpio.length != 20 &&
+          cbuLimpio.length != 22) {
+        throw Exception('El CBU/CVU debe tener 20 o 22 dígitos (sin espacios).');
+      }
+
       await Supabase.instance.client.from('guias').update({
-        'cbu': _cbuController.text.trim(),
+        'cbu': cbuLimpio.isEmpty ? _cbuController.text.trim() : cbuLimpio,
         'banco_nombre': _bancoController.text.trim(),
         'email': newEmail,
       }).eq('id', user.id);
@@ -451,7 +458,7 @@ class _CapitanIdentidadScreenState extends State<CapitanIdentidadScreen> {
                       const SizedBox(height: 16),
                       Row(
                         children: [
-                          Expanded(flex: 3, child: _buildTextField('CBU / CVU / Alias', _cbuController, Icons.account_balance)),
+                          Expanded(flex: 3, child: _buildTextField('CBU / CVU (20 o 22 dígitos)', _cbuController, Icons.account_balance)),
                           const SizedBox(width: 12),
                           Expanded(flex: 2, child: _buildTextField('Banco / Entidad', _bancoController, Icons.account_balance_outlined)),
                         ],

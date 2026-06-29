@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../widgets/safe_button.dart';
 
 import '../services/disponibilidad_service.dart';
+import '../services/supabase_service.dart';
 
 class CalendarioDisponibilidadScreen extends StatefulWidget {
   const CalendarioDisponibilidadScreen({super.key});
@@ -17,6 +18,7 @@ class _CalendarioDisponibilidadScreenState extends State<CalendarioDisponibilida
   DateTime _mesActual = DateTime.now();
   Map<String, bool> _calendario = {};
   bool _isLoading = false;
+  bool _resolviendoCapitan = true;
   String? _capitanId;
 
   // Colores El Guia YA
@@ -31,9 +33,21 @@ class _CalendarioDisponibilidadScreenState extends State<CalendarioDisponibilida
   @override
   void initState() {
     super.initState();
+    _initCapitanId();
+  }
+
+  Future<void> _initCapitanId() async {
     _capitanId = DisponibilidadService.getCapitanIdActual();
+    if (_capitanId == null) {
+      final esCapitan = await SupabaseService.resolveEsCapitan();
+      if (esCapitan && mounted) {
+        _capitanId = SupabaseService.currentUserId;
+      }
+    }
+    if (!mounted) return;
+    setState(() => _resolviendoCapitan = false);
     if (_capitanId != null) {
-      _cargarCalendario();
+      await _cargarCalendario();
     }
   }
 
@@ -515,6 +529,15 @@ class _CalendarioDisponibilidadScreenState extends State<CalendarioDisponibilida
 
   @override
   Widget build(BuildContext context) {
+    if (_resolviendoCapitan) {
+      return Scaffold(
+        backgroundColor: _fondoOscuro,
+        body: Center(
+          child: CircularProgressIndicator(color: _blancoPuro),
+        ),
+      );
+    }
+
     if (_capitanId == null) {
       return Scaffold(
         backgroundColor: _fondoOscuro,

@@ -311,20 +311,7 @@ class DisponibilidadServiceFinal {
 
   /// Obtiene el ID del capitan actual
   static String? getCapitanIdActual() {
-    final user = _supabase.auth.currentUser;
-    if (user == null) {
-      return null;
-    }
-
-    // Obtener el rol desde metadata del usuario
-    final userMetadata = user.userMetadata;
-    final rol = userMetadata?['rol']?.toString().toLowerCase();
-
-    if (rol == 'capitan') {
-      return user.id;
-    }
-
-    return null;
+    return SupabaseService.capitanIdActual;
   }
 
   /// Verifica si el usuario actual puede modificar la disponibilidad

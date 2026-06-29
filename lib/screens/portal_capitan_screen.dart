@@ -8,8 +8,14 @@ import 'categories_grid_screen.dart';
 import 'capitan_tracker_screen.dart';
 import 'capitan_saldos_screen.dart';
 import 'portal_capitan_suspendido_screen.dart';
+import 'viajes_programados_screen.dart';
+import 'bienvenida_definitiva_screen.dart';
+import '../services/fcm_service.dart';
 import '../services/branding_service.dart';
 import '../services/supabase_service.dart';
+import '../utils/view_insets.dart';
+import '../widgets/el_guia_ya_home_button.dart';
+import '../widgets/notification_quick_view.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class PortalCapitanScreen extends StatefulWidget {
@@ -44,6 +50,9 @@ class _PortalCapitanScreenState extends State<PortalCapitanScreen> {
         _expulsar();
         return;
       }
+
+      // Garantizar que el token FCM esté registrado para push notifications fuera de la app
+      FCMService.registrarDispositivo();
 
       // Consultar estado en tiempo real
       final profile = await Supabase.instance.client
@@ -104,11 +113,56 @@ class _PortalCapitanScreenState extends State<PortalCapitanScreen> {
     }
   }
 
+  void _irAlPanel() {
+    setState(() => _selectedIndex = 0);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF001F3F), // Fondo base azul oscuro
-      extendBodyBehindAppBar: true,
+      backgroundColor: const Color(0xFF001F3F),
+      extendBody: true,
+      appBar: AppBar(
+        title: ElGuiaYaHomeButton(
+          onTap: _irAlPanel,
+          tooltip: 'Ir al Principal',
+          semanticsLabel: 'Ir al Panel del Capitán',
+        ),
+        centerTitle: false,
+        titleSpacing: 0,
+        backgroundColor: Colors.black.withOpacity(0.4),
+        elevation: 0,
+        actions: [
+          const NotificationQuickView(),
+          IconButton(
+            icon: const Icon(Icons.event_available, color: Color(0xFF00E676)),
+            tooltip: 'Mi Agenda de Viajes',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    const ViajesProgramadosScreen(esCapitan: true),
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout_rounded, color: Colors.white70),
+            tooltip: 'Cerrar Sesión',
+            onPressed: () async {
+              await SupabaseService.signOut();
+              if (mounted) {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (context) => const BienvenidaDefinitivaScreen(),
+                  ),
+                  (route) => false,
+                );
+              }
+            },
+          ),
+          SizedBox(width: ViewInsets.portalHeaderHorizontal),
+        ],
+      ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -125,9 +179,9 @@ class _PortalCapitanScreenState extends State<PortalCapitanScreen> {
           children: [
             const CapitanPanelScreen(),
             const CategoriesGridScreen(),
-            const CapitanSaldosScreen(),
+            const CapitanSaldosScreen(showAppBar: false),
             _estado == 'activo'
-                ? const InboxCapitanScreen()
+                ? const InboxCapitanScreen(showAppBar: false)
                 : const PortalCapitanSuspendidoScreen(),
             const CapitanTrackerScreen(),
           ],

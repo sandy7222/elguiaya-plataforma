@@ -1,0 +1,26 @@
+# Push Android — configuracion manual (una sola vez)
+
+## 1. Firebase Console (gratis)
+1. https://console.firebase.google.com → Crear proyecto (Spark).
+2. Agregar app Android, package: com.example.capitanya_master
+3. Descargar google-services.json y REEMPLAZAR android/app/google-services.json
+4. Project Settings → Service accounts → Generate new private key
+5. Guardar el JSON para el paso 2
+
+## 2. Supabase Secrets — HECHO
+Secret FCM_SERVICE_ACCOUNT_JSON cargado via CLI.
+Funcion desplegada: send-push-notification
+
+## 3. Trigger automatico — HECHO (no hace falta webhook manual)
+Migracion 20260628225648_push_notificaciones_globales_trigger.sql
+INSERT en notificaciones_globales -> Edge Function via pg_net
+
+## 4. Probar (pendiente en celular)
+1. Instalar APK en celular Android real
+2. Iniciar sesion (registra token en fcm_tokens)
+3. Verificar que token NO empiece con f simulado
+4. Insert de prueba en notificaciones_globales para ese usuario
+5. App cerrada → debe sonar y mostrar banner
+
+## Costo
+FCM: USD 0/mes. Edge Functions: incluido en plan Supabase actual.

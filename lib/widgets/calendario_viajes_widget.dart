@@ -5,8 +5,13 @@ import 'package:intl/intl.dart';
 
 class CalendarioViajesWidget extends StatefulWidget {
   final String capitanId;
+  final bool initialCollapsed;
 
-  const CalendarioViajesWidget({super.key, required this.capitanId});
+  const CalendarioViajesWidget({
+    super.key,
+    required this.capitanId,
+    this.initialCollapsed = true,
+  });
 
   @override
   State<CalendarioViajesWidget> createState() => _CalendarioViajesWidgetState();
@@ -18,11 +23,12 @@ class _CalendarioViajesWidgetState extends State<CalendarioViajesWidget> {
   
   Map<DateTime, List<Map<String, dynamic>>> _viajesPorDia = {};
   bool _isLoading = true;
-  bool _isCollapsed = true; // Plegado por defecto para evitar saturacion de pantalla y evitar overflows en dispositivos pequenos
+  late bool _isCollapsed;
 
   @override
   void initState() {
     super.initState();
+    _isCollapsed = widget.initialCollapsed;
     _focusedDay = DateTime.now();
     _selectedDay = _focusedDay;
     _cargarViajes();

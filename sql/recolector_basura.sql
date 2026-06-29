@@ -39,6 +39,22 @@ CREATE TABLE IF NOT EXISTS public.papelera_archivos (
     movido_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Habilitar RLS y políticas de acceso para papeleras
+ALTER TABLE public.papelera_archivos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.papelera_cotizaciones ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Permitir insert papelera archivos" ON public.papelera_archivos;
+CREATE POLICY "Permitir insert papelera archivos" ON public.papelera_archivos FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Permitir select papelera archivos" ON public.papelera_archivos;
+CREATE POLICY "Permitir select papelera archivos" ON public.papelera_archivos FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Permitir insert papelera cotizaciones" ON public.papelera_cotizaciones;
+CREATE POLICY "Permitir insert papelera cotizaciones" ON public.papelera_cotizaciones FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Permitir select papelera cotizaciones" ON public.papelera_cotizaciones;
+CREATE POLICY "Permitir select papelera cotizaciones" ON public.papelera_cotizaciones FOR SELECT USING (true);
+
 -- Cementerio de Conocimiento Distribuido (El Guía)
 CREATE TABLE IF NOT EXISTS public.guia_conocimiento_cementerio (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -243,7 +259,7 @@ BEGIN
     END IF;
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 4. ADJUNTAR TRIGGERS A LAS TABLAS (DE FORMA SEGURA)
 DO $$

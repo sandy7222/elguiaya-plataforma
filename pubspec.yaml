@@ -87,6 +87,8 @@ dependencies:
   # Notificaciones locales programadas (despertador, recordatorios con pantalla apagada)
   flutter_local_notifications: ^18.0.1
   timezone: ^0.9.4
+  firebase_core: ^4.11.0
+  firebase_messaging: ^16.4.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

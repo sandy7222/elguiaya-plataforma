@@ -301,13 +301,12 @@ class _RadarScannerWidgetState extends State<RadarScannerWidget>
   }
 
   Widget _buildDegreeLabels({required bool leftSide, required Color accent}) {
-    const labelsLeft = ['300°', '285°', '270°', '255°', '240°'];
-    const labelsRight = ['60°', '75°', '90°', '105°', '120°'];
+    const labelsLeft = ['300\u00B0', '285\u00B0', '270\u00B0', '255\u00B0', '240\u00B0'];
+    const labelsRight = ['60\u00B0', '75\u00B0', '90\u00B0', '105\u00B0', '120\u00B0'];
     final labels = leftSide ? labelsLeft : labelsRight;
     final textStyle = TextStyle(
       color: accent.withOpacity(0.6),
       fontSize: 9,
-      fontFamily: 'monospace',
       fontWeight: FontWeight.bold,
     );
 
@@ -423,14 +422,13 @@ class _RadarSweepAnimatedOverlayState extends State<RadarSweepAnimatedOverlay>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: ['300°', '285°', '270°', '255°', '240°']
+              children: ['300\u00B0', '285\u00B0', '270\u00B0', '255\u00B0', '240\u00B0']
                   .map(
                     (label) => Text(
                       label,
                       style: TextStyle(
                         color: widget.accentColor.withOpacity(0.6),
                         fontSize: 9,
-                        fontFamily: 'monospace',
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -445,14 +443,13 @@ class _RadarSweepAnimatedOverlayState extends State<RadarSweepAnimatedOverlay>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               crossAxisAlignment: CrossAxisAlignment.end,
-              children: ['60°', '75°', '90°', '105°', '120°']
+              children: ['60\u00B0', '75\u00B0', '90\u00B0', '105\u00B0', '120\u00B0']
                   .map(
                     (label) => Text(
                       label,
                       style: TextStyle(
                         color: widget.accentColor.withOpacity(0.6),
                         fontSize: 9,
-                        fontFamily: 'monospace',
                         fontWeight: FontWeight.bold,
                       ),
                     ),

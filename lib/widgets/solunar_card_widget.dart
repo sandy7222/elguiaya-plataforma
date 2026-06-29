@@ -265,10 +265,10 @@ class _SolunarCardWidgetState extends State<SolunarCardWidget> {
       children: List.generate(4, (index) {
         final active = index < filled;
         return Padding(
-          padding: const EdgeInsets.only(right: 1),
-          child: Icon(
-            active ? Icons.set_meal_rounded : Icons.set_meal_outlined,
-            color: active ? color : Colors.white10,
+          padding: const EdgeInsets.only(right: 3),
+          child: _FishIconWidget(
+            color: active ? color : Colors.white24,
+            filled: active,
             size: 14,
           ),
         );
@@ -434,4 +434,70 @@ class _OrbitPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+class _FishIconWidget extends StatelessWidget {
+  final Color color;
+  final double size;
+  final bool filled;
+
+  const _FishIconWidget({
+    required this.color,
+    required this.size,
+    required this.filled,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: Size(size * 1.3, size),
+      painter: _FishSilhouettePainter(color: color, filled: filled),
+    );
+  }
+}
+
+class _FishSilhouettePainter extends CustomPainter {
+  final Color color;
+  final bool filled;
+
+  _FishSilhouettePainter({required this.color, required this.filled});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = filled ? PaintingStyle.fill : PaintingStyle.stroke
+      ..strokeWidth = 1.2
+      ..strokeJoin = StrokeJoin.round;
+
+    final path = Path();
+    final w = size.width;
+    final h = size.height;
+
+    // Silueta de pez nadando hacia la derecha
+    // Cola
+    path.moveTo(0, h * 0.2);
+    path.lineTo(w * 0.2, h * 0.5);
+    path.lineTo(0, h * 0.8);
+    path.lineTo(w * 0.15, h * 0.5);
+
+    // Lomo (curva superior hacia la cabeza)
+    path.quadraticBezierTo(w * 0.55, -h * 0.1, w * 0.88, h * 0.35);
+    // Hocico
+    path.quadraticBezierTo(w, h * 0.5, w * 0.88, h * 0.65);
+    // Vientre (curva inferior de regreso a la cola)
+    path.quadraticBezierTo(w * 0.55, h * 1.1, w * 0.2, h * 0.5);
+
+    canvas.drawPath(path, paint);
+
+    if (filled) {
+      // Ojo del pez
+      final eyePaint = Paint()..color = Colors.black.withValues(alpha: 0.6);
+      canvas.drawCircle(Offset(w * 0.75, h * 0.38), h * 0.09, eyePaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _FishSilhouettePainter oldDelegate) =>
+      oldDelegate.color != color || oldDelegate.filled != filled;
 }

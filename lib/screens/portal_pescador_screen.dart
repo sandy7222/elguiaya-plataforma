@@ -10,6 +10,7 @@ import 'mis_viajes_screen.dart';
 import 'bienvenida_definitiva_screen.dart';
 import '../widgets/safe_button.dart';
 import '../services/supabase_service.dart';
+import '../services/fcm_service.dart';
 import '../services/branding_service.dart';
 import '../services/ia_router_state.dart';
 import '../widgets/notification_quick_view.dart';
@@ -61,6 +62,7 @@ class _PortalPescadorScreenState extends State<PortalPescadorScreen> {
     try {
       final user = SupabaseService.supabase.auth.currentUser;
       if (user != null) {
+        FCMService.registrarDispositivo();
         final metaNombre = user.userMetadata?['nombre'] ?? user.userMetadata?['full_name'];
         if (metaNombre != null && mounted) {
           setState(() => _userName = metaNombre);
@@ -265,7 +267,7 @@ class _PortalPescadorScreenState extends State<PortalPescadorScreen> {
               }
             },
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: ViewInsets.portalHeaderHorizontal),
         ],
       ),
       body: Container(
@@ -474,7 +476,7 @@ class _MapSectionState extends State<_MapSection> {
                   MapSelectorWidget(
                     bottomControlsInset: ViewInsets.portalBottomPadding(
                       context,
-                      extra: 16,
+                      extra: 4,
                     ),
                     onRouteSelected: (p0, p1, p2) {
                       setState(() {
@@ -491,7 +493,7 @@ class _MapSectionState extends State<_MapSection> {
                   ),
                   if (_partida != null && _destino != null)
                     Positioned(
-                      bottom: ViewInsets.portalBottomPadding(context, extra: 16) + 56,
+                      bottom: ViewInsets.portalBottomPadding(context, extra: 4) + 56,
                       left: 20,
                       right: 20,
                       child: SafeElevatedButton(

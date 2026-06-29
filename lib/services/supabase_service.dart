@@ -27,6 +27,7 @@ import 'package:capitanya_master/models/producto_atributo.dart';
 import 'package:capitanya_master/models/notificacion.dart';
 import 'package:capitanya_master/models/articulo_blog.dart';
 import 'package:capitanya_master/services/afip_service.dart';
+import 'package:capitanya_master/services/billetera_virtual_service.dart';
 import 'package:capitanya_master/services/geofencing_service.dart';
 import 'package:capitanya_master/services/notificacion_service.dart';
 import 'mercado_pago_service.dart';
@@ -74,6 +75,58 @@ class SupabaseService {
 
   static String? get currentUserEmail => supabase.auth.currentUser?.email;
 
+  /// Caché de rol capitán (profiles.es_capitan), alineada con main.dart / portal.
+  static bool? _sessionEsCapitan;
+
+  static void cacheSessionEsCapitan(bool? esCapitan) {
+    _sessionEsCapitan = esCapitan;
+  }
+
+  static bool get sessionEsCapitan => _sessionEsCapitan == true;
+
+  /// Resuelve si el usuario actual es capitán (metadata o profiles.es_capitan).
+  static Future<bool> resolveEsCapitan() async {
+    if (_sessionEsCapitan != null) return _sessionEsCapitan!;
+
+    final userId = currentUserId;
+    if (userId == null) {
+      _sessionEsCapitan = false;
+      return false;
+    }
+
+    final metaRol =
+        supabase.auth.currentUser?.userMetadata?['rol']?.toString().toLowerCase();
+    if (metaRol == 'capitan') {
+      _sessionEsCapitan = true;
+      return true;
+    }
+
+    try {
+      final res = await supabase
+          .from('profiles')
+          .select('es_capitan')
+          .eq('user_id', userId)
+          .maybeSingle();
+      _sessionEsCapitan = res?['es_capitan'] == true;
+    } catch (_) {
+      _sessionEsCapitan = false;
+    }
+    return _sessionEsCapitan!;
+  }
+
+  /// ID del capitán logueado, o null si no es capitán.
+  static String? get capitanIdActual {
+    final userId = currentUserId;
+    if (userId == null) return null;
+
+    final metaRol =
+        supabase.auth.currentUser?.userMetadata?['rol']?.toString().toLowerCase();
+    if (metaRol == 'capitan') return userId;
+    if (sessionEsCapitan) return userId;
+
+    return null;
+  }
+
   // --- MÉTODOS DE AUTH REALES ---
   static Future<AuthResponse> signUp(String email, String password) async {
     return await supabase.auth.signUp(email: email, password: password);
@@ -89,6 +142,7 @@ class SupabaseService {
     } catch (e) {
       print('⚠️ [SUPABASE] Error limpiando token al cerrar sesión: $e');
     }
+    cacheSessionEsCapitan(null);
     await supabase.auth.signOut();
   }
 
@@ -3376,17 +3430,15 @@ class SupabaseService {
   /// Obtener liquidaciones pendientes para el módulo de administración
   static Future<List<Map<String, dynamic>>> fetchPendingLiquidacionesAdmin() async {
     try {
-      // 1. Obtener liquidaciones en estado 'pendiente'
       final liquidacionesResponse = await supabase
           .from('liquidaciones')
           .select('*')
-          .eq('estado', 'pendiente')
+          .inFilter('estado', ['solicitado', 'procesando', 'pendiente'])
           .order('created_at', ascending: false);
-      
+
       final liquidaciones = List<Map<String, dynamic>>.from(liquidacionesResponse);
       if (liquidaciones.isEmpty) return [];
 
-      // 2. Obtener IDs únicos de solicitantes
       final userIds = liquidaciones
           .map((l) => (l['capitan_id'] ?? l['usuario_id'])?.toString())
           .whereType<String>()
@@ -3395,43 +3447,34 @@ class SupabaseService {
 
       if (userIds.isEmpty) return liquidaciones;
 
-      // 3. Obtener nombres y avatares de profiles
       final profilesResponse = await supabase
           .from('profiles')
           .select('user_id, nombre, avatar_url, es_capitan')
           .inFilter('user_id', userIds);
-      
+
       final profilesMap = {
-        for (var p in profilesResponse)
-          p['user_id']?.toString(): p
+        for (var p in profilesResponse) p['user_id']?.toString(): p
       };
 
-      // 4. Obtener CBUs de guias (como RLS fallback)
       final guiasResponse = await supabase
           .from('guias')
           .select('id, cbu')
           .inFilter('id', userIds);
 
       final guiasMap = {
-        for (var g in guiasResponse)
-          g['id']?.toString(): g['cbu']?.toString()
+        for (var g in guiasResponse) g['id']?.toString(): g['cbu']?.toString()
       };
 
-      // 5. Intentar obtener de perfiles_privados de manera segura en caso de que exista la tabla
-      Map<String, String> perfilesPrivadosMap = {};
-      try {
-        final ppResponse = await supabase
-            .from('perfiles_privados')
-            .select('user_id, cbu')
-            .inFilter('user_id', userIds);
-        for (var pp in ppResponse) {
-          perfilesPrivadosMap[pp['user_id']?.toString() ?? ''] = pp['cbu']?.toString() ?? '';
-        }
-      } catch (_) {
-        // Ignorar si no existe perfiles_privados
-      }
+      final billeterasResponse = await supabase
+          .from('billetera_capitanes')
+          .select('capitan_id, saldo_retenido, saldo_disponible')
+          .inFilter('capitan_id', userIds);
 
-      // 6. Unir los datos para la UI del administrador con validación de saldo
+      final billeterasMap = {
+        for (var b in billeterasResponse)
+          b['capitan_id']?.toString(): b
+      };
+
       final List<Map<String, dynamic>> resultadoFiltrado = [];
       for (var liq in liquidaciones) {
         final capId = (liq['capitan_id'] ?? liq['usuario_id'])?.toString();
@@ -3443,22 +3486,22 @@ class SupabaseService {
         final bool esCap = profile?['es_capitan'] == true;
         liq['rol'] = esCap ? 'Capitán' : 'Vendedor/Promotor';
 
-        // Traer CBU de perfiles_privados, fallback a guias
-        liq['cbu'] = perfilesPrivadosMap[capId] ?? guiasMap[capId] ?? 'Sin CBU cargado';
+        final cbuLiq = liq['cbu']?.toString();
+        liq['cbu'] = (cbuLiq != null && cbuLiq.isNotEmpty)
+            ? cbuLiq
+            : (guiasMap[capId] ?? 'Sin CBU cargado');
 
-        // Obtener saldo disponible del usuario
-        double saldoDisponible = 0.0;
-        try {
-          final saldos = await getSaldosCapitan(capId);
-          saldoDisponible = (saldos['saldo_disponible'] as num?)?.toDouble() ?? 0.0;
-        } catch (_) {}
+        final billetera = billeterasMap[capId];
+        final saldoRetenido =
+            (billetera?['saldo_retenido'] as num?)?.toDouble() ?? 0.0;
+        final saldoDisponible =
+            (billetera?['saldo_disponible'] as num?)?.toDouble() ?? 0.0;
 
+        liq['saldo_retenido'] = saldoRetenido;
         liq['saldo_disponible'] = saldoDisponible;
         final monto = (liq['monto'] as num?)?.toDouble() ?? 0.0;
+        liq['saldo_valido'] = saldoRetenido >= monto;
 
-        // Validación de Saldo: el saldo disponible debe ser mayor o igual al monto solicitado
-        liq['saldo_valido'] = saldoDisponible >= monto;
-        
         resultadoFiltrado.add(liq);
       }
 
@@ -3469,119 +3512,115 @@ class SupabaseService {
     }
   }
 
-  /// Procesar liquidación y realizar la transacción atómica
-  static Future<void> procesarLiquidacionAdmin({
+  /// Procesar liquidación de retiro de capitán (confirmación admin manual MP)
+  static Future<Map<String, dynamic>> procesarLiquidacionAdmin({
     required String liquidacionId,
     required String usuarioId,
     required double monto,
     required String cbuDestino,
+    String? comprobante,
   }) async {
     try {
       final adminId = currentUserId ?? 'admin';
 
-      // 1. Cambiar el estado de la liquidación a 'pagado'
-      await supabase
-          .from('liquidaciones')
-          .update({
-            'estado': 'pagado',
-            'pagado_at': DateTime.now().toIso8601String(),
-          })
-          .eq('id', liquidacionId);
+      final response = await supabase.rpc('completar_retiro_billetera', params: {
+        'p_liquidacion_id': liquidacionId,
+        'p_admin_id': adminId,
+        'p_monto_depositado': monto,
+        'p_comprobante': comprobante,
+      });
 
-      // 2. Intentar restar el monto del saldo_disponible en la tabla 'saldos' si existe
-      try {
-        final saldoResponse = await supabase
-            .from('saldos')
-            .select('saldo_disponible')
-            .eq('usuario_id', usuarioId)
-            .maybeSingle();
+      final row = response is List && response.isNotEmpty
+          ? Map<String, dynamic>.from(response.first as Map)
+          : null;
 
-        if (saldoResponse != null) {
-          final double actual = (saldoResponse['saldo_disponible'] as num?)?.toDouble() ?? 0.0;
-          await supabase
-              .from('saldos')
-              .update({'saldo_disponible': actual - monto})
-              .eq('usuario_id', usuarioId);
-        }
-      } catch (_) {
-        // Ignorar si no hay tabla saldos
+      if (row == null || row['exito'] != true) {
+        throw Exception(row?['mensaje']?.toString() ?? 'No se pudo completar el retiro');
       }
 
-      // También actualizamos transacciones asociadas
-      try {
-        await supabase
-            .from('transacciones_capitanes')
-            .update({
-              'estado': 'liquidado',
-              'liquidacion_at': DateTime.now().toIso8601String(),
-            })
-            .eq('capitan_id', usuarioId)
-            .eq('estado', 'disponible');
-      } catch (_) {}
+      final capitanId = row['capitan_id']?.toString() ?? usuarioId;
+      final montoConfirmado = (row['monto'] as num?)?.toDouble() ?? monto;
 
-      // 3. Crear un registro en la tabla historial_pagos
-      try {
-        await supabase
-            .from('historial_pagos')
-            .insert({
-              'admin_id': adminId,
-              'usuario_id': usuarioId,
-              'monto': monto,
-              'fecha': DateTime.now().toIso8601String(),
-              'cbu_destino': cbuDestino,
-              'created_at': DateTime.now().toIso8601String(),
-            });
-      } catch (_) {
-        // Fallback si no existe la tabla: guardamos en logs_sistema
-        await supabase
-            .from('logs_sistema')
-            .insert({
-              'tipo': 'pago_liquidado',
-              'descripcion': 'Historial Pago: Admin liquidó \$${monto.toStringAsFixed(2)} a CBU: $cbuDestino',
-              'user_id': usuarioId,
-              'datos_adicionales': {
-                'admin_id': adminId,
-                'liquidacion_id': liquidacionId,
-                'monto': monto,
-                'cbu': cbuDestino,
-              },
-              'created_at': DateTime.now().toIso8601String(),
-            });
-      }
-
-      // 4. Disparar una notificación Push de Dopamina al comisionista/usuario
-      String nombreUsuario = 'Comisionista';
+      String nombreCapitan = 'Capitán';
       try {
         final profileData = await supabase
             .from('profiles')
             .select('nombre')
-            .eq('user_id', usuarioId)
+            .eq('user_id', capitanId)
             .maybeSingle();
-        if (profileData != null && profileData['nombre'] != null) {
-          nombreUsuario = profileData['nombre'].toString();
-        } else {
-          // Si no está en profiles, intentar buscar en comisionistas
-          final promotorData = await supabase
-              .from('comisionistas')
-              .select('nombre')
-              .eq('id', usuarioId)
-              .maybeSingle();
-          if (promotorData != null && promotorData['nombre'] != null) {
-            nombreUsuario = promotorData['nombre'].toString();
-          }
-        }
+        nombreCapitan = profileData?['nombre']?.toString() ?? nombreCapitan;
       } catch (_) {}
 
-      await enviarNotificacionConDopamina(
-        usuarioId: usuarioId,
-        titulo: '¡Fondos Enviados! 💸',
-        mensaje: 'Hola $nombreUsuario, acabamos de transferir \$${monto.toStringAsFixed(2)} a tu cuenta de Mercado Pago. ¡Gracias por ser parte de EL GUIA YA!',
-        tipo: 'promo',
-        sonido: 'alerta',
+      final refText = (comprobante != null && comprobante.trim().isNotEmpty)
+          ? ' Referencia: ${comprobante.trim()}.'
+          : '';
+
+      await NotificacionHelper.enviar(
+        usuarioId: capitanId,
+        titulo: 'Transferencia completada',
+        mensaje:
+            'Hola $nombreCapitan, transferimos \$${montoConfirmado.toStringAsFixed(0)} '
+            'a tu cuenta (CBU/CVU registrado).$refText',
+        tipo: 'retiro_completado',
+        metadata: {
+          'liquidacion_id': liquidacionId,
+          'monto': montoConfirmado,
+          'cbu': cbuDestino,
+          if (comprobante != null) 'comprobante': comprobante,
+        },
       );
 
+      return row;
     } catch (e) {
       throw Exception('Error al procesar liquidación: $e');
+    }
+  }
+
+  /// Rechazar retiro y devolver saldo al capitán
+  static Future<Map<String, dynamic>> rechazarLiquidacionAdmin({
+    required String liquidacionId,
+    String? motivo,
+  }) async {
+    try {
+      final adminId = currentUserId ?? 'admin';
+
+      final response = await supabase.rpc('rechazar_retiro_billetera', params: {
+        'p_liquidacion_id': liquidacionId,
+        'p_admin_id': adminId,
+        'p_motivo': motivo,
+      });
+
+      final row = response is List && response.isNotEmpty
+          ? Map<String, dynamic>.from(response.first as Map)
+          : null;
+
+      if (row == null || row['exito'] != true) {
+        throw Exception(row?['mensaje']?.toString() ?? 'No se pudo rechazar el retiro');
+      }
+
+      final capitanId = row['capitan_id']?.toString();
+      final monto = (row['monto'] as num?)?.toDouble() ?? 0.0;
+
+      if (capitanId != null && capitanId.isNotEmpty) {
+        await NotificacionHelper.enviar(
+          usuarioId: capitanId,
+          titulo: 'Retiro no procesado',
+          mensaje:
+              'Tu solicitud de transferencia por \$${monto.toStringAsFixed(0)} '
+              'no pudo completarse. El monto volvió a tu saldo disponible.'
+              '${motivo != null && motivo.trim().isNotEmpty ? ' Motivo: ${motivo.trim()}' : ''}',
+          tipo: 'retiro_fallido',
+          metadata: {
+            'liquidacion_id': liquidacionId,
+            'monto': monto,
+            if (motivo != null) 'motivo': motivo,
+          },
+        );
+      }
+
+      return row;
+    } catch (e) {
+      throw Exception('Error al rechazar liquidación: $e');
     }
   }
 
@@ -3833,6 +3872,22 @@ class SupabaseService {
           await procesarComisionesViaje(pedidoId);
         } catch (ex) {
           print('Error en procesamiento de comisiones manual: $ex');
+        }
+        try {
+          final pedido = await supabase
+              .from('pedidos')
+              .select('capitan_id')
+              .eq('id', pedidoId)
+              .maybeSingle();
+          final capitanId = pedido?['capitan_id']?.toString();
+          if (capitanId != null && capitanId.isNotEmpty) {
+            await BilleteraVirtualService.acreditarPorViajeCerrado(
+              pedidoId: pedidoId,
+              capitanId: capitanId,
+            );
+          }
+        } catch (ex) {
+          print('Error al acreditar billetera en cierre manual: $ex');
         }
       }
       
@@ -6351,10 +6406,21 @@ class SupabaseService {
       try {
         final pedido = await supabase
             .from('pedidos')
-            .select('capitan_id, pescador_id, monto_total')
+            .select('capitan_id, pescador_id, monto_total, estado')
             .eq('id', pedidoId)
             .maybeSingle();
         final capitanId = pedido?['capitan_id']?.toString();
+        final estado = pedido?['estado']?.toString() ?? '';
+
+        if (capitanId != null &&
+            capitanId.isNotEmpty &&
+            {'cerrado', 'completado_pendiente_firma', 'completado'}.contains(estado)) {
+          await BilleteraVirtualService.acreditarPorViajeCerrado(
+            pedidoId: pedidoId,
+            capitanId: capitanId,
+          );
+        }
+
         if (capitanId != null) {
           await registrarViajeCompletadoReputacion(capitanId);
         }
@@ -7394,7 +7460,7 @@ class SupabaseService {
         },
       );
 
-      // 2. Buscar el token en fcm_tokens de Supabase
+      // 2. Buscar el token FCM y disparar push real via Edge Function (FCM HTTP v1)
       try {
         final tokenRes = await supabase
             .from('fcm_tokens')
@@ -7404,34 +7470,32 @@ class SupabaseService {
 
         if (tokenRes != null && tokenRes['token'] != null) {
           final String fcmToken = tokenRes['token'].toString();
-          print('📱 [FCM PUSH] Enviando push con sonido de "${sonido ?? 'monedas'}" al token: $fcmToken');
-          
-          final fcmPayload = {
-            'to': fcmToken,
-            'notification': {
-              'title': titulo,
-              'body': mensaje,
-              'sound': sonido == 'monedas' ? 'coins.wav' : 'default',
-              'android_channel_id': sonido == 'monedas' ? 'coins_channel' : 'default_channel',
-            },
-            'data': {
-              'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+          print('📱 [FCM PUSH] Despachando push via Edge Function para usuario: $usuarioId');
+
+          // Llamar a la Edge Function que envía el push con FCM v1 API
+          await supabase.functions.invoke(
+            'enviar-push-fcm',
+            body: {
+              'token': fcmToken,
+              'titulo': titulo,
+              'cuerpo': mensaje,
               'tipo': tipo,
               'sonido': sonido ?? 'default',
-            }
-          };
-          print('📡 FCM Payload: $fcmPayload');
+            },
+          );
+          print('✅ [FCM PUSH] Push enviado correctamente.');
         } else {
-          print('ℹ️ No se encontró un token FCM activo para el usuario $usuarioId. Se entregará solo vía Realtime.');
+          print('ℹ️ [FCM] Sin token activo para $usuarioId. Entregado solo vía Realtime.');
         }
       } catch (e) {
-        // El dinero es la prioridad, la notificación es el plus. No interrumpir si fcm_tokens no existe o falla.
-        print('⚠️ Error al buscar token FCM o simular push: $e');
+        // La notificación Realtime ya fue guardada. El push es un bonus; no interrumpir flujo.
+        print('⚠️ [FCM] Error al enviar push (no crítico): $e');
       }
     } catch (e) {
-      print('⚠️ Error robusto al procesar la notificación de dopamina: $e');
+      print('⚠️ Error al procesar la notificación con dopamina: $e');
     }
   }
+
 
   /// Notificar a todos los capitanes dentro de la zona de cobertura sobre una nueva cotización.
   /// Respeta el Almanaque: los capitanes que bloquearon la fecha del viaje NO reciben notificación.
