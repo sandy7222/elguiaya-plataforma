@@ -667,9 +667,8 @@ class _ManifiestoPasajerosScreenState extends State<ManifiestoPasajerosScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Este manifiesto contiene los datos de todos los pasajeros '
-            'declarados para este viaje. Podés copiarlo y presentarlo '
-            'ante las autoridades navales si es requerido. '
+            'El despacho de Prefectura se precarga solo con estos datos. '
+            'El capitán solo tiene que imprimirlo, firmarlo y presentarlo si corresponde. '
             'Los datos de DNI son responsabilidad del pescador titular.',
             style: GoogleFonts.inter(
                 color: _naranja.withOpacity(0.85), fontSize: 11, height: 1.5),

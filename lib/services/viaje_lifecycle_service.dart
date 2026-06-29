@@ -7,6 +7,7 @@ import 'notificacion_helper.dart';
 import 'recordatorios_service.dart';
 import 'supabase_service.dart';
 import 'viaje_gps_coordinator.dart';
+import 'despacho_pna_service.dart';
 
 class ViajeLifecycleService {
   static final _supabase = Supabase.instance.client;
@@ -751,6 +752,15 @@ class ViajeLifecycleService {
             );
           } catch (eNotif) {
             debugPrint('⚠️ Error enviando notificaciones de pago: $eNotif');
+          }
+
+          try {
+            await DespachoPnaService.notificarCapitanDocumentacion(
+              pedidoId: pedidoId,
+              escenario: 'pago_confirmado',
+            );
+          } catch (eDoc) {
+            debugPrint('⚠️ Error aviso documentación PNA post-pago: $eDoc');
           }
         }
 

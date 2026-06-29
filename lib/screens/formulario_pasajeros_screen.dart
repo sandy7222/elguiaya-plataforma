@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:capitanya_master/services/storage_service.dart';
 import 'package:capitanya_master/services/supabase_service.dart';
+import '../services/despacho_pna_service.dart';
 import '../widgets/safe_button.dart';
 import '../utils/fecha_nacimiento_utils.dart';
 
@@ -295,10 +296,22 @@ class _FormularioPasajerosScreenState
 
       if (mounted) {
         await SupabaseService.guardarPescadorSnapshotEnPedido(widget.pedidoId);
+        try {
+          await DespachoPnaService.notificarCapitanDocumentacion(
+            pedidoId: widget.pedidoId,
+            escenario: 'manifiesto_actualizado',
+          );
+        } catch (e) {
+          print('⚠️ [PASAJEROS] Aviso despacho PNA al capitán: $e');
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('✅ Pasajeros y contactos de emergencia guardados correctamente'),
+            content: Text(
+              '✅ Pasajeros guardados. El despacho PNA del capitán quedó precargado '
+              '(imprimir, firmar y presentar en Prefectura).',
+            ),
             backgroundColor: _verde,
+            duration: Duration(seconds: 5),
           ),
         );
         Navigator.pop(context, true); // true = guardado exitoso

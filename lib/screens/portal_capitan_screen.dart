@@ -28,6 +28,8 @@ class PortalCapitanScreen extends StatefulWidget {
 class _PortalCapitanScreenState extends State<PortalCapitanScreen> {
   int _selectedIndex = 0;
   String _estado = 'activo';
+  final GlobalKey<CapitanSaldosScreenState> _saldosKey =
+      GlobalKey<CapitanSaldosScreenState>();
   
   // Branding variables
   String? _backgroundUrl;
@@ -179,7 +181,7 @@ class _PortalCapitanScreenState extends State<PortalCapitanScreen> {
           children: [
             const CapitanPanelScreen(),
             const CategoriesGridScreen(),
-            const CapitanSaldosScreen(showAppBar: false),
+            CapitanSaldosScreen(key: _saldosKey, showAppBar: false),
             _estado == 'activo'
                 ? const InboxCapitanScreen(showAppBar: false)
                 : const PortalCapitanSuspendidoScreen(),
@@ -202,6 +204,9 @@ class _PortalCapitanScreenState extends State<PortalCapitanScreen> {
               setState(() {
                 _selectedIndex = index;
               });
+              if (index == 2) {
+                _saldosKey.currentState?.refrescar();
+              }
             },
             backgroundColor: Colors.black.withOpacity(0.8),
             selectedItemColor: _azulVibrante,

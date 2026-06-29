@@ -157,7 +157,7 @@ class _AdminViajesScreenState extends State<AdminViajesScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildSummaryItem('Viajes', '${_viajesActivos.length}', Icons.anchor),
-          _buildSummaryItem('Pasajeros', '${_viajesActivos.fold(0, (sum, item) => sum + (item['pasajeros'] as int))}', Icons.people),
+          _buildSummaryItem('Pasajeros', '${_viajesActivos.fold(0, (sum, item) => sum + (int.tryParse(item['pasajeros']?.toString() ?? '0') ?? 0))}', Icons.people),
           _buildSummaryItem('Lanchas', '2', Icons.directions_boat),
         ],
       ),

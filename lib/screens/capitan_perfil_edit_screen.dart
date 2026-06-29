@@ -21,6 +21,11 @@ class _CapitanPerfilEditScreenState extends State<CapitanPerfilEditScreen> {
   // Controladores
   final _capacidadKilosController = TextEditingController();
   final _capacidadPersonasController = TextEditingController();
+  final _nombreEmbarcacionController = TextEditingController();
+  final _matriculaEmbarcacionController = TextEditingController();
+  final _nacionalidadEmbarcacionController = TextEditingController(text: 'Argentina');
+  final _tipoEmbarcacionController = TextEditingController();
+  final _puertoBaseController = TextEditingController();
 
   // Estados de servicios
   String _servicioCarnada = 'No';
@@ -40,6 +45,18 @@ class _CapitanPerfilEditScreenState extends State<CapitanPerfilEditScreen> {
   int _vidrieraProductosActivos = 0;
 
   @override
+  void dispose() {
+    _capacidadKilosController.dispose();
+    _capacidadPersonasController.dispose();
+    _nombreEmbarcacionController.dispose();
+    _matriculaEmbarcacionController.dispose();
+    _nacionalidadEmbarcacionController.dispose();
+    _tipoEmbarcacionController.dispose();
+    _puertoBaseController.dispose();
+    super.dispose();
+  }
+
+  @override
   void initState() {
     super.initState();
     _cargarDatosPerfil();
@@ -56,12 +73,40 @@ class _CapitanPerfilEditScreenState extends State<CapitanPerfilEditScreen> {
           .eq('user_id', user.id)
           .single();
 
+      Map<String, dynamic>? guia;
+      try {
+        guia = await Supabase.instance.client
+            .from('guias')
+            .select(
+              'nombre_embarcacion, matricula_embarcacion, nacionalidad_embarcacion, '
+              'tipo_embarcacion, puerto_base',
+            )
+            .eq('id', user.id)
+            .maybeSingle();
+      } catch (_) {}
+
+      String pick(String key) {
+        final p = perfil[key]?.toString().trim();
+        if (p != null && p.isNotEmpty && p.toLowerCase() != 'null') return p;
+        final g = guia?[key]?.toString().trim();
+        if (g != null && g.isNotEmpty && g.toLowerCase() != 'null') return g;
+        return '';
+      }
+
       if (mounted) {
         setState(() {
           _capacidadKilosController.text = (perfil['capacidad_kilos'] ?? 0)
               .toString();
           _capacidadPersonasController.text =
               (perfil['capacidad_personas'] ?? 0).toString();
+          _nombreEmbarcacionController.text = pick('nombre_embarcacion');
+          _matriculaEmbarcacionController.text = pick('matricula_embarcacion');
+          _nacionalidadEmbarcacionController.text =
+              pick('nacionalidad_embarcacion').isEmpty
+                  ? 'Argentina'
+                  : pick('nacionalidad_embarcacion');
+          _tipoEmbarcacionController.text = pick('tipo_embarcacion');
+          _puertoBaseController.text = pick('puerto_base');
           _servicioCarnada = perfil['servicio_carnada'] ?? 'No';
           _servicioLenia = perfil['servicio_lenia'] ?? false;
           _servicioAlmacen = perfil['servicio_almacen'] ?? false;
@@ -150,6 +195,14 @@ class _CapitanPerfilEditScreenState extends State<CapitanPerfilEditScreen> {
       final data = {
         'capacidad_personas': int.tryParse(_capacidadPersonasController.text) ?? 0,
         'capacidad_kilos': int.tryParse(_capacidadKilosController.text) ?? 0,
+        'nombre_embarcacion': _nombreEmbarcacionController.text.trim(),
+        'matricula_embarcacion': _matriculaEmbarcacionController.text.trim(),
+        'nacionalidad_embarcacion':
+            _nacionalidadEmbarcacionController.text.trim().isEmpty
+                ? 'Argentina'
+                : _nacionalidadEmbarcacionController.text.trim(),
+        'tipo_embarcacion': _tipoEmbarcacionController.text.trim(),
+        'puerto_base': _puertoBaseController.text.trim(),
         'servicio_carnada': _servicioCarnada,
         'servicio_lenia': _servicioLenia,
         'servicio_almacen': _servicioAlmacen,
@@ -162,6 +215,14 @@ class _CapitanPerfilEditScreenState extends State<CapitanPerfilEditScreen> {
       final dataGuias = {
         'capacidad_personas': int.tryParse(_capacidadPersonasController.text) ?? 0,
         'capacidad_kilos': int.tryParse(_capacidadKilosController.text) ?? 0,
+        'nombre_embarcacion': _nombreEmbarcacionController.text.trim(),
+        'matricula_embarcacion': _matriculaEmbarcacionController.text.trim(),
+        'nacionalidad_embarcacion':
+            _nacionalidadEmbarcacionController.text.trim().isEmpty
+                ? 'Argentina'
+                : _nacionalidadEmbarcacionController.text.trim(),
+        'tipo_embarcacion': _tipoEmbarcacionController.text.trim(),
+        'puerto_base': _puertoBaseController.text.trim(),
         'servicio_carnada': _servicioCarnada,
         'servicio_lenia': _servicioLenia,
         'servicio_almacen': _servicioAlmacen,
@@ -273,7 +334,52 @@ class _CapitanPerfilEditScreenState extends State<CapitanPerfilEditScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildSectionTitle('DATOS TÉCNICOS DE EMBARCACIÓN'),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Completá nombre y matrícula una sola vez: se usan en el '
+                          'despacho de Prefectura Naval y en la documentación del viaje.',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.55),
+                            fontSize: 12,
+                            height: 1.35,
+                          ),
+                        ),
                         const SizedBox(height: 16),
+                        _buildTextFieldText(
+                          'Nombre de la embarcación',
+                          _nombreEmbarcacionController,
+                          Icons.directions_boat_filled_outlined,
+                          hint: 'Ej: La Proa, Don Juan II',
+                        ),
+                        const SizedBox(height: 16),
+                        _buildTextFieldText(
+                          'Matrícula / identificación',
+                          _matriculaEmbarcacionController,
+                          Icons.badge_outlined,
+                          hint: 'N° según Prefectura o documento',
+                        ),
+                        const SizedBox(height: 16),
+                        _buildTextFieldText(
+                          'Nacionalidad de la embarcación',
+                          _nacionalidadEmbarcacionController,
+                          Icons.flag_outlined,
+                          hint: 'Argentina',
+                        ),
+                        const SizedBox(height: 16),
+                        _buildTextFieldText(
+                          'Tipo / descripción (opcional)',
+                          _tipoEmbarcacionController,
+                          Icons.category_outlined,
+                          hint: 'Ej: Lancha open, semirrigido',
+                        ),
+                        const SizedBox(height: 16),
+                        _buildTextFieldText(
+                          'Puerto base habitual (opcional)',
+                          _puertoBaseController,
+                          Icons.anchor_outlined,
+                          hint: 'Ej: Tigre, San Fernando',
+                        ),
+                        const SizedBox(height: 24),
                         _buildTextField(
                           'Capacidad Personas',
                           _capacidadPersonasController,
@@ -526,6 +632,38 @@ class _CapitanPerfilEditScreenState extends State<CapitanPerfilEditScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTextFieldText(
+    String label,
+    TextEditingController controller,
+    IconData icon, {
+    String? hint,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
+      ),
+      child: TextFormField(
+        controller: controller,
+        style: const TextStyle(color: Colors.white),
+        textCapitalization: TextCapitalization.words,
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          labelStyle: const TextStyle(color: Colors.white70),
+          hintStyle: TextStyle(color: Colors.white.withOpacity(0.35)),
+          prefixIcon: Icon(icon, color: const Color(0xFF00E676)),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
+        ),
       ),
     );
   }

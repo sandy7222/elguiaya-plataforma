@@ -1,9 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../services/storage_service.dart';
 import '../services/supabase_service.dart';
 import '../widgets/safe_button.dart';
+import 'admin_libro_transferencias_screen.dart';
 
 class AdminLiquidacionScreen extends StatefulWidget {
   const AdminLiquidacionScreen({super.key});
@@ -13,17 +16,393 @@ class AdminLiquidacionScreen extends StatefulWidget {
 }
 
 class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
+  static const int _pageSize = 50;
+
   List<Map<String, dynamic>> _liquidaciones = [];
   List<Map<String, dynamic>> _comisionesLogs = [];
   bool _mostrarComisiones = false;
   bool _isLoading = true;
   bool _isProcessing = false;
   bool _isAdmin = false;
+  bool _hasMorePending = false;
+  bool _loadingMorePending = false;
+  int _pendingOffset = 0;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScrollPendientes);
     _checkSecurity();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  String _mensajeErrorLiquidacion(Object e) {
+    final msg = e.toString();
+    if (msg.contains('StorageException') ||
+        msg.contains('403') ||
+        msg.contains('Unauthorized')) {
+      return 'No se pudo guardar el ticket en Storage. Verificá que la migración '
+          'libro_transferencias esté aplicada y que entraste como admin.';
+    }
+    if (msg.contains('completar_retiro_billetera') ||
+        msg.contains('PGRST202') ||
+        msg.contains('Could not find the function')) {
+      return 'Falta actualizar Supabase: ejecutá la migración libro_transferencias '
+          '(RPC completar_retiro_billetera con ticket).';
+    }
+    if (msg.contains('ambiguous') || msg.contains('42702')) {
+      return 'Error SQL en Supabase (columna ambigua). Aplicá la migración '
+          '20260630180000_fix_completar_retiro_output_columns.sql y reintentá.';
+    }
+    return 'Error al liquidar fondos: $e';
+  }
+
+  bool _esImagenTicket(String? nombre) {
+    if (nombre == null) return false;
+    final lower = nombre.toLowerCase();
+    return lower.endsWith('.jpg') ||
+        lower.endsWith('.jpeg') ||
+        lower.endsWith('.png') ||
+        lower.endsWith('.webp');
+  }
+
+  Future<void> _mostrarDialogoConfirmarRetiro(Map<String, dynamic> liquidacion) async {
+    final String liqId = liquidacion['id']?.toString() ?? '';
+    final String capId =
+        (liquidacion['capitan_id'] ?? liquidacion['usuario_id'])?.toString() ?? '';
+    final String nombre = liquidacion['nombre']?.toString() ?? 'Capitán';
+    final String cbu = liquidacion['cbu']?.toString() ?? '';
+    final double monto = (liquidacion['monto'] as num?)?.toDouble() ?? 0.0;
+
+    final comprobanteController = TextEditingController();
+    bool confirmoMp = false;
+    XFile? ticketFile;
+    Uint8List? ticketPreview;
+    String? ticketNombre;
+
+    Future<void> adjuntarArchivoLocal(StateSetter setDialogState) async {
+      try {
+        final picked = await StorageService.pickComprobanteArchivoLocal();
+        if (picked == null) return;
+        Uint8List? bytes;
+        if (_esImagenTicket(picked.name)) {
+          bytes = await picked.readAsBytes();
+        }
+        setDialogState(() {
+          ticketFile = picked;
+          ticketPreview = bytes;
+          ticketNombre = picked.name;
+        });
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('No se pudo abrir el archivo: $e')),
+        );
+      }
+    }
+
+    Future<void> adjuntarDesdeGaleria(StateSetter setDialogState) async {
+      final picked = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+        maxWidth: 1920,
+        maxHeight: 1920,
+      );
+      if (picked == null) return;
+      final bytes = await picked.readAsBytes();
+      setDialogState(() {
+        ticketFile = picked;
+        ticketPreview = bytes;
+        ticketNombre = picked.name;
+      });
+    }
+
+    bool puedeConfirmar() =>
+        confirmoMp &&
+        comprobanteController.text.trim().isNotEmpty &&
+        ticketFile != null;
+
+    await showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: AlertDialog(
+            backgroundColor: const Color(0xFF001A33).withOpacity(0.95),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+              side: const BorderSide(color: Colors.cyanAccent, width: 1.5),
+            ),
+            title: const Row(
+              children: [
+                Icon(Icons.payment_rounded, color: Colors.cyanAccent),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'CONFIRMAR TRANSFERENCIA',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 17,
+                      fontFamily: 'Outfit',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Registro solo admin. El capitán $nombre recibirá la transferencia; '
+                    'vos guardás Nº MP + ticket como prueba.',
+                    style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 12, height: 1.35),
+                  ),
+                  const SizedBox(height: 14),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: Colors.white10),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Capitán: $nombre',
+                            style: const TextStyle(
+                                color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                        const SizedBox(height: 8),
+                        Text('CBU / CVU destino:\n$cbu',
+                            style: const TextStyle(
+                                color: Colors.cyanAccent,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                height: 1.35)),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Monto: \$${monto.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            color: Color(0xFF00E676),
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  TextField(
+                    controller: comprobanteController,
+                    onChanged: (_) => setDialogState(() {}),
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: InputDecoration(
+                      labelText: 'Nº comprobante Mercado Pago *',
+                      labelStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.cyanAccent),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => adjuntarArchivoLocal(setDialogState),
+                      icon: const Icon(Icons.folder_open_rounded, size: 20),
+                      label: const Text('Buscar archivo en el dispositivo'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.cyanAccent,
+                        side: BorderSide(color: Colors.cyanAccent.withOpacity(0.6)),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => adjuntarDesdeGaleria(setDialogState),
+                          icon: const Icon(Icons.photo_library_outlined, size: 16),
+                          label: const Text('Galería', style: TextStyle(fontSize: 11)),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.white70,
+                            side: BorderSide(color: Colors.white.withOpacity(0.2)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  if (ticketFile != null) ...[
+                    if (ticketPreview != null)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.memory(
+                          ticketPreview!,
+                          height: 110,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    else
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.06),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.picture_as_pdf, color: Colors.redAccent, size: 28),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                ticketNombre ?? 'Archivo adjunto',
+                                style: const TextStyle(color: Colors.white70, fontSize: 12),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    const Text(
+                      'Ticket listo para guardar en el libro de transferencias',
+                      style: TextStyle(color: Color(0xFF00E676), fontSize: 11),
+                    ),
+                  ] else
+                    Text(
+                      'Adjuntá imagen o PDF del comprobante MP *',
+                      style: TextStyle(
+                        color: Colors.orangeAccent.withOpacity(0.95),
+                        fontSize: 11,
+                      ),
+                    ),
+                  CheckboxListTile(
+                    value: confirmoMp,
+                    onChanged: (v) => setDialogState(() => confirmoMp = v ?? false),
+                    activeColor: Colors.cyanAccent,
+                    checkColor: Colors.black,
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text(
+                      'Confirmo transferencia manual desde Mercado Pago',
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                    ),
+                    controlAffinity: ListTileControlAffinity.leading,
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('CANCELAR',
+                    style: TextStyle(color: Colors.white54, fontWeight: FontWeight.bold)),
+              ),
+              ElevatedButton(
+                onPressed: puedeConfirmar()
+                    ? () {
+                        Navigator.pop(context);
+                        _procesarPagoBackend(
+                          liqId,
+                          capId,
+                          monto,
+                          cbu,
+                          comprobante: comprobanteController.text.trim(),
+                          ticketFile: ticketFile!,
+                        );
+                      }
+                    : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00E676),
+                  foregroundColor: Colors.black87,
+                  disabledBackgroundColor: Colors.white12,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('CONFIRMAR Y REGISTRAR',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    comprobanteController.dispose();
+  }
+
+  Widget _buildBannerAuditoria() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.cyan.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.cyanAccent.withOpacity(0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.admin_panel_settings, color: Colors.cyanAccent, size: 20),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Auditoría de transferencias (solo administrador)',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'El capitán solo recibe la transferencia. Vos registrás Nº de comprobante y ticket '
+            'antes de confirmar. Si hay un reclamo, consultá el historial en el Libro de transferencias.',
+            style: TextStyle(color: Colors.white.withOpacity(0.65), fontSize: 11, height: 1.4),
+          ),
+          const SizedBox(height: 10),
+          TextButton.icon(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const AdminLibroTransferenciasScreen(),
+              ),
+            ),
+            icon: const Icon(Icons.menu_book_rounded, size: 18),
+            label: const Text('Abrir Libro de transferencias'),
+            style: TextButton.styleFrom(foregroundColor: Colors.cyanAccent),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _onScrollPendientes() {
+    if (_mostrarComisiones || _loadingMorePending || !_hasMorePending) return;
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      _cargarMasPendientes();
+    }
   }
 
   /// 🛡️ Validar seguridad del Rol Admin
@@ -55,7 +434,10 @@ class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
   /// 📥 Cargar datos (liquidaciones pendientes o logs de comisiones)
   Future<void> _cargarLiquidaciones() async {
     if (!mounted) return;
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _pendingOffset = 0;
+    });
     try {
       if (_mostrarComisiones) {
         final logs = await SupabaseService.fetchLogsComisionesAdmin();
@@ -66,10 +448,15 @@ class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
           });
         }
       } else {
-        final liquidaciones = await SupabaseService.fetchPendingLiquidacionesAdmin();
+        final result = await SupabaseService.fetchPendingLiquidacionesAdmin(
+          limit: _pageSize,
+          offset: 0,
+        );
         if (mounted) {
           setState(() {
-            _liquidaciones = liquidaciones;
+            _liquidaciones = result.items;
+            _hasMorePending = result.hasMore;
+            _pendingOffset = result.items.length;
             _isLoading = false;
           });
         }
@@ -87,165 +474,29 @@ class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
     }
   }
 
-  /// Confirmar retiro manual (MP fuera de la app)
-  Future<void> _confirmarPago(Map<String, dynamic> liquidacion) async {
-    final String liqId = liquidacion['id']?.toString() ?? '';
-    final String capId = (liquidacion['capitan_id'] ?? liquidacion['usuario_id'])?.toString() ?? '';
-    final String nombre = liquidacion['nombre'] ?? 'Usuario';
-    final String cbu = liquidacion['cbu'] ?? '';
-    final double monto = (liquidacion['monto'] as num?)?.toDouble() ?? 0.0;
+  Future<void> _cargarMasPendientes() async {
+    if (_loadingMorePending || !_hasMorePending || _mostrarComisiones) return;
+    setState(() => _loadingMorePending = true);
+    try {
+      final result = await SupabaseService.fetchPendingLiquidacionesAdmin(
+        limit: _pageSize,
+        offset: _pendingOffset,
+      );
+      if (mounted) {
+        setState(() {
+          _liquidaciones.addAll(result.items);
+          _hasMorePending = result.hasMore;
+          _pendingOffset += result.items.length;
+          _loadingMorePending = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _loadingMorePending = false);
+    }
+  }
 
-    final comprobanteController = TextEditingController();
-    bool confirmoMp = false;
-
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: AlertDialog(
-            backgroundColor: const Color(0xFF001A33).withOpacity(0.9),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24),
-              side: const BorderSide(color: Colors.cyanAccent, width: 1.5),
-            ),
-            title: const Row(
-              children: [
-                Icon(Icons.payment_rounded, color: Colors.cyanAccent),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'CONFIRMAR RETIRO',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                      fontFamily: 'Outfit',
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Transferí manualmente desde Mercado Pago y registrá el comprobante.',
-                    style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.white10),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Capitán: $nombre',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'CBU / CVU:\n$cbu',
-                          style: const TextStyle(
-                            color: Colors.cyanAccent,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            height: 1.3,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Monto depositado: \$${monto.toStringAsFixed(2)}',
-                          style: const TextStyle(
-                            color: Color(0xFF00E676),
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  TextField(
-                    controller: comprobanteController,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
-                    decoration: InputDecoration(
-                      labelText: 'Nº comprobante MP (opcional)',
-                      labelStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.cyanAccent),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  CheckboxListTile(
-                    value: confirmoMp,
-                    onChanged: (v) => setDialogState(() => confirmoMp = v ?? false),
-                    activeColor: Colors.cyanAccent,
-                    checkColor: Colors.black,
-                    contentPadding: EdgeInsets.zero,
-                    title: const Text(
-                      'Confirmo transferencia manual desde Mercado Pago',
-                      style: TextStyle(color: Colors.white70, fontSize: 12),
-                    ),
-                    controlAffinity: ListTileControlAffinity.leading,
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text(
-                  'CANCELAR',
-                  style: TextStyle(color: Colors.white54, fontWeight: FontWeight.bold),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: confirmoMp
-                    ? () {
-                        Navigator.pop(context);
-                        _procesarPagoBackend(
-                          liqId,
-                          capId,
-                          monto,
-                          cbu,
-                          comprobante: comprobanteController.text.trim().isEmpty
-                              ? null
-                              : comprobanteController.text.trim(),
-                        );
-                      }
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00E676),
-                  foregroundColor: Colors.black87,
-                  disabledBackgroundColor: Colors.white12,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                ),
-                child: const Text('CONFIRMAR Y PAGAR', style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  void _onConfirmarRetiro(Map<String, dynamic> liquidacion) {
+    _mostrarDialogoConfirmarRetiro(liquidacion);
   }
 
   Future<void> _rechazarRetiro(Map<String, dynamic> liquidacion) async {
@@ -313,18 +564,25 @@ class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
     String usuarioId,
     double monto,
     String cbu, {
-    String? comprobante,
+    required String comprobante,
+    required XFile ticketFile,
   }) async {
     if (_isProcessing) return;
     setState(() => _isProcessing = true);
 
     try {
+      final storagePath = await StorageService.uploadLiquidacionComprobante(
+        file: ticketFile,
+        liquidacionId: liquidacionId,
+      );
+
       await SupabaseService.procesarLiquidacionAdmin(
         liquidacionId: liquidacionId,
         usuarioId: usuarioId,
         monto: monto,
         cbuDestino: cbu,
         comprobante: comprobante,
+        comprobanteStoragePath: storagePath,
       );
 
       if (mounted) {
@@ -354,8 +612,9 @@ class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
         setState(() => _isProcessing = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error al liquidar fondos: $e'),
+            content: Text(_mensajeErrorLiquidacion(e)),
             backgroundColor: Colors.redAccent,
+            duration: const Duration(seconds: 6),
           ),
         );
       }
@@ -380,6 +639,15 @@ class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
     if (!_isAdmin && !_isLoading) {
       return Scaffold(
         backgroundColor: const Color(0xFF000A1A),
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white70),
+            tooltip: 'Volver al menú',
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -414,6 +682,15 @@ class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
                 // Encabezado del panel
                 Row(
                   children: [
+                    IconButton(
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: Colors.white70,
+                        size: 20,
+                      ),
+                      tooltip: 'Volver al menú',
+                      onPressed: () => Navigator.pop(context),
+                    ),
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
@@ -447,6 +724,16 @@ class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
                       ],
                     ),
                     const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.menu_book_rounded, color: Colors.cyanAccent),
+                      tooltip: 'Libro de transferencias',
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AdminLibroTransferenciasScreen(),
+                        ),
+                      ),
+                    ),
                     IconButton(
                       icon: const Icon(Icons.refresh_rounded, color: Colors.cyanAccent),
                       onPressed: _cargarLiquidaciones,
@@ -542,33 +829,57 @@ class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
                       ? const Center(child: CircularProgressIndicator(color: Colors.cyanAccent))
                       : _mostrarComisiones
                           ? _buildComisionesTab()
-                          : _liquidaciones.isEmpty
-                              ? Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(Icons.check_circle_outline_rounded, color: Colors.white24, size: 70),
-                                      const SizedBox(height: 16),
-                                      const Text(
-                                        '¡Todo al día!',
-                                        style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      const Text(
-                                        'No hay solicitudes de retiros pendientes.',
+                              : _liquidaciones.isEmpty
+                              ? ListView(
+                                  physics: const AlwaysScrollableScrollPhysics(),
+                                  children: [
+                                    _buildBannerAuditoria(),
+                                    const SizedBox(height: 40),
+                                    const Icon(Icons.check_circle_outline_rounded, color: Colors.white24, size: 70),
+                                    const SizedBox(height: 16),
+                                    const Text(
+                                      '¡Todo al día!',
+                                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    const SizedBox(height: 6),
+                                    const Padding(
+                                      padding: EdgeInsets.symmetric(horizontal: 24),
+                                      child: Text(
+                                        'No hay retiros pendientes. Cuando un capitán solicite uno, '
+                                        'cargá acá el Nº MP y el ticket antes de confirmar. '
+                                        'El historial queda en el Libro de transferencias.',
                                         style: TextStyle(color: Colors.white54, fontSize: 13),
+                                        textAlign: TextAlign.center,
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 )
                               : RefreshIndicator(
                                   color: Colors.cyanAccent,
                                   onRefresh: _cargarLiquidaciones,
                                   child: ListView.builder(
+                                    controller: _scrollController,
                                     physics: const AlwaysScrollableScrollPhysics(),
-                                    itemCount: _liquidaciones.length,
+                                    itemCount: _liquidaciones.length +
+                                        1 +
+                                        (_loadingMorePending ? 1 : 0),
                                     itemBuilder: (context, index) {
-                                      final liq = _liquidaciones[index];
+                                      if (index == 0) {
+                                        return _buildBannerAuditoria();
+                                      }
+                                      final dataIndex = index - 1;
+                                      if (dataIndex >= _liquidaciones.length) {
+                                        return const Padding(
+                                          padding: EdgeInsets.all(16),
+                                          child: Center(
+                                            child: CircularProgressIndicator(
+                                              color: Colors.cyanAccent,
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                      final liq = _liquidaciones[dataIndex];
                                       final nombre = liq['nombre'] ?? 'Usuario';
                                       final avatarUrl = liq['avatar_url'];
                                       final rol = liq['rol'] ?? 'Capitán';
@@ -576,6 +887,13 @@ class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
                                       final cbu = liq['cbu'] ?? '';
                                       final saldoRetenido = (liq['saldo_retenido'] as num?)?.toDouble() ?? 0.0;
                                       final bool saldoValido = liq['saldo_valido'] == true;
+                                      final int grupoCount =
+                                          (liq['pendientes_grupo_count'] as num?)?.toInt() ?? 1;
+                                      final int grupoIndice =
+                                          (liq['pendientes_grupo_indice'] as num?)?.toInt() ?? 1;
+                                      final double grupoTotal =
+                                          (liq['pendientes_grupo_total'] as num?)?.toDouble() ??
+                                              monto;
 
                                       return Container(
                                         margin: const EdgeInsets.only(bottom: 16),
@@ -657,7 +975,7 @@ class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
                                                                 const SizedBox(width: 8),
                                                                 // Validación de Saldo Disponible
                                                                 Text(
-                                                                  'Retenido: \$${saldoRetenido.toStringAsFixed(2)}',
+                                                                  'Retenido total: \$${saldoRetenido.toStringAsFixed(2)}',
                                                                   style: TextStyle(
                                                                     color: saldoValido ? Colors.white54 : Colors.redAccent,
                                                                     fontSize: 11,
@@ -666,6 +984,18 @@ class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
                                                                 ),
                                                               ],
                                                             ),
+                                                            if (grupoCount > 1) ...[
+                                                              const SizedBox(height: 4),
+                                                              Text(
+                                                                'Solicitud $grupoIndice de $grupoCount · '
+                                                                'pendiente acumulado \$${grupoTotal.toStringAsFixed(2)}',
+                                                                style: const TextStyle(
+                                                                  color: Colors.amberAccent,
+                                                                  fontSize: 10,
+                                                                  fontWeight: FontWeight.w600,
+                                                                ),
+                                                              ),
+                                                            ],
                                                           ],
                                                         ),
                                                       ),
@@ -751,11 +1081,23 @@ class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
                                                     ),
                                                   ],
 
+                                                  const SizedBox(height: 8),
+                                                  Text(
+                                                    'Al confirmar se abre el registro con CBU, Nº MP y ticket.',
+                                                    style: TextStyle(
+                                                      color: Colors.white.withOpacity(0.45),
+                                                      fontSize: 10,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 12),
+
                                                   // Botón Confirmar Transferencia Realizada
                                                   SizedBox(
                                                     width: double.infinity,
                                                     child: SafeElevatedIconButton(
-  onPressed: saldoValido ? () => _confirmarPago(liq) : null,
+  onPressed: (saldoValido && !_isProcessing)
+      ? () => _onConfirmarRetiro(liq)
+      : null,
   icon: Icons.check_circle_outline_rounded,
   iconSize: 18,
   label: 'CONFIRMAR TRANSFERENCIA REALIZADA',
@@ -862,6 +1204,11 @@ class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
         final double pagoVendedor = (log['pago_vendedor'] as num?)?.toDouble() ?? 0.0;
         final double netaApp = (log['neta_app'] as num?)?.toDouble() ?? 0.0;
         final String? vendedorId = log['vendedor_id']?.toString();
+        final comisionista = log['comisionistas'] is Map
+            ? Map<String, dynamic>.from(log['comisionistas'] as Map)
+            : null;
+        final String promotorLabel = comisionista?['codigo_comision']?.toString() ??
+            (vendedorId != null ? vendedorId.substring(0, 8) : '');
         final String fecha = log['created_at'] != null 
             ? DateTime.tryParse(log['created_at'].toString())?.toLocal().toString().substring(0, 16) ?? ''
             : '';
@@ -967,7 +1314,7 @@ class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
                               const Icon(Icons.stars_rounded, color: Colors.amberAccent, size: 14),
                               const SizedBox(width: 6),
                               Text(
-                                'Código de Promotor: $vendedorId',
+                                'Promotor: $promotorLabel',
                                 style: const TextStyle(
                                   color: Colors.amberAccent,
                                   fontWeight: FontWeight.bold,

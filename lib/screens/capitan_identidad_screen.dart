@@ -340,11 +340,19 @@ class _CapitanIdentidadScreenState extends State<CapitanIdentidadScreen> {
         throw Exception('El CBU/CVU debe tener 20 o 22 dígitos (sin espacios).');
       }
 
-      await Supabase.instance.client.from('guias').update({
+      await Supabase.instance.client.from('guias').upsert({
+        'id': user.id,
+        'nombre': _nombreController.text.trim(),
+        'dni': int.tryParse(_dniController.text.replaceAll(RegExp(r'\D'), '')) ?? 0,
+        'telefono': _telefonoController.text.trim(),
+        'email': newEmail,
+        'localidad': _localidadController.text.trim(),
+        'provincia': _provinciaController.text.trim(),
+        'calle': _calleController.text.trim(),
+        'altura': _alturaController.text.trim(),
         'cbu': cbuLimpio.isEmpty ? _cbuController.text.trim() : cbuLimpio,
         'banco_nombre': _bancoController.text.trim(),
-        'email': newEmail,
-      }).eq('id', user.id);
+      }, onConflict: 'id');
 
       if (mounted) {
         String successMsg = '¡Tu Identidad ha sido actualizada!';

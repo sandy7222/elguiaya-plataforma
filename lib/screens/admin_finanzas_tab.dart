@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'admin_liquidacion_screen.dart';
+import 'admin_libro_transferencias_screen.dart';
 import 'admin_reembolsos_screen.dart';
 import 'admin_disputas_screen.dart';
 import 'admin_comisionistas_screen.dart';
@@ -28,10 +29,18 @@ class AdminFinanzasTab extends StatelessWidget {
         ),
         _buildNavCard(
           context,
+          icon: Icons.menu_book_rounded,
+          color: Colors.tealAccent,
+          title: 'Libro de transferencias',
+          subtitle: 'Historial de retiros con comprobante MP (tipo Excel)',
+          screen: const AdminLibroTransferenciasScreen(),
+        ),
+        _buildNavCard(
+          context,
           icon: Icons.bar_chart_rounded,
           color: Colors.blueAccent,
-          title: 'Monitor de Ventas',
-          subtitle: 'Estadísticas y rendimiento comercial',
+          title: 'Monitor de Ventas de la Tienda',
+          subtitle: 'Pedidos, despachos y ventas del e-commerce',
           screen: const AdminSalesMonitorScreen(),
         ),
         _buildNavCard(
