@@ -8,8 +8,11 @@ class ViewInsets {
   /// Padding extra del contenedor del bottom nav en portales.
   static const double portalNavContainerPadding = 12;
 
+  /// Margen horizontal del logo/header en portales (igual que módulos del panel).
+  static const double portalHeaderHorizontal = 16;
+
   /// Colchón visual adicional bajo listas scrollables.
-  static const double scrollExtra = 12;
+  static const double scrollExtra = 0;
 
   /// Solo solapamiento del bottom nav de portal (sin barra del sistema).
   static double portalNavOverlap(BuildContext context, {double extra = scrollExtra}) {
@@ -48,5 +51,10 @@ class ViewInsets {
   /// Margen inferior más compacto para la Tienda (evita franja blanca excesiva).
   static double storeBottomPadding(BuildContext context) {
     return portalBottomPadding(context, extra: 0);
+  }
+
+  /// Barra de input del chat: pegada al bottom nav flotante (spacer mínimo).
+  static double chatInputBottomPadding(BuildContext context) {
+    return MediaQuery.of(context).padding.bottom + 10;
   }
 }

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "313836807145",
+    "project_id": "el-guia-ya",
+    "storage_bucket": "el-guia-ya.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:313836807145:android:9d3b3518dad241f0d8a178",
+        "android_client_info": {
+          "package_name": "com.example.capitanya_master"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAtZKlRBsQ_C19SJV5-uiqxhnqxV8N4ACQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

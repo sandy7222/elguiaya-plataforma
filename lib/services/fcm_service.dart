@@ -1,90 +1,147 @@
-import 'dart:async';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
+
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
+import 'package:permission_handler/permission_handler.dart';
+
+import 'push_notification_service.dart';
 import 'supabase_service.dart';
 
-/// 📱 SERVICIO DE NOTIFICACIONES PUSH (FCM & DISPOSITIVOS)
-/// Gestiona la generación y el registro de tokens de notificaciones
-/// con soporte híbrido de simulación ultra-fiel y preparado para escalabilidad real.
+/// Registro de token FCM real (Android) y handlers de push con sonido.
 class FCMService {
-  static const String TAG = '📱 [FCM_SERVICE]';
+  static const String tag = '[FCM_SERVICE]';
+  static bool _inicializado = false;
 
-  /// Determina la plataforma del dispositivo actual de forma segura para Web y Mobile
+  static bool get _soportaPushAndroid =>
+      !kIsWeb && Platform.isAndroid;
+
   static String obtenerPlataformaDispositivo() {
-    if (kIsWeb) {
-      return 'Web (Browser)';
-    }
+    if (kIsWeb) return 'Web (Browser)';
     try {
       if (Platform.isAndroid) return 'Android';
       if (Platform.isIOS) return 'iOS';
-      if (Platform.isMacOS) return 'macOS';
-      if (Platform.isWindows) return 'Windows';
-      if (Platform.isLinux) return 'Linux';
     } catch (e) {
-      print('$TAG Error detectando plataforma física: $e');
+      debugPrint('$tag Error detectando plataforma: $e');
     }
-    return 'Dispositivo Móvil';
+    return 'Dispositivo Movil';
   }
 
-  /// Genera un token FCM determinista y fiel al formato oficial de Firebase Cloud Messaging.
-  /// Esto asegura que los paneles de administración y bases de datos vean tokens auténticos (ej: APA91b...)
-  /// y previene cualquier crash de compilación al evitar dependencias nativas rígidas sin archivos de configuración.
-  static String generarTokenFCMFiel(String userId) {
-    final cleanId = userId.replaceAll('-', '');
-    final prefix = 'f${cleanId.substring(0, 6)}';
-    // Estructura clásica de un Firebase Cloud Messaging registration token
-    final body = 'APA91b${cleanId.substring(6, 20)}'
-        '${cleanId.substring(0, 10)}'
-        '${cleanId.substring(10, 20)}'
-        'u4vW9B_tZp1k8Yx-LmQ';
-    return '$prefix:$body';
+  /// Inicializa Firebase Messaging en Android (permisos, listeners, token).
+  static Future<void> inicializar() async {
+    if (!_soportaPushAndroid || _inicializado) return;
+
+    try {
+      await Firebase.initializeApp();
+      await PushNotificationService.inicializar();
+
+      final messaging = FirebaseMessaging.instance;
+      await messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+      await Permission.notification.request();
+
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        PushNotificationService.mostrarDesdeFcm(message);
+      });
+
+      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+        PushNotificationService.manejarTap(message);
+      });
+
+      final initial = await messaging.getInitialMessage();
+      if (initial != null) {
+        PushNotificationService.manejarTap(initial);
+      }
+
+      messaging.onTokenRefresh.listen(_persistirToken);
+
+      // Escuchar cambios de autenticación para registrar token en cuanto haya usuario activo
+      SupabaseService.supabase.auth.onAuthStateChange.listen((data) {
+        if (data.session?.user != null) {
+          debugPrint('$tag Sesión detectada (${data.event.name}): registrando FCM token...');
+          registrarDispositivo();
+        }
+      });
+
+      _inicializado = true;
+      debugPrint('$tag Push Android inicializado.');
+      await registrarDispositivo();
+    } catch (e) {
+      debugPrint('$tag Error inicializando push: $e');
+    }
   }
 
-  /// Registra el token del dispositivo actual en Supabase para habilitar alertas y notificaciones push.
-  /// Se ejecuta automáticamente al iniciar sesión o cargar la pantalla de bienvenida con sesión activa.
+  static bool _esTokenSimulado(String token) {
+    // Tokens viejos generados antes de Firebase real (generarTokenFCMFiel)
+    return RegExp(r'^f[a-f0-9]{6}:APA91b', caseSensitive: false).hasMatch(token);
+  }
+
   static Future<void> registrarDispositivo() async {
     final userId = SupabaseService.currentUserId;
     if (userId == null) {
-      print('$TAG Omitiendo registro de dispositivo: No hay sesión activa.');
+      debugPrint('$tag Sin sesion: omitiendo registro de token.');
+      return;
+    }
+
+    if (!_soportaPushAndroid) {
+      debugPrint('$tag Push solo Android; omitiendo en esta plataforma.');
       return;
     }
 
     try {
-      print('$TAG Iniciando sincronización de token de notificaciones...');
-      
-      // 1. Obtener plataforma
-      final plataforma = obtenerPlataformaDispositivo();
-      
-      // 2. Generar el token representativo de alta fidelidad
-      final token = generarTokenFCMFiel(userId);
-      
-      print('$TAG Token Generado: $token');
-      print('$TAG Plataforma Detectada: $plataforma');
+      if (!_inicializado) {
+        await inicializar();
+      }
 
-      // 3. Persistir en la tabla fcm_tokens de Supabase
-      await SupabaseService.guardarFCMToken(token, dispositivo: plataforma);
-      
-      print('$TAG Registro completado exitosamente.');
+      final token = await FirebaseMessaging.instance.getToken();
+      if (token == null || token.isEmpty) {
+        debugPrint('$tag No se obtuvo token FCM.');
+        return;
+      }
+
+      if (_esTokenSimulado(token)) {
+        debugPrint('$tag Token simulado detectado, reintentando...');
+        await FirebaseMessaging.instance.deleteToken();
+        final nuevo = await FirebaseMessaging.instance.getToken();
+        if (nuevo == null || nuevo.isEmpty || _esTokenSimulado(nuevo)) {
+          debugPrint('$tag No se pudo obtener token FCM real.');
+          return;
+        }
+        await _persistirToken(nuevo);
+        return;
+      }
+
+      await _persistirToken(token);
     } catch (e) {
-      print('$TAG ❌ Error crítico registrando dispositivo: $e');
+      debugPrint('$tag Error registrando dispositivo: $e');
     }
   }
 
-  /// Elimina el token del dispositivo actual de la base de datos de Supabase.
-  /// Debe llamarse obligatoriamente durante el flujo de cierre de sesión (signOut).
-  static Future<void> removerDispositivo() async {
+  static Future<void> _persistirToken(String token) async {
     final userId = SupabaseService.currentUserId;
-    if (userId == null) {
-      print('$TAG Omitiendo de-registro: No hay sesión activa.');
-      return;
-    }
+    if (userId == null) return;
 
     try {
-      print('$TAG Removiendo token de notificaciones del dispositivo...');
-      await SupabaseService.eliminarFCMToken();
-      print('$TAG Token removido con éxito de la base de datos.');
+      final plataforma = obtenerPlataformaDispositivo();
+      await SupabaseService.guardarFCMToken(token, dispositivo: plataforma);
+      debugPrint('$tag Token FCM guardado ($plataforma).');
     } catch (e) {
-      print('$TAG ❌ Error de-registrando dispositivo: $e');
+      debugPrint('$tag Error guardando token: $e');
+    }
+  }
+
+  static Future<void> removerDispositivo() async {
+    final userId = SupabaseService.currentUserId;
+    if (userId == null) return;
+
+    try {
+      await SupabaseService.eliminarFCMToken();
+      debugPrint('$tag Token removido de Supabase.');
+    } catch (e) {
+      debugPrint('$tag Error removiendo token: $e');
     }
   }
 }

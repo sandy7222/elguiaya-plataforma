@@ -96,8 +96,11 @@ class _CapitanVidrieraScreenState extends State<CapitanVidrieraScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9),
       appBar: AppBar(
-        title: const Text('Mi Vidriera 🏪', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: const Color(0xFF0D47A1),
+        title: const Text(
+          'Mi Vidriera',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: const Color(0xFF001F3F),
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
       ),

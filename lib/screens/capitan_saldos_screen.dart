@@ -2,13 +2,16 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../widgets/safe_button.dart';
-
 import '../services/supabase_service.dart';
 import '../services/billetera_virtual_service.dart';
 
 class CapitanSaldosScreen extends StatefulWidget {
-  const CapitanSaldosScreen({super.key});
+  final bool showAppBar;
+
+  const CapitanSaldosScreen({
+    super.key,
+    this.showAppBar = true,
+  });
 
   @override
   State<CapitanSaldosScreen> createState() => _CapitanSaldosScreenState();
@@ -17,9 +20,14 @@ class CapitanSaldosScreen extends StatefulWidget {
 class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
     with AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
   Map<String, dynamic> _saldos = {};
-  List<Map<String, dynamic>> _transacciones = [];
+  List<Map<String, dynamic>> _movimientos = [];
+  List<Map<String, dynamic>> _retirosEnProceso = [];
   int _viajesEnProcesoMes = 0;
   double _proyectadoMes = 0.0;
+  double _totalBrutoAcumulado = 0.0;
+  double _totalComisionAcumulada = 0.0;
+  double _totalNetoAcumulado = 0.0;
+  String? _cbuCapitan;
   bool _isLoading = true;
   Timer? _actualizacionTimer;
   RealtimeChannel? _realtimeChannel;
@@ -65,18 +73,39 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
         .onPostgresChanges(
           event: PostgresChangeEvent.all,
           schema: 'public',
-          table: 'liquidaciones',
+          table: 'movimientos_billetera',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'capitan_id',
+            value: _capitanId,
+          ),
           callback: (payload) {
-            // Recargar saldos en tiempo real cuando se actualiza cualquier liquidación
             if (mounted) _cargarSaldos();
           },
         )
         .onPostgresChanges(
           event: PostgresChangeEvent.all,
           schema: 'public',
-          table: 'transacciones_capitanes',
+          table: 'billetera_capitanes',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'capitan_id',
+            value: _capitanId,
+          ),
           callback: (payload) {
-            // Recargar saldos en tiempo real cuando se actualiza cualquier transacción
+            if (mounted) _cargarSaldos();
+          },
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'liquidaciones',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'capitan_id',
+            value: _capitanId,
+          ),
+          callback: (payload) {
             if (mounted) _cargarSaldos();
           },
         )
@@ -93,18 +122,55 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
   }
 
   Future<void> _cargarSaldos() async {
+    if (_capitanId.isEmpty) {
+      setState(() => _isLoading = false);
+      return;
+    }
+
     try {
       setState(() => _isLoading = true);
-      
-      final saldos = await SupabaseService.getSaldosCapitan(_capitanId);
-      final transacciones = await SupabaseService.getTransaccionesCapitan(_capitanId);
-      
+
+      final billetera = await BilleteraVirtualService.getBilletera(_capitanId);
+      final movimientos = await BilleteraVirtualService.getMovimientos(
+        capitanId: _capitanId,
+        limit: 50,
+      );
+      final retiros = await BilleteraVirtualService.getLiquidacionesCapitan(_capitanId);
+
+      double bruto = 0;
+      double comision = 0;
+      double neto = 0;
+      int viajesPendientes = 0;
+
+      for (final mov in movimientos) {
+        if (mov['tipo']?.toString() != 'ingreso_viaje') continue;
+        bruto += (mov['monto_bruto'] as num?)?.toDouble() ?? 0.0;
+        comision += (mov['comision'] as num?)?.toDouble() ?? 0.0;
+        neto += (mov['monto_neto'] as num?)?.toDouble() ?? 0.0;
+        if (mov['estado']?.toString() == 'pendiente') viajesPendientes++;
+      }
+
+      final saldoPendiente = (billetera['saldo_pendiente'] as num?)?.toDouble() ?? 0.0;
+      final saldoDisponible = (billetera['saldo_disponible'] as num?)?.toDouble() ?? 0.0;
+      final totalViajes = movimientos.where((m) => m['tipo'] == 'ingreso_viaje').length;
+
       setState(() {
-        _saldos = saldos;
-        _transacciones = transacciones;
+        _saldos = {
+          'saldo_a_confirmar': saldoPendiente,
+          'saldo_disponible': saldoDisponible,
+          'saldo_retenido': (billetera['saldo_retenido'] as num?)?.toDouble() ?? 0.0,
+          'total_viajes': totalViajes,
+          'viajes_pendientes_confirmacion': viajesPendientes,
+        };
+        _movimientos = movimientos;
+        _retirosEnProceso = retiros;
+        _totalBrutoAcumulado = bruto;
+        _totalComisionAcumulada = comision;
+        _totalNetoAcumulado = neto;
         _isLoading = false;
       });
       _cargarProyeccionMes();
+      _cargarCbuCapitan();
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
@@ -116,6 +182,21 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
         );
       }
     }
+  }
+
+  Future<void> _cargarCbuCapitan() async {
+    try {
+      final guia = await Supabase.instance.client
+          .from('guias')
+          .select('cbu, banco, alias')
+          .eq('id', _capitanId)
+          .maybeSingle();
+      if (mounted) {
+        setState(() {
+          _cbuCapitan = guia?['cbu']?.toString();
+        });
+      }
+    } catch (_) {}
   }
 
   Future<void> _cargarProyeccionMes() async {
@@ -147,122 +228,323 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
     }
   }
 
-  Future<void> _solicitarLiquidacion() async {
-    final saldoDisponible = (_saldos['saldo_disponible'] as num?)?.toDouble() ?? 0.0;
-    
+  String _enmascararCbu(String? cbu) {
+    final limpio = cbu?.replaceAll(RegExp(r'[\s\-]'), '') ?? '';
+    if (limpio.length < 8) return 'Sin CBU cargado';
+    return '${limpio.substring(0, 4)}...${limpio.substring(limpio.length - 4)}';
+  }
+
+  Future<void> _solicitarRetiroTotal() async {
+    final saldoDisponible =
+        (_saldos['saldo_disponible'] as num?)?.toDouble() ?? 0.0;
+
     if (saldoDisponible <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Center(child: Text('No tienes saldo disponible para liquidar')),
+        SnackBar(
+          content: Center(
+            child: Text(
+              'No hay saldo disponible. El dinero en "A confirmar" se libera a las ${BilleteraVirtualService.horasDisputas} hs de cada viaje.',
+            ),
+          ),
           backgroundColor: Colors.orangeAccent,
         ),
       );
       return;
     }
-    
+
+    if (saldoDisponible < 100) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Center(child: Text('El retiro mínimo es \$100')),
+          backgroundColor: Colors.orangeAccent,
+        ),
+      );
+      return;
+    }
+
+    final cbu = _cbuCapitan?.trim() ?? '';
+    if (cbu.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Center(
+            child: Text(
+              'Cargá tu CBU/CVU en Identidad del Capitán antes de solicitar retiro',
+            ),
+          ),
+          backgroundColor: Colors.orangeAccent,
+        ),
+      );
+      return;
+    }
+
+    if (!mounted) return;
+
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF0A192F),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Retiro total',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          '¿Transferir \$${saldoDisponible.toStringAsFixed(2)} completo a ${_enmascararCbu(cbu)}?\n\nEl admin procesará el pago manual en 24-48 hs hábiles.',
+          style: const TextStyle(color: Colors.white70, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF00E676),
+              foregroundColor: Colors.black,
+            ),
+            child: const Text('Confirmar retiro total'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmado == true) {
+      await _procesarLiquidacion(saldoDisponible);
+    }
+  }
+
+  Future<void> _solicitarRetiroParcial() async {
+    final saldoDisponible = (_saldos['saldo_disponible'] as num?)?.toDouble() ?? 0.0;
+
+    if (saldoDisponible <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Center(child: Text('No tienes saldo disponible para transferir')),
+          backgroundColor: Colors.orangeAccent,
+        ),
+      );
+      return;
+    }
+
+    final cbu = _cbuCapitan?.trim() ?? '';
+    if (cbu.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Center(
+            child: Text('Cargá tu CBU/CVU en Identidad del Capitán antes de solicitar transferencia'),
+          ),
+          backgroundColor: Colors.orangeAccent,
+        ),
+      );
+      return;
+    }
+
+    final montoController = TextEditingController(
+      text: saldoDisponible.toStringAsFixed(0),
+    );
+
+    if (!mounted) return;
+
     showDialog(
       context: context,
-      builder: (context) => BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: AlertDialog(
-          backgroundColor: const Color(0xFF0A192F).withOpacity(0.95),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: Colors.white.withOpacity(0.08)),
-          ),
-          title: const Row(
-            children: [
-              Icon(Icons.account_balance_wallet_rounded, color: Colors.cyanAccent),
-              SizedBox(width: 8),
-              Text(
-                'Solicitar Liquidación',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Estás por solicitar la liquidación de:',
-                style: TextStyle(fontSize: 13, color: Colors.white70),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                '\$${saldoDisponible.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.cyanAccent,
-                  shadows: [
-                    Shadow(color: Colors.cyanAccent, blurRadius: 10),
-                  ],
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final texto = montoController.text.replaceAll(',', '.');
+            final montoIngresado = double.tryParse(texto) ?? 0.0;
+            final restante = (saldoDisponible - montoIngresado).clamp(0.0, double.infinity);
+            final montoValido = montoIngresado >= 100 && montoIngresado <= saldoDisponible;
+
+            return BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: AlertDialog(
+                backgroundColor: const Color(0xFF0A192F).withOpacity(0.95),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  side: BorderSide(color: Colors.white.withOpacity(0.08)),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.cyanAccent.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.cyanAccent.withOpacity(0.1)),
-                ),
-                child: Row(
+                title: const Row(
                   children: [
-                    const Icon(Icons.info_outline_rounded, color: Colors.cyanAccent, size: 16),
-                    const SizedBox(width: 8),
+                    Icon(Icons.account_balance_wallet_rounded, color: Colors.cyanAccent),
+                    SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'El dinero será transferido a tu cuenta bancaria registrada en 24-48 horas hábiles.',
+                        'Retiro parcial',
                         style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.white.withOpacity(0.7),
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
                         ),
                       ),
                     ),
                   ],
                 ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar', style: TextStyle(color: Colors.white54)),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _procesarLiquidacion(saldoDisponible);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.cyanAccent.withOpacity(0.2),
-                foregroundColor: Colors.cyanAccent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  side: const BorderSide(color: Colors.cyanAccent),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Disponible para retirar: \$${saldoDisponible.toStringAsFixed(2)}',
+                        style: const TextStyle(color: Colors.white70, fontSize: 13),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Destino: ${_enmascararCbu(cbu)}',
+                        style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 11),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () {
+                                montoController.text = saldoDisponible.toStringAsFixed(0);
+                                setDialogState(() {});
+                              },
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Colors.cyanAccent,
+                                side: const BorderSide(color: Colors.cyanAccent),
+                              ),
+                              child: const Text('Monto total', style: TextStyle(fontSize: 12)),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () {
+                                montoController.text = '';
+                                setDialogState(() {});
+                              },
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Colors.white70,
+                                side: BorderSide(color: Colors.white.withOpacity(0.3)),
+                              ),
+                              child: const Text('Otro monto', style: TextStyle(fontSize: 12)),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: montoController,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                        decoration: InputDecoration(
+                          prefixText: '\$ ',
+                          prefixStyle: const TextStyle(color: Colors.cyanAccent, fontSize: 22),
+                          hintText: 'Monto a retirar',
+                          hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.white.withOpacity(0.15)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Colors.cyanAccent),
+                          ),
+                        ),
+                        onChanged: (_) => setDialogState(() {}),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        montoValido
+                            ? 'Quedarán \$${restante.toStringAsFixed(2)} disponibles'
+                            : 'Mínimo \$100 · máximo \$${saldoDisponible.toStringAsFixed(0)}',
+                        style: TextStyle(
+                          color: montoValido ? Colors.white54 : Colors.orangeAccent,
+                          fontSize: 11,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'El admin transferirá manualmente desde Mercado Pago en 24-48 hs hábiles.',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.45),
+                          fontSize: 10,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancelar', style: TextStyle(color: Colors.white54)),
+                  ),
+                  ElevatedButton(
+                    onPressed: montoValido
+                        ? () {
+                            Navigator.pop(context);
+                            _procesarLiquidacion(montoIngresado);
+                          }
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.cyanAccent.withOpacity(0.2),
+                      foregroundColor: Colors.cyanAccent,
+                      disabledBackgroundColor: Colors.white10,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        side: const BorderSide(color: Colors.cyanAccent),
+                      ),
+                    ),
+                    child: const Text('Solicitar retiro', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ],
               ),
-              child: const Text('Confirmar', style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-          ],
-        ),
-      ),
+            );
+          },
+        );
+      },
     );
   }
 
   Future<void> _procesarLiquidacion(double monto) async {
-    try {
-      await SupabaseService.solicitarLiquidacion(_capitanId, monto);
-      
+    final cbu = _cbuCapitan?.trim() ?? '';
+    if (cbu.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Center(child: Text('💰 Liquidación solicitada exitosamente')),
-            backgroundColor: Color(0xFF00E676),
+            content: Center(
+              child: Text('Cargá tu CBU/CVU en Identidad del Capitán antes de solicitar transferencia'),
+            ),
+            backgroundColor: Colors.orangeAccent,
+          ),
+        );
+      }
+      return;
+    }
+
+    try {
+      final resultado = await BilleteraVirtualService.solicitarTransferencia(
+        capitanId: _capitanId,
+        monto: monto,
+        cbu: cbu,
+      );
+
+      if (!mounted) return;
+
+      if (resultado.exito) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Center(
+              child: Text(
+                '💰 Transferencia solicitada. Estimación: ${resultado.estimacion ?? '24-48 hs hábiles'}',
+              ),
+            ),
+            backgroundColor: const Color(0xFF00E676),
           ),
         );
         _cargarSaldos();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Center(child: Text(resultado.errorMsg ?? 'Error al procesar transferencia')),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -510,7 +792,7 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
           ),
           const SizedBox(height: 10),
           Text(
-            'Estimado neto (luego de comisión). Se acredita al cerrarse cada viaje y queda disponible a las ${BilleteraVirtualService.horasDisputas}hs.',
+            'Estimado neto al 90% (10% comisión plataforma). Se acredita al cerrarse cada viaje y queda disponible a las ${BilleteraVirtualService.horasDisputas}hs.',
             style: TextStyle(
               color: Colors.white.withOpacity(0.4),
               fontSize: 10,
@@ -522,7 +804,13 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
     );
   }
 
-  Widget _buildDistributionCard(double totalBalance, double viajasPropiosAmount, double comisionesAmount) {
+  Widget _buildDistributionCard() {
+    const pctCapitan = 90;
+    const pctPlataforma = 10;
+    final bruto = _totalBrutoAcumulado;
+    final comision = _totalComisionAcumulada;
+    final neto = _totalNetoAcumulado;
+
     return _buildGlassCard(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -532,20 +820,29 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
             children: [
               Icon(Icons.pie_chart_rounded, color: Colors.cyanAccent, size: 16),
               SizedBox(width: 8),
-              Text(
-                'DISTRIBUCIÓN DE GANANCIAS (80/20)',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 11,
-                  letterSpacing: 1.2,
+              Expanded(
+                child: Text(
+                  'DISTRIBUCIÓN DE GANANCIAS (90/10)',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 11,
+                    letterSpacing: 1.2,
+                  ),
                 ),
               ),
             ],
           ),
+          const SizedBox(height: 6),
+          Text(
+            '90% neto para vos · 10% comisión El Guía YA sobre el bruto de cada viaje',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.45),
+              fontSize: 10,
+              height: 1.35,
+            ),
+          ),
           const SizedBox(height: 16),
-          
-          // Visual Split progress bar
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: SizedBox(
@@ -553,7 +850,7 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
               child: Row(
                 children: [
                   Expanded(
-                    flex: 80,
+                    flex: pctCapitan,
                     child: Container(
                       decoration: const BoxDecoration(
                         gradient: LinearGradient(
@@ -564,7 +861,7 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
                   ),
                   const SizedBox(width: 2),
                   Expanded(
-                    flex: 20,
+                    flex: pctPlataforma,
                     child: Container(
                       decoration: const BoxDecoration(
                         gradient: LinearGradient(
@@ -578,81 +875,67 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
             ),
           ),
           const SizedBox(height: 16),
-          
-          // Detalle de Viajes propios
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Color(0xFF00B0FF),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Viajes Propios (80%)',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-              Text(
-                '\$${viajasPropiosAmount.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  color: Color(0xFF00B0FF),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
+          _buildDistributionRow(
+            color: Colors.white54,
+            label: 'Bruto viajes cerrados (100%)',
+            amount: bruto,
+            amountColor: Colors.white,
           ),
           const SizedBox(height: 8),
-          
-          // Detalle de comisiones referidos
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Color(0xFFFFD600),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Comisiones de Referidos (20%)',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-              Text(
-                '\$${comisionesAmount.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  color: Color(0xFFFFD600),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
+          _buildDistributionRow(
+            color: const Color(0xFFFFD600),
+            label: 'Comisión El Guía YA ($pctPlataforma%)',
+            amount: comision,
+            amountColor: const Color(0xFFFFD600),
+          ),
+          const SizedBox(height: 8),
+          _buildDistributionRow(
+            color: const Color(0xFF00B0FF),
+            label: 'Tu ganancia neta ($pctCapitan%)',
+            amount: neto,
+            amountColor: const Color(0xFF00B0FF),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildDistributionRow({
+    required Color color,
+    required String label,
+    required double amount,
+    required Color amountColor,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.8),
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+        Text(
+          '\$${amount.toStringAsFixed(2)}',
+          style: TextStyle(
+            color: amountColor,
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ],
     );
   }
 
@@ -724,41 +1007,238 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
     );
   }
 
-  Widget _buildLiquidationButton(double saldoDisponible) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF00E676).withOpacity(0.15),
-            blurRadius: 15,
-            spreadRadius: 2,
+  Widget _buildRetiroSection(double saldoDisponible, double saldoAConfirmar) {
+    final cbuOk = (_cbuCapitan?.trim() ?? '').isNotEmpty;
+    final puedeRetirar = saldoDisponible >= 100 && cbuOk;
+    final saldoInsuficiente = saldoDisponible > 0 && saldoDisponible < 100;
+
+    void onRetiroBloqueado() {
+      if (saldoDisponible <= 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Center(
+              child: Text(
+                saldoAConfirmar > 0
+                    ? 'Tu saldo está en "A confirmar". Se libera a las ${BilleteraVirtualService.horasDisputas} hs de cada viaje cerrado.'
+                    : 'No tenés saldo disponible para retirar.',
+              ),
+            ),
+            backgroundColor: Colors.orangeAccent,
+          ),
+        );
+        return;
+      }
+      if (saldoInsuficiente) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Center(child: Text('El retiro mínimo es \$100')),
+            backgroundColor: Colors.orangeAccent,
+          ),
+        );
+        return;
+      }
+      if (!cbuOk) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Center(
+              child: Text(
+                'Cargá tu CBU/CVU en Identidad del Capitán antes de solicitar retiro',
+              ),
+            ),
+            backgroundColor: Colors.orangeAccent,
+          ),
+        );
+      }
+    }
+
+    return _buildGlassCard(
+      padding: const EdgeInsets.all(16),
+      borderColor: const Color(0xFF00E676).withOpacity(0.25),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.payments_rounded, color: Color(0xFF00E676), size: 18),
+              SizedBox(width: 8),
+              Text(
+                'RETIRAR DINERO',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 11,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Transferencia manual a tu CBU/CVU. El admin confirma el pago en 24-48 hs hábiles.',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.55),
+              fontSize: 11,
+              height: 1.35,
+            ),
+          ),
+          if (saldoDisponible <= 0 && saldoAConfirmar > 0) ...[
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.amberAccent.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.amberAccent.withOpacity(0.25)),
+              ),
+              child: Text(
+                '\$${saldoAConfirmar.toStringAsFixed(0)} a confirmar — disponible tras ${BilleteraVirtualService.horasDisputas} hs de cada viaje.',
+                style: const TextStyle(color: Colors.amberAccent, fontSize: 11, height: 1.35),
+              ),
+            ),
+          ],
+          if (!cbuOk) ...[
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.orangeAccent.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.orangeAccent.withOpacity(0.25)),
+              ),
+              child: const Text(
+                'Cargá tu CBU/CVU en Identidad del Capitán para habilitar retiros.',
+                style: TextStyle(color: Colors.orangeAccent, fontSize: 11, height: 1.35),
+              ),
+            ),
+          ],
+          if (saldoInsuficiente) ...[
+            const SizedBox(height: 10),
+            Text(
+              'Saldo disponible \$${saldoDisponible.toStringAsFixed(2)} — mínimo de retiro \$100.',
+              style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 11),
+            ),
+          ],
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: puedeRetirar ? _solicitarRetiroTotal : onRetiroBloqueado,
+                  icon: const Icon(Icons.account_balance_wallet_rounded, size: 18),
+                  label: const Text('Retiro total'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF00E676),
+                    disabledForegroundColor: Colors.white38,
+                    side: BorderSide(
+                      color: puedeRetirar
+                          ? const Color(0xFF00E676).withOpacity(0.5)
+                          : Colors.white24,
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: puedeRetirar ? _solicitarRetiroParcial : onRetiroBloqueado,
+                  icon: const Icon(Icons.tune_rounded, size: 18),
+                  label: const Text('Retiro parcial'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF00E676).withOpacity(0.2),
+                    foregroundColor: const Color(0xFF00E676),
+                    disabledBackgroundColor: Colors.white10,
+                    disabledForegroundColor: Colors.white38,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: const Color(0xFF00E676).withOpacity(0.35)),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(15),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: SafeElevatedIconButton(
-  onPressed: _solicitarLiquidacion,
-  icon: Icons.account_balance_wallet_rounded,
-  iconSize: 18,
-  label: 'SOLICITAR LIQUIDACIÓN',
-  textStyle: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.0),
-  style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF00E676).withOpacity(0.2),
-              foregroundColor: const Color(0xFF00E676),
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-                side: BorderSide(color: const Color(0xFF00E676).withOpacity(0.3)),
+    );
+  }
+
+  Widget _buildRetirosEnProcesoSection() {
+    if (_retirosEnProceso.isEmpty) return const SizedBox.shrink();
+
+    return _buildGlassCard(
+      padding: const EdgeInsets.all(16),
+      borderColor: Colors.orangeAccent.withOpacity(0.2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.hourglass_top_rounded, color: Colors.orangeAccent, size: 16),
+              SizedBox(width: 8),
+              Text(
+                'RETIROS EN PROCESO',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 11,
+                  letterSpacing: 1.2,
+                ),
               ),
-            ),
-),
-        ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ..._retirosEnProceso.map((retiro) {
+            final monto = (retiro['monto'] as num?)?.toDouble() ?? 0.0;
+            final estado = retiro['estado']?.toString() ?? 'solicitado';
+            final fecha = retiro['created_at']?.toString() ?? '';
+            return Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orangeAccent.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.orangeAccent.withOpacity(0.15)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '\$${monto.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        Text(
+                          'Estado: ${estado == 'procesando' ? 'En proceso' : 'Solicitado'} · ${_formatFecha(fecha)}',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.5),
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.sync_rounded, color: Colors.orangeAccent, size: 20),
+                ],
+              ),
+            );
+          }),
+          Text(
+            'El administrador transferirá manualmente desde Mercado Pago.',
+            style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 10),
+          ),
+        ],
       ),
     );
   }
@@ -784,7 +1264,7 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
               ),
               const Spacer(),
               Text(
-                '${_transacciones.length} items',
+                '${_movimientos.length} items',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.4),
                   fontSize: 10,
@@ -793,16 +1273,16 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
             ],
           ),
           const SizedBox(height: 16),
-          _transacciones.isEmpty
+          _movimientos.isEmpty
               ? _buildTransaccionesVacias()
               : ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   padding: EdgeInsets.zero,
-                  itemCount: _transacciones.length,
+                  itemCount: _movimientos.length,
                   itemBuilder: (context, index) {
-                    final transaccion = _transacciones[index];
-                    return _buildTransaccionCard(transaccion);
+                    final movimiento = _movimientos[index];
+                    return _buildMovimientoCard(movimiento);
                   },
                 ),
         ],
@@ -810,18 +1290,36 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
     );
   }
 
-  Widget _buildTransaccionCard(Map<String, dynamic> transaccion) {
-    final monto = (transaccion['monto'] as num?)?.toDouble() ?? 0.0;
-    final tipo = transaccion['tipo'] as String? ?? 'desconocido';
-    final estado = transaccion['estado'] as String? ?? 'desconocido';
-    final fecha = transaccion['created_at'] as String? ?? '';
-    final descripcion = transaccion['descripcion'] as String? ?? 'Transacción';
+  Widget _buildMovimientoCard(Map<String, dynamic> movimiento) {
+    final tipo = movimiento['tipo']?.toString() ?? 'desconocido';
+    final estado = movimiento['estado']?.toString() ?? 'desconocido';
+    final fecha = movimiento['created_at']?.toString() ?? '';
+    final descripcion = movimiento['descripcion']?.toString() ?? 'Movimiento';
+    final montoNeto = (movimiento['monto_neto'] as num?)?.toDouble() ?? 0.0;
+    final montoBruto = (movimiento['monto_bruto'] as num?)?.toDouble() ?? 0.0;
+    final comision = (movimiento['comision'] as num?)?.toDouble() ?? 0.0;
+    final esIngresoViaje = tipo == 'ingreso_viaje';
+    final esRetiro = tipo.startsWith('retiro_');
+    final disponibleDesde = movimiento['disponible_desde']?.toString();
     
     Color estadoColor;
     IconData estadoIcon;
     String estadoText;
     
-    switch (estado) {
+    if (tipo == 'retiro_completado') {
+      estadoColor = const Color(0xFF00B0FF);
+      estadoIcon = Icons.check_circle_rounded;
+      estadoText = 'Transferido';
+    } else if (tipo == 'retiro_fallido') {
+      estadoColor = Colors.redAccent;
+      estadoIcon = Icons.cancel_rounded;
+      estadoText = 'Rechazado';
+    } else if (tipo == 'retiro_solicitado') {
+      estadoColor = Colors.orangeAccent;
+      estadoIcon = Icons.sync_rounded;
+      estadoText = 'En proceso';
+    } else {
+      switch (estado) {
       case 'disponible':
         estadoColor = const Color(0xFF00E676);
         estadoIcon = Icons.check_circle_rounded;
@@ -833,16 +1331,30 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
         estadoText = 'Pendiente';
         break;
       case 'liquidado':
+      case 'completado':
         estadoColor = const Color(0xFF00B0FF);
         estadoIcon = Icons.account_balance_rounded;
-        estadoText = 'Liquidado';
+        estadoText = 'Completado';
+        break;
+      case 'procesando':
+        estadoColor = Colors.orangeAccent;
+        estadoIcon = Icons.sync_rounded;
+        estadoText = 'Procesando';
+        break;
+      case 'fallido':
+        estadoColor = Colors.redAccent;
+        estadoIcon = Icons.cancel_rounded;
+        estadoText = 'Fallido';
         break;
       default:
         estadoColor = Colors.white54;
         estadoIcon = Icons.help_outline_rounded;
         estadoText = 'Desconocido';
+      }
     }
     
+    final montoDisplay = esRetiro ? -montoNeto.abs() : montoNeto;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
@@ -874,6 +1386,26 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
                     color: Colors.white,
                   ),
                 ),
+                if (esIngresoViaje) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    'Bruto \$${montoBruto.toStringAsFixed(0)} · Comisión \$${comision.toStringAsFixed(0)}',
+                    style: TextStyle(
+                      fontSize: 9,
+                      color: Colors.white.withOpacity(0.45),
+                    ),
+                  ),
+                ],
+                if (esIngresoViaje && estado == 'pendiente' && disponibleDesde != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    'Disponible el ${_formatFecha(disponibleDesde)}',
+                    style: const TextStyle(
+                      fontSize: 9,
+                      color: Colors.amberAccent,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 4),
                 Text(
                   _formatFecha(fecha),
@@ -889,11 +1421,11 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '\$${monto.toStringAsFixed(2)}',
-                style: const TextStyle(
+                '${montoDisplay < 0 ? '-' : ''}\$${montoDisplay.abs().toStringAsFixed(2)}',
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: montoDisplay < 0 ? Colors.orangeAccent : Colors.white,
                 ),
               ),
               const SizedBox(height: 4),
@@ -964,6 +1496,29 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
     }
   }
 
+  Widget _buildEmbeddedHeader() {
+    return Row(
+      children: [
+        const Expanded(
+          child: Text(
+            'MIS GANANCIAS',
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              fontSize: 16,
+              letterSpacing: 1.5,
+              color: Colors.white,
+            ),
+          ),
+        ),
+        IconButton(
+          onPressed: _cargarSaldos,
+          icon: const Icon(Icons.refresh_rounded, color: Colors.cyanAccent),
+          tooltip: 'Actualizar',
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -974,41 +1529,39 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
     final viajesPendientes = (_saldos['viajes_pendientes_confirmacion'] as int?) ?? 0;
     
     final totalBalance = saldoDisponible + saldoAConfirmar;
-    
-    // Split 80/20 dynamic calculation
-    final viajasPropiosAmount = totalBalance * 0.80;
-    final comisionesAmount = totalBalance * 0.20;
 
     return Scaffold(
       backgroundColor: const Color(0xFF000B21),
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: const Text(
-          'MIS GANANCIAS',
-          style: TextStyle(
-            fontWeight: FontWeight.w900,
-            fontSize: 16,
-            letterSpacing: 1.5,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        flexibleSpace: ClipRRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(color: Colors.black.withOpacity(0.2)),
-          ),
-        ),
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            onPressed: _cargarSaldos,
-            icon: const Icon(Icons.refresh_rounded, color: Colors.cyanAccent),
-            tooltip: 'Actualizar',
-          ),
-        ],
-      ),
+      extendBodyBehindAppBar: widget.showAppBar,
+      appBar: widget.showAppBar
+          ? AppBar(
+              title: const Text(
+                'MIS GANANCIAS',
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                  letterSpacing: 1.5,
+                  color: Colors.white,
+                ),
+              ),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              flexibleSpace: ClipRRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(color: Colors.black.withOpacity(0.2)),
+                ),
+              ),
+              foregroundColor: Colors.white,
+              actions: [
+                IconButton(
+                  onPressed: _cargarSaldos,
+                  icon: const Icon(Icons.refresh_rounded, color: Colors.cyanAccent),
+                  tooltip: 'Actualizar',
+                ),
+              ],
+            )
+          : null,
       body: Stack(
         children: [
           // Capa 0: Gradiente de Fondo Ultra Premium (Diseño Sistema)
@@ -1088,25 +1641,31 @@ class _CapitanSaldosScreenState extends State<CapitanSaldosScreen>
                       physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                       children: [
+                        if (!widget.showAppBar) ...[
+                          _buildEmbeddedHeader(),
+                          const SizedBox(height: 12),
+                        ],
                         // Tarjeta Principal Glassmorphic de Saldo Total
                         _buildTotalBalanceCard(totalBalance, saldoDisponible, saldoAConfirmar),
+                        const SizedBox(height: 16),
+
+                        _buildRetiroSection(saldoDisponible, saldoAConfirmar),
                         const SizedBox(height: 16),
 
                         // Indicador "Este mes": viajes en proceso + proyectado
                         _buildProyeccionMesCard(),
                         const SizedBox(height: 16),
                         
-                        // Tarjeta Glassmorphic de Distribución 80/20
-                        _buildDistributionCard(totalBalance, viajasPropiosAmount, comisionesAmount),
+                        // Desglose 90% capitán / 10% plataforma
+                        _buildDistributionCard(),
                         const SizedBox(height: 16),
                         
                         // Fila de Estadísticas Rápidas
                         _buildStatsRow(totalViajes, viajesPendientes),
                         const SizedBox(height: 16),
-                        
-                        // Botón de Liquidación Premium (si hay saldo)
-                        if (saldoDisponible > 0) ...[
-                          _buildLiquidationButton(saldoDisponible),
+
+                        if (_retirosEnProceso.isNotEmpty) ...[
+                          _buildRetirosEnProcesoSection(),
                           const SizedBox(height: 16),
                         ],
                         

@@ -87,7 +87,7 @@ class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
     }
   }
 
-  /// 💼 Confirmar el pago y ejecutar la transacción atómica
+  /// Confirmar retiro manual (MP fuera de la app)
   Future<void> _confirmarPago(Map<String, dynamic> liquidacion) async {
     final String liqId = liquidacion['id']?.toString() ?? '';
     final String capId = (liquidacion['capitan_id'] ?? liquidacion['usuario_id'])?.toString() ?? '';
@@ -95,112 +95,216 @@ class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
     final String cbu = liquidacion['cbu'] ?? '';
     final double monto = (liquidacion['monto'] as num?)?.toDouble() ?? 0.0;
 
+    final comprobanteController = TextEditingController();
+    bool confirmoMp = false;
+
     showDialog(
       context: context,
-      builder: (context) => BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-        child: AlertDialog(
-          backgroundColor: const Color(0xFF001A33).withOpacity(0.9),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-            side: const BorderSide(color: Colors.cyanAccent, width: 1.5),
-          ),
-          title: Row(
-            children: const [
-              Icon(Icons.payment_rounded, color: Colors.cyanAccent),
-              SizedBox(width: 10),
-              Text(
-                'CONFIRMAR RETIRO',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                  fontFamily: 'Outfit',
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: AlertDialog(
+            backgroundColor: const Color(0xFF001A33).withOpacity(0.9),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+              side: const BorderSide(color: Colors.cyanAccent, width: 1.5),
+            ),
+            title: const Row(
+              children: [
+                Icon(Icons.payment_rounded, color: Colors.cyanAccent),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'CONFIRMAR RETIRO',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      fontFamily: 'Outfit',
+                    ),
+                  ),
                 ),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Transferí manualmente desde Mercado Pago y registrá el comprobante.',
+                    style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.white10),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Capitán: $nombre',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'CBU / CVU:\n$cbu',
+                          style: const TextStyle(
+                            color: Colors.cyanAccent,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            height: 1.3,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Monto depositado: \$${monto.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            color: Color(0xFF00E676),
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  TextField(
+                    controller: comprobanteController,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: InputDecoration(
+                      labelText: 'Nº comprobante MP (opcional)',
+                      labelStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.cyanAccent),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  CheckboxListTile(
+                    value: confirmoMp,
+                    onChanged: (v) => setDialogState(() => confirmoMp = v ?? false),
+                    activeColor: Colors.cyanAccent,
+                    checkColor: Colors.black,
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text(
+                      'Confirmo transferencia manual desde Mercado Pago',
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                    ),
+                    controlAffinity: ListTileControlAffinity.leading,
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text(
+                  'CANCELAR',
+                  style: TextStyle(color: Colors.white54, fontWeight: FontWeight.bold),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: confirmoMp
+                    ? () {
+                        Navigator.pop(context);
+                        _procesarPagoBackend(
+                          liqId,
+                          capId,
+                          monto,
+                          cbu,
+                          comprobante: comprobanteController.text.trim().isEmpty
+                              ? null
+                              : comprobanteController.text.trim(),
+                        );
+                      }
+                    : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00E676),
+                  foregroundColor: Colors.black87,
+                  disabledBackgroundColor: Colors.white12,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                ),
+                child: const Text('CONFIRMAR Y PAGAR', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                '¿Confirmas que ya realizaste la transferencia bancaria por este retiro?',
-                style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
-              ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white10),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Solicitante: $nombre',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'CBU / CVU destino:\n$cbu',
-                      style: const TextStyle(
-                        color: Colors.cyanAccent,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        height: 1.3,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Monto: \$${monto.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        color: Color(0xFF00E676),
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Esta acción es atómica, restará el saldo, guardará el historial de pagos y enviará una notificación Push instantánea al dispositivo del usuario.',
-                style: TextStyle(color: Colors.orangeAccent, fontSize: 11, height: 1.3, fontWeight: FontWeight.w500),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text(
-                'CANCELAR',
-                style: TextStyle(color: Colors.white54, fontWeight: FontWeight.bold),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.pop(context);
-                _procesarPagoBackend(liqId, capId, monto, cbu);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF00E676),
-                foregroundColor: Colors.black87,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              ),
-              child: const Text('CONFIRMAR Y PAGAR', style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-          ],
         ),
       ),
     );
+  }
+
+  Future<void> _rechazarRetiro(Map<String, dynamic> liquidacion) async {
+    final liqId = liquidacion['id']?.toString() ?? '';
+    final motivoController = TextEditingController();
+
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF001A33),
+        title: const Text('Rechazar retiro', style: TextStyle(color: Colors.white)),
+        content: TextField(
+          controller: motivoController,
+          style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(
+            labelText: 'Motivo (opcional)',
+            labelStyle: TextStyle(color: Colors.white54),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Rechazar y devolver saldo', style: TextStyle(color: Colors.redAccent)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar != true || liqId.isEmpty) return;
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+
+    try {
+      await SupabaseService.rechazarLiquidacionAdmin(
+        liquidacionId: liqId,
+        motivo: motivoController.text.trim().isEmpty ? null : motivoController.text.trim(),
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Retiro rechazado. Saldo devuelto al capitán.'),
+            backgroundColor: Colors.orangeAccent,
+          ),
+        );
+        _cargarLiquidaciones();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.redAccent),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
+    }
   }
 
   /// ⚙️ Procesar pago en Supabase de forma segura con prevención de clics dobles
@@ -208,8 +312,9 @@ class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
     String liquidacionId,
     String usuarioId,
     double monto,
-    String cbu,
-  ) async {
+    String cbu, {
+    String? comprobante,
+  }) async {
     if (_isProcessing) return;
     setState(() => _isProcessing = true);
 
@@ -219,6 +324,7 @@ class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
         usuarioId: usuarioId,
         monto: monto,
         cbuDestino: cbu,
+        comprobante: comprobante,
       );
 
       if (mounted) {
@@ -381,7 +487,7 @@ class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
                             ),
                             child: Center(
                               child: Text(
-                                'LIQUIDACIONES PENDIENTES',
+                                'RETIROS CAPITANES',
                                 style: TextStyle(
                                   color: !_mostrarComisiones ? Colors.cyanAccent : Colors.white60,
                                   fontWeight: FontWeight.bold,
@@ -468,7 +574,7 @@ class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
                                       final rol = liq['rol'] ?? 'Capitán';
                                       final double monto = (liq['monto'] as num?)?.toDouble() ?? 0.0;
                                       final cbu = liq['cbu'] ?? '';
-                                      final saldoDisponible = (liq['saldo_disponible'] as num?)?.toDouble() ?? 0.0;
+                                      final saldoRetenido = (liq['saldo_retenido'] as num?)?.toDouble() ?? 0.0;
                                       final bool saldoValido = liq['saldo_valido'] == true;
 
                                       return Container(
@@ -551,7 +657,7 @@ class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
                                                                 const SizedBox(width: 8),
                                                                 // Validación de Saldo Disponible
                                                                 Text(
-                                                                  'Saldo Disp: \$${saldoDisponible.toStringAsFixed(2)}',
+                                                                  'Retenido: \$${saldoRetenido.toStringAsFixed(2)}',
                                                                   style: TextStyle(
                                                                     color: saldoValido ? Colors.white54 : Colors.redAccent,
                                                                     fontSize: 11,
@@ -636,7 +742,7 @@ class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
                                                           SizedBox(width: 8),
                                                           Expanded(
                                                             child: Text(
-                                                              'Saldo insuficiente en cuenta para procesar esta liquidación.',
+                                                              'Saldo retenido insuficiente para este retiro.',
                                                               style: TextStyle(color: Colors.redAccent, fontSize: 11, fontWeight: FontWeight.w600),
                                                             ),
                                                           ),
@@ -649,13 +755,14 @@ class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
                                                   SizedBox(
                                                     width: double.infinity,
                                                     child: SafeElevatedIconButton(
-  onPressed: () => _confirmarPago(liq),
+  onPressed: saldoValido ? () => _confirmarPago(liq) : null,
   icon: Icons.check_circle_outline_rounded,
   iconSize: 18,
   label: 'CONFIRMAR TRANSFERENCIA REALIZADA',
   style: ElevatedButton.styleFrom(
                                                         backgroundColor: const Color(0xFF00E676),
                                                         foregroundColor: Colors.black87,
+                                                        disabledBackgroundColor: Colors.white12,
                                                         textStyle: const TextStyle(
                                                           fontWeight: FontWeight.bold,
                                                           fontSize: 12,
@@ -666,6 +773,20 @@ class _AdminLiquidacionScreenState extends State<AdminLiquidacionScreen> {
                                                         elevation: 6,
                                                       ),
 ),
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  SizedBox(
+                                                    width: double.infinity,
+                                                    child: OutlinedButton.icon(
+                                                      onPressed: () => _rechazarRetiro(liq),
+                                                      icon: const Icon(Icons.cancel_outlined, size: 16),
+                                                      label: const Text('RECHAZAR Y DEVOLVER SALDO'),
+                                                      style: OutlinedButton.styleFrom(
+                                                        foregroundColor: Colors.redAccent,
+                                                        side: const BorderSide(color: Colors.redAccent),
+                                                        padding: const EdgeInsets.symmetric(vertical: 10),
+                                                      ),
+                                                    ),
                                                   ),
                                                 ],
                                               ),

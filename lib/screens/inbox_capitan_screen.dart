@@ -11,7 +11,12 @@ import '../utils/view_insets.dart';
 /// Inbox de Solicitudes del Capitán — Datos 100% reales desde Supabase.
 /// Usa StreamBuilder para actualizaciones en tiempo real.
 class InboxCapitanScreen extends StatefulWidget {
-  const InboxCapitanScreen({super.key});
+  final bool showAppBar;
+
+  const InboxCapitanScreen({
+    super.key,
+    this.showAppBar = true,
+  });
 
   @override
   State<InboxCapitanScreen> createState() => _InboxCapitanScreenState();
@@ -60,42 +65,45 @@ class _InboxCapitanScreenState extends State<InboxCapitanScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF001429),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF001F3F),
-        elevation: 0,
-        title: Row(
-          children: [
-            const Icon(Icons.inbox_rounded, color: Color(0xFF00E676), size: 22),
-            const SizedBox(width: 10),
-            Text(
-              'Inbox de Solicitudes',
-              style: GoogleFonts.outfit(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
-                fontSize: 18,
+      appBar: widget.showAppBar
+          ? AppBar(
+              backgroundColor: const Color(0xFF001F3F),
+              elevation: 0,
+              title: Row(
+                children: [
+                  const Icon(Icons.inbox_rounded, color: Color(0xFF00E676), size: 22),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Inbox de Solicitudes',
+                    style: GoogleFonts.outfit(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 18,
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
-            tooltip: 'Actualizar',
-            onPressed: () => setState(() {}),
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout_rounded, color: Colors.white70),
-            tooltip: 'Cerrar Sesión',
-            onPressed: () async {
-              await SupabaseService.supabase.auth.signOut();
-              if (mounted) Navigator.pushReplacementNamed(context, '/login');
-            },
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
+                  tooltip: 'Actualizar',
+                  onPressed: () => setState(() {}),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.logout_rounded, color: Colors.white70),
+                  tooltip: 'Cerrar Sesión',
+                  onPressed: () async {
+                    await SupabaseService.supabase.auth.signOut();
+                    if (mounted) Navigator.pushReplacementNamed(context, '/login');
+                  },
+                ),
+                const SizedBox(width: 8),
+              ],
+            )
+          : null,
       body: Column(
         children: [
+          if (!widget.showAppBar) _buildEmbeddedHeader(),
           // ── FILTROS ──
           _buildFiltros(),
 
@@ -147,6 +155,37 @@ class _InboxCapitanScreenState extends State<InboxCapitanScreen> {
                 );
               },
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmbeddedHeader() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 8, 8, 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.04),
+        border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.08))),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.inbox_rounded, color: Color(0xFF00E676), size: 22),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Inbox de Solicitudes',
+              style: GoogleFonts.outfit(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+                fontSize: 17,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
+            tooltip: 'Actualizar',
+            onPressed: () => setState(() {}),
           ),
         ],
       ),

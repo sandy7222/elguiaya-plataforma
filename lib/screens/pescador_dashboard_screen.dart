@@ -432,7 +432,7 @@ class _PescadorDashboardScreenState extends State<PescadorDashboardScreen>
                 padding: ViewInsets.scrollPadding(
                   context,
                   top: 8,
-                  extra: 28,
+                  extra: 4,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

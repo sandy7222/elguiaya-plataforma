@@ -14,16 +14,12 @@ import '../widgets/solunar_card_widget.dart';
 import 'capitan_perfil_edit_screen.dart';
 import 'capitan_identidad_screen.dart';
 import 'capitan_zona_config_screen.dart';
-import 'viajes_programados_screen.dart';
 import '../services/viaje_lifecycle_service.dart';
 import '../services/viaje_gps_coordinator.dart';
 import '../services/core_business_logic.dart';
 import 'solicitud_detalle_screen.dart';
-import '../widgets/notification_quick_view.dart';
-import '../widgets/calendario_viajes_widget.dart';
 import '../utils/view_insets.dart';
-import 'mi_calendario_screen.dart'; // Pantalla de administración de disponibilidad del Capitán (Almanaque)
-import 'capitan_vidriera_screen.dart'; // Pantalla de la Góndola del Capitán
+import 'capitan_almanaque_trabajo_screen.dart';
 import '../widgets/calificacion_pescador_dialog.dart';
 import '../widgets/reputacion_badge_widget.dart';
 import '../widgets/safe_button.dart';
@@ -302,27 +298,6 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
     _cotizacionesChannel?.subscribe();
   }
 
-  Future<void> _actualizarDisponibilidad(bool disponible) async {
-    try {
-      setState(() {
-        _guardando = true;
-        if (_perfil != null) {
-          _perfil = _perfil!.copyWith(disponible: disponible);
-        }
-      });
-      
-      await SupabaseService.cambiarDisponibilidadCapitan(
-        _capitanId,
-        disponible,
-      );
-      _cargarDatos();
-    } catch (e) {
-      print('Error al cambiar disponibilidad: $e');
-    } finally {
-      if (mounted) setState(() => _guardando = false);
-    }
-  }
-
   // -- UI BUILDERS --
 
   @override
@@ -330,51 +305,6 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
     super.build(context);
     return Scaffold(
       backgroundColor: const Color(0xFF000B21),
-      appBar: AppBar(
-        title: const Text(
-          'Panel de Control El Guia YA',
-          style: TextStyle(
-            fontWeight: FontWeight.w900,
-            fontSize: 16,
-            letterSpacing: 1.5,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        flexibleSpace: ClipRRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(color: Colors.black.withOpacity(0.2)),
-          ),
-        ),
-        foregroundColor: Colors.white,
-        actions: [
-          const NotificationQuickView(),
-          IconButton(
-            icon: const Icon(Icons.event_available, color: Color(0xFF00E676)),
-            tooltip: 'Mi Agenda de Viajes',
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    const ViajesProgramadosScreen(esCapitan: true),
-              ),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout_rounded, color: Colors.white70),
-            tooltip: 'Cerrar Sesión',
-            onPressed: () async {
-              await Supabase.instance.client.auth.signOut();
-              if (mounted) {
-                Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
-              }
-            },
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
       body: Stack(
         children: [
           // Capa 0: Gradiente de Fondo Ultra Premium (Diseño Sistema)
@@ -451,8 +381,6 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
                       const SizedBox(height: 12),
                       const SolunarCardWidget(),
                       const SizedBox(height: 12),
-                      _buildDisponibilidadHeader(),
-                      const SizedBox(height: 12),
                       
                       // Declaración de Servicio (Boton Primario Estilizado)
                       _buildGestionPerfilButton(),
@@ -460,13 +388,7 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
                       // Configuración de Radar de Operación
                       _buildZonaConfigButton(),
                       
-                      _buildMiCalendarioButton(),
-                      _buildMiVidrieraButton(),
-                      const SizedBox(height: 16),
-                      
-                      // Almanaque del Capitán (Se renderiza directamente para optimizar el ancho en pantallas móviles y evitar overflows)
-                      _buildSectionHeader('CALENDARIO DE DISPONIBILIDAD', Icons.calendar_today_rounded),
-                      CalendarioViajesWidget(capitanId: _capitanId),
+                      _buildAlmanaqueTrabajoButton(),
                       const SizedBox(height: 16),
                       
                       if (_mensajeAlertaRuta != null)
@@ -502,72 +424,6 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
               fontWeight: FontWeight.w900,
               letterSpacing: 1.2,
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDisponibilidadHeader() {
-    final bool isDisp = _perfil?.disponible ?? false;
-    return _buildGlassCard(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      child: Row(
-        children: [
-          // Indicador Glow LED
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isDisp 
-                  ? const Color(0xFF00E676).withOpacity(0.12)
-                  : Colors.amber.withOpacity(0.1),
-              border: Border.all(
-                color: isDisp 
-                    ? const Color(0xFF00E676).withOpacity(0.3)
-                    : Colors.amber.withOpacity(0.2),
-              ),
-            ),
-            child: Icon(
-              isDisp ? Icons.sailing_rounded : Icons.anchor_rounded,
-              color: isDisp ? const Color(0xFF00E676) : Colors.amber,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'ESTADO DE NAVEGACIÓN',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 10,
-                    letterSpacing: 1.0,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  isDisp ? 'EN NAVEGACIÓN (RADAR ACTIVO)' : 'EN PUERTO / DESCANSO',
-                  style: TextStyle(
-                    color: isDisp ? const Color(0xFF00E676) : Colors.amber,
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Switch.adaptive(
-            value: isDisp,
-            onChanged: _guardando ? null : (v) => _actualizarDisponibilidad(v),
-            activeColor: const Color(0xFF00E676),
-            activeTrackColor: const Color(0xFF00E676).withOpacity(0.3),
-            inactiveThumbColor: Colors.amber,
-            inactiveTrackColor: Colors.amber.withOpacity(0.2),
           ),
         ],
       ),
@@ -1880,7 +1736,7 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
                     ),
                     SizedBox(height: 2),
                     Text(
-                      'Actualizá tus servicios y tarifas para pescadores',
+                      'Servicios, tarifas y tu vidriera para pescadores',
                       style: TextStyle(
                         color: Colors.white70,
                         fontSize: 11,
@@ -1902,12 +1758,15 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
       margin: const EdgeInsets.only(bottom: 12),
       padding: EdgeInsets.zero,
       child: InkWell(
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const CapitanZonaConfigScreen(),
-          ),
-        ),
+        onTap: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const CapitanZonaConfigScreen(),
+            ),
+          );
+          if (mounted) _cargarDatos();
+        },
         borderRadius: BorderRadius.circular(20),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -1935,7 +1794,7 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
                       ),
                     ),
                     Text(
-                      'Definí tu radio de acción y cobertura',
+                      'Territorio, radar y estado puerto/descanso',
                       style: TextStyle(color: Colors.white54, fontSize: 10),
                     ),
                   ],
@@ -1949,7 +1808,7 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
     );
   }
 
-  Widget _buildMiVidrieraButton() {
+  Widget _buildAlmanaqueTrabajoButton() {
     return _buildGlassCard(
       margin: const EdgeInsets.only(bottom: 12),
       padding: EdgeInsets.zero,
@@ -1957,61 +1816,9 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const CapitanVidrieraScreen(),
-          ),
-        ),
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.purpleAccent.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.storefront_rounded, color: Colors.purpleAccent, size: 20),
-              ),
-              const SizedBox(width: 16),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'MI VIDRIERA (KIOSKO)',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      'Gestiona tus productos y extras (leña, carnada, alojamiento)',
-                      style: TextStyle(color: Colors.white54, fontSize: 11),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(Icons.chevron_right_rounded, color: Colors.white54),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMiCalendarioButton() {
-    return _buildGlassCard(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: EdgeInsets.zero,
-      child: InkWell(
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const MiCalendarioScreen(),
+            builder: (context) => CapitanAlmanaqueTrabajoScreen(
+              capitanId: _capitanId,
+            ),
           ),
         ),
         borderRadius: BorderRadius.circular(20),
@@ -2025,7 +1832,11 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
                   color: Colors.orangeAccent.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.edit_calendar_rounded, color: Colors.orangeAccent, size: 20),
+                child: const Icon(
+                  Icons.calendar_month_rounded,
+                  color: Colors.orangeAccent,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 16),
               const Expanded(
@@ -2033,15 +1844,17 @@ class _CapitanPanelScreenState extends State<CapitanPanelScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'BLOQUEO DE ALMANAQUE',
+                      'ALMANAQUE DE TRABAJO',
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
+                        letterSpacing: 0.5,
                       ),
                     ),
+                    SizedBox(height: 2),
                     Text(
-                      'Configurá tus días libres de navegación',
+                      'Bloqueo de fechas y reservas confirmadas',
                       style: TextStyle(color: Colors.white54, fontSize: 10),
                     ),
                   ],

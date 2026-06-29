@@ -39,62 +39,34 @@ class BilleteraVirtualService {
     required String capitanId,
   }) async {
     try {
-      // Obtener datos del pedido
-      final pedido = await _db
-          .from('pedidos')
-          .select('monto_total, cerrado_at, estado')
-          .eq('id', pedidoId)
-          .maybeSingle();
+      final response = await _db.rpc(
+        'acreditar_billetera_viaje_cerrado',
+        params: {
+          'p_pedido_id': pedidoId,
+          'p_capitan_id': capitanId,
+        },
+      );
 
-      if (pedido == null) {
-        print('⚠️ Billetera: pedido $pedidoId no encontrado');
+      final row = response is List && response.isNotEmpty
+          ? Map<String, dynamic>.from(response.first as Map)
+          : null;
+
+      if (row == null) {
+        print('⚠️ Billetera: sin respuesta al acreditar pedido $pedidoId');
         return;
       }
 
-      if (pedido['estado'] != 'cerrado') {
-        print('⚠️ Billetera: pedido $pedidoId no está cerrado (estado: ${pedido['estado']})');
-        return;
+      final exito = row['exito'] == true;
+      final mensaje = row['mensaje']?.toString() ?? '';
+      final montoNeto = (row['monto_neto'] as num?)?.toDouble() ?? 0.0;
+
+      if (exito && montoNeto > 0) {
+        print('✅ Billetera: \$${montoNeto.toStringAsFixed(0)} en pendiente para capitán $capitanId');
+      } else if (exito) {
+        print('ℹ️ Billetera: $mensaje (pedido $pedidoId)');
+      } else {
+        print('⚠️ Billetera: $mensaje (pedido $pedidoId)');
       }
-
-      final montoTotal  = (pedido['monto_total'] as num?)?.toDouble() ?? 0.0;
-      final comision    = montoTotal * comisionPorcentaje;
-      final montoNeto   = montoTotal - comision;
-      final cerradoAt   = pedido['cerrado_at'] != null
-          ? DateTime.parse(pedido['cerrado_at'].toString())
-          : DateTime.now();
-      final disponibleDesde = cerradoAt.add(const Duration(hours: horasDisputas));
-
-      // Verificar si ya se procesó este pedido
-      final yaExiste = await _db
-          .from('movimientos_billetera')
-          .select('id')
-          .eq('pedido_id', pedidoId)
-          .maybeSingle();
-
-      if (yaExiste != null) {
-        print('⚠️ Billetera: movimiento para pedido $pedidoId ya existe, ignorando duplicado');
-        return;
-      }
-
-      // Insertar movimiento en pendiente
-      await _db.from('movimientos_billetera').insert({
-        'capitan_id':       capitanId,
-        'pedido_id':        pedidoId,
-        'tipo':             'ingreso_viaje',
-        'monto_bruto':      montoTotal,
-        'comision':         comision,
-        'monto_neto':       montoNeto,
-        'estado':           'pendiente',           // → disponible en 48hs
-        'disponible_desde': disponibleDesde.toIso8601String(),
-        'descripcion':      'Viaje cerrado — período de disputa ${horasDisputas}hs',
-        'created_at':       DateTime.now().toIso8601String(),
-      });
-
-      // Actualizar saldo_pendiente en la billetera del capitán
-      await _upsertBilletera(capitanId, deltaPendiente: montoNeto);
-
-      print('✅ Billetera: \$${montoNeto.toStringAsFixed(0)} en pendiente para capitán $capitanId');
-      print('   Disponible desde: ${disponibleDesde.toLocal()}');
     } catch (e) {
       print('❌ Billetera: error al acreditar por viaje $pedidoId: $e');
     }
@@ -107,42 +79,8 @@ class BilleteraVirtualService {
 
   static Future<void> liberarPendientesVencidos() async {
     try {
-      final ahora = DateTime.now().toIso8601String();
-
-      // Obtener movimientos pendientes cuyo período de disputa ya venció
-      final pendientes = await _db
-          .from('movimientos_billetera')
-          .select()
-          .eq('estado', 'pendiente')
-          .lte('disponible_desde', ahora);
-
-      if (pendientes is! List || pendientes.isEmpty) return;
-
-      for (final mov in pendientes) {
-        final capitanId  = mov['capitan_id']?.toString() ?? '';
-        final montoNeto  = (mov['monto_neto'] as num?)?.toDouble() ?? 0.0;
-        final movId      = mov['id']?.toString() ?? '';
-
-        // Marcar movimiento como disponible
-        await _db
-            .from('movimientos_billetera')
-            .update({
-              'estado':        'disponible',
-              'liberado_at':   ahora,
-            })
-            .eq('id', movId);
-
-        // Transferir de pendiente → disponible en la billetera
-        await _upsertBilletera(
-          capitanId,
-          deltaPendiente:   -montoNeto,
-          deltaDisponible:   montoNeto,
-        );
-
-        print('✅ Billetera: \$${montoNeto.toStringAsFixed(0)} liberado para capitán $capitanId (movimiento $movId)');
-      }
-
-      print('📊 Billetera: ${pendientes.length} movimientos liberados');
+      await _db.rpc('liberar_pendientes_vencidos');
+      print('📊 Billetera: pendientes vencidos procesados vía RPC');
     } catch (e) {
       print('❌ Billetera: error al liberar pendientes: $e');
     }
@@ -181,40 +119,29 @@ class BilleteraVirtualService {
             'El monto mínimo de transferencia es \$100');
       }
 
-      // Crear solicitud de liquidación
-      final liquidacion = await _db.from('liquidaciones').insert({
-        'capitan_id':  capitanId,
-        'monto':       monto,
-        'cbu':         cbuLimpio,
-        'alias':       alias,
-        'banco':       banco,
-        'estado':      'solicitado',   // → procesando → completado
-        'created_at':  DateTime.now().toIso8601String(),
-        'descripcion': 'Transferencia solicitada por el capitán',
-      }).select().single();
-
-      // Reservar el monto (se descuenta de disponible, pasa a retenido hasta procesar)
-      await _upsertBilletera(
-        capitanId,
-        deltaDisponible: -monto,
-        deltaRetenido:    monto,
+      final response = await _db.rpc(
+        'solicitar_transferencia_billetera',
+        params: {
+          'p_capitan_id': capitanId,
+          'p_monto': monto,
+          'p_cbu': cbuLimpio,
+          'p_alias': alias,
+          'p_banco': banco,
+        },
       );
 
-      // Registrar movimiento de salida
-      await _db.from('movimientos_billetera').insert({
-        'capitan_id':   capitanId,
-        'tipo':         'retiro_solicitado',
-        'monto_bruto':  monto,
-        'comision':     0.0,
-        'monto_neto':   monto,
-        'estado':       'procesando',
-        'liquidacion_id': liquidacion['id']?.toString(),
-        'descripcion':  'Transferencia a CBU ${cbuLimpio.substring(0, 4)}...${cbuLimpio.substring(cbuLimpio.length - 4)}',
-        'created_at':   DateTime.now().toIso8601String(),
-      });
+      final row = response is List && response.isNotEmpty
+          ? Map<String, dynamic>.from(response.first as Map)
+          : null;
+
+      if (row == null || row['exito'] != true) {
+        return SolicitudTransferenciaResult.error(
+          row?['mensaje']?.toString() ?? 'No se pudo registrar la transferencia',
+        );
+      }
 
       return SolicitudTransferenciaResult.ok(
-        liquidacionId: liquidacion['id']?.toString() ?? '',
+        liquidacionId: row['liquidacion_id']?.toString() ?? '',
         monto:         monto,
         cbu:           cbuLimpio,
         estimacion:    '24-48 horas hábiles',
@@ -238,8 +165,6 @@ class BilleteraVirtualService {
           .maybeSingle();
 
       if (result == null) {
-        // Billetera nueva — crear registro vacío
-        await _upsertBilletera(capitanId);
         return {
           'capitan_id':       capitanId,
           'saldo_disponible': 0.0,
@@ -286,6 +211,26 @@ class BilleteraVirtualService {
       return List<Map<String, dynamic>>.from(result as List);
     } catch (e) {
       print('⚠️ getMovimientos error: $e');
+      return [];
+    }
+  }
+
+  /// Solicitudes de retiro pendientes del capitán
+  static Future<List<Map<String, dynamic>>> getLiquidacionesCapitan(
+    String capitanId, {
+    List<String> estados = const ['solicitado', 'procesando'],
+  }) async {
+    try {
+      final result = await _db
+          .from('liquidaciones')
+          .select()
+          .eq('capitan_id', capitanId)
+          .inFilter('estado', estados)
+          .order('created_at', ascending: false);
+
+      return List<Map<String, dynamic>>.from(result as List);
+    } catch (e) {
+      print('⚠️ getLiquidacionesCapitan error: $e');
       return [];
     }
   }

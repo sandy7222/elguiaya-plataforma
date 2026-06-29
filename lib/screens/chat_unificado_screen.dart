@@ -442,25 +442,26 @@ class _ChatUnificadoScreenState extends State<ChatUnificadoScreen>
 
   Widget _buildInputBar() {
     final keyboardInset = MediaQuery.of(context).viewInsets.bottom;
-    final bottom = keyboardInset > 0
-        ? keyboardInset + 8
-        : ViewInsets.portalNavOverlap(context);
+    final bottomSpacer = keyboardInset > 0
+        ? keyboardInset + 8.0
+        : ViewInsets.chatInputBottomPadding(context);
 
-    return Container(
-      padding: EdgeInsets.fromLTRB(8, 8, 8, bottom),
-      decoration: BoxDecoration(
-        color: const Color(0xFF001529).withOpacity(0.95),
-        border: Border(
-          top: BorderSide(
-            color: Colors.white.withOpacity(0.06),
-            width: 1,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+          decoration: BoxDecoration(
+            color: const Color(0xFF001529).withOpacity(0.95),
+            border: Border(
+              top: BorderSide(
+                color: Colors.white.withOpacity(0.06),
+                width: 1,
+              ),
+            ),
           ),
-        ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          children: [
+          child: Row(
+            children: [
             // Botón de micrófono
             AnimatedBuilder(
               animation: _micPulse,
@@ -568,9 +569,11 @@ class _ChatUnificadoScreenState extends State<ChatUnificadoScreen>
                       ),
                     ),
                   ),
-          ],
+            ],
+          ),
         ),
-      ),
+        SizedBox(height: bottomSpacer),
+      ],
     );
   }
 }

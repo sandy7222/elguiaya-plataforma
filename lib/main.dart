@@ -7,6 +7,7 @@ import 'package:intl/date_symbol_data_local.dart'; // Para inicializar formatos 
 
 // Importaciones normalizadas
 import 'package:capitanya_master/services/supabase_service.dart';
+import 'package:capitanya_master/app_navigator.dart';
 import 'package:capitanya_master/services/fcm_service.dart';
 import 'package:capitanya_master/providers/cart_provider.dart';
 import 'package:capitanya_master/providers/favoritos_provider.dart';
@@ -54,12 +55,24 @@ import 'package:capitanya_master/widgets/solunar_card_widget.dart';
 import 'package:capitanya_master/services/deep_link_service.dart';
 import 'package:capitanya_master/services/recordatorios_service.dart';
 import 'package:capitanya_master/services/viaje_gps_coordinator.dart';
-
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+import 'package:capitanya_master/services/firebase_messaging_background.dart';
+import 'package:capitanya_master/services/notificacion_sonido_listener.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 Future<void> main() async {
   usePathUrlStrategy();
   WidgetsFlutterBinding.ensureInitialized();
+
+  // FCM background handler lo antes posible (Android)
+  if (!kIsWeb) {
+    try {
+      if (Platform.isAndroid) {
+        FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+      }
+    } catch (_) {}
+  }
 
   // Inicializar formatos de fecha para locales en español ('es')
   await initializeDateFormatting('es', null);
@@ -91,6 +104,10 @@ Future<void> main() async {
 
   // 5. Inicializar servicio de Deep Links
   DeepLinkService().inicializar();
+
+  // 5b. Push FCM Android (campanita con sonido fuera de la app)
+  await FCMService.inicializar();
+  NotificacionSonidoListener.iniciar();
 
   // 6. 🗓️ Iniciar scheduler de recordatorios automáticos (WhatsApp 7d, 3d, 24h, 12h)
   //    Corre en segundo plano cada 5 minutos verificando recordatorios pendientes.
@@ -316,6 +333,7 @@ class _SessionWrapperState extends State<SessionWrapper> with WidgetsBindingObse
             _lastFetchedUserId = null;
             _initialized = true;
             _isLoadingPerfil = false;
+            SupabaseService.cacheSessionEsCapitan(null);
           }
         });
 
@@ -352,9 +370,11 @@ class _SessionWrapperState extends State<SessionWrapper> with WidgetsBindingObse
           _isLoadingPerfil = false;
           _initialized = true;
         });
+        SupabaseService.cacheSessionEsCapitan(res?['es_capitan'] == true);
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
           FCMService.registrarDispositivo();
+          NotificacionSonidoListener.reiniciar();
           ViajeGpsCoordinator().resumeIfNeeded();
         });
       }

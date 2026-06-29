@@ -10,7 +10,7 @@ import '../services/voice_service.dart';
 import '../services/connectivity_bridge.dart';
 import '../services/intent_service.dart';
 import '../screens/pescador_perfil_edit_screen.dart';
-import 'package:capitanya_master/main.dart';
+import 'package:capitanya_master/app_navigator.dart';
 import '../services/supabase_service.dart';
 import '../screens/product_catalog_screen.dart';
 import '../screens/product_detail_screen.dart';

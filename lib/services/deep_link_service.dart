@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:app_links/app_links.dart';
 import '../screens/product_catalog_screen.dart';
-import '../main.dart'; // Para acceder a navigatorKey
+import '../app_navigator.dart';
 
 class DeepLinkService {
   static final DeepLinkService _instance = DeepLinkService._internal();
