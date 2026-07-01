@@ -135,14 +135,43 @@ class _PescadorDashboardScreenState extends State<PescadorDashboardScreen>
         _pescadorId!,
       );
 
+      // Filtro de seguridad: Obtener IDs de presupuestos ya vinculados a un pedido para evitar duplicación
+      final pedidosResponse = await Supabase.instance.client
+          .from('pedidos')
+          .select('presupuesto_id')
+          .eq('pescador_id', _pescadorId!);
+
+      final bookedPresupuestoIds = (pedidosResponse as List)
+          .map((p) => p['presupuesto_id']?.toString())
+          .whereType<String>()
+          .toSet();
+
+      final bookedCotizacionIds = <String>{};
+      for (final p in presupuestos) {
+        if (bookedPresupuestoIds.contains(p['id']?.toString())) {
+          final cotId = p['cotizacion_id']?.toString();
+          if (cotId != null) {
+            bookedCotizacionIds.add(cotId);
+          }
+        }
+      }
+
+      final presupuestosFiltrados = presupuestos
+          .where((p) => !bookedPresupuestoIds.contains(p['id']?.toString()))
+          .toList();
+
+      final cotizacionesFiltradas = cotizaciones
+          .where((c) => !bookedCotizacionIds.contains(c.id))
+          .toList();
+
       if (mounted) {
         setState(() {
           if (perfil != null) {
             _nombrePescador = perfil['nombre'] ?? perfil['full_name'] ?? 'Pescador';
             _avatarUrl = perfil['avatar_url'];
           }
-          _cotizaciones = cotizaciones;
-          _presupuestos = presupuestos;
+          _cotizaciones = cotizacionesFiltradas;
+          _presupuestos = presupuestosFiltrados;
           _isLoading = false;
         });
       }

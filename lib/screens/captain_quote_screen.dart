@@ -65,7 +65,7 @@ class _CaptainQuoteScreenState extends State<CaptainQuoteScreen> {
           'id': data['id'],
           'pescador_id': data['pescador_id'],
           'pescador_nombre': data['profiles']?['nombre'] ?? 'Pescador',
-          'descripcion': data['descripcion'] ?? 'Sin descripci�n',
+          'descripcion': data['descripcion'] ?? 'Sin descripción',
           'fecha_ida': data['fecha_ida'] != null 
               ? data['fecha_ida'].toString().split('T').first 
               : 'Fecha no definida',
@@ -144,7 +144,7 @@ class _CaptainQuoteScreenState extends State<CaptainQuoteScreen> {
         respuesta,
       );
 
-      // Reservar fecha en el calendario del capit�n
+      // Reservar fecha en el calendario del capitán
       try {
         final capId = Supabase.instance.client.auth.currentUser?.id;
         final fechaIdaStr = _cotizacionData?['fecha_ida'];

@@ -89,22 +89,22 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
         return;
       }
       if (_passwordController.text.isEmpty || _confirmPasswordController.text.isEmpty) {
-        _showError('Por favor completa la contraseÒa y su confirmaciÛn.');
+        _showError('Por favor completa la contrase√±a y su confirmaci√≥n.');
         return;
       }
       if (_passwordController.text != _confirmPasswordController.text) {
-        _showError('Las contraseÒas no coinciden.');
+        _showError('Las contrase√±as no coinciden.');
         return;
       }
       if (_passwordController.text.length < 6) {
-        _showError('La contraseÒa debe tener al menos 6 caracteres.');
+        _showError('La contrase√±a debe tener al menos 6 caracteres.');
         return;
       }
 
       if (_traeReferido) {
         final codeInput = _referidoController.text.trim().toUpperCase();
         if (codeInput.isEmpty) {
-          _showError('Por favor ingresa tu cÛdigo de referido.');
+          _showError('Por favor ingresa tu c√≥digo de referido.');
           return;
         }
 
@@ -112,7 +112,7 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
         try {
           final promotor = await SupabaseService.validarCodigoPromotor(codeInput);
           if (promotor == null) {
-            _showError('CÛdigo de legajo inv·lido');
+            _showError('C√≥digo de legajo inv√°lido');
             setState(() => _isProcessing = false);
             return;
           } else {
@@ -120,7 +120,7 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
             _codigoReferidoFinal = promotor['codigo_comision']?.toString().toUpperCase();
           }
         } catch (e) {
-          _showError('Error al validar cÛdigo de referido: $e');
+          _showError('Error al validar c√≥digo de referido: $e');
           setState(() => _isProcessing = false);
           return;
         }
@@ -165,22 +165,22 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
     }
 
     if (_selectedRole == 'capitan' && _vencimientoCarnet == null) {
-      _showError('Por favor, ingres· la fecha de vencimiento de tu Carnet.');
+      _showError('Por favor, ingres√° la fecha de vencimiento de tu Carnet.');
       return;
     }
 
     if (_selectedRole == 'capitan' && _numeroCarnetController.text.trim().isEmpty) {
-      _showError('Ingres· el N∞ de tu Carnet de Timonel.');
+      _showError('Ingres√° el N¬∞ de tu Carnet de Timonel.');
       return;
     }
 
     if (_selectedRole == 'capitan' && _numeroPolizaController.text.trim().isEmpty) {
-      _showError('Ingres· el N∞ de pÛliza de tu Seguro de EmbarcaciÛn.');
+      _showError('Ingres√° el N¬∞ de p√≥liza de tu Seguro de Embarcaci√≥n.');
       return;
     }
 
     if (_selectedRole == 'capitan' && _seguroUrl != null && _vencimientoSeguro == null) {
-      _showError('Por favor, ingres· la fecha de vencimiento de tu Seguro.');
+      _showError('Por favor, ingres√° la fecha de vencimiento de tu Seguro.');
       return;
     }
 
@@ -189,11 +189,11 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
     try {
       // 1. Validaciones previas
       if (_passwordController.text != _confirmPasswordController.text) {
-        _showError('Las contraseÒas no coinciden.');
+        _showError('Las contrase√±as no coinciden.');
         return;
       }
       if (_passwordController.text.length < 6) {
-        _showError('La contraseÒa debe tener al menos 6 caracteres.');
+        _showError('La contrase√±a debe tener al menos 6 caracteres.');
         return;
       }
 
@@ -217,7 +217,7 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
             );
             userId = loginResponse.user?.id;
           } catch (loginErr) {
-            _showError('Este email ya est· en uso, pero la contraseÒa es incorrecta.');
+            _showError('Este email ya est√° en uso, pero la contrase√±a es incorrecta.');
             return;
           }
         } else {
@@ -275,7 +275,7 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
             'embarcacion_url': _embarcacionUrl,
           });
         } catch (e) {
-          debugPrint('Error no crÌtico al guardar guÌa en registro maestro: $e');
+          debugPrint('Error no cr√≠tico al guardar gu√≠a en registro maestro: $e');
         }
       }
 
@@ -284,7 +284,7 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
       }
 
     } on AuthException catch (e) {
-      _showError('Error de autenticaciÛn: ${e.message}');
+      _showError('Error de autenticaci√≥n: ${e.message}');
     } catch (e) {
       _showError('Error inesperado: $e');
     } finally {
@@ -315,12 +315,12 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
               size: 30
             ),
             const SizedBox(width: 10),
-            Text(esCapitan ? '°REGISTRO ENVIADO!' : '°…XITO!', style: const TextStyle(color: Colors.white)),
+            Text(esCapitan ? '¬°REGISTRO ENVIADO!' : '¬°√âXITO!', style: const TextStyle(color: Colors.white)),
           ],
         ),
         content: Text(
           esCapitan 
-            ? 'Tu legajo ha sido enviado a la Central de Admisiones. Un administrador revisar· tu perfil. Te notificaremos por email cuando tu cuenta sea habilitada.'
+            ? 'Tu legajo ha sido enviado a la Central de Admisiones. Un administrador revisar√° tu perfil. Te notificaremos por email cuando tu cuenta sea habilitada.'
             : 'Tu perfil ha sido creado correctamente. Ya puedes comenzar a usar EL GUIA YA.',
           style: const TextStyle(color: Colors.white70),
         ),
@@ -333,7 +333,7 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
               child: ElevatedButton(
                 onPressed: () async {
                   if (esCapitan) {
-                    // Capit·n: Cerramos sesiÛn y volvemos al inicio/login real
+                    // Capit√°n: Cerramos sesi√≥n y volvemos al inicio/login real
                     await SupabaseService.signOut();
                     if (context.mounted) {
                       Navigator.of(context).pushAndRemoveUntil(
@@ -454,7 +454,7 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
           const SizedBox(height: 16),
           _buildTextField(
             _passwordController, 
-            'ContraseÒa', 
+            'Contrase√±a', 
             Icons.lock, 
             obscureText: !_showPassword,
             showEye: true,
@@ -463,7 +463,7 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
           const SizedBox(height: 16),
           _buildTextField(
             _confirmPasswordController, 
-            'Confirmar ContraseÒa', 
+            'Confirmar Contrase√±a', 
             Icons.lock_outline, 
             obscureText: !_showConfirmPassword,
             showEye: true,
@@ -475,7 +475,7 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
             children: [
               Expanded(
                 child: Text(
-                  'øTIENE C”DIGO DE REFERIDO?',
+                  '¬øTIENE C√ìDIGO DE REFERIDO?',
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.9),
                     fontWeight: FontWeight.bold,
@@ -510,7 +510,7 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
                       filled: true,
                       fillColor: Colors.white.withOpacity(0.05),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      hintText: 'C”DIGO',
+                      hintText: 'C√ìDIGO',
                       hintStyle: const TextStyle(color: Colors.white24, fontSize: 11),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -542,7 +542,7 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
           
           _buildRoleCard('pescador', 'Soy Pescador', 'Busco excursiones y productos.', Icons.sailing),
           const SizedBox(height: 16),
-          _buildRoleCard('capitan', 'Soy Capit·n / GuÌa', 'Ofrezco mis servicios y embarcaciÛn.', Icons.anchor),
+          _buildRoleCard('capitan', 'Soy Capit√°n / Gu√≠a', 'Ofrezco mis servicios y embarcaci√≥n.', Icons.anchor),
         ],
       ),
     );
@@ -590,12 +590,12 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
           const SizedBox(height: 20),
           _buildTextField(_nombreController, 'Nombre Completo', Icons.person),
           const SizedBox(height: 16),
-          _buildTextField(_dniTextController, 'DNI / IdentificaciÛn', Icons.badge),
+          _buildTextField(_dniTextController, 'DNI / Identificaci√≥n', Icons.badge),
           const SizedBox(height: 16),
-          _buildTextField(_telefonoController, 'TelÈfono / WhatsApp', Icons.phone, keyboardType: TextInputType.phone),
+          _buildTextField(_telefonoController, 'Tel√©fono / WhatsApp', Icons.phone, keyboardType: TextInputType.phone),
           const SizedBox(height: 25),
           
-          const Text('UBICACI”N / DIRECCI”N', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+          const Text('UBICACI√ìN / DIRECCI√ìN', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
           const SizedBox(height: 15),
           Row(
             children: [
@@ -605,11 +605,11 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
                 flex: 2, 
                 child: _buildTextField(
                   _alturaController, 
-                  'N˙mero', 
+                  'N√∫mero', 
                   null, // SIN ICONO #
                   customPrefix: const Padding(
                     padding: EdgeInsets.only(left: 12, right: 8),
-                    child: Text('N∞', style: TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold, fontSize: 16)),
+                    child: Text('N¬∞', style: TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold, fontSize: 16)),
                   ),
                   keyboardType: TextInputType.number
                 )
@@ -646,13 +646,13 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('DOCUMENTACI”N', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+          const Text('DOCUMENTACI√ìN', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           const Text('Sube fotos legibles para validar tu perfil.', style: TextStyle(color: Colors.white60)),
           const SizedBox(height: 30),
           
           DocumentCaptureWidget(
-            label: 'DNI / IDENTIFICACI”N (FRENTE)',
+            label: 'DNI / IDENTIFICACI√ìN (FRENTE)',
             tipoDoc: 'dni',
             icon: Icons.badge_outlined,
             onUploadComplete: (url) => setState(() => _dniImageUrl = url),
@@ -663,33 +663,33 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
             _buildDatePickerBox('Vencimiento del Carnet de Timonel', _vencimientoCarnet, 'carnet'),
             _buildTextField(
               _numeroCarnetController,
-              'N∞ Carnet de Timonel',
+              'N¬∞ Carnet de Timonel',
               Icons.badge_outlined,
             ),
             const SizedBox(height: 16),
             DocumentCaptureWidget(
-              label: 'CARNET DE TIMONEL / GUÕA',
+              label: 'CARNET DE TIMONEL / GU√çA',
               tipoDoc: 'carnet',
               icon: Icons.assignment_ind_outlined,
               onUploadComplete: (url) => setState(() => _carnetUrl = url),
             ),
             const SizedBox(height: 20),
-            _buildDatePickerBox('Vencimiento del Seguro de EmbarcaciÛn', _vencimientoSeguro, 'seguro'),
+            _buildDatePickerBox('Vencimiento del Seguro de Embarcaci√≥n', _vencimientoSeguro, 'seguro'),
             _buildTextField(
               _numeroPolizaController,
-              'N∞ PÛliza de Seguro',
+              'N¬∞ P√≥liza de Seguro',
               Icons.policy_outlined,
             ),
             const SizedBox(height: 16),
             DocumentCaptureWidget(
-              label: 'SEGURO DE EMBARCACI”N',
+              label: 'SEGURO DE EMBARCACI√ìN',
               tipoDoc: 'seguro',
               icon: Icons.security_outlined,
               onUploadComplete: (url) => setState(() => _seguroUrl = url),
             ),
             const SizedBox(height: 20),
             DocumentCaptureWidget(
-              label: 'FOTO DE LA EMBARCACI”N',
+              label: 'FOTO DE LA EMBARCACI√ìN',
               tipoDoc: 'embarcacion',
               icon: Icons.directions_boat_outlined,
               onUploadComplete: (url) => setState(() => _embarcacionUrl = url),
@@ -699,7 +699,7 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
             const SizedBox(height: 15),
             _buildTextField(
               _capacidadController, 
-              'øCu·ntas personas puede llevar?', 
+              '¬øCu√°ntas personas puede llevar?', 
               Icons.groups_outlined, 
               keyboardType: TextInputType.number
             ),
@@ -782,7 +782,7 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
                   Text(
                     date != null
                         ? '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}'
-                        : '?? Toc· para seleccionar la fecha',
+                        : 'üìÖ Toc√° para seleccionar la fecha',
                     style: TextStyle(
                       color: date != null ? Colors.white : Colors.redAccent.withOpacity(0.8),
                       fontSize: 13,
@@ -843,7 +843,7 @@ class _RegistroMaestroScreenState extends State<RegistroMaestroScreen> {
                     side: const BorderSide(color: Colors.white38),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                   ),
-                  child: const Text('ATR¡S', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
+                  child: const Text('ATR√ÅS', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
                 ),
               ),
             ),

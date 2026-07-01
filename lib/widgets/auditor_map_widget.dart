@@ -38,7 +38,7 @@ class AuditorMapWidget extends StatelessWidget {
               Icon(Icons.gps_off, color: Colors.white24, size: 40),
               SizedBox(height: 12),
               Text(
-                'No hay registros de GPS para este viaje a�n.',
+                'No hay registros de GPS para este viaje aún.',
                 style: TextStyle(color: Colors.white38, fontSize: 12),
               ),
             ],

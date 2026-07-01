@@ -209,7 +209,7 @@ class _AdminTrackingScreenState extends State<AdminTrackingScreen> {
                 children: const [
                   Icon(Icons.local_shipping, color: Colors.white),
                   SizedBox(width: 8),
-                  Text('Seguimiento env�os tienda'),
+                  Text('Seguimiento envíos tienda'),
                 ],
               ),
               backgroundColor: _azulNautico,

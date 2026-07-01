@@ -335,9 +335,17 @@ class _AdminMegafonoScreenState extends State<AdminMegafonoScreen> {
 
   Widget _buildPlantillaChip(String label, Color color) {
     return ActionChip(
-      label: Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
-      backgroundColor: color.withValues(alpha: 0.1),
-      side: BorderSide(color: color.withValues(alpha: 0.5)),
+      label: Text(
+        label,
+        style: GoogleFonts.outfit(
+          color: color,
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
+      ),
+      backgroundColor: Colors.white.withValues(alpha: 0.05),
+      surfaceTintColor: Colors.transparent,
+      side: BorderSide(color: color.withValues(alpha: 0.5), width: 1.5),
       onPressed: () => _aplicarPlantilla(label),
     );
   }

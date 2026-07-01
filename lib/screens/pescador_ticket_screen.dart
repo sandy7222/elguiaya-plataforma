@@ -183,7 +183,7 @@ class _PescadorTicketScreenState extends State<PescadorTicketScreen> {
       child: Column(
         children: [
           const Text(
-            '�OFERTA RECIBIDA!',
+            '¡OFERTA RECIBIDA!',
             style: TextStyle(
               color: _blancoPuro,
               fontSize: 24,
@@ -666,7 +666,7 @@ class _PescadorTicketScreenState extends State<PescadorTicketScreen> {
               children: [
                 Icon(Icons.check_circle, color: _blancoPuro),
                 SizedBox(width: 8),
-                Text('�Oferta aceptada exitosamente!'),
+                Text('¡Oferta aceptada exitosamente!'),
               ],
             ),
             backgroundColor: _verdeBrillante,
@@ -696,7 +696,7 @@ class _PescadorTicketScreenState extends State<PescadorTicketScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Rechazar Oferta'),
-        content: const Text('�Estas seguro que deseas rechazar esta oferta?'),
+        content: const Text('¿Estas seguro que deseas rechazar esta oferta?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),

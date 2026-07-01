@@ -63,7 +63,7 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
       if (perfil['vencimiento_seguro'] != null) {
         final fecha = DateTime.tryParse(perfil['vencimiento_seguro'] as String);
         if (fecha != null && fecha.isBefore(hoy)) {
-          motivosVencidos.add('Seguro de Embarcaci�n');
+          motivosVencidos.add('Seguro de Embarcación');
         }
       }
       if (perfil['vencimiento_carnet'] != null) {
@@ -80,7 +80,7 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
         });
       }
     } catch (e) {
-      // No bloquear la app si falla la verificaci�n
+      // No bloquear la app si falla la verificación
     }
   }
 
@@ -362,7 +362,7 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              '?  $_motivoVencimiento vencido. Para regularizar tu documentaci�n, contact� a soporte.',
+              '?  $_motivoVencimiento vencido. Para regularizar tu documentaci�n, contactá a soporte.',
               style: const TextStyle(
                 color: Color(0xFFFF6600),
                 fontSize: 12,
@@ -386,7 +386,7 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
     );
   }
 
-  /// Reemplaza la lista de cotizaciones cuando los docs est�n vencidos.
+  /// Reemplaza la lista de cotizaciones cuando los docs están vencidos.
   Widget _buildContenidoBloqueado() {
     return Center(
       child: Padding(
@@ -422,9 +422,9 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
             ),
             const SizedBox(height: 10),
             Text(
-              'Tu $_motivoVencimiento est� vencido.\n'
+              'Tu $_motivoVencimiento está vencido.\n'
               'Para volver a recibir solicitudes de pescadores,\n'
-              'regulariz� tu documentaci�n con el equipo de EL GUIA YA.',
+              'regularizá tu documentaci�n con el equipo de EL GUIA YA.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: _blancoPuro.withOpacity(0.7),
@@ -462,14 +462,14 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
     );
   }
 
-  /// Abre WhatsApp incluyendo el UUID del capit�n en el mensaje
+  /// Abre WhatsApp incluyendo el UUID del capitán en el mensaje
   /// para que soporte lo identifique sin pedirle datos al usuario.
   Future<void> _contactarSoporteWhatsApp() async {
     final uuid = _capitanUuid.isNotEmpty ? _capitanUuid : 'no-identificado';
     final mensaje = Uri.encodeComponent(
-      'Hola, soy el capit�n con UUID: $uuid\n'
+      'Hola, soy el capitán con UUID: $uuid\n'
       'Necesito regularizar mi documentaci�n ($_motivoVencimiento).\n'
-      'Quedo a disposici�n. Gracias.',
+      'Quedo a disposición. Gracias.',
     );
     final url = Uri.parse('https://wa.me/5493624000000?text=$mensaje');
     if (await canLaunchUrl(url)) {
@@ -944,7 +944,7 @@ class _CotizacionesCapitanScreenState extends State<CotizacionesCapitanScreen> {
       );
     } catch (e) {
       if (mounted) {
-        Navigator.pop(context); // Cerrar loader si est� abierto
+        Navigator.pop(context); // Cerrar loader si está abierto
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al cargar estadisticas: $e'),

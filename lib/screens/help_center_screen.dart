@@ -17,7 +17,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
   bool _showSuggestions = false;
 
   // Categor�as de FAQs
-  final String _catEnvios = "Env�os";
+  final String _catEnvios = "Envíos";
   final String _catPagos = "Pagos";
   final String _catCambios = "Cambios";
   final String _catCancelaciones = "Cancelaciones";
@@ -35,58 +35,58 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
     _faqs = [
       FaqItem(
         category: _catEnvios,
-        question: '�Cu�nto tarda en llegar mi pedido?',
-        answer: 'Los env�os a CABA y GBA demoran entre 24 y 48 horas h�biles. Al interior del pa�s, el plazo es de 3 a 5 d�as h�biles a trav�s de Andreani.',
+        question: '�Cuánto tarda en llegar mi pedido?',
+        answer: 'Los envíos a CABA y GBA demoran entre 24 y 48 horas h�biles. Al interior del país, el plazo es de 3 a 5 días h�biles a trav�s de Andreani.',
       ),
       FaqItem(
         category: _catEnvios,
-        question: '�C�mo realizo el seguimiento de mi env�o?',
-        answer: 'Una vez despachado el producto, te enviaremos un email con el c�digo de seguimiento de Andreani. Tambi�n pod�s verlo en la secci�n "Mis Compras" dentro de tu perfil.',
+        question: '�Cómo realizo el seguimiento de mi envío?',
+        answer: 'Una vez despachado el producto, te enviaremos un email con el c�digo de seguimiento de Andreani. Tambi�n podés verlo en la sección "Mis Compras" dentro de tu perfil.',
       ),
       FaqItem(
         category: _catEnvios,
         question: '�Puedo retirar mi compra en una sucursal?',
-        answer: 'S�, ofrecemos retiro sin cargo en nuestro centro de distribuci�n de San Fernando, Tigre o Rosario, de lunes a viernes de 9:00 a 18:00 hs.',
+        answer: 'Sí, ofrecemos retiro sin cargo en nuestro centro de distribución de San Fernando, Tigre o Rosario, de lunes a viernes de 9:00 a 18:00 hs.',
       ),
       FaqItem(
         category: _catPagos,
-        question: '�Qu� medios de pago aceptan?',
-        answer: 'Aceptamos todas las tarjetas de cr�dito y d�bito a trav�s de Mercado Pago. Tambi�n pod�s abonar con dinero en cuenta de Mercado Pago o mediante transferencia bancaria con un 10% de descuento.',
+        question: '�Qué medios de pago aceptan?',
+        answer: 'Aceptamos todas las tarjetas de crédito y débito a trav�s de Mercado Pago. Tambi�n podés abonar con dinero en cuenta de Mercado Pago o mediante transferencia bancaria con un 10% de descuento.',
       ),
       FaqItem(
         category: _catPagos,
         question: '�Puedo pagar en cuotas?',
-        answer: 'S�, ofrecemos hasta 3 cuotas sin inter�s con bancos seleccionados a trav�s de Mercado Pago y promociones bancarias vigentes que pod�s ver al momento de abonar.',
+        answer: 'Sí, ofrecemos hasta 3 cuotas sin inter�s con bancos seleccionados a trav�s de Mercado Pago y promociones bancarias vigentes que podés ver al momento de abonar.',
       ),
       FaqItem(
         category: _catPagos,
-        question: '�C�mo solicito mi factura A?',
-        answer: 'Durante el proceso de checkout pod�s ingresar tu CUIT y raz�n social para que nuestro sistema emita autom�ticamente la factura tipo A.',
+        question: '�Cómo solicito mi factura A?',
+        answer: 'Durante el proceso de checkout podés ingresar tu CUIT y razón social para que nuestro sistema emita autom�ticamente la factura tipo A.',
       ),
       FaqItem(
         category: _catCambios,
         question: '�Cu�l es el plazo para realizar un cambio?',
-        answer: 'Ten�s hasta 30 d�as corridos desde que recibiste el producto para solicitar un cambio por talle, color o modelo, siempre que el producto est� sin uso y en su empaque original.',
+        answer: 'Ten�s hasta 30 días corridos desde que recibiste el producto para solicitar un cambio por talle, color o modelo, siempre que el producto está sin uso y en su empaque original.',
       ),
       FaqItem(
         category: _catCambios,
-        question: '�Qu� costo tiene realizar un cambio?',
-        answer: 'El primer cambio por talle o falla de f�brica es totalmente gratuito. Para cambios posteriores o devoluciones por arrepentimiento, el cliente asume el costo de env�o.',
+        question: '�Qué costo tiene realizar un cambio?',
+        answer: 'El primer cambio por talle o falla de f�brica es totalmente gratuito. Para cambios posteriores o devoluciones por arrepentimiento, el cliente asume el costo de envío.',
       ),
       FaqItem(
         category: _catCambios,
-        question: '�C�mo gestiono una devoluci�n?',
-        answer: 'Pod�s iniciar la devoluci�n directamente desde la app en "Mis Compras" o contactando a nuestro soporte. Te enviaremos una etiqueta de correo para despachar el paquete de retorno sin cargo.',
+        question: '�Cómo gestiono una devolución?',
+        answer: 'Pod�s iniciar la devolución directamente desde la app en "Mis Compras" o contactando a nuestro soporte. Te enviaremos una etiqueta de correo para despachar el paquete de retorno sin cargo.',
       ),
       FaqItem(
         category: _catCancelaciones,
         question: '�Puedo cancelar un pedido antes de recibirlo?',
-        answer: 'S�, siempre y cuando el pedido no haya sido despachado. Pod�s solicitar la cancelaci�n inmediata desde tu panel de control o por soporte de WhatsApp.',
+        answer: 'Sí, siempre y cuando el pedido no haya sido despachado. Pod�s solicitar la cancelación inmediata desde tu panel de control o por soporte de WhatsApp.',
       ),
       FaqItem(
         category: _catCancelaciones,
-        question: '�Cu�nto demora en acreditarse mi reembolso?',
-        answer: 'Una vez aprobada la devoluci�n o cancelaci�n, el reembolso se procesa de inmediato. Si pagaste con dinero en Mercado Pago se acredita al instante; si fue con tarjeta de cr�dito, puede demorar entre 2 y 10 d�as h�biles dependiendo del banco emisor.',
+        question: '�Cuánto demora en acreditarse mi reembolso?',
+        answer: 'Una vez aprobada la devolución o cancelación, el reembolso se procesa de inmediato. Si pagaste con dinero en Mercado Pago se acredita al instante; si fue con tarjeta de crédito, puede demorar entre 2 y 10 días h�biles dependiendo del banco emisor.',
       ),
     ];
     _filteredFaqs = List.from(_faqs);
@@ -166,7 +166,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
   }
 
   Future<void> _launchWhatsApp() async {
-    final url = Uri.parse("https://wa.me/5491122334455?text=Hola,%20necesito%20ayuda%20con%20una%20compra%20en%20Capit�nYA");
+    final url = Uri.parse("https://wa.me/5491122334455?text=Hola,%20necesito%20ayuda%20con%20una%20compra%20en%20CapitánYA");
     try {
       if (await canLaunchUrl(url)) {
         await launchUrl(url, mode: LaunchMode.externalApplication);
@@ -264,12 +264,12 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // 3. ACORDE�N DE FAQ DIN�MICO
+                    // 3. ACORDE�N DE FAQ DINºMICO
                     _buildFaqAccordion(),
 
                     const SizedBox(height: 54),
 
-                    // 4. BOT�N DE ESCAPE
+                    // 4. BOTÓN DE ESCAPE
                     _buildEscapeBanner(isMobile),
                   ],
                 ),
@@ -307,7 +307,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
           child: Column(
             children: [
               Text(
-                '�C�mo podemos ayudarte hoy, chamigo?',
+                '�Cómo podemos ayudarte hoy, chamigo?',
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w900,
@@ -318,7 +318,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Naveg� entre las dudas comunes de compras, pagos y despachos.',
+                'Navegá entre las dudas comunes de compras, pagos y despachos.',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.6),
                   fontSize: isMobile ? 12 : 14,
@@ -357,7 +357,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                       focusNode: _searchFocusNode,
                       style: const TextStyle(color: Colors.white, fontSize: 14),
                       decoration: InputDecoration(
-                        hintText: '�Qu� pasa con tu compra? Busc� tu duda ac�...',
+                        hintText: '�Qué pasa con tu compra? Buscá tu duda acá...',
                         hintStyle: TextStyle(color: Colors.white.withOpacity(0.35), fontSize: 13),
                         prefixIcon: const Icon(Icons.search_rounded, color: Colors.white54, size: 22),
                         suffixIcon: _searchQuery.isNotEmpty
@@ -472,7 +472,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
               runSpacing: spacing,
               children: [
                 _buildQuickCard(
-                  title: 'Mi Env�o / Seguimiento',
+                  title: 'Mi Envío / Seguimiento',
                   subtitle: 'Estado de entrega Andreani',
                   icon: Icons.local_shipping_outlined,
                   category: _catEnvios,
@@ -487,7 +487,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                 ),
                 _buildQuickCard(
                   title: 'Cambios y Devoluciones',
-                  subtitle: 'Plazos y costos de env�o',
+                  subtitle: 'Plazos y costos de envío',
                   icon: Icons.loop_rounded,
                   category: _catCambios,
                   width: width,
@@ -609,13 +609,13 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
             const Icon(Icons.search_off_rounded, color: Colors.white38, size: 40),
             const SizedBox(height: 12),
             Text(
-              'No encontramos resultados para tu b�squeda.',
+              'No encontramos resultados para tu búsqueda.',
               style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 13),
             ),
             const SizedBox(height: 8),
             TextButton(
               onPressed: _clearSearch,
-              child: const Text('Limpiar b�squeda', style: TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold)),
+              child: const Text('Limpiar búsqueda', style: TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -751,7 +751,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            'Charl� con un tripulante del equipo de soporte en tiempo real.',
+            'Charlá con un tripulante del equipo de soporte en tiempo real.',
             style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 13),
             textAlign: TextAlign.center,
           ),

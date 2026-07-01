@@ -119,9 +119,21 @@ serve(async (req: Request) => {
             sound: "elguia_alertas",            // ← Sonido WAV en res/raw/
             notification_priority: "PRIORITY_MAX",
             visibility: "PUBLIC",
-            icon: "ic_launcher",                // ← Usar icono estándar del lanzador para compatibilidad garantizada en Android
+            icon: "ic_stat_elguia",                // ← Usar icono monocromo de ancla para barra de estado (diseño premium estilo MercadoPago)
             color: "#1B4F72",
             click_action: "FLUTTER_NOTIFICATION_CLICK",
+          },
+        },
+        apns: {
+          headers: {
+            "apns-priority": "10", // Prioridad alta para entrega inmediata
+          },
+          payload: {
+            aps: {
+              sound: sonido === "default" ? "default" : `${sonido}.caf`,
+              badge: 1,
+              "content-available": 1, // Despierta el background handler en iOS
+            },
           },
         },
         data: {

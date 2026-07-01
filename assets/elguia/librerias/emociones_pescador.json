@@ -15,7 +15,7 @@
     },
     {
       "intencion": "frustracion_linea_rota",
-      "activadores": ["se me rompio", "corte la linea", "perdi el senuelo", "que bronca"],
+      "activadores": ["se me rompio", "corte la linea", "perdi el señuelo", "que bronca"],
       "respuesta_limpia": "¡Qué mala suerte! Da bronca cortar, pero atá otra vez con paciencia que el río siempre da revancha.",
       "gif": "duda"
     },
