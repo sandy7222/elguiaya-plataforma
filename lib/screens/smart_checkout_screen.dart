@@ -100,8 +100,8 @@ class _SmartCheckoutScreenState extends State<SmartCheckoutScreen>
     setState(() => _isLoadingDireccion = true);
 
     try {
-      // Simular usuario ID (en una app real vendria de autenticacion)
-      final usuarioId = 'user_${DateTime.now().millisecondsSinceEpoch}';
+      // Obtener el ID de usuario real de Supabase o usar fallback de UUID válido
+      final usuarioId = SupabaseService.currentUserId ?? '00000000-0000-0000-0000-000000000000';
 
       final direccion = DireccionEnvio.temporal(
         usuarioId: usuarioId,
@@ -252,8 +252,8 @@ class _SmartCheckoutScreenState extends State<SmartCheckoutScreen>
     setState(() => _isLoading = true);
 
     try {
-      // Simular usuario ID
-      final usuarioId = 'user_${DateTime.now().millisecondsSinceEpoch}';
+      // Obtener el ID de usuario real de Supabase o usar fallback de UUID válido
+      final usuarioId = SupabaseService.currentUserId ?? '00000000-0000-0000-0000-000000000000';
 
       // Guardar manifiestos en Supabase si hay items de viaje
       if (cartProvider.tieneItemsViaje) {
@@ -1212,7 +1212,7 @@ class _PasajeroFormDialogState extends State<_PasajeroFormDialog> {
     setState(() => _isLoadingFoto = true);
 
     try {
-      final usuarioId = 'user_${DateTime.now().millisecondsSinceEpoch}';
+      final usuarioId = SupabaseService.currentUserId ?? '00000000-0000-0000-0000-000000000000';
       final viajeId = widget.viajeId ?? 'temp_${DateTime.now().millisecondsSinceEpoch}';
 
       // Subir foto DNI al bucket documentos_viaje

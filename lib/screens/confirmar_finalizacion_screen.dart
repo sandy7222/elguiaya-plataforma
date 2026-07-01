@@ -31,7 +31,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
   String get _pescadorId =>
       Supabase.instance.client.auth.currentUser?.id ??
       SupabaseService.currentUserId ??
-      ''; // Si es vac�o, los m�todos fallar�n con gracia
+      ''; // Si es vacío, los métodos fallarán con gracia
   
   // Colores El Guia YA
   static const Color _azulNautico = Color(0xFF1565C0);
@@ -102,7 +102,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
 
   Future<void> _confirmarViajeExitoso(String pedidoId) async {
     try {
-      // 1. Mostrar estado de verificaci�n
+      // 1. Mostrar estado de verificación
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Row(
@@ -113,7 +113,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                 child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
               ),
               SizedBox(width: 16),
-              Text('Verificando ubicaci�n satelital GPS...'),
+              Text('Verificando ubicación satelital GPS...'),
             ],
           ),
           backgroundColor: _azulNautico,
@@ -121,17 +121,17 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
         ),
       );
 
-      // 2. Verificar permisos de geolocalizaci�n
+      // 2. Verificar permisos de geolocalización
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
       }
 
       if (permission == LocationPermission.deniedForever || permission == LocationPermission.denied) {
-        throw Exception('Se requieren permisos de ubicaci�n para verificar la finalizaci�n del viaje.');
+        throw Exception('Se requieren permisos de ubicación para verificar la finalización del viaje.');
       }
 
-      // 3. Capturar ubicaci�n en tiempo real del pescador
+      // 3. Capturar ubicación en tiempo real del pescador
       Position pescadorPos = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
@@ -141,7 +141,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
         'lon': pescadorPos.longitude,
       };
 
-      // 4. Obtener coordenadas del capit�n y puerto de destino
+      // 4. Obtener coordenadas del capitán y puerto de destino
       final coordenadasVerificacion = await SupabaseService.obtenerCoordenadasVerificacion(pedidoId);
       final coordenadasCapitan = coordenadasVerificacion['capitan']!;
       final coordenadasPuertoDestino = coordenadasVerificacion['puerto']!;
@@ -213,17 +213,17 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
         descripcion.contains('transporte') ||
         descripcion.contains('cruce') ||
         descripcion.contains('isla');
-    final tipoServicio = esTraslado ? 'Transporte/Traslado' : 'Gu�a de Pesca';
+    final tipoServicio = esTraslado ? 'Transporte/Traslado' : 'Guía de Pesca';
     final etiquetasDisponibles = esTraslado
-        ? ['Puntualidad en Cruce', 'Puntualidad en Retiro', 'Viaje Seguro/Tranquilo', 'Buena Comunicaci�n']
-        : ['Buena Embarcaci�n', 'Puntual', 'Conoce los Pozos de Pesca', 'Atento/Asesor� bien'];
+        ? ['Puntualidad en Cruce', 'Puntualidad en Retiro', 'Viaje Seguro/Tranquilo', 'Buena Comunicación']
+        : ['Buena Embarcación', 'Puntual', 'Conoce los Pozos de Pesca', 'Atento/Asesoró bien'];
 
     int rating = 5;
     final Set<String> selectedTags = {};
     final commentController = TextEditingController();
     bool isSaving = false;
 
-    // --- Nuevos estados para informaci�n de pesca ---
+    // --- Nuevos estados para información de pesca ---
     XFile? capturaFoto;
     final especieController = TextEditingController();
     final pesoController = TextEditingController();
@@ -271,7 +271,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Por favor, califica al Capit�n del viaje.',
+                            'Por favor, califica al Capitán del viaje.',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.6),
@@ -386,7 +386,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                             maxLines: 3,
                             style: const TextStyle(color: Colors.white, fontSize: 14),
                             decoration: InputDecoration(
-                              hintText: 'Cu�ntanos m�s sobre el viaje (opcional)...',
+                              hintText: 'Cu�ntanos más sobre el viaje (opcional)...',
                               hintStyle: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 13),
                               fillColor: Colors.white.withOpacity(0.04),
                               filled: true,
@@ -407,7 +407,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                           ),
                           const SizedBox(height: 20),
                           
-                          // Secci�n Detalles de Pesca (Blog de Piques & Gu-IA)
+                          // Sección Detalles de Pesca (Blog de Piques & Gu-IA)
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
@@ -575,7 +575,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                                           ),
                                           const SizedBox(height: 2),
                                           Text(
-                                            'Publicar� tu rese�a, fotos y especie de forma p�blica en la secci�n de Comunidad de la tienda.',
+                                            'Publicar� tu reseña, fotos y especie de forma pública en la sección de Comunidad de la tienda.',
                                             style: TextStyle(
                                               color: Colors.white.withOpacity(0.4),
                                               fontSize: 10,
@@ -645,7 +645,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                                               lat = currentPos?.latitude ?? 0.0;
                                               lon = currentPos?.longitude ?? 0.0;
                                             } catch (locErr) {
-                                              print('?? Error al obtener ubicaci�n para coordenadas: $locErr');
+                                              print('?? Error al obtener ubicación para coordenadas: $locErr');
                                             }
                                           }
 
@@ -659,7 +659,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                                             'longitud': lon != 0.0 ? lon : null,
                                           };
 
-                                          // 1. Guardar calificaci�n
+                                          // 1. Guardar calificación
                                           await SupabaseService.crearCalificacionViaje(
                                             pedidoId: viaje['id'],
                                             calificadorId: _pescadorId,
@@ -669,7 +669,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                                             aspectosPuntuados: aspectos,
                                           );
 
-                                          // 2. Si dio su consentimiento y el GPS est� activo, registrar en PiquePulse local
+                                          // 2. Si dio su consentimiento y el GPS está activo, registrar en PiquePulse local
                                           if (permitirPublicarBlog) {
                                             try {
                                               final box = await Hive.openBox<PiquePulse>('guia_piques');
@@ -689,7 +689,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                                           }
 
                                           if (context.mounted) {
-                                            Navigator.pop(context); // Cerrar di�logo
+                                            Navigator.pop(context); // Cerrar diálogo
                                             // 2. Confirmar viaje utilizando el m�todo de la pantalla
                                             await _confirmarViajeExitoso(viaje['id']);
                                           }
@@ -727,7 +727,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                                         ),
                                       )
                                     : const Text(
-                                        'Guardar Calificaci�n',
+                                        'Guardar Calificación',
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                               ),
@@ -748,8 +748,8 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
 
   void _reportarProblema(String pedidoId, String descripcion) async {
     final motivosDisputa = [
-      'El capit�n/pescador no se present�',
-      'Problema mec�nico en la embarcaci�n',
+      'El capitán/pescador no se presentó',
+      'Problema mecánico en la embarcación',
       'Incumplimiento de lo pactado',
       'Maltrato o falta de seguridad',
     ];
@@ -802,7 +802,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Detalla el inconveniente para iniciar la retenci�n del pago.',
+                            'Detalla el inconveniente para iniciar la retención del pago.',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.6),
@@ -904,7 +904,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    'El saldo del viaje quedar� bloqueado de forma preventiva en el sistema y en Mercado Pago hasta su resoluci�n por administraci�n.',
+                                    'El saldo del viaje quedará bloqueado de forma preventiva en el sistema y en Mercado Pago hasta su resolución por administración.',
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: const Color(0xFFFFB300).withOpacity(0.85),
@@ -957,7 +957,7 @@ class _ConfirmarFinalizacionScreenState extends State<ConfirmarFinalizacionScree
                                           );
 
                                           if (context.mounted) {
-                                            Navigator.pop(context); // Cerrar di�logo
+                                            Navigator.pop(context); // Cerrar diálogo
                                             if (resultado['exito'] == true) {
                                               ScaffoldMessenger.of(context).showSnackBar(
                                                 const SnackBar(

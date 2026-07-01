@@ -140,4 +140,64 @@ class NotificacionService {
       rethrow;
     }
   }
+
+  /// Elimina una notificación específica por su ID (ej. al deslizar)
+  Future<void> eliminarNotificacion(String notificacionId) async {
+    try {
+      await _supabase
+          .from('notificaciones_globales')
+          .delete()
+          .eq('id', notificacionId);
+      debugPrint('✅ [NotificacionService] Notificación $notificacionId eliminada.');
+    } catch (e) {
+      debugPrint('❌ [NotificacionService] Error al eliminar notificación: $e');
+      rethrow;
+    }
+  }
+
+  /// Marca TODAS las notificaciones de un usuario como leídas
+  Future<void> marcarTodasComoLeidas(String usuarioId) async {
+    try {
+      // 1. En notificaciones_globales
+      await _supabase
+          .from('notificaciones_globales')
+          .update({'leido': true})
+          .eq('receptor_id', usuarioId)
+          .eq('leido', false);
+
+      // 2. En la tabla legada 'notificaciones'
+      await _supabase
+          .from('notificaciones')
+          .update({'leida': true})
+          .eq('usuario_id', usuarioId)
+          .eq('leida', false);
+
+      debugPrint('✅ [NotificacionService] Todas las notificaciones del usuario $usuarioId marcadas como leídas.');
+    } catch (e) {
+      debugPrint('❌ [NotificacionService] Error al marcar todas como leídas: $e');
+      rethrow;
+    }
+  }
+
+  /// Limpia por completo la bandeja del usuario (elimina todas sus notificaciones)
+  Future<void> limpiarBandeja(String usuarioId) async {
+    try {
+      // 1. Eliminar de notificaciones_globales
+      await _supabase
+          .from('notificaciones_globales')
+          .delete()
+          .eq('receptor_id', usuarioId);
+
+      // 2. Eliminar de la tabla legada 'notificaciones'
+      await _supabase
+          .from('notificaciones')
+          .delete()
+          .eq('usuario_id', usuarioId);
+
+      debugPrint('✅ [NotificacionService] Bandeja de notificaciones del usuario $usuarioId vaciada.');
+    } catch (e) {
+      debugPrint('❌ [NotificacionService] Error al limpiar bandeja: $e');
+      rethrow;
+    }
+  }
 }

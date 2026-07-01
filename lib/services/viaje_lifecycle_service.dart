@@ -357,12 +357,33 @@ class ViajeLifecycleService {
       // Notificar al pescador
       final pedido = await _supabase
           .from('pedidos')
-          .select('pescador_id')
+          .select('pescador_id, presupuesto_id')
           .eq('id', pedidoId)
           .maybeSingle();
 
       if (pedido != null && pedido['pescador_id'] != null) {
         await NotificacionHelper.viajeIniciado(pedido['pescador_id'] as String, pedidoId);
+      }
+
+      // Auto-corrección de seguridad: Asegurarse de que el presupuesto y cotización vinculados queden marcados
+      if (pedido != null && pedido['presupuesto_id'] != null) {
+        try {
+          final presId = pedido['presupuesto_id'];
+          final presResponse = await _supabase
+              .from('presupuestos')
+              .select('cotizacion_id')
+              .eq('id', presId)
+              .maybeSingle();
+          if (presResponse != null) {
+            await _supabase.from('presupuestos').update({'estado': 'aceptado'}).eq('id', presId);
+            final cotId = presResponse['cotizacion_id'];
+            if (cotId != null) {
+              await _supabase.from('cotizaciones').update({'estado': 'cerrada'}).eq('id', cotId);
+            }
+          }
+        } catch (e) {
+          print('⚠️ [AUTO-HEAL] Error al auto-corregir estados de cotización/presupuesto en iniciarViaje: $e');
+        }
       }
 
       await ViajeGpsCoordinator().startForTrip(
@@ -560,12 +581,33 @@ class ViajeLifecycleService {
       // Obtener datos del pedido
       final pedido = await _supabase
           .from('pedidos')
-          .select('pescador_id, capitan_id, monto_total')
+          .select('pescador_id, capitan_id, monto_total, presupuesto_id')
           .eq('id', pedidoId)
           .maybeSingle();
 
       final capitanId  = pedido?['capitan_id']?.toString()  ?? '';
       final pescadorId = pedido?['pescador_id']?.toString() ?? '';
+      final presId     = pedido?['presupuesto_id'];
+
+      // Auto-corrección de seguridad al cerrar el viaje
+      if (presId != null) {
+        try {
+          final presResponse = await _supabase
+              .from('presupuestos')
+              .select('cotizacion_id')
+              .eq('id', presId)
+              .maybeSingle();
+          if (presResponse != null) {
+            await _supabase.from('presupuestos').update({'estado': 'aceptado'}).eq('id', presId);
+            final cotId = presResponse['cotizacion_id'];
+            if (cotId != null) {
+              await _supabase.from('cotizaciones').update({'estado': 'cerrada'}).eq('id', cotId);
+            }
+          }
+        } catch (e) {
+          print('⚠️ [AUTO-HEAL] Error al auto-corregir estados de cotización/presupuesto en cerrarViaje: $e');
+        }
+      }
 
       // Notificar a ambas partes que el viaje quedo cerrado
       if (capitanId.isNotEmpty && pescadorId.isNotEmpty) {

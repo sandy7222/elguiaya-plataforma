@@ -75,7 +75,7 @@ class _DisclaimerTiemposEntregaWidgetState extends State<DisclaimerTiemposEntreg
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    '?? Politica de Tiempos de Entrega',
+                    'ð PolÃ­tica de Tiempos de Entrega',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -93,10 +93,10 @@ class _DisclaimerTiemposEntregaWidgetState extends State<DisclaimerTiemposEntreg
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '� Los plazos estimados son proporcionados por el transportista\n'
-                    '� El Guia YA no se responsabiliza por demoras en la entrega\n'
-                    '� Las consultas sobre el estado del envio deben realizarse directamente con Correo Argentino\n'
-                    '� Una vez despachado, el seguimiento estara disponible en tu panel',
+                    'Â Los plazos estimados son proporcionados por el transportista\n'
+                    'Â El Guia YA no se responsabiliza por demoras en la entrega\n'
+                    'Â Las consultas sobre el estado del envio deben realizarse directamente con Correo Argentino\n'
+                    'Â Una vez despachado, el seguimiento estara disponible en tu panel',
                     style: TextStyle(
                       fontSize: 11,
                       color: Colors.grey[700],
@@ -196,15 +196,15 @@ class _DisclaimerTiemposEntregaWidgetState extends State<DisclaimerTiemposEntreg
             ),
             SizedBox(height: 12),
             Text(
-              '� El Guia YA no controla los tiempos de entrega finales\n'
-              '� Los plazos dependen exclusivamente de Correo Argentino\n'
-              '� Las demoras no afectaran la liquidacion del capitan\n'
-              '� Deberas gestionar directamente las consultas de seguimiento',
+              'Â El Guia YA no controla los tiempos de entrega finales\n'
+              'Â Los plazos dependen exclusivamente de Correo Argentino\n'
+              'Â Las demoras no afectaran la liquidacion del capitan\n'
+              'Â Deberas gestionar directamente las consultas de seguimiento',
               style: TextStyle(fontSize: 12),
             ),
             SizedBox(height: 16),
             Text(
-              '�Deseas continuar y aceptar estos terminos?',
+              'Â¿Deseas continuar y aceptar estos terminos?',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
           ],
@@ -250,7 +250,7 @@ class _DisclaimerTiemposEntregaWidgetState extends State<DisclaimerTiemposEntreg
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Center(child: Text('? Aceptacion registrada exitosamente')),
+            content: Center(child: Text('â AceptaciÃ³n registrada exitosamente')),
             backgroundColor: Colors.green,
           ),
         );
@@ -318,7 +318,7 @@ class BloqueoPuntoEmbarqueWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    '?? Politica de Entrega',
+                    'ð¦ PolÃ­tica de Entrega',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -336,11 +336,11 @@ class BloqueoPuntoEmbarqueWidget extends StatelessWidget {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    '?? No se permiten entregas en:\n'
-                    '� Muelles o puertos\n'
-                    '� Terminales de embarque\n'
-                    '� Aeropuertos\n'
-                    '� Estaciones de transporte',
+                    'ð« No se permiten entregas en:\n'
+                    'Â Muelles o puertos\n'
+                    'Â Terminales de embarque\n'
+                    'Â Aeropuertos\n'
+                    'Â Estaciones de transporte',
                     style: TextStyle(
                       fontSize: 11,
                       color: Colors.grey[700],
@@ -404,7 +404,7 @@ class SeparacionFlujosWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    '?? Flujos Independientes',
+                    'ð Flujos Independientes',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -421,9 +421,9 @@ class SeparacionFlujosWidget extends StatelessWidget {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    '? Viaje Realizado ? Liquidacion del capitan habilitada\n'
-                    '?? Producto Entregado ? Seguimiento completado\n'
-                    '? Una demora en el correo NO bloquea la liquidacion del capitan',
+                    'ð¢ Viaje Realizado â LiquidaciÃ³n del capitÃ¡n habilitada\n'
+                    'ð¦ Producto Entregado â Seguimiento completado\n'
+                    'â ï¸ Una demora en el correo NO bloquea la liquidaciÃ³n del capitÃ¡n',
                     style: TextStyle(
                       fontSize: 11,
                       color: Colors.grey[700],

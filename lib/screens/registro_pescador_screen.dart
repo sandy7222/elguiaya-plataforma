@@ -35,7 +35,7 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
   final _emergenciaTelefonoController = TextEditingController();
   bool _traeReferido = false;
 
-  // -- Tipo de viaje y servicios del capit·n-pescador
+  // -- Tipo de viaje y servicios del capit√°n-pescador
   bool _haceSalidaPescaEmbarcada = false;
   bool _haceTraslado = false;
   bool _ofreceCabana = false;
@@ -98,11 +98,11 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
     }
 
     if (_emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
-      _showError('Por favor completa Email y ContraseÒa');
+      _showError('Por favor completa Email y Contrase√±a');
       return;
     }
     if (_passwordController.text != _confirmPasswordController.text) {
-      _showError('Las contraseÒas no coinciden');
+      _showError('Las contrase√±as no coinciden');
       return;
     }
 
@@ -140,7 +140,7 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
     } catch (e) {
       setState(() => _isLoading = false);
       if (e.toString().contains('already registered')) {
-        _showError('El email ya existe. Inicia sesiÛn.');
+        _showError('El email ya existe. Inicia sesi√≥n.');
         _startCooldown(30);
       } else if (e.toString().contains('429') || e.toString().contains('over_email_send_rate_limit')) {
         _showError('BLOQUEO DE EMAIL: Usa el "MODO TEST" abajo.');
@@ -204,7 +204,7 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
         final String inputCodigo = _referidoController.text.trim().toUpperCase();
         final promotor = await SupabaseService.validarCodigoPromotor(inputCodigo);
         if (promotor == null) {
-          _showError('CÛdigo de referido no v·lido. Registrando sin referido.');
+          _showError('C√≥digo de referido no v√°lido. Registrando sin referido.');
         } else {
           comisionistaId = promotor['id']?.toString();
           codigoReferidoFinal = promotor['codigo_comision']?.toString().toUpperCase();
@@ -258,7 +258,7 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
               children: [
                 Icon(Icons.check_circle, color: Colors.white),
                 SizedBox(width: 12),
-                Text('°Bienvenido! Registro completado.', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text('¬°Bienvenido! Registro completado.', style: TextStyle(fontWeight: FontWeight.bold)),
               ],
             ),
             backgroundColor: Colors.green,
@@ -292,7 +292,7 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
       backgroundColor: const Color(0xFF000B21),
       body: Stack(
         children: [
-          // Capa 0: Gradiente de Fondo Ultra Premium (DiseÒo Sistema)
+          // Capa 0: Gradiente de Fondo Ultra Premium (Dise√±o Sistema)
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -400,7 +400,7 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
         ),
         const SizedBox(height: 4),
         Text(
-          'InscripciÛn de Pescadores Deportivos',
+          'Inscripci√≥n de Pescadores Deportivos',
           style: TextStyle(
             color: Colors.white.withOpacity(0.6),
             fontSize: 13,
@@ -438,7 +438,7 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
           
           _buildModernField(
             _emailController,
-            'Correo ElectrÛnico',
+            'Correo Electr√≥nico',
             Icons.email_outlined,
             hintText: 'usuario@ejemplo.com',
             type: TextInputType.emailAddress,
@@ -446,22 +446,22 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
           
           _buildModernField(
             _passwordController,
-            'ContraseÒa',
+            'Contrase√±a',
             Icons.lock_open_rounded,
             isPassword: true,
             obscure: _obscurePassword,
             onToggle: () => setState(() => _obscurePassword = !_obscurePassword),
-            hintText: 'Crea una contraseÒa segura',
+            hintText: 'Crea una contrase√±a segura',
           ),
           
           _buildModernField(
             _confirmPasswordController,
-            'Confirmar ContraseÒa',
+            'Confirmar Contrase√±a',
             Icons.lock_outline_rounded,
             isPassword: true,
             obscure: _obscureConfirmPassword,
             onToggle: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
-            hintText: 'Repite tu contraseÒa',
+            hintText: 'Repite tu contrase√±a',
           ),
           
           // CAMPO DE REFERIDO OPCIONAL (Pedido por el usuario)
@@ -470,7 +470,7 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
             children: [
               const Expanded(
                 child: Text(
-                  'øFuiste referido por un promotor?',
+                  '¬øFuiste referido por un promotor?',
                   style: TextStyle(
                     color: Colors.white70,
                     fontSize: 13,
@@ -493,7 +493,7 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
             const SizedBox(height: 12),
             _buildModernField(
               _referidoController,
-              'CÛdigo de Promotor',
+              'C√≥digo de Promotor',
               Icons.card_giftcard_rounded,
               hintText: 'Ej: PROMO-5678',
             ),
@@ -574,7 +574,7 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
             _nombreController,
             'Nombre Completo',
             Icons.person_outline_rounded,
-            hintText: 'Ej: Juan PÈrez',
+            hintText: 'Ej: Juan P√©rez',
           ),
           
           Row(
@@ -592,7 +592,7 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
               Expanded(
                 child: _buildModernField(
                   _telefonoController,
-                  'TelÈfono',
+                  'Tel√©fono',
                   Icons.phone_iphone_rounded,
                   hintText: 'Ej: 1123456789',
                   type: TextInputType.phone,
@@ -602,7 +602,7 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
           ),
           
           const Text(
-            'DirecciÛn de Domicilio',
+            'Direcci√≥n de Domicilio',
             style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
@@ -623,9 +623,9 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
                 flex: 2,
                 child: _buildModernField(
                   _alturaController,
-                  'N∞',
+                  'N¬∞',
                   null,
-                  hintText: 'N∞',
+                  hintText: 'N¬∞',
                   type: TextInputType.number,
                 ),
               ),
@@ -656,7 +656,7 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
           
           _buildModernField(
             _cpController,
-            'CÛdigo Postal',
+            'C√≥digo Postal',
             Icons.pin_drop_rounded,
             hintText: 'Ej: 1425',
             type: TextInputType.number,
@@ -677,12 +677,12 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
             _emergenciaNombreController,
             'Nombre del Contacto Referente',
             Icons.contact_phone_outlined,
-            hintText: 'Ej: MarÌa PÈrez (Madre / Esposa)',
+            hintText: 'Ej: Mar√≠a P√©rez (Madre / Esposa)',
           ),
 
           _buildModernField(
             _emergenciaTelefonoController,
-            'TelÈfono de Emergencia',
+            'Tel√©fono de Emergencia',
             Icons.emergency_outlined,
             hintText: 'Ej: 1198765432',
             type: TextInputType.phone,
@@ -694,7 +694,7 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
 
           // -- TIPO DE VIAJE -----------------------------------------
           const Text(
-            'TIPO DE VIAJE CON LA EMBARCACI”N',
+            'TIPO DE VIAJE CON LA EMBARCACI√ìN',
             style: TextStyle(
               color: Colors.blueAccent,
               fontSize: 10,
@@ -704,14 +704,14 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'DeclaraciÛn obligatoria para calificaciÛn de comportamiento',
+            'Declaraci√≥n obligatoria para calificaci√≥n de comportamiento',
             style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 11),
           ),
           const SizedBox(height: 16),
 
           _buildSwitchTile(
             label: 'Salida de Pesca Embarcada',
-            subtitle: 'Salida al rÌo para pesca deportiva con el capit·n',
+            subtitle: 'Salida al r√≠o para pesca deportiva con el capit√°n',
             icon: Icons.directions_boat_rounded,
             value: _haceSalidaPescaEmbarcada,
             onChanged: (val) => setState(() => _haceSalidaPescaEmbarcada = val),
@@ -742,8 +742,8 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
           const SizedBox(height: 16),
 
           _buildSwitchTile(
-            label: 'Ofrece CabaÒa',
-            subtitle: 'El capit·n dispone de cabaÒa para los pescadores',
+            label: 'Ofrece Caba√±a',
+            subtitle: 'El capit√°n dispone de caba√±a para los pescadores',
             icon: Icons.cottage_rounded,
             value: _ofreceCabana,
             onChanged: (val) => setState(() {
@@ -757,7 +757,7 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
             CameraPicker(
               userId: _currentUserId,
               tipoDoc: 'foto_cabana',
-              titulo: 'Foto de la CabaÒa',
+              titulo: 'Foto de la Caba√±a',
               icono: Icons.photo_camera_rounded,
               onImageSelected: (_) {},
               onUrlGenerated: (url) => setState(() => _cabanaFotoUrl = url),
@@ -766,7 +766,7 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
           ],
 
           _buildSwitchTile(
-            label: 'Tiene BaÒo',
+            label: 'Tiene Ba√±o',
             subtitle: 'Dispone de instalaciones sanitarias en el punto de embarque',
             icon: Icons.wc_rounded,
             value: _tieneBano,
@@ -781,7 +781,7 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
             CameraPicker(
               userId: _currentUserId,
               tipoDoc: 'foto_bano',
-              titulo: 'Foto del BaÒo',
+              titulo: 'Foto del Ba√±o',
               icono: Icons.photo_camera_rounded,
               onImageSelected: (_) {},
               onUrlGenerated: (url) => setState(() => _banoFotoUrl = url),
@@ -808,7 +808,7 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
           CameraPicker(
             userId: _currentUserId,
             tipoDoc: Documento.FOTO_PERFIL_PESCADOR,
-            titulo: 'FotografÌa de Perfil',
+            titulo: 'Fotograf√≠a de Perfil',
             icono: Icons.face_rounded,
             onImageSelected: (_) {},
             onUrlGenerated: (url) => setState(() => _avatarUrl = url),
@@ -831,7 +831,7 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
             child: ElevatedButton(
               onPressed: (_isLoading || _dniUrl == null) ? null : _finalizarRegistro,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF00E676), // Verde esmeralda n·utico premium
+                backgroundColor: const Color(0xFF00E676), // Verde esmeralda n√°utico premium
                 foregroundColor: Colors.white,
                 disabledBackgroundColor: const Color(0xFF00E676).withOpacity(0.3),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -844,7 +844,7 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
                   Icon(Icons.check_circle_rounded, color: Colors.white),
                   SizedBox(width: 10),
                   Text(
-                    '°LISTO PARA NAVEGAR!',
+                    '¬°LISTO PARA NAVEGAR!',
                     style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5),
                   ),
                 ],
@@ -856,7 +856,7 @@ class _RegistroPescadorScreenState extends State<RegistroPescadorScreen> {
           if (_dniUrl == null)
             Center(
               child: Text(
-                '?? Debes subir la foto de tu DNI para finalizar',
+                '‚ö†Ô∏è Debes subir la foto de tu DNI para finalizar',
                 style: TextStyle(color: Colors.orangeAccent.withOpacity(0.8), fontSize: 11, fontWeight: FontWeight.w600),
               ),
             ),

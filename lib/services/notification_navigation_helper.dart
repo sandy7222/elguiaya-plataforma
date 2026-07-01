@@ -14,7 +14,10 @@ class NotificationNavigationHelper {
     if (!context.mounted) return;
 
     if (payload == null || payload.isEmpty) {
-      Navigator.pushNamed(context, '/notificaciones');
+      final currentRoute = ModalRoute.of(context)?.settings.name;
+      if (currentRoute != '/notificaciones') {
+        Navigator.pushNamed(context, '/notificaciones');
+      }
       return;
     }
 
@@ -25,7 +28,10 @@ class NotificationNavigationHelper {
         (pedidoId != null && pedidoId.isNotEmpty);
 
     if (!tieneDestino) {
-      Navigator.pushNamed(context, '/notificaciones');
+      final currentRoute = ModalRoute.of(context)?.settings.name;
+      if (currentRoute != '/notificaciones') {
+        Navigator.pushNamed(context, '/notificaciones');
+      }
       return;
     }
 

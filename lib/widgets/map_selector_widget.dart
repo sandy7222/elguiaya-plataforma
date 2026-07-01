@@ -168,7 +168,7 @@ class MapSelectorWidgetState extends State<MapSelectorWidget>
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    'Descarg� la geograf�a y trazados del r�o para poder navegar con total precisi�n en el mapa, incluso sin se�al de celular ni consumo de datos.',
+                    'Descarg� la geografía y trazados del r�o para poder navegar con total precisión en el mapa, incluso sin señal de celular ni consumo de datos.',
                     style: TextStyle(
                       color: Colors.white60,
                       fontSize: 12.5,
@@ -294,7 +294,7 @@ class MapSelectorWidgetState extends State<MapSelectorWidget>
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
-                          'Descargando im�genes satelitales...',
+                          'Descargando imágenes satelitales...',
                           style: TextStyle(color: Colors.white70, fontSize: 12),
                         ),
                         Text(
@@ -344,7 +344,7 @@ class MapSelectorWidgetState extends State<MapSelectorWidget>
                           ),
                           const SizedBox(height: 18),
                           const Text(
-                            '�DESCARGA EXITOSA!',
+                            '¡DESCARGA EXITOSA!',
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w900,
@@ -353,7 +353,7 @@ class MapSelectorWidgetState extends State<MapSelectorWidget>
                           ),
                           const SizedBox(height: 8),
                           const Text(
-                            'El mapa de esta zona ha sido encriptado y guardado en tu memoria interna. Pod�s navegar sin se�al celular libremente.',
+                            'El mapa de esta zona ha sido encriptado y guardado en tu memoria interna. Pod�s navegar sin señal celular libremente.',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: Colors.white60,
@@ -428,7 +428,7 @@ class MapSelectorWidgetState extends State<MapSelectorWidget>
         }
       }
     } catch (e) {
-      debugPrint('Error en b�squeda geogr�fica: $e');
+      debugPrint('Error en búsqueda geográfica: $e');
     }
   }
 

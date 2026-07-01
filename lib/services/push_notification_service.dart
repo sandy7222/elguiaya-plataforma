@@ -74,7 +74,7 @@ class PushNotificationService {
       visibility: NotificationVisibility.public,
       category: AndroidNotificationCategory.message,
       audioAttributesUsage: AudioAttributesUsage.notification,
-      icon: '@mipmap/ic_launcher',
+      icon: '@drawable/ic_stat_elguia',
       largeIcon: conLogo
           ? const DrawableResourceAndroidBitmap('ic_elguia_logo')
           : null,

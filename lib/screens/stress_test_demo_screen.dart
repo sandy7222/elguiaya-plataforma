@@ -61,11 +61,11 @@ class _StressTestDemoScreenState extends State<StressTestDemoScreen> {
         final puntuacion = resultados['puntuacion_registrada'] as Map;
         
         _addLog('\n?? RESUMEN DE RESULTADOS:');
-        _addLog('� Solicitudes enviadas: ${solicitudes.length}');
-        _addLog('� Precio cotizado: \$${respuesta['precio_cotizado'].toStringAsFixed(0)}');
-        _addLog('� Pagos generados: ${pago['pagos_generados'].length}');
-        _addLog('� Calificacion del servicio: ${puntuacion['calificacion']}/5');
-        _addLog('� Comentario del pescador: "${puntuacion['comentario']}"');
+        _addLog('• Solicitudes enviadas: ${solicitudes.length}');
+        _addLog('• Precio cotizado: \$${respuesta['precio_cotizado'].toStringAsFixed(0)}');
+        _addLog('• Pagos generados: ${pago['pagos_generados'].length}');
+        _addLog('• Calificacion del servicio: ${puntuacion['calificacion']}/5');
+        _addLog('• Comentario del pescador: "${puntuacion['comentario']}"');
         
       } else {
         _addLog('\n? ERROR EN PRUEBA DE ESTRES');
@@ -170,7 +170,7 @@ class _StressTestDemoScreenState extends State<StressTestDemoScreen> {
                   loading: _isRunning,
                   icon: Icons.play_arrow,
                   iconColor: _blancoPuro,
-                  idleLabel: 'Ejecutar prueba de estr�s',
+                  idleLabel: 'Ejecutar prueba de estrés',
                   loadingLabel: 'Ejecutando prueba...',
                   textStyle: const TextStyle(
                     color: _blancoPuro,

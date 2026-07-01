@@ -132,12 +132,33 @@ class _MisViajesScreenState extends State<MisViajesScreen> {
           .where((p) => estadosHistorial.contains(p['estado']?.toString()))
           .toList();
 
+      final bookedPresupuestoIds = todosPedidos
+          .map((p) => p['presupuesto_id']?.toString())
+          .whereType<String>()
+          .toSet();
+
+      final bookedCotizacionIds = <String>{};
+      for (final p in presupuestos) {
+        if (bookedPresupuestoIds.contains(p['id']?.toString())) {
+          final cotId = p['cotizacion_id']?.toString();
+          if (cotId != null) {
+            bookedCotizacionIds.add(cotId);
+          }
+        }
+      }
+
+      final cotizacionesFiltradas = cotizaciones
+          .where((c) => !bookedCotizacionIds.contains(c.id))
+          .toList();
+
+      final presupuestosFiltrados = presupuestos
+          .where((p) => !bookedPresupuestoIds.contains(p['id']?.toString()) && p['estado']?.toString() != 'descartado')
+          .toList();
+
       if (mounted) {
         setState(() {
-          _cotizaciones = cotizaciones;
-          _presupuestos = presupuestos
-              .where((p) => p['estado']?.toString() != 'descartado')
-              .toList();
+          _cotizaciones = cotizacionesFiltradas;
+          _presupuestos = presupuestosFiltrados;
           _pedidosActivos = pedidosActivos;
           _pedidosHistorial = pedidosHist;
           if (pedidosHist.isNotEmpty) _historialExpandido = true;

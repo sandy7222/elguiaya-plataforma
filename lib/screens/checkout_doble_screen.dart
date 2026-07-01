@@ -425,7 +425,7 @@ class _CheckoutDobleScreenState extends State<CheckoutDobleScreen> {
                   child: TextFormField(
                     controller: _numeroController,
                     decoration: const InputDecoration(
-                      labelText: 'N�',
+                      labelText: 'NÃÂº',
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -502,7 +502,7 @@ class _CheckoutDobleScreenState extends State<CheckoutDobleScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '?? No se permiten coordenadas de mapa. Use campos de texto para especificar la direccion.',
+                      'ð« No se permiten coordenadas de mapa. Use campos de texto para especificar la direcciÃ³n.',
                       style: TextStyle(
                         fontSize: 12,
                         color: _rojoProblema,
@@ -649,7 +649,7 @@ class _CheckoutDobleScreenState extends State<CheckoutDobleScreen> {
                 Icon(Icons.check_circle, color: Colors.white, size: 32),
                 SizedBox(height: 8),
                 Text(
-                  '�Checkout Completado!',
+                  'Â¡Checkout Completado!',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -738,7 +738,7 @@ class _CheckoutDobleScreenState extends State<CheckoutDobleScreen> {
 
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Center(child: Text('? Pedido de tienda procesado exitosamente')),
+              content: Center(child: Text('â Pedido de tienda procesado exitosamente')),
               backgroundColor: _verdeExito,
             ),
           );
@@ -805,10 +805,10 @@ class _CheckoutDobleScreenState extends State<CheckoutDobleScreen> {
       final pescadorId = SupabaseService.currentUserId;
       final cotizacionId = widget.cotizacionId;
       if (pescadorId == null || pescadorId.isEmpty) {
-        throw Exception('Inici� sesi�n para reservar el viaje');
+        throw Exception('IniciÃÂ³ sesiÃ¯Â¿Â½n para reservar el viaje');
       }
       if (cotizacionId == null || cotizacionId.isEmpty) {
-        throw Exception('Falta la cotizaci�n asociada al viaje');
+        throw Exception('Falta la cotizaciÃÂ³n asociada al viaje');
       }
 
       // Crear reserva_viaje
