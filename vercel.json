@@ -1,6 +1,6 @@
 {
   "framework": null,
-  "buildCommand": "git clone https://github.com/flutter/flutter.git -b stable --depth 1 && export PATH=$PATH:$(pwd)/flutter/bin && flutter config --enable-web && flutter pub get && bash scripts/vercel_build.sh",
+  "buildCommand": "git clone https://github.com/flutter/flutter.git -b stable --depth 1 && export PATH=$PATH:$(pwd)/flutter/bin && flutter config --enable-web && flutter pub get && flutter build web --release --no-tree-shake-icons --dart-define=GROQ_API_KEY=\"$App_ElGuiaYA\" --dart-define=GEMINI_API_KEY=\"$GEMINI_API_KEY\" --dart-define=SUPABASE_URL=\"$SUPABASE_URL\" --dart-define=SUPABASE_ANON_KEY=\"$SUPABASE_ANON_KEY\" && cp public/descarga.html build/web/descarga.html 2>/dev/null || true",
   "outputDirectory": "build/web",
   "rewrites": [
     { "source": "/descarga", "destination": "/descarga.html" },
