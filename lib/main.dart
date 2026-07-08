@@ -7,11 +7,14 @@ import 'package:intl/date_symbol_data_local.dart'; // Para inicializar formatos 
 
 // Importaciones normalizadas
 import 'package:capitanya_master/services/supabase_service.dart';
+import 'package:capitanya_master/services/email_verification_policy.dart';
 import 'package:capitanya_master/app_navigator.dart';
 import 'package:capitanya_master/services/fcm_service.dart';
 import 'package:capitanya_master/providers/cart_provider.dart';
 import 'package:capitanya_master/providers/favoritos_provider.dart';
 import 'package:capitanya_master/screens/bienvenida_definitiva_screen.dart';
+import 'package:capitanya_master/screens/verificar_email_screen.dart';
+import 'package:capitanya_master/screens/nueva_password_screen.dart';
 import 'package:capitanya_master/screens/inicio_screen.dart';
 import 'package:capitanya_master/screens/admin_catalogo_screen.dart';
 import 'package:capitanya_master/screens/admin_dashboard_screen.dart';
@@ -21,7 +24,7 @@ import 'package:capitanya_master/screens/directorio_capitanes_screen.dart';
 import 'package:capitanya_master/screens/documentos_pendientes_screen.dart';
 import 'package:capitanya_master/screens/admin_perfiles_aprobacion_screen.dart';
 import 'package:capitanya_master/screens/admin_inventario_screen.dart';
-import 'package:capitanya_master/screens/admin_pedidos_screen.dart';
+import 'package:capitanya_master/screens/admin_sales_monitor_screen.dart';
 import 'package:capitanya_master/screens/admin_reembolsos_screen.dart';
 import 'package:capitanya_master/screens/admin_envios_screen.dart';
 import 'package:capitanya_master/screens/admin_viajes_screen.dart';
@@ -58,6 +61,8 @@ import 'package:capitanya_master/services/viaje_gps_coordinator.dart';
 import 'package:capitanya_master/services/firebase_messaging_background.dart';
 import 'package:capitanya_master/services/notificacion_sonido_listener.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:capitanya_master/screens/product_detail_screen.dart';
+import 'package:capitanya_master/models/producto.dart';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 
@@ -80,16 +85,11 @@ Future<void> main() async {
   // 1. Supabase PRIMERO (requisito del SDK — el resto depende de él)
   await SupabaseService.initialize();
 
-  // 2. Todo lo demás en PARALELO — no se bloquean entre si
+  // 2. Solo lo mínimo para el primer frame (Hive, conectividad, preferencias overlay)
   await Future.wait([
-    MercadoPagoService.cargarCredenciales().timeout(
-      const Duration(seconds: 5),
-      onTimeout: () {},
-    ),
     GuiaLocalCore.inicializar(),
     ConnectivityBridge.inicializar(),
     GuiaOverlayController.cargarPreferencia(),
-    BaqueanoIAService.inicializar(),
   ]);
 
   // 3. Registrar skills dinámicas del sistema (sin red, instantáneo)
@@ -105,9 +105,10 @@ Future<void> main() async {
   // 5. Inicializar servicio de Deep Links
   DeepLinkService().inicializar();
 
-  // 5b. Push FCM Android (campanita con sonido fuera de la app)
-  await FCMService.inicializar();
-  NotificacionSonidoListener.iniciar();
+  // 5b. Push FCM Android (campanita con sonido fuera de la app) - Asíncrono no bloqueante
+  unawaited(FCMService.inicializar().then((_) {
+    NotificacionSonidoListener.iniciar();
+  }));
 
   // 6. 🗓️ Iniciar scheduler de recordatorios automáticos (WhatsApp 7d, 3d, 24h, 12h)
   //    Corre en segundo plano cada 5 minutos verificando recordatorios pendientes.
@@ -122,6 +123,17 @@ Future<void> main() async {
       child: const MyApp(),
     ),
   );
+
+  // Servicios pesados / de red: después del primer frame (no bloquean el login)
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    unawaited(BaqueanoIAService.inicializar());
+    unawaited(
+      MercadoPagoService.cargarCredenciales().timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {},
+      ),
+    );
+  });
 }
 
 class MyApp extends StatelessWidget {
@@ -213,7 +225,7 @@ class MyApp extends StatelessWidget {
         '/admin/perfiles_aprobacion': (context) =>
             const AdminPerfilValidationScreen(),
         '/admin/inventario': (context) => const AdminInventarioScreen(),
-        '/admin/pedidos': (context) => const AdminPedidosScreen(),
+        '/admin/pedidos': (context) => const AdminSalesMonitorScreen(),
         '/admin/reembolsos': (context) => const AdminReembolsosScreen(),
         '/admin/envios': (context) => const AdminEnviosScreen(),
         '/admin/viajes': (context) => const AdminViajesScreen(),
@@ -265,6 +277,19 @@ class MyApp extends StatelessWidget {
         '/historial': (context) => const ViajesProgramadosScreen(esCapitan: false),
         '/panel': (context) => const PortalPescadorScreen(),
       },
+      onGenerateRoute: (settings) {
+        if (settings.name != null && settings.name!.startsWith('/producto/')) {
+          final parts = settings.name!.split('/');
+          if (parts.length >= 3) {
+            final productId = parts[2];
+            return MaterialPageRoute(
+              builder: (context) => ProductDetailRouteWrapper(productId: productId),
+              settings: settings,
+            );
+          }
+        }
+        return null;
+      },
     );
   }
 }
@@ -283,6 +308,7 @@ class _SessionWrapperState extends State<SessionWrapper> with WidgetsBindingObse
   bool _isLoadingPerfil = false;
   String? _lastFetchedUserId;
   bool _initialized = false;
+  bool _passwordRecoveryPending = false;
 
   @override
   void initState() {
@@ -322,6 +348,14 @@ class _SessionWrapperState extends State<SessionWrapper> with WidgetsBindingObse
     ) async {
       if (!mounted) return;
 
+      if (data.event == AuthChangeEvent.passwordRecovery) {
+        setState(() {
+          _passwordRecoveryPending = true;
+          _currentSession = data.session;
+        });
+        return;
+      }
+
       final newSession = data.session;
       final newUserId = newSession?.user.id;
 
@@ -359,7 +393,7 @@ class _SessionWrapperState extends State<SessionWrapper> with WidgetsBindingObse
     try {
       final res = await Supabase.instance.client
           .from('profiles')
-          .select('es_admin, es_capitan, estado')
+          .select('admin, es_capitan, estado')
           .eq('user_id', userId)
           .maybeSingle();
 
@@ -391,6 +425,23 @@ class _SessionWrapperState extends State<SessionWrapper> with WidgetsBindingObse
 
   @override
   Widget build(BuildContext context) {
+    final session = _currentSession;
+
+    // Sin sesión: mostrar login de inmediato (no esperar branding ni perfil).
+    if (session == null) {
+      return const BienvenidaDefinitivaScreen();
+    }
+
+    if (_passwordRecoveryPending) {
+      return NuevaPasswordScreen(
+        onCompletado: () {
+          if (mounted) {
+            setState(() => _passwordRecoveryPending = false);
+          }
+        },
+      );
+    }
+
     if (!_initialized || (_isLoadingPerfil && _perfil == null)) {
       return const Scaffold(
         backgroundColor: Color(0xFF001A33),
@@ -400,19 +451,18 @@ class _SessionWrapperState extends State<SessionWrapper> with WidgetsBindingObse
       );
     }
 
-    final session = _currentSession;
-
-    if (session == null) {
-      return const BienvenidaDefinitivaScreen();
-    }
-
     final bool isAdmin =
         (session.user.email == 'admin@elguiaya.com') ||
         (session.user.email == 'admin@capitanya.com') || // compatibilidad legacy
         (session.user.userMetadata?['rol'] == 'admin') ||
-        (_perfil != null && _perfil!['es_admin'] == true);
+        (_perfil != null && _perfil!['admin'] == true);
 
     if (isAdmin) return const AdminDashboardScreen();
+
+    if (EmailVerificationPolicy.requiresEmailVerification(session.user)) {
+      final email = session.user.email ?? '';
+      return VerificarEmailScreen(email: email);
+    }
 
     final perfil = _perfil;
     if (perfil != null) {
@@ -428,5 +478,91 @@ class _SessionWrapperState extends State<SessionWrapper> with WidgetsBindingObse
     }
 
     return const BienvenidaDefinitivaScreen();
+  }
+}
+
+class ProductDetailRouteWrapper extends StatefulWidget {
+  final String productId;
+  const ProductDetailRouteWrapper({super.key, required this.productId});
+
+  @override
+  State<ProductDetailRouteWrapper> createState() => _ProductDetailRouteWrapperState();
+}
+
+class _ProductDetailRouteWrapperState extends State<ProductDetailRouteWrapper> {
+  bool _loading = true;
+  String? _error;
+  Producto? _producto;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarProducto();
+  }
+
+  Future<void> _cargarProducto() async {
+    try {
+      final res = await Supabase.instance.client
+          .from('productos')
+          .select()
+          .eq('id', widget.productId)
+          .maybeSingle();
+
+      if (!mounted) return;
+
+      if (res == null) {
+        setState(() {
+          _error = 'El producto no existe o no está disponible.';
+          _loading = false;
+        });
+      } else {
+        setState(() {
+          _producto = Producto.fromSupabase(res);
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = 'Error al cargar el producto: $e';
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return const Scaffold(
+        backgroundColor: Color(0xFF000D26),
+        body: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00E676)),
+          ),
+        ),
+      );
+    }
+
+    if (_error != null || _producto == null) {
+      return Scaffold(
+        backgroundColor: const Color(0xFF000D26),
+        appBar: AppBar(
+          title: const Text('Error de Carga'),
+          backgroundColor: const Color(0xFF001F3F),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              _error ?? 'Producto no encontrado',
+              style: const TextStyle(color: Colors.white, fontSize: 16),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return ProductDetailScreen(producto: _producto!);
   }
 }
