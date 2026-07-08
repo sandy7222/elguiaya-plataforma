@@ -34,6 +34,7 @@ import 'mercado_pago_service.dart';
 import 'disponibilidad_service_final.dart';
 import 'notificacion_helper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'email_verification_policy.dart';
 
 class SupabaseService {
   static List<Producto> _cachedProductos = [];
@@ -128,8 +129,52 @@ class SupabaseService {
   }
 
   // --- MÉTODOS DE AUTH REALES ---
-  static Future<AuthResponse> signUp(String email, String password) async {
-    return await supabase.auth.signUp(email: email, password: password);
+  static Future<AuthResponse> signUp(
+    String email,
+    String password, {
+    Map<String, dynamic>? data,
+  }) async {
+    return await supabase.auth.signUp(
+      email: email,
+      password: password,
+      data: data,
+      emailRedirectTo: kIsWeb ? null : EmailVerificationPolicy.authRedirectUrl,
+    );
+  }
+
+  static Future<void> resendSignupConfirmation(String email) async {
+    await supabase.auth.resend(
+      type: OtpType.signup,
+      email: email.trim(),
+      emailRedirectTo: kIsWeb ? null : EmailVerificationPolicy.authRedirectUrl,
+    );
+  }
+
+  static Future<void> requestPasswordReset(String email) async {
+    await supabase.auth.resetPasswordForEmail(
+      email.trim().toLowerCase(),
+      redirectTo: kIsWeb ? null : EmailVerificationPolicy.authRedirectUrl,
+    );
+  }
+
+  static Future<void> updatePassword(String newPassword) async {
+    await supabase.auth.updateUser(UserAttributes(password: newPassword));
+  }
+
+  static Future<User?> refreshAuthUser() async {
+    final response = await supabase.auth.refreshSession();
+    return response.user;
+  }
+
+  static Future<bool> handleAuthCallbackUri(Uri uri) async {
+    if (uri.scheme != 'capitanya' || uri.host != 'auth') return false;
+    try {
+      await supabase.auth.getSessionFromUrl(uri);
+      return true;
+    } catch (e) {
+      debugPrint('⚠️ [AUTH] Error procesando callback de email: $e');
+      return false;
+    }
   }
 
   static Future<AuthResponse> signIn(String email, String password) async {
