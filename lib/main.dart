@@ -161,10 +161,10 @@ class MyApp extends StatelessWidget {
             fontFamily: 'Outfit',
           ),
         ),
-        pageTransitionsTheme: PageTransitionsTheme(
+        pageTransitionsTheme: const PageTransitionsTheme(
           builders: {
-            TargetPlatform.android: CupertinoPageTransitionsBuilder(),
-            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.android: ZoomPageTransitionsBuilder(),
+            TargetPlatform.iOS: FadeUpwardsPageTransitionsBuilder(),
           },
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
