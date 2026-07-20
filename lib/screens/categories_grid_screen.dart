@@ -494,12 +494,13 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
     final Color textColor = Color(int.parse('FF${marquee.textColor.replaceAll('#', '')}', radix: 16));
 
     return Container(
-      height: 36,
+      height: 48,
       width: double.infinity,
       color: bgColor,
+      alignment: Alignment.centerLeft,
       child: MarqueeWidget(
         text: marquee.titulo,
-        style: TextStyle(color: textColor, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1),
+        style: TextStyle(color: textColor, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1),
         velocity: marquee.velocidad * 10,
         imageUrl: (marquee.imagenUrl.isNotEmpty) ? marquee.imagenUrl : null,
       ),
@@ -2663,16 +2664,16 @@ class _MarqueeWidgetState extends State<MarqueeWidget> with SingleTickerProvider
       children: [
         if (widget.imageUrl != null && widget.imageUrl!.isNotEmpty) ...[
           ClipRRect(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(5),
             child: Image.network(
               widget.imageUrl!,
-              height: 20,
-              width: 30, // Proporción aproximada de tarjeta
-              fit: BoxFit.cover,
+              height: 32,
+              width: 52, // Proporción tipo tarjeta de crédito, legible en la cinta
+              fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
         ],
         Text(
           widget.text, 
