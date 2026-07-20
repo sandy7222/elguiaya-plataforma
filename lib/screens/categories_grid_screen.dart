@@ -19,6 +19,8 @@ import 'favoritos_screen.dart';
 import 'help_center_screen.dart';
 import 'order_history_screen.dart';
 import '../widgets/safe_button.dart';
+import '../widgets/banner_media_widget.dart';
+import '../services/banner_video_cache.dart';
 import '../utils/view_insets.dart';
 
 class CategoriesGridScreen extends StatefulWidget {
@@ -126,6 +128,10 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
             ));
           }
         });
+        // Precarga videos de banners para que al scrollear no se vea el círculo de carga.
+        unawaited(BannerVideoCache.instance.preloadAll(
+          _banners.map((b) => b.imagenUrl),
+        ));
       }
     } catch (e) {
       debugPrint('Error al cargar banners: $e');
@@ -1112,17 +1118,9 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.zero,
-          child: Image.network(
-            imagenUrl,
+          child: BannerMediaWidget(
+            url: imagenUrl,
             fit: BoxFit.cover,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return Center(child: CircularProgressIndicator(color: Colors.orangeAccent.withOpacity(0.5)));
-            },
-            errorBuilder: (context, error, stackTrace) => Container(
-              color: Colors.grey[900],
-              child: const Icon(Icons.broken_image, color: Colors.white24, size: 50),
-            ),
           ),
         ),
       ),
@@ -2261,22 +2259,9 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
                       child: Stack(
                         children: [
                           Positioned.fill(
-                            child: Image.network(
-                               imagenUrl,
+                            child: BannerMediaWidget(
+                              url: imagenUrl,
                               fit: BoxFit.cover,
-                              loadingBuilder: (context, child, loadingProgress) {
-                                if (loadingProgress == null) return child;
-                                return Container(
-                                  decoration: const BoxDecoration(
-                                    gradient: LinearGradient(colors: [Color(0xFF001F3F), Color(0xFF0D47A1)]),
-                                  ),
-                                  child: const Center(child: CircularProgressIndicator(color: Colors.white24)),
-                                );
-                              },
-                              errorBuilder: (context, error, stackTrace) => Container(
-                                color: const Color(0xFF0D47A1),
-                                child: const Icon(Icons.sailing, color: Colors.white24, size: 50),
-                              ),
                             ),
                           ),
                           // Overlay de gradiente mas oscuro para el texto
