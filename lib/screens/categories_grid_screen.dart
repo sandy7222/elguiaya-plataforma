@@ -2,7 +2,7 @@ import 'package:flutter/material.dart' hide CarouselController;
 import 'dart:async';
 import 'dart:ui';
 import 'dart:typed_data';
-import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 import '../providers/cart_provider.dart';
 import '../models/categoria.dart';
@@ -10,6 +10,7 @@ import '../models/banner_promo.dart';
 import '../models/producto.dart';
 import '../services/supabase_service.dart';
 import '../services/branding_service.dart';
+import '../services/postulaciones_service.dart';
 import 'product_catalog_screen.dart';
 import 'product_detail_screen.dart';
 import 'blog_piques_screen.dart';
@@ -1420,9 +1421,11 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
     final nombreController = TextEditingController();
     final emailController = TextEditingController();
     final telefonoController = TextEditingController();
+    final presentacionController = TextEditingController();
     String areaSeleccionada = 'Promotor de Ventas';
-    XFile? cvFile;
+    String? cvFileName;
     Uint8List? cvBytes;
+    bool aceptaDatos = false;
     bool isUploading = false;
 
     showDialog(
@@ -1468,9 +1471,7 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'En EL GUIA YA, no solo conectamos lanchas con pescadores; estamos construyendo la comunidad náutica más grande y confiable de Argentina. Desde los esteros del Norte hasta los lagos más profundos de la Patagonia, nuestra misión es que cada salida al agua sea una experiencia de primer nivel.\n\n'
-                      'Buscamos personas apasionadas, con espíritu emprendedor y respeto por la naturaleza. Si sos guía, experto en logística, promotor con ganas de crecer o simplemente alguien que ama el río tanto como nosotros, este es tu lugar.\n\n'
-                      'Queremos conocerte. Dejanos tu currículum y contanos por qué querés ser parte de la revolución de la navegación argentina. El próximo gran viaje lo iniciamos juntos.',
+                      'Buscamos personas apasionadas. Dejanos tus datos y tu CV (PDF, DOC o DOCX, máx. 5 MB).',
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.8),
                         fontSize: 12,
@@ -1480,16 +1481,12 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
                     const SizedBox(height: 20),
                     const Divider(color: Colors.white24),
                     const SizedBox(height: 16),
-                    
-                    // Campos de texto
                     _buildDialogTextField(nombreController, 'Nombre Completo', Icons.person),
                     const SizedBox(height: 12),
                     _buildDialogTextField(emailController, 'Email de Contacto', Icons.email, isEmail: true),
                     const SizedBox(height: 12),
                     _buildDialogTextField(telefonoController, 'Teléfono / WhatsApp', Icons.phone, isPhone: true),
                     const SizedBox(height: 16),
-
-                    // Selector de área
                     const Text(
                       'Área de Interés:',
                       style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
@@ -1513,61 +1510,92 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
                           DropdownMenuItem(value: 'Promotor de Ventas', child: Text('PROMOTOR DE VENTAS')),
                           DropdownMenuItem(value: 'Guía / Capitán', child: Text('GUÍA / CAPITÁN')),
                           DropdownMenuItem(value: 'Logística y Operaciones', child: Text('LOGÍSTICA Y OPERACIONES')),
-                          DropdownMenuItem(value: 'Administración y Finanzas', child: Text('ADMINISTRACIÓN')),
-                          DropdownMenuItem(value: 'Desarrollador / Diseñador', child: Text('TECNOLOGÍA Y DISEÑO')),
+                          DropdownMenuItem(value: 'Administración', child: Text('ADMINISTRACIÓN')),
+                          DropdownMenuItem(value: 'Tecnología y Diseño', child: Text('TECNOLOGÍA Y DISEÑO')),
                         ],
                         onChanged: (val) {
                           if (val != null) {
-                            setDialogState(() {
-                              areaSeleccionada = val;
-                            });
+                            setDialogState(() => areaSeleccionada = val);
                           }
                         },
                       ),
                     ),
-                    const SizedBox(height: 20),
-
-                    // Selector de archivo de CV
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: presentacionController,
+                      maxLines: 3,
+                      maxLength: 2000,
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      decoration: InputDecoration(
+                        labelText: 'Presentación breve (opcional)',
+                        labelStyle: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 12),
+                        filled: true,
+                        fillColor: Colors.white.withOpacity(0.05),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.white24)),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.white24)),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF00E676))),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                     const Text(
-                      'Subí tu Currículum Vitae (Foto o PDF):',
+                      'Subí tu Currículum Vitae (PDF, DOC o DOCX):',
                       style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     InkWell(
                       onTap: () async {
-                        final picker = ImagePicker();
-                        final file = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
-                        if (file != null) {
-                          final bytes = await file.readAsBytes();
-                          setDialogState(() {
-                            cvFile = file;
-                            cvBytes = bytes;
-                          });
+                        final result = await FilePicker.platform.pickFiles(
+                          type: FileType.custom,
+                          allowedExtensions: const ['pdf', 'doc', 'docx'],
+                          withData: true,
+                        );
+                        if (result == null || result.files.isEmpty) return;
+                        final f = result.files.first;
+                        final bytes = f.bytes;
+                        if (bytes == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('No se pudo leer el archivo'), backgroundColor: Colors.orange),
+                          );
+                          return;
                         }
+                        final validation = PostulacionesService.validarArchivo(
+                          fileName: f.name,
+                          sizeBytes: bytes.length,
+                        );
+                        if (validation != null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(validation), backgroundColor: Colors.orange),
+                          );
+                          return;
+                        }
+                        setDialogState(() {
+                          cvFileName = f.name;
+                          cvBytes = bytes;
+                        });
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
                         decoration: BoxDecoration(
-                          color: cvFile == null ? Colors.white.withOpacity(0.05) : const Color(0xFF00E676).withOpacity(0.1),
+                          color: cvFileName == null ? Colors.white.withOpacity(0.05) : const Color(0xFF00E676).withOpacity(0.1),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: cvFile == null ? Colors.white24 : const Color(0xFF00E676),
-                            width: cvFile == null ? 1 : 1.5,
+                            color: cvFileName == null ? Colors.white24 : const Color(0xFF00E676),
+                            width: cvFileName == null ? 1 : 1.5,
                           ),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              cvFile == null ? Icons.upload_file_rounded : Icons.check_circle_rounded,
-                              color: cvFile == null ? Colors.white70 : const Color(0xFF00E676),
+                              cvFileName == null ? Icons.upload_file_rounded : Icons.check_circle_rounded,
+                              color: cvFileName == null ? Colors.white70 : const Color(0xFF00E676),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                cvFile == null ? 'SELECCIONAR ARCHIVO CV' : 'CV SELECCIONADO CON ÉXITO',
+                                cvFileName == null ? 'SELECCIONAR ARCHIVO CV' : cvFileName!,
                                 style: TextStyle(
-                                  color: cvFile == null ? Colors.white70 : const Color(0xFF00E676),
+                                  color: cvFileName == null ? Colors.white70 : const Color(0xFF00E676),
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12,
                                 ),
@@ -1578,86 +1606,96 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    CheckboxListTile(
+                      value: aceptaDatos,
+                      onChanged: (v) => setDialogState(() => aceptaDatos = v ?? false),
+                      activeColor: const Color(0xFF00E676),
+                      contentPadding: EdgeInsets.zero,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      title: Text(
+                        'Acepto el tratamiento de mis datos personales con fines de selección laboral.',
+                        style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 11),
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: isUploading ? null : () => Navigator.pop(context),
                 child: const Text('CANCELAR', style: TextStyle(color: Colors.white54, fontWeight: FontWeight.bold)),
               ),
               ElevatedButton(
-                onPressed: (isUploading) ? null : () async {
-                  if (!formKey.currentState!.validate()) return;
-                  if (cvFile == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Por favor, selecciona tu archivo de Currículum (CV)'),
-                        backgroundColor: Colors.orange,
-                      ),
-                    );
-                    return;
-                  }
+                onPressed: isUploading
+                    ? null
+                    : () async {
+                        if (!formKey.currentState!.validate()) return;
+                        if (cvBytes == null || cvFileName == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Seleccioná tu archivo de Currículum (CV)'),
+                              backgroundColor: Colors.orange,
+                            ),
+                          );
+                          return;
+                        }
+                        if (!aceptaDatos) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Debés aceptar el tratamiento de datos laborales'),
+                              backgroundColor: Colors.orange,
+                            ),
+                          );
+                          return;
+                        }
 
-                  setDialogState(() {
-                    isUploading = true;
-                  });
-
-                  try {
-                    final supabase = SupabaseService.supabase;
-                    String? cvUrl;
-                    
-                    final fileExt = cvFile!.path.split('.').last;
-                    final fileName = 'cv_${DateTime.now().millisecondsSinceEpoch}.$fileExt';
-                    final path = 'curriculums/$fileName';
-                    
-                    try {
-                      await supabase.storage.from('branding').uploadBinary(path, cvBytes!);
-                      cvUrl = supabase.storage.from('branding').getPublicUrl(path);
-                    } catch (storageErr) {
-                      debugPrint('Error de storage subiendo CV: $storageErr');
-                      cvUrl = 'https://fakecv.pdf/mock_$fileName';
-                    }
-
-                    try {
-                      await supabase.from('postulaciones').insert({
-                        'nombre': nombreController.text.trim(),
-                        'email': emailController.text.trim(),
-                        'telefono': telefonoController.text.trim(),
-                        'area': areaSeleccionada,
-                        'cv_url': cvUrl,
-                        'created_at': DateTime.now().toIso8601String(),
-                      });
-                    } catch (dbErr) {
-                      debugPrint('Error al guardar en tabla postulaciones remota: $dbErr');
-                    }
-
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Row(
-                            children: [
-                              Icon(Icons.check_circle, color: Colors.white),
-                              SizedBox(width: 12),
-                              Text('¡Postulación enviada! Pronto nos contactaremos.', style: TextStyle(fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                          backgroundColor: Color(0xFF00E676),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                    }
-                  } catch (e) {
-                    setDialogState(() {
-                      isUploading = false;
-                    });
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error al enviar postulación: $e'), backgroundColor: Colors.redAccent),
-                    );
-                  }
-                },
+                        setDialogState(() => isUploading = true);
+                        try {
+                          await PostulacionesService.enviarPostulacion(
+                            nombre: nombreController.text.trim(),
+                            email: emailController.text.trim(),
+                            telefono: telefonoController.text.trim(),
+                            areaInteres: areaSeleccionada,
+                            presentacion: presentacionController.text.trim(),
+                            aceptaDatos: true,
+                            fileName: cvFileName!,
+                            fileBytes: cvBytes!,
+                          );
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Row(
+                                  children: [
+                                    Icon(Icons.check_circle, color: Colors.white),
+                                    SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        '¡Postulación enviada! Pronto nos contactaremos.',
+                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                backgroundColor: Color(0xFF00E676),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          setDialogState(() => isUploading = false);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Error al enviar postulación: $e'),
+                                backgroundColor: Colors.redAccent,
+                              ),
+                            );
+                          }
+                        }
+                      },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF00E676),
                   foregroundColor: Colors.black87,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../services/postulaciones_service.dart';
 import 'admin_liquidacion_screen.dart';
 import 'admin_libro_transferencias_screen.dart';
 import 'admin_reembolsos_screen.dart';
@@ -7,9 +8,29 @@ import 'admin_disputas_screen.dart';
 import 'admin_comisionistas_screen.dart';
 import 'admin_sales_monitor_screen.dart';
 import 'admin_cierres_screen.dart';
+import 'admin_postulantes_screen.dart';
 
-class AdminFinanzasTab extends StatelessWidget {
+class AdminFinanzasTab extends StatefulWidget {
   const AdminFinanzasTab({super.key});
+
+  @override
+  State<AdminFinanzasTab> createState() => _AdminFinanzasTabState();
+}
+
+class _AdminFinanzasTabState extends State<AdminFinanzasTab> {
+  int _nuevasPostulaciones = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarBadgePostulantes();
+  }
+
+  Future<void> _cargarBadgePostulantes() async {
+    final n = await PostulacionesService.contarNuevas();
+    if (!mounted) return;
+    setState(() => _nuevasPostulaciones = n);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,6 +107,22 @@ class AdminFinanzasTab extends StatelessWidget {
           subtitle: 'Gestión de la red de referidos y comisiones',
           screen: const AdminComisionistasScreen(),
         ),
+
+        const SizedBox(height: 20),
+        _buildSectionTitle('ACTIVIDADES ADMINISTRATIVAS'),
+        const SizedBox(height: 10),
+
+        _buildNavCard(
+          context,
+          icon: Icons.work_outline_rounded,
+          color: const Color(0xFF00E676),
+          title: 'Postulantes y CV',
+          subtitle: 'Revisión, seguimiento y descarga de currículums',
+          screen: const AdminPostulantesScreen(),
+          urgentBadge: _nuevasPostulaciones > 0,
+          badgeCount: _nuevasPostulaciones > 0 ? _nuevasPostulaciones : null,
+          onReturn: _cargarBadgePostulantes,
+        ),
       ],
     );
   }
@@ -117,9 +154,14 @@ class AdminFinanzasTab extends StatelessWidget {
     required String subtitle,
     required Widget screen,
     bool urgentBadge = false,
+    int? badgeCount,
+    VoidCallback? onReturn,
   }) {
     return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => screen)),
+      onTap: () async {
+        await Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+        onReturn?.call();
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -153,6 +195,23 @@ class AdminFinanzasTab extends StatelessWidget {
                 ],
               ),
             ),
+            if (badgeCount != null && badgeCount > 0)
+              Container(
+                margin: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  '$badgeCount',
+                  style: GoogleFonts.outfit(
+                    color: Colors.black,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
             Icon(Icons.chevron_right_rounded, color: Colors.white24, size: 20),
           ],
         ),
