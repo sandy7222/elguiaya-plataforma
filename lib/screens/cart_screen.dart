@@ -1,11 +1,15 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../providers/cart_provider.dart';
 import '../models/cart_item.dart';
+import '../models/tipo_checkout.dart';
 import '../services/mercado_pago_service.dart';
+import '../services/viaje_lifecycle_service.dart';
 import '../widgets/safe_product_image.dart';
 import 'checkout_payment_screen.dart';
 import 'formulario_pasajeros_screen.dart';
@@ -41,6 +45,13 @@ class _CartScreenState extends State<CartScreen> {
   void initState() {
     super.initState();
     _cargarDatos();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final cart = Provider.of<CartProvider>(context, listen: false);
+      await cart.inicializarSesion();
+      _syncReservaIdFromCart();
+      await _cargarEstadoFormularios();
+    });
   }
 
   @override
@@ -60,6 +71,32 @@ class _CartScreenState extends State<CartScreen> {
 
   Future<void> _cargarDatos() async {
     await Future.wait([_cargarAvatar(), _cargarServiciosEnvio()]);
+  }
+
+  Future<void> _cargarEstadoFormularios() async {
+    final pedidoId = _reservaId;
+    if (pedidoId == null || pedidoId.isEmpty) return;
+    try {
+      final supabase = Supabase.instance.client;
+      final invitados = await supabase
+          .from('viajes_invitados')
+          .select('id')
+          .eq('pedido_id', pedidoId)
+          .limit(1);
+      final envio = await supabase
+          .from('envio_domicilio')
+          .select('id')
+          .eq('pedido_id', pedidoId)
+          .maybeSingle();
+      if (mounted) {
+        setState(() {
+          _pasajerosCompletados = invitados.isNotEmpty;
+          _envioCompletado = envio != null;
+        });
+      }
+    } catch (e) {
+      debugPrint('⚠️ _cargarEstadoFormularios: $e');
+    }
   }
 
   Future<void> _cargarAvatar() async {
@@ -99,6 +136,32 @@ class _CartScreenState extends State<CartScreen> {
 
   double get _tarifaEnvio =>
       (_envioSeleccionado?['tarifa'] as num?)?.toDouble() ?? 0;
+
+  /// Persiste la tarifa de envío elegida en el pedido para que el monto
+  /// cobrado y el comprobante coincidan siempre (Fase 1 del backbone).
+  Future<void> _persistirEnvioSeleccionado(
+    CartProvider cart,
+    Map<String, dynamic> envio,
+  ) async {
+    try {
+      final supabase = Supabase.instance.client;
+      final pedidoExistente = await supabase
+          .from('pedidos')
+          .select('id')
+          .eq('id', _reservaId!)
+          .maybeSingle();
+
+      if (pedidoExistente == null) return; // Aún no se creó el pedido base
+
+      await supabase.from('pedidos').update({
+        'envio_tarifa_id': envio['id'],
+        'envio_tarifa_monto': (envio['tarifa'] as num?)?.toDouble() ?? 0,
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', _reservaId!);
+    } catch (e) {
+      debugPrint('⚠️ No se pudo persistir la tarifa de envío elegida: $e');
+    }
+  }
 
   // ─── Métodos Auxiliares para Formularios ────────────────────────────────────
   Future<void> _abrirFormularioPasajeros(CartProvider cart) async {
@@ -183,7 +246,7 @@ class _CartScreenState extends State<CartScreen> {
   void _desistirTienda(CartProvider cart) {
     final tienda = cart.itemsTienda;
     for (var item in tienda) {
-      cart.eliminarDelCarrito(item.producto.id);
+      cart.eliminarDelCarrito(item.producto.id, varianteId: item.varianteId);
     }
     setState(() {
       _envioCompletado = false;
@@ -220,6 +283,36 @@ class _CartScreenState extends State<CartScreen> {
     try {
       final emailSilencioso = Supabase.instance.client.auth.currentUser?.email ?? '';
       final totalConEnvio = cart.totalCarrito + (cart.tieneItemsTienda ? _tarifaEnvio : 0.0);
+      final tipoCheckout = cart.tipoCheckoutActual;
+
+      // Persistir el envío elegido (Fase 1: el monto cobrado y el comprobante deben coincidir siempre)
+      if (cart.tieneItemsTienda && _envioSeleccionado != null) {
+        await _persistirEnvioSeleccionado(cart, _envioSeleccionado!);
+      }
+
+      if (_reservaId != null && _reservaId!.isNotEmpty) {
+        final montoViaje =
+            cart.itemsViaje.fold(0.0, (sum, item) => sum + item.subtotal);
+        await ViajeLifecycleService.sincronizarPedidoConCarrito(
+          pedidoId: _reservaId!,
+          tipoCheckout: tipoCheckout,
+          montoViaje: montoViaje,
+          itemsTienda: cart.itemsTienda
+              .map((item) => {
+                    'producto_id': item.producto.id,
+                    'cantidad': item.cantidad,
+                    'precio_unitario': item.producto.precio,
+                    'subtotal': item.subtotal,
+                  })
+              .toList(),
+        );
+        await Supabase.instance.client.from('pedidos').update({
+          'monto_total': totalConEnvio,
+          'total': totalConEnvio,
+          'tipo_checkout': tipoCheckout.valor,
+          'updated_at': DateTime.now().toIso8601String(),
+        }).eq('id', _reservaId!);
+      }
 
       // Crear preferencia en Mercado Pago
       final preferencia = await MercadoPagoService.crearPreferencia(
@@ -229,10 +322,15 @@ class _CartScreenState extends State<CartScreen> {
         emailPagador: emailSilencioso,
       );
 
-      // Vaciar el carrito de forma reactiva
-      cart.vaciarCarrito();
+      // El carrito se vacía recién cuando el pago quede confirmado (CheckoutPaymentScreen),
+      // así no se pierde la compra si el usuario cierra la app en medio del pago real de MP.
 
       if (mounted) {
+        final uri = Uri.parse(preferencia.linkPago);
+        if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+          throw Exception('No se pudo abrir Mercado Pago. Verificá que tenés un navegador instalado.');
+        }
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -243,18 +341,49 @@ class _CartScreenState extends State<CartScreen> {
               emailPagador: emailSilencioso,
               initPoint: preferencia.linkPago,
               preferenceId: preferencia.preferenceId,
+              tipoCheckout: tipoCheckout,
+              iniciarEnEspera: true,
             ),
           ),
         );
       }
     } catch (e) {
+      print('⚠️ [MERCADO PAGO] Error al crear preferencia: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al conectar con Mercado Pago: $e'),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
+        if (MercadoPagoService.isSandbox) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('ℹ️ Conexión real falló o no configurada. Abriendo simulador...'),
+              backgroundColor: Colors.blueAccent,
+              duration: Duration(seconds: 2),
+            ),
+          );
+          final emailSilencioso = Supabase.instance.client.auth.currentUser?.email ?? '';
+          final totalConEnvio = cart.totalCarrito + (cart.tieneItemsTienda ? _tarifaEnvio : 0.0);
+          final tipoCheckout = cart.tipoCheckoutActual;
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => CheckoutPaymentScreen(
+                amount: totalConEnvio,
+                description: 'Compra EL GUIA YA (Simulación)',
+                reservaId: _reservaId!,
+                emailPagador: emailSilencioso,
+                initPoint: '', // Sin redirección automática
+                preferenceId: 'mock_pref_id',
+                tipoCheckout: tipoCheckout,
+              ),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error al conectar con Mercado Pago: $e'),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
       }
     } finally {
       if (mounted) setState(() => _isCreatingPreference = false);
@@ -345,11 +474,20 @@ class _CartScreenState extends State<CartScreen> {
           ],
         );
       }
-      return Column(
-        children: [
-          Expanded(child: _buildProductList(cart)),
-          _buildResumenPanel(cart),
-        ],
+      // Diseño móvil: Todo en una única lista scrolleable para evitar
+      // el solapamiento o desbordamiento del botón inferior de pago.
+      return SingleChildScrollView(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              child: Column(
+                children: cart.items.map((item) => _buildProductCard(item, cart)).toList(),
+              ),
+            ),
+            _buildResumenPanel(cart, scrollable: false),
+          ],
+        ),
       );
     });
   }
@@ -379,7 +517,7 @@ class _CartScreenState extends State<CartScreen> {
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: SafeProductImage(
-              imagenUrl: item.producto.imagenUrl,
+              imagenUrl: item.imagenMostrada,
               width: 72,
               height: 72,
               fit: BoxFit.cover,
@@ -390,12 +528,12 @@ class _CartScreenState extends State<CartScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.producto.nombre,
+                Text(item.nombreProducto,
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 4),
-                Text(item.producto.precioFormateado,
+                Text(item.precioFormateado,
                     style: TextStyle(
                         color: Colors.green.shade700,
                         fontWeight: FontWeight.w700,
@@ -405,7 +543,7 @@ class _CartScreenState extends State<CartScreen> {
                 Row(
                   children: [
                     _buildQtyBtn(Icons.remove,
-                        () => cart.decrementarCantidad(item.producto.id)),
+                        () => cart.decrementarCantidad(item.producto.id, varianteId: item.varianteId)),
                     Container(
                       width: 36,
                       alignment: Alignment.center,
@@ -414,7 +552,7 @@ class _CartScreenState extends State<CartScreen> {
                               fontWeight: FontWeight.bold, fontSize: 15)),
                     ),
                     _buildQtyBtn(Icons.add,
-                        () => cart.incrementarCantidad(item.producto.id)),
+                        () => cart.incrementarCantidad(item.producto.id, varianteId: item.varianteId)),
                   ],
                 ),
               ],
@@ -424,7 +562,7 @@ class _CartScreenState extends State<CartScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               IconButton(
-                onPressed: () => cart.eliminarDelCarrito(item.producto.id),
+                onPressed: () => cart.eliminarDelCarrito(item.producto.id, varianteId: item.varianteId),
                 icon: const Icon(Icons.close, color: Colors.redAccent, size: 20),
                 style: IconButton.styleFrom(
                   backgroundColor: Colors.red.shade50,
@@ -460,8 +598,221 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   // ─── PANEL RESUMEN + ENVÍO + PAGO ─────────────────────────────────────────
-  Widget _buildResumenPanel(CartProvider cart) {
+  Widget _buildResumenPanel(CartProvider cart, {bool scrollable = true}) {
     final totalConEnvio = cart.totalCarrito + (cart.tieneItemsTienda ? _tarifaEnvio : 0.0);
+
+    final columnContent = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── Pago seguro con MP ──────────────────────────────────────
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFE8F8FF),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: _mpAzul.withOpacity(0.25)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.lock_outline, color: _mpAzul, size: 22),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Text('Pago seguro con ',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: _azul)),
+                        const Text('mercado',
+                            style: TextStyle(
+                                color: _mpAzul,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 13)),
+                        const Text('pago',
+                            style: TextStyle(
+                                color: _azul,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 13)),
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    const Text(
+                      'Ingresás los datos de tu tarjeta directamente en la plataforma de Mercado Pago. Nosotros nunca los vemos.',
+                      style: TextStyle(fontSize: 10, color: Colors.grey, height: 1.4),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 6),
+        // Logos de tarjetas
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const FaIcon(FontAwesomeIcons.ccVisa,
+                color: Color(0xFF1A1F71), size: 28),
+            const SizedBox(width: 12),
+            const FaIcon(FontAwesomeIcons.ccMastercard,
+                color: Color(0xFFFF5F00), size: 28),
+            const SizedBox(width: 12),
+            const FaIcon(FontAwesomeIcons.ccAmex,
+                color: Color(0xFF2E77BC), size: 28),
+            const SizedBox(width: 12),
+            FaIcon(FontAwesomeIcons.creditCard,
+                color: Colors.grey.shade400, size: 24),
+          ],
+        ),
+        const SizedBox(height: 20),
+
+        // ── Selector de Envío (Solo si lleva productos de la tienda) ──
+        if (cart.tieneItemsTienda) ...[
+          const Text('Servicio de Envío',
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: Colors.grey)),
+          const SizedBox(height: 10),
+          if (_cargandoEnvios)
+            const Center(
+                child: Padding(
+              padding: EdgeInsets.all(12),
+              child: CircularProgressIndicator(
+                  strokeWidth: 2, color: _mpAzul),
+            ))
+          else if (_serviciosEnvio.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.orange.shade200),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.warning_amber_outlined,
+                      color: Colors.orange, size: 18),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Sin servicios de envío activos. Configuralos desde el Panel Admin.',
+                      style: TextStyle(color: Colors.orange, fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            ...(_serviciosEnvio.map((s) {
+              final sel = _envioSeleccionado?['id'] == s['id'];
+              final tarifa = (s['tarifa'] as num?)?.toDouble() ?? 0;
+              return GestureDetector(
+                onTap: () => setState(() => _envioSeleccionado = s),
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: sel
+                        ? const Color(0xFFE8F5FF)
+                        : Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: sel ? _mpAzul : Colors.grey.shade200,
+                      width: sel ? 2 : 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        sel
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_off,
+                        color: sel ? _mpAzul : Colors.grey,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 10),
+                      const Icon(Icons.local_shipping_outlined,
+                          size: 18, color: Colors.grey),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(s['nombre_servicio']?.toString() ?? '',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: sel ? _azul : Colors.black87)),
+                            if ((s['descripcion']?.toString() ?? '')
+                                .isNotEmpty)
+                              Text(s['descripcion'].toString(),
+                                  style: const TextStyle(
+                                      fontSize: 10, color: Colors.grey)),
+                          ],
+                        ),
+                      ),
+                      Text(
+                        tarifa == 0
+                            ? 'GRATIS'
+                            : '\$ ${tarifa.toStringAsFixed(0)}',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 14,
+                            color: tarifa == 0
+                                ? Colors.green
+                                : _azul),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            })).toList(),
+        ],
+
+        // ── Requisitos Logísticos Checklist ──────────────────────────
+        _buildChecklistLogistica(cart),
+
+        const SizedBox(height: 16),
+        const Divider(),
+        const SizedBox(height: 10),
+
+        // ── Desglose de totales ─────────────────────────────────────
+        _buildTotalRow('Subtotal',
+            '\$ ${cart.totalCarrito.toStringAsFixed(0)}',
+            bold: false),
+        const SizedBox(height: 6),
+        if (cart.tieneItemsTienda)
+          _buildTotalRow(
+            'Envío (${_envioSeleccionado?['nombre_servicio'] ?? '-'})',
+            _tarifaEnvio == 0
+                ? 'GRATIS'
+                : '\$ ${_tarifaEnvio.toStringAsFixed(0)}',
+            bold: false,
+            valueColor:
+                _tarifaEnvio == 0 ? Colors.green : Colors.black87,
+          ),
+        const SizedBox(height: 10),
+        _buildTotalRow(
+          'TOTAL',
+          '\$ ${totalConEnvio.toStringAsFixed(0)}',
+          bold: true,
+          fontSize: 22,
+          valueColor: _azul,
+        ),
+
+        const SizedBox(height: 22),
+
+        // ── Botón Principal Dinámico de Pago / Completado ──────────────────
+        _buildBotonPagoDinamico(cart, totalConEnvio),
+        const SizedBox(height: 32),
+      ],
+    );
 
     return Container(
       decoration: const BoxDecoration(
@@ -469,222 +820,11 @@ class _CartScreenState extends State<CartScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 20)],
       ),
-      padding: const EdgeInsets.fromLTRB(22, 22, 22, 0),
+      padding: const EdgeInsets.fromLTRB(22, 22, 22, 24),
       child: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Pago seguro con MP ──────────────────────────────────────
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE8F8FF),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: _mpAzul.withOpacity(0.25)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.lock_outline, color: _mpAzul, size: 22),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              const Text('Pago seguro con ',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13,
-                                      color: _azul)),
-                              const Text('mercado',
-                                  style: TextStyle(
-                                      color: _mpAzul,
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 13)),
-                              const Text('pago',
-                                  style: TextStyle(
-                                      color: _azul,
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 13)),
-                            ],
-                          ),
-                          const SizedBox(height: 3),
-                          const Text(
-                            'Ingresás los datos de tu tarjeta directamente en la plataforma de Mercado Pago. Nosotros nunca los vemos.',
-                            style: TextStyle(fontSize: 10, color: Colors.grey, height: 1.4),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 6),
-              // Logos de tarjetas
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const FaIcon(FontAwesomeIcons.ccVisa,
-                      color: Color(0xFF1A1F71), size: 28),
-                  const SizedBox(width: 12),
-                  const FaIcon(FontAwesomeIcons.ccMastercard,
-                      color: Color(0xFFFF5F00), size: 28),
-                  const SizedBox(width: 12),
-                  const FaIcon(FontAwesomeIcons.ccAmex,
-                      color: Color(0xFF2E77BC), size: 28),
-                  const SizedBox(width: 12),
-                  FaIcon(FontAwesomeIcons.creditCard,
-                      color: Colors.grey.shade400, size: 24),
-                ],
-              ),
-              const SizedBox(height: 20),
-
-              // ── Selector de Envío (Solo si lleva productos de la tienda) ──
-              if (cart.tieneItemsTienda) ...[
-                const Text('Servicio de Envío',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        color: Colors.grey)),
-                const SizedBox(height: 10),
-                if (_cargandoEnvios)
-                  const Center(
-                      child: Padding(
-                    padding: EdgeInsets.all(12),
-                    child: CircularProgressIndicator(
-                        strokeWidth: 2, color: _mpAzul),
-                  ))
-                else if (_serviciosEnvio.isEmpty)
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.orange.shade200),
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.warning_amber_outlined,
-                            color: Colors.orange, size: 18),
-                        SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Sin servicios de envío activos. Configuralos desde el Panel Admin.',
-                            style: TextStyle(color: Colors.orange, fontSize: 12),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                else
-                  ...(_serviciosEnvio.map((s) {
-                    final sel = _envioSeleccionado?['id'] == s['id'];
-                    final tarifa = (s['tarifa'] as num?)?.toDouble() ?? 0;
-                    return GestureDetector(
-                      onTap: () => setState(() => _envioSeleccionado = s),
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: sel
-                              ? const Color(0xFFE8F5FF)
-                              : Colors.grey.shade50,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: sel ? _mpAzul : Colors.grey.shade200,
-                            width: sel ? 2 : 1,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              sel
-                                  ? Icons.radio_button_checked
-                                  : Icons.radio_button_off,
-                              color: sel ? _mpAzul : Colors.grey,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 10),
-                            const Icon(Icons.local_shipping_outlined,
-                                size: 18, color: Colors.grey),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(s['nombre_servicio']?.toString() ?? '',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 13,
-                                          color: sel ? _azul : Colors.black87)),
-                                  if ((s['descripcion']?.toString() ?? '')
-                                      .isNotEmpty)
-                                    Text(s['descripcion'].toString(),
-                                        style: const TextStyle(
-                                            fontSize: 10, color: Colors.grey)),
-                                ],
-                              ),
-                            ),
-                            Text(
-                              tarifa == 0
-                                  ? 'GRATIS'
-                                  : '\$ ${tarifa.toStringAsFixed(0)}',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 14,
-                                  color: tarifa == 0
-                                      ? Colors.green
-                                      : _azul),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  })).toList(),
-              ],
-
-              // ── Requisitos Logísticos Checklist ──────────────────────────
-              _buildChecklistLogistica(cart),
-
-              const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 10),
-
-              // ── Desglose de totales ─────────────────────────────────────
-              _buildTotalRow('Subtotal',
-                  '\$ ${cart.totalCarrito.toStringAsFixed(0)}',
-                  bold: false),
-              const SizedBox(height: 6),
-              if (cart.tieneItemsTienda)
-                _buildTotalRow(
-                  'Envío (${_envioSeleccionado?['nombre_servicio'] ?? '-'})',
-                  _tarifaEnvio == 0
-                      ? 'GRATIS'
-                      : '\$ ${_tarifaEnvio.toStringAsFixed(0)}',
-                  bold: false,
-                  valueColor:
-                      _tarifaEnvio == 0 ? Colors.green : Colors.black87,
-                ),
-              const SizedBox(height: 10),
-              _buildTotalRow(
-                'TOTAL',
-                '\$ ${totalConEnvio.toStringAsFixed(0)}',
-                bold: true,
-                fontSize: 22,
-                valueColor: _azul,
-              ),
-
-              const SizedBox(height: 22),
-
-              // ── Botón Principal Dinámico de Pago / Completado ──────────────────
-              _buildBotonPagoDinamico(cart, totalConEnvio),
-              const SizedBox(height: 16),
-            ],
-          ),
-        ),
+        child: scrollable 
+            ? SingleChildScrollView(child: columnContent)
+            : columnContent,
       ),
     );
   }
@@ -830,7 +970,7 @@ class _CartScreenState extends State<CartScreen> {
         }
       };
     } else {
-      text = 'PAGAR CON MERCADO PAGO  \$ ${totalConEnvio.toStringAsFixed(0)}';
+      text = 'PAGAR CON MERCADO PAGO';
       icon = Icons.payment_outlined;
       color = _mpAzul;
       action = () => _procesarPago(cart);

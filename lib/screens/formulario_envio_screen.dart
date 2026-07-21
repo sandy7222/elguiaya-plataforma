@@ -1,12 +1,14 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/mercado_pago_service.dart';
 import '../providers/cart_provider.dart';
+import '../models/tipo_checkout.dart';
 import 'checkout_payment_screen.dart';
 import '../widgets/safe_button.dart';
+import '../utils/text_input_formatters.dart';
 
 /// Formulario de Envío a Domicilio.
 /// Captura los datos logísticos de entrega y exige la aceptación obligatoria
@@ -45,8 +47,17 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
   final _provinciaController = TextEditingController();
   final _codigoPostalController = TextEditingController();
   final _instruccionesController = TextEditingController();
+  final _cuitDniController = TextEditingController();
 
   bool _aceptaAvisoAusencia = false;
+  String _condicionIva = 'consumidor_final';
+
+  static const _condicionesIva = {
+    'consumidor_final': 'Consumidor Final',
+    'monotributo': 'Monotributista',
+    'responsable_inscripto': 'Responsable Inscripto',
+    'exento': 'Exento',
+  };
 
   static const _azul = Color(0xFF001F3F);
   static const _naranja = Color(0xFFFF6600);
@@ -63,7 +74,26 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
     _provinciaController.dispose();
     _codigoPostalController.dispose();
     _instruccionesController.dispose();
+    _cuitDniController.dispose();
     super.dispose();
+  }
+
+  /// Genera un número de pedido legible vía RPC atómica (TI-2026-0001, etc).
+  /// Si falla (offline, RPC no desplegada aún), degrada a un código local
+  /// para no bloquear la compra.
+  Future<String> _generarNumeroPedido(TipoCheckout tipo) async {
+    try {
+      final resultado = await _supabase.rpc('generar_numero_pedido', params: {
+        'p_tipo': tipo.valor,
+      });
+      final numero = resultado?.toString();
+      if (numero != null && numero.isNotEmpty) return numero;
+    } catch (e) {
+      debugPrint('⚠️ No se pudo generar numero_pedido vía RPC: $e');
+    }
+    final anio = DateTime.now().year;
+    final sufijo = widget.pedidoId.replaceAll('-', '').toUpperCase();
+    return '${tipo.prefijoPedido}-$anio-${sufijo.substring(0, 4)}';
   }
 
   // --- Guardar en Supabase ---------------------------------------------------
@@ -85,6 +115,80 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
     try {
       final user = _supabase.auth.currentUser;
       final userId = user?.id ?? '00000000-0000-0000-0000-000000000000';
+
+      // Asegurar que exista el pedido en la tabla 'pedidos' antes de insertar los datos de envío
+      final pedidoExistente = await _supabase
+          .from('pedidos')
+          .select('id')
+          .eq('id', widget.pedidoId)
+          .maybeSingle();
+
+      final cart = Provider.of<CartProvider>(context, listen: false);
+      final tipoCheckout = cart.tipoCheckoutActual;
+
+      if (pedidoExistente == null) {
+        // Crear el registro de pedido base con número de pedido legible (Fase 1)
+        final numeroPedido = await _generarNumeroPedido(tipoCheckout);
+        await _supabase.from('pedidos').insert({
+          'id': widget.pedidoId,
+          'usuario_id': userId,
+          'pescador_id': userId,
+          'estado': 'pendiente',
+          'total': cart.totalCarrito,
+          'monto_total': cart.totalCarrito,
+          'estado_envio': 'preparando',
+          'numero_pedido': numeroPedido,
+          'tipo_checkout': tipoCheckout.valor,
+          'estado_logistico': 'pendiente_pago',
+          'created_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
+        });
+      } else if (tipoCheckout == TipoCheckout.hibrido) {
+        // El pedido ya existía como viaje puro (creado al aceptar el presupuesto)
+        // y ahora también incluye productos: actualizar el tipo sin perder el número de pedido.
+        await _supabase.from('pedidos').update({
+          'tipo_checkout': tipoCheckout.valor,
+          'estado_logistico': 'pendiente_pago',
+        }).eq('id', widget.pedidoId);
+      }
+
+      // Sincronizar los items de la tienda del carrito en 'pedido_items' si no están guardados ya
+      for (final item in cart.itemsTienda) {
+        var query = _supabase
+            .from('pedido_items')
+            .select('id')
+            .eq('pedido_id', widget.pedidoId)
+            .eq('producto_id', item.producto.id);
+        if (item.varianteId != null) {
+          query = query.eq('variante_id', item.varianteId!);
+        }
+        final itemExistente = await query.maybeSingle();
+            
+        if (itemExistente == null) {
+          await _supabase.from('pedido_items').insert({
+            'pedido_id': widget.pedidoId,
+            'producto_id': item.producto.id,
+            'cantidad': item.cantidad,
+            'precio_unitario': item.precioUnitario,
+            'subtotal': item.subtotal,
+            'variante_id': item.varianteId,
+            'variante_label': item.varianteColor,
+            'created_at': DateTime.now().toIso8601String(),
+          });
+        }
+      }
+
+      // Datos fiscales mínimos (Fase 5: dejar la base lista para ARCA sin conectar
+      // un facturador real todavía).
+      final direccionCompleta =
+          '${_calleController.text.trim()} ${_numeroController.text.trim()}, '
+          '${_ciudadController.text.trim()}, ${_provinciaController.text.trim()}';
+      await _supabase.from('pedidos').update({
+        if (_cuitDniController.text.trim().isNotEmpty)
+          'cuit_dni_facturacion': _cuitDniController.text.trim(),
+        'condicion_iva': _condicionIva,
+        'direccion_fiscal': direccionCompleta,
+      }).eq('id', widget.pedidoId);
 
       // Insertar en la tabla envio_domicilio
       await _supabase.from('envio_domicilio').upsert({
@@ -119,10 +223,7 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
             throw Exception('No se pudo abrir el navegador seguro de Mercado Pago.');
           }
 
-          // Vaciar el carrito de forma reactiva para dejar la tienda lista
-          if (mounted) {
-            Provider.of<CartProvider>(context, listen: false).vaciarCarrito();
-          }
+          // El carrito se vacía recién cuando el pago quede confirmado, no antes.
 
           // Reemplazar la pantalla del formulario por la de espera y confirmación (imperceptible)
           if (mounted) {
@@ -136,6 +237,8 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
                   emailPagador: widget.emailPagador ?? '',
                   initPoint: preferencia.linkPago,
                   preferenceId: preferencia.preferenceId,
+                  tipoCheckout: TipoCheckout.tienda,
+                  iniciarEnEspera: true,
                 ),
               ),
             );
@@ -239,6 +342,7 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
                   _buildField(
                     controller: _nombreReceptorController,
                     label: 'Nombre y Apellido de quien recibe',
+                    capitalizarPalabras: true,
                     icon: Icons.person,
                     validator: (v) => v == null || v.trim().isEmpty ? 'Ingresa el nombre del receptor' : null,
                   ),
@@ -290,6 +394,7 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
                   _buildField(
                     controller: _calleController,
                     label: 'Calle / Avenida',
+                    capitalizarPalabras: true,
                     icon: Icons.location_on,
                     validator: (v) => v == null || v.trim().isEmpty ? 'Ingresa la calle' : null,
                   ),
@@ -316,6 +421,7 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
                         child: _buildField(
                           controller: _pisoDeptoController,
                           label: 'Piso / Dpto (Opcional)',
+                          capitalizarPalabras: true,
                           icon: Icons.apartment,
                         ),
                       ),
@@ -325,6 +431,7 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
                   _buildField(
                     controller: _barrioController,
                     label: 'Barrio / Zona (Opcional)',
+                    capitalizarPalabras: true,
                     icon: Icons.map,
                   ),
                   const SizedBox(height: 12),
@@ -335,6 +442,7 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
                         child: _buildField(
                           controller: _ciudadController,
                           label: 'Ciudad / Localidad',
+                          capitalizarPalabras: true,
                           icon: Icons.location_city,
                           validator: (v) => v == null || v.trim().isEmpty ? 'Ciudad requerida' : null,
                         ),
@@ -355,6 +463,7 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
                   _buildField(
                     controller: _provinciaController,
                     label: 'Provincia',
+                          capitalizarPalabras: true,
                     icon: Icons.explore,
                     validator: (v) => v == null || v.trim().isEmpty ? 'Ingresa la provincia' : null,
                   ),
@@ -363,8 +472,49 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
                   _buildField(
                     controller: _instruccionesController,
                     label: 'Referencias del Domicilio (Ej: Portón blanco, timbre roto - Opcional)',
+                    capitalizarPalabras: true,
                     icon: Icons.comment_bank_outlined,
                     maxLines: 2,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // 🧾 SECCIÓN 3: DATOS DE FACTURACIÓN (Fase 5: base lista para ARCA)
+              _buildSectionCard(
+                title: 'DATOS DE FACTURACIÓN',
+                icon: Icons.receipt_long_rounded,
+                children: [
+                  _buildField(
+                    controller: _cuitDniController,
+                    label: 'DNI / CUIT (Opcional)',
+                    icon: Icons.badge_outlined,
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    initialValue: _condicionIva,
+                    decoration: InputDecoration(
+                      labelText: 'Condición frente al IVA',
+                      labelStyle: const TextStyle(fontSize: 13, color: Colors.grey),
+                      prefixIcon: const Icon(Icons.account_balance_outlined, color: _azul, size: 18),
+                      filled: true,
+                      fillColor: const Color(0xFFFAFAFA),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: _azul, width: 2),
+                      ),
+                    ),
+                    items: _condicionesIva.entries
+                        .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value, style: const TextStyle(fontSize: 13))))
+                        .toList(),
+                    onChanged: (v) => setState(() => _condicionIva = v ?? 'consumidor_final'),
                   ),
                 ],
               ),
@@ -433,7 +583,7 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
                     loading: _guardando,
                     icon: widget.amount != null ? Icons.payment : Icons.check_circle_outline,
                     idleLabel: widget.amount != null
-                        ? 'Pagar \$${widget.amount!.toStringAsFixed(0)} con Mercado Pago'
+                        ? 'PAGAR CON MERCADO PAGO'
                         : 'Confirmar dirección',
                     loadingLabel: widget.amount != null
                         ? 'Conectando con Mercado Pago...'
@@ -515,12 +665,18 @@ class _FormularioEnvioScreenState extends State<FormularioEnvioScreen> {
     TextInputType keyboardType = TextInputType.text,
     String? Function(String?)? validator,
     int maxLines = 1,
+    bool capitalizarPalabras = false,
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       validator: validator,
       maxLines: maxLines,
+      textCapitalization:
+          capitalizarPalabras ? TextCapitalization.words : TextCapitalization.none,
+      inputFormatters: capitalizarPalabras
+          ? [PalabrasCapitalizadasFormatter()]
+          : null,
       style: const TextStyle(color: Colors.black87, fontSize: 14),
       decoration: InputDecoration(
         labelText: label,

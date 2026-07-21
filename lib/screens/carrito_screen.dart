@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../providers/cart_provider.dart';
 import '../models/cart_item.dart';
 import '../services/branding_service.dart';
@@ -92,6 +93,11 @@ class _CarritoScreenState extends State<CarritoScreen> {
       );
 
       if (mounted) {
+        final uri = Uri.parse(preferencia.linkPago);
+        if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+          throw Exception('No se pudo abrir Mercado Pago.');
+        }
+
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -102,6 +108,7 @@ class _CarritoScreenState extends State<CarritoScreen> {
               emailPagador: emailSilencioso,
               initPoint: preferencia.linkPago,
               preferenceId: preferencia.preferenceId,
+              iniciarEnEspera: true,
             ),
           ),
         );
@@ -196,7 +203,7 @@ class _CarritoScreenState extends State<CarritoScreen> {
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: SafeProductImage(
-              imagenUrl: item.producto.imagenUrl,
+              imagenUrl: item.imagenMostrada,
               width: 80,
               height: 80,
               fit: BoxFit.cover,
@@ -207,17 +214,17 @@ class _CarritoScreenState extends State<CarritoScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.producto.nombre, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(item.nombreProducto, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 const SizedBox(height: 4),
-                Text(item.producto.precioFormateado, style: const TextStyle(color: Color(0xFF00C853), fontWeight: FontWeight.w900)),
+                Text(item.precioFormateado, style: const TextStyle(color: Color(0xFF00C853), fontWeight: FontWeight.w900)),
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    _buildQtyBtn(Icons.remove, () => cart.decrementarCantidad(item.producto.id)),
+                    _buildQtyBtn(Icons.remove, () => cart.decrementarCantidad(item.producto.id, varianteId: item.varianteId)),
                     const SizedBox(width: 15),
                     Text('${item.cantidad}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                     const SizedBox(width: 15),
-                    _buildQtyBtn(Icons.add, () => cart.incrementarCantidad(item.producto.id)),
+                    _buildQtyBtn(Icons.add, () => cart.incrementarCantidad(item.producto.id, varianteId: item.varianteId)),
                   ],
                 ),
               ],
@@ -228,7 +235,7 @@ class _CarritoScreenState extends State<CarritoScreen> {
             children: [
               IconButton(
                 icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                onPressed: () => cart.eliminarDelCarrito(item.producto.id),
+                onPressed: () => cart.eliminarDelCarrito(item.producto.id, varianteId: item.varianteId),
               ),
               const SizedBox(height: 10),
               Text(item.subtotalFormateado, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Color(0xFF0D47A1))),

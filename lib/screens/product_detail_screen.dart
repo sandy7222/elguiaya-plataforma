@@ -4,6 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:provider/provider.dart';
 import '../models/producto.dart';
+import '../models/producto_variante.dart';
 import '../models/user_profile.dart';
 import '../models/producto_atributo.dart';
 import '../models/categoria.dart';
@@ -35,6 +36,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   late PageController _galleryController;
   int _currentGalleryIndex = 0;
   late Stream<List<Map<String, dynamic>>> _productStream;
+  late Producto _producto;
+  ProductoVariante? _varianteSeleccionada;
 
   // Colores Pro 2026 (Modern Clean Style)
   static const Color _capitanBlue = Color(0xFF001F3F); // Azul más profundo para contraste
@@ -48,16 +51,29 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   @override
   void initState() {
     super.initState();
+    _producto = widget.producto;
+    _varianteSeleccionada = _producto.varianteDefault;
     _galleryController = PageController();
     _productStream = SupabaseService.supabase
         .from('productos')
         .stream(primaryKey: ['id'])
         .eq('id', widget.producto.id);
     _cargarDatosAdicionales();
+    _cargarVariantesSiFaltan();
     
     // Registrar contexto activo para Gu-IA
     ElGuiaEngine().contexto.productoActual = widget.producto;
     GuiaCopilotBrain.instance.pantallaCargada(ScreenContext.tienda);
+  }
+
+  Future<void> _cargarVariantesSiFaltan() async {
+    if (_producto.variantes.isNotEmpty) return;
+    final vars = await SupabaseService.getVariantesProducto(_producto.id);
+    if (!mounted || vars.isEmpty) return;
+    setState(() {
+      _producto = _producto.copyWith(variantes: vars);
+      _varianteSeleccionada = _producto.varianteDefault;
+    });
   }
 
   Future<void> _cargarDatosAdicionales() async {
@@ -151,7 +167,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final allImages = [widget.producto.imagenUrl, ...widget.producto.galeriaUrls];
+    final allImages = _imagenesActuales;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -192,7 +208,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             // 1. Galería de Imágenes con Miniaturas
             SizedBox(
               height: MediaQuery.of(context).size.height * 0.45,
-              child: PageView.builder(
+              child: allImages.isEmpty
+                  ? Container(color: _softGrey, child: const Center(child: Icon(Icons.image, size: 48)))
+                  : PageView.builder(
                 controller: _galleryController,
                 itemCount: allImages.length,
                 onPageChanged: (index) => setState(() => _currentGalleryIndex = index),
@@ -252,21 +270,21 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildTechBadge(widget.producto.rubro.toUpperCase(), _capitanBlue),
-                      if (widget.producto.stock < 5 && widget.producto.stock > 0)
+                      _buildTechBadge(_producto.rubro.toUpperCase(), _capitanBlue),
+                      if (_stockActual < 5 && _stockActual > 0)
                         _buildUrgencyPulse(),
                     ],
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    widget.producto.nombre,
+                    _producto.nombre,
                     style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: _darkGrey, letterSpacing: -0.5),
                   ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
                       Text(
-                        widget.producto.precioFormateado,
+                        '\$${_precioActual.toStringAsFixed(2)}',
                         style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: _capitanBlue),
                       ),
                       const SizedBox(width: 12),
@@ -277,6 +295,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                     ],
                   ),
+                  if (_producto.tieneVariantes) ...[
+                    const SizedBox(height: 20),
+                    _buildSelectorColor(),
+                  ],
                   const SizedBox(height: 24),
                   
                   // Botones de Acción Estilo Moderno
@@ -286,7 +308,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   const _SectionHeader(title: 'DESCRIPCIÓN'),
                   const SizedBox(height: 12),
                   Text(
-                    widget.producto.descripcion,
+                    _producto.descripcion,
                     style: TextStyle(fontSize: 15, color: Colors.grey.shade700, height: 1.6),
                   ),
                   
@@ -318,38 +340,120 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  Widget _buildModernActionButtons() {
+  List<String> get _imagenesActuales {
+    final v = _varianteSeleccionada;
+    if (v != null) {
+      final imgs = <String>{
+        if (v.imagenUrl != null && v.imagenUrl!.isNotEmpty) v.imagenUrl!,
+        ...v.galeriaUrls.where((u) => u.isNotEmpty),
+      };
+      if (imgs.isNotEmpty) return imgs.toList();
+    }
+    return <String>{
+      if (_producto.imagenUrl.isNotEmpty) _producto.imagenUrl,
+      ..._producto.galeriaUrls.where((u) => u.isNotEmpty),
+    }.toList();
+  }
+
+  int get _stockActual =>
+      _varianteSeleccionada?.stock ?? _producto.stockDisponible;
+
+  double get _precioActual =>
+      _varianteSeleccionada?.precioEfectivo(_producto.precio) ?? _producto.precio;
+
+  Widget _buildSelectorColor() {
+    final variantes = _producto.variantesActivas;
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          width: double.infinity,
-          height: 55,
-          child: ElevatedButton(
-            onPressed: widget.producto.stock > 0 ? () => _agregarAlCarrito(Provider.of<CartProvider>(context, listen: false)) : null,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _darkGrey,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              elevation: 0,
-            ),
-            child: const Text('AÑADIR AL CARRITO', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
+        Text(
+          'COLOR: ${_varianteSeleccionada?.color ?? 'Elegí uno'}',
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.8,
+            color: _darkGrey,
           ),
         ),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          height: 55,
-          child: OutlinedButton(
-            onPressed: _contactarVendedor,
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: _darkGrey, width: 1.5),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              foregroundColor: _darkGrey,
-            ),
-            child: const Text('CONTACTAR CAPITÁN', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: variantes.map((v) {
+            final selected = _varianteSeleccionada?.id == v.id;
+            final sinStock = v.stock <= 0;
+            return GestureDetector(
+              onTap: sinStock
+                  ? null
+                  : () {
+                      setState(() {
+                        _varianteSeleccionada = v;
+                        _currentGalleryIndex = 0;
+                      });
+                      if (_galleryController.hasClients) {
+                        _galleryController.jumpToPage(0);
+                      }
+                    },
+              child: Opacity(
+                opacity: sinStock ? 0.4 : 1,
+                child: Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: selected ? _capitanBlue : Colors.grey.shade300,
+                      width: selected ? 2.5 : 1,
+                    ),
+                    color: Colors.grey.shade100,
+                    image: (v.imagenUrl != null && v.imagenUrl!.isNotEmpty)
+                        ? DecorationImage(image: NetworkImage(v.imagenUrl!), fit: BoxFit.cover)
+                        : null,
+                  ),
+                  child: (v.imagenUrl == null || v.imagenUrl!.isEmpty)
+                      ? Center(
+                          child: Text(
+                            v.color.length > 4 ? v.color.substring(0, 3) : v.color,
+                            style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
+                          ),
+                        )
+                      : null,
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          _stockActual > 0 ? 'Stock: $_stockActual' : 'Sin stock en este color',
+          style: TextStyle(
+            fontSize: 12,
+            color: _stockActual > 0 ? Colors.grey.shade600 : Colors.redAccent,
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildModernActionButtons() {
+    final puedeComprar = _stockActual > 0 &&
+        (!_producto.tieneVariantes || _varianteSeleccionada != null);
+    return SizedBox(
+      width: double.infinity,
+      height: 55,
+      child: ElevatedButton(
+        onPressed: puedeComprar
+            ? () => _agregarAlCarrito(Provider.of<CartProvider>(context, listen: false))
+            : null,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _darkGrey,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          elevation: 0,
+        ),
+        child: const Text('AÑADIR AL CARRITO', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
+      ),
     );
   }
 
@@ -517,14 +621,26 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
 
   void _agregarAlCarrito(CartProvider cart) {
-    final success = cart.agregarAlCarrito(widget.producto);
+    if (_producto.tieneVariantes && _varianteSeleccionada == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Elegí un color antes de agregar al carrito')),
+      );
+      return;
+    }
+    final success = cart.agregarAlCarrito(
+      _producto,
+      variante: _varianteSeleccionada,
+    );
     if (success) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       
+      final nombre = _varianteSeleccionada != null
+          ? '${_producto.nombre} (${_varianteSeleccionada!.color})'
+          : _producto.nombre;
       final controller = ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '¡${widget.producto.nombre} añadido a tu red!',
+            '¡$nombre añadido a tu red!',
             style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
           ),
           backgroundColor: _vibrantGreen,
@@ -550,6 +666,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           controller.close();
         } catch (_) {}
       });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No hay stock suficiente para ese color')),
+      );
     }
   }
 

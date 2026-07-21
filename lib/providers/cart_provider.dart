@@ -1,106 +1,195 @@
 
 
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/cart_item.dart';
 import '../models/direccion_envio.dart';
 import '../models/manifiesto_viaje.dart';
 import '../models/producto.dart';
+import '../models/producto_variante.dart';
+import '../models/tipo_checkout.dart';
+import '../services/cart_persistence_service.dart';
 
 class CartProvider extends ChangeNotifier {
   final List<CartItem> _items = [];
   DireccionEnvio? _direccionEnvio;
   final List<ManifiestoViaje> _manifiestosViaje = [];
   String? _pedidoViajeId;
+  bool _inicializado = false;
+
+  CartProvider() {
+    inicializarSesion();
+  }
 
   /// ID del pedido real en Supabase vinculado al viaje del carrito.
   String? get pedidoViajeId => _pedidoViajeId;
+  bool get inicializado => _inicializado;
 
   List<CartItem> get items => List.unmodifiable(_items);
 
-  // Deteccion de tipos de items
   List<CartItem> get itemsTienda {
-    return _items.where((item) => item.producto.rubro.toLowerCase() != 'viaje').toList();
+    return _items
+        .where((item) => item.producto.rubro.toLowerCase() != 'viaje')
+        .toList();
   }
 
   List<CartItem> get itemsViaje {
-    return _items.where((item) => item.producto.rubro.toLowerCase() == 'viaje').toList();
+    return _items
+        .where((item) => item.producto.rubro.toLowerCase() == 'viaje')
+        .toList();
   }
 
-  // Verificar si hay items de cada tipo
   bool get tieneItemsTienda => itemsTienda.isNotEmpty;
   bool get tieneItemsViaje => itemsViaje.isNotEmpty;
 
-  // Datos de envio y manifiestos
+  TipoCheckout get tipoCheckoutActual => combinarTipoCheckout(
+        tieneTienda: tieneItemsTienda,
+        tieneViaje: tieneItemsViaje,
+      );
+
   DireccionEnvio? get direccionEnvio => _direccionEnvio;
   List<ManifiestoViaje> get manifiestosViaje => List.unmodifiable(_manifiestosViaje);
 
-  int get totalItems {
-    return _items.fold(0, (sum, item) => sum + item.cantidad);
+  int get totalItems => _items.fold(0, (sum, item) => sum + item.cantidad);
+
+  double get totalCarrito =>
+      _items.fold(0.0, (sum, item) => sum + item.subtotal);
+
+  String get totalFormateado => '\$${totalCarrito.toStringAsFixed(2)}';
+
+  String? get _userId => Supabase.instance.client.auth.currentUser?.id;
+
+  Future<void> inicializarSesion() async {
+    if (_inicializado) return;
+    final userId = _userId;
+    if (userId == null) {
+      _inicializado = true;
+      return;
+    }
+
+    final local = await CartPersistenceService.cargar(userId);
+    if (local != null && local.items.isNotEmpty) {
+      _aplicarSnapshot(local, merge: false);
+    } else {
+      final remoto = await CartPersistenceService.hidratarPedidoPendiente(userId);
+      if (remoto != null && remoto.items.isNotEmpty) {
+        _aplicarSnapshot(remoto, merge: false);
+      }
+    }
+
+    _inicializado = true;
+    notifyListeners();
   }
 
-  double get totalCarrito {
-    return _items.fold(0.0, (sum, item) => sum + item.subtotal);
+  /// Restaura el carrito desde un pedido concreto (deep link / MIS VIAJES → caja).
+  Future<void> hidratarDesdePedido(String pedidoId) async {
+    final snapshot = await CartPersistenceService.hidratarDesdePedido(pedidoId);
+    if (snapshot == null || snapshot.items.isEmpty) return;
+    _aplicarSnapshot(snapshot, merge: true);
+    await _persistir();
+    notifyListeners();
   }
 
-  String get totalFormateado {
-    return '\$${totalCarrito.toStringAsFixed(2)}';
+  void _aplicarSnapshot(CartSnapshot snapshot, {required bool merge}) {
+    if (!merge) {
+      _items.clear();
+      _pedidoViajeId = null;
+    }
+    if (snapshot.pedidoViajeId != null && snapshot.pedidoViajeId!.isNotEmpty) {
+      _pedidoViajeId = snapshot.pedidoViajeId;
+    }
+    for (final item in snapshot.items) {
+      if (item.producto.rubro.toLowerCase() == 'viaje') {
+        _items.removeWhere(
+          (i) => i.producto.rubro.toLowerCase() == 'viaje',
+        );
+        _items.add(item);
+      } else {
+        final idx = _items.indexWhere((i) => i.lineKey == item.lineKey);
+        if (idx >= 0) {
+          _items[idx] = item;
+        } else {
+          _items.add(item);
+        }
+      }
+    }
   }
 
-  // Verificar si un producto esta en el carrito
+  Future<void> _persistir() async {
+    await CartPersistenceService.guardar(
+      userId: _userId,
+      pedidoViajeId: _pedidoViajeId,
+      items: List.from(_items),
+    );
+  }
+
+  void _notifyPersist() {
+    notifyListeners();
+    _persistir();
+  }
+
   bool estaEnCarrito(String productoId) {
     return _items.any((item) => item.producto.id == productoId);
   }
 
-  // Obtener cantidad de un producto en el carrito
   int getCantidadProducto(String productoId) {
-    final item = _items.where((item) => item.producto.id == productoId).firstOrNull;
+    final item =
+        _items.where((item) => item.producto.id == productoId).firstOrNull;
     return item?.cantidad ?? 0;
   }
 
-  // Agregar producto al carrito
-  bool agregarAlCarrito(Producto producto, {int cantidad = 1}) {
-    // Verificar stock disponible
-    if (producto.stock < cantidad) {
-      return false; // No hay stock suficiente
-    }
+  bool agregarAlCarrito(
+    Producto producto, {
+    int cantidad = 1,
+    ProductoVariante? variante,
+  }) {
+    if (producto.rubro.toLowerCase() == 'viaje') return false;
 
-    // Verificar si el producto ya esta en el carrito
-    final existingItemIndex = _items.indexWhere(
-      (item) => item.producto.id == producto.id,
-    );
+    if (producto.tieneVariantes && variante == null) return false;
+
+    final stockOk = variante != null
+        ? variante.stock >= cantidad
+        : producto.stockDisponible >= cantidad;
+    if (!stockOk) return false;
+
+    final lineKey =
+        '${producto.id}::${variante?.id ?? 'base'}';
+    final existingItemIndex =
+        _items.indexWhere((item) => item.lineKey == lineKey);
 
     if (existingItemIndex != -1) {
-      // El producto ya esta en el carrito, actualizar cantidad
       final existingItem = _items[existingItemIndex];
       final nuevaCantidad = existingItem.cantidad + cantidad;
-      
-      // Verificar stock total
-      if (producto.stock < nuevaCantidad) {
-        return false; // No hay stock suficiente para la cantidad total
-      }
-      
+      final maxStock = variante?.stock ?? producto.stockDisponible;
+      if (maxStock < nuevaCantidad) return false;
       _items[existingItemIndex] = CartItem(
         id: existingItem.id,
         producto: existingItem.producto,
         cantidad: nuevaCantidad,
         addedAt: existingItem.addedAt,
+        varianteId: existingItem.varianteId,
+        varianteColor: existingItem.varianteColor,
+        varianteImagenUrl: existingItem.varianteImagenUrl,
+        precioUnitarioOverride: existingItem.precioUnitarioOverride,
       );
     } else {
-      // Agregar nuevo item al carrito
       _items.add(CartItem(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         producto: producto,
         cantidad: cantidad,
         addedAt: DateTime.now(),
+        varianteId: variante?.id,
+        varianteColor: variante?.color,
+        varianteImagenUrl: variante?.imagenUrl,
+        precioUnitarioOverride: variante?.precioEfectivo(producto.precio),
       ));
     }
 
-    notifyListeners();
+    _notifyPersist();
     return true;
   }
 
-  // Agregar oferta de viaje al carrito
   void agregarViajeAlCarrito({
     required String idCotizacion,
     required String nombreCapitan,
@@ -114,7 +203,7 @@ class CartProvider extends ChangeNotifier {
     if (pedidoId != null && pedidoId.isNotEmpty) {
       _pedidoViajeId = pedidoId;
     }
-    // Determinar imagenUrl: embarcacionUrl -> capitanAvatarUrl -> fallback
+
     String resolvedImagenUrl = 'assets/images/logo_elguiaya_white.png';
     if (embarcacionUrl != null && embarcacionUrl.trim().isNotEmpty) {
       resolvedImagenUrl = embarcacionUrl.trim();
@@ -122,7 +211,6 @@ class CartProvider extends ChangeNotifier {
       resolvedImagenUrl = capitanAvatarUrl.trim();
     }
 
-    // Creamos un producto virtual para el viaje
     final productoViaje = Producto(
       id: 'viaje_$idCotizacion',
       nombre: 'VIAJE: $descripcion',
@@ -137,9 +225,7 @@ class CartProvider extends ChangeNotifier {
       updatedAt: DateTime.now(),
     );
 
-    // Evitar duplicados del mismo viaje
     _items.removeWhere((item) => item.producto.id == productoViaje.id);
-
     _items.add(CartItem(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       producto: productoViaje,
@@ -147,108 +233,115 @@ class CartProvider extends ChangeNotifier {
       addedAt: DateTime.now(),
     ));
 
-    notifyListeners();
+    _notifyPersist();
   }
 
-  // Actualizar cantidad de un producto
-  bool actualizarCantidad(String productoId, int nuevaCantidad) {
+  bool actualizarCantidad(String productoId, int nuevaCantidad, {String? varianteId}) {
     if (nuevaCantidad < 0) return false;
 
-    final itemIndex = _items.indexWhere(
-      (item) => item.producto.id == productoId,
-    );
-
+    final lineKey = '$productoId::${varianteId ?? 'base'}';
+    final itemIndex = _items.indexWhere((item) =>
+        item.lineKey == lineKey ||
+        (varianteId == null && item.producto.id == productoId));
     if (itemIndex == -1) return false;
 
     final item = _items[itemIndex];
-    
-    // Verificar stock disponible
-    if (item.producto.stock < nuevaCantidad) {
-      return false;
-    }
+    if (item.stockDisponible < nuevaCantidad) return false;
 
     if (nuevaCantidad == 0) {
-      // Eliminar item si la cantidad es 0
       _items.removeAt(itemIndex);
     } else {
-      // Actualizar cantidad
       _items[itemIndex] = CartItem(
         id: item.id,
         producto: item.producto,
         cantidad: nuevaCantidad,
         addedAt: item.addedAt,
+        varianteId: item.varianteId,
+        varianteColor: item.varianteColor,
+        varianteImagenUrl: item.varianteImagenUrl,
+        precioUnitarioOverride: item.precioUnitarioOverride,
       );
     }
 
-    notifyListeners();
+    _notifyPersist();
     return true;
   }
 
-  // Eliminar producto del carrito
-  void eliminarDelCarrito(String productoId) {
-    final item = _items.where((i) => i.producto.id == productoId).firstOrNull;
+  void eliminarDelCarrito(String productoId, {String? varianteId}) {
+    final lineKey = '$productoId::${varianteId ?? 'base'}';
+    CartItem? item;
+    for (final i in _items) {
+      if (i.lineKey == lineKey ||
+          (varianteId == null && i.producto.id == productoId)) {
+        item = i;
+        break;
+      }
+    }
     if (item != null && item.producto.rubro.toLowerCase() == 'viaje') {
       _pedidoViajeId = null;
     }
-    _items.removeWhere((item) => item.producto.id == productoId);
-    notifyListeners();
+    _items.removeWhere((i) =>
+        i.lineKey == lineKey ||
+        (varianteId == null && i.producto.id == productoId && i.varianteId == null));
+    _notifyPersist();
   }
 
-  // Incrementar cantidad de un producto
-  bool incrementarCantidad(String productoId) {
-    final itemIndex = _items.indexWhere(
-      (item) => item.producto.id == productoId,
-    );
-
+  bool incrementarCantidad(String productoId, {String? varianteId}) {
+    final lineKey = '$productoId::${varianteId ?? 'base'}';
+    final itemIndex = _items.indexWhere((item) =>
+        item.lineKey == lineKey ||
+        (varianteId == null && item.producto.id == productoId));
     if (itemIndex == -1) return false;
 
     final item = _items[itemIndex];
     final nuevaCantidad = item.cantidad + 1;
-
-    // Verificar stock disponible
-    if (item.producto.stock < nuevaCantidad) {
-      return false;
-    }
+    if (item.stockDisponible < nuevaCantidad) return false;
 
     _items[itemIndex] = CartItem(
       id: item.id,
       producto: item.producto,
       cantidad: nuevaCantidad,
       addedAt: item.addedAt,
+      varianteId: item.varianteId,
+      varianteColor: item.varianteColor,
+      varianteImagenUrl: item.varianteImagenUrl,
+      precioUnitarioOverride: item.precioUnitarioOverride,
     );
 
-    notifyListeners();
+    _notifyPersist();
     return true;
   }
 
-  // Decrementar cantidad de un producto
-  bool decrementarCantidad(String productoId) {
-    final itemIndex = _items.indexWhere(
-      (item) => item.producto.id == productoId,
-    );
-
+  bool decrementarCantidad(String productoId, {String? varianteId}) {
+    final lineKey = '$productoId::${varianteId ?? 'base'}';
+    final itemIndex = _items.indexWhere((item) =>
+        item.lineKey == lineKey ||
+        (varianteId == null && item.producto.id == productoId));
     if (itemIndex == -1) return false;
 
     final item = _items[itemIndex];
-    
     if (item.cantidad <= 1) {
-      // Eliminar item si la cantidad es 1 o menos
+      if (item.producto.rubro.toLowerCase() == 'viaje') {
+        _pedidoViajeId = null;
+      }
       _items.removeAt(itemIndex);
     } else {
-      // Decrementar cantidad
       _items[itemIndex] = CartItem(
         id: item.id,
         producto: item.producto,
         cantidad: item.cantidad - 1,
         addedAt: item.addedAt,
+        varianteId: item.varianteId,
+        varianteColor: item.varianteColor,
+        varianteImagenUrl: item.varianteImagenUrl,
+        precioUnitarioOverride: item.precioUnitarioOverride,
       );
     }
 
-    notifyListeners();
+    _notifyPersist();
     return true;
   }
 
-  // Metodos para datos de envio y manifiestos
   void setDireccionEnvio(DireccionEnvio direccion) {
     _direccionEnvio = direccion;
     notifyListeners();
@@ -278,37 +371,34 @@ class CartProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Validacion para checkout
   bool get datosEnvioValidos {
-    if (!tieneItemsTienda) return true; // No requiere validacion si no hay items de tienda
+    if (!tieneItemsTienda) return true;
     return _direccionEnvio?.isValid == true;
   }
 
   bool get manifiestosValidos {
-    if (!tieneItemsViaje) return true; // No requiere validacion si no hay items de viaje
+    if (!tieneItemsViaje) return true;
     if (_manifiestosViaje.isEmpty) return false;
-    return _manifiestosViaje.every((m) => m.isValidConFoto); // Requiere foto DNI
+    return _manifiestosViaje.every((m) => m.isValidConFoto);
   }
 
   bool get puedeProcederAlPago {
     return _items.isNotEmpty && datosEnvioValidos && manifiestosValidos;
   }
 
-  // Vaciar carrito
   void vaciarCarrito() {
     _items.clear();
     _direccionEnvio = null;
     _manifiestosViaje.clear();
     _pedidoViajeId = null;
+    CartPersistenceService.limpiar();
     notifyListeners();
   }
 
-  // Verificar si hay items sin stock
   List<CartItem> get itemsSinStock {
     return _items.where((item) => !item.hasStock).toList();
   }
 
-  // Actualizar items con stock cambiado
   void actualizarStockProducto(String productoId, int nuevoStock) {
     for (int i = 0; i < _items.length; i++) {
       if (_items[i].producto.id == productoId) {
@@ -328,8 +418,8 @@ class CartProvider extends ChangeNotifier {
           rubroId: item.producto.rubroId,
         );
 
-        // Ajustar cantidad si excede el nuevo stock
-        final cantidadAjustada = nuevoStock < item.cantidad ? nuevoStock : item.cantidad;
+        final cantidadAjustada =
+            nuevoStock < item.cantidad ? nuevoStock : item.cantidad;
 
         _items[i] = CartItem(
           id: item.id,
@@ -337,27 +427,29 @@ class CartProvider extends ChangeNotifier {
           cantidad: cantidadAjustada,
           addedAt: item.addedAt,
         );
-        
-        notifyListeners();
+
         if (nuevoStock == 0) {
           _items.removeAt(i);
-          i--; // Ajustar indice despues de remover
         }
+        _notifyPersist();
         break;
       }
     }
   }
 
-  // Obtener resumen para checkout
   Map<String, dynamic> get resumenCheckout {
     return {
-      'items': _items.map((item) => {
-        'producto_id': item.producto.id,
-        'nombre': item.producto.nombre,
-        'cantidad': item.cantidad,
-        'precio_unitario': item.producto.precio,
-        'subtotal': item.subtotal,
-      }).toList(),
+      'items': _items
+          .map((item) => {
+                'producto_id': item.producto.id,
+                'nombre': item.nombreProducto,
+                'cantidad': item.cantidad,
+                'precio_unitario': item.precioUnitario,
+                'subtotal': item.subtotal,
+                'variante_id': item.varianteId,
+                'variante_label': item.varianteColor,
+              })
+          .toList(),
       'total_items': totalItems,
       'total_carrito': totalCarrito,
       'items_sin_stock': itemsSinStock.length,

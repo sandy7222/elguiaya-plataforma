@@ -83,7 +83,7 @@ class CartSheet extends StatelessWidget {
                 ? null 
                 : () {
                     Navigator.pop(context);
-                    Navigator.pushNamed(context, '/checkout');
+                    Navigator.pushNamed(context, '/carrito');
                   },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF0D47A1),
@@ -125,7 +125,7 @@ class CartSheet extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: SafeProductImage(
-              imagenUrl: item.producto.imagenUrl,
+              imagenUrl: item.imagenMostrada,
               width: 60,
               height: 60,
               fit: BoxFit.cover,
@@ -137,7 +137,7 @@ class CartSheet extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item.producto.nombre,
+                  item.nombreProducto,
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -148,7 +148,7 @@ class CartSheet extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  item.producto.precioFormateado,
+                  item.precioFormateado,
                   style: const TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.w900, fontSize: 14),
                 ),
               ],
@@ -157,12 +157,12 @@ class CartSheet extends StatelessWidget {
           // Controles de cantidad
           Row(
             children: [
-              _buildQtyBtn(Icons.remove, () => cart.decrementarCantidad(item.producto.id)),
+              _buildQtyBtn(Icons.remove, () => cart.decrementarCantidad(item.producto.id, varianteId: item.varianteId)),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Text('${item.cantidad}', style: const TextStyle(fontWeight: FontWeight.bold)),
               ),
-              _buildQtyBtn(Icons.add, () => cart.incrementarCantidad(item.producto.id)),
+              _buildQtyBtn(Icons.add, () => cart.incrementarCantidad(item.producto.id, varianteId: item.varianteId)),
             ],
           ),
         ],

@@ -1,4 +1,5 @@
 
+import 'producto_variante.dart';
 
 class Producto {
   final String id;
@@ -18,6 +19,7 @@ class Producto {
   final String? vendedorId; 
 
   final String? videoUrl; // Link de video opcional
+  final List<ProductoVariante> variantes;
 
   Producto({
     required this.id,
@@ -36,6 +38,7 @@ class Producto {
     this.destacado = false,
     this.rubroId,
     this.vendedorId,
+    this.variantes = const [],
   });
 
   factory Producto.fromSupabase(Map<String, dynamic> data) {
@@ -45,6 +48,20 @@ class Producto {
       if (data['galeria_urls'] is List) {
         galeria = List<String>.from(data['galeria_urls']);
       }
+    }
+
+    List<ProductoVariante> vars = [];
+    if (data['producto_variantes'] is List) {
+      vars = (data['producto_variantes'] as List)
+          .whereType<Map>()
+          .map((v) => ProductoVariante.fromSupabase(Map<String, dynamic>.from(v)))
+          .toList()
+        ..sort((a, b) => a.orden.compareTo(b.orden));
+    } else if (data['variantes'] is List) {
+      vars = (data['variantes'] as List)
+          .whereType<Map>()
+          .map((v) => ProductoVariante.fromSupabase(Map<String, dynamic>.from(v)))
+          .toList();
     }
 
     return Producto(
@@ -61,9 +78,30 @@ class Producto {
       activo: data['activo'] ?? true,
       vendedorId: data['vendedor_id']?.toString(),
       destacado: data['destacado'] ?? false,
+      rubroId: data['rubro_id']?.toString(),
       createdAt: DateTime.tryParse(data['created_at'] ?? '') ?? DateTime.now(),
       updatedAt: DateTime.tryParse(data['updated_at'] ?? '') ?? DateTime.now(),
+      variantes: vars,
     );
+  }
+
+  bool get tieneVariantes => variantes.where((v) => v.activo).isNotEmpty;
+
+  List<ProductoVariante> get variantesActivas =>
+      variantes.where((v) => v.activo).toList();
+
+  ProductoVariante? get varianteDefault {
+    final activas = variantesActivas;
+    if (activas.isEmpty) return null;
+    for (final v in activas) {
+      if (v.esDefault) return v;
+    }
+    return activas.first;
+  }
+
+  int get stockDisponible {
+    if (!tieneVariantes) return stock;
+    return variantesActivas.fold(0, (sum, v) => sum + v.stock);
   }
 
   Map<String, dynamic> toMap() {
@@ -77,6 +115,7 @@ class Producto {
       'categoria_id': categoriaId,
       'imagen_url': imagenUrl,
       'galeria_urls': galeriaUrls,
+      'producto_variantes': variantes.map((v) => v.toMap()).toList(),
       'video_url': videoUrl,
       'activo': activo,
       'rubro_id': rubroId,
@@ -137,5 +176,46 @@ class Producto {
         destacado = false,
         rubroId = null,
         vendedorId = null,
-        videoUrl = null;
+        videoUrl = null,
+        variantes = const [];
+
+  Producto copyWith({
+    String? id,
+    String? nombre,
+    String? descripcion,
+    double? precio,
+    int? stock,
+    String? rubro,
+    String? categoriaId,
+    String? imagenUrl,
+    List<String>? galeriaUrls,
+    String? videoUrl,
+    bool? activo,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    bool? destacado,
+    String? rubroId,
+    String? vendedorId,
+    List<ProductoVariante>? variantes,
+  }) {
+    return Producto(
+      id: id ?? this.id,
+      nombre: nombre ?? this.nombre,
+      descripcion: descripcion ?? this.descripcion,
+      precio: precio ?? this.precio,
+      stock: stock ?? this.stock,
+      rubro: rubro ?? this.rubro,
+      categoriaId: categoriaId ?? this.categoriaId,
+      imagenUrl: imagenUrl ?? this.imagenUrl,
+      galeriaUrls: galeriaUrls ?? this.galeriaUrls,
+      videoUrl: videoUrl ?? this.videoUrl,
+      activo: activo ?? this.activo,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      destacado: destacado ?? this.destacado,
+      rubroId: rubroId ?? this.rubroId,
+      vendedorId: vendedorId ?? this.vendedorId,
+      variantes: variantes ?? this.variantes,
+    );
+  }
 }

@@ -20,6 +20,7 @@ import 'package:capitanya_master/models/pedido_item.dart';
 import 'package:capitanya_master/models/perfil_capitan.dart';
 import 'package:capitanya_master/models/pescador.dart';
 import 'package:capitanya_master/models/producto.dart';
+import 'package:capitanya_master/models/producto_variante.dart';
 import 'package:capitanya_master/models/rubro.dart';
 import 'package:capitanya_master/models/user_profile.dart';
 import 'package:capitanya_master/models/viajes_invitados.dart';
@@ -35,6 +36,7 @@ import 'disponibilidad_service_final.dart';
 import 'notificacion_helper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'email_verification_policy.dart';
+import 'subasta_lifecycle_policy.dart';
 
 class SupabaseService {
   static List<Producto> _cachedProductos = [];
@@ -45,6 +47,7 @@ class SupabaseService {
 
   static const String _envUrl = String.fromEnvironment('SUPABASE_URL');
   static const String _url = _envUrl != '' ? _envUrl : 'https://ymgsxwfwntbqvguvbhoa.supabase.co';
+  static String get projectUrl => _url;
 
   static const String _envAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
   static const String _anonKey = _envAnonKey != '' ? _envAnonKey : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InltZ3N4d2Z3bnRicXZndXZiaG9hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc3ODgxMzQsImV4cCI6MjA5MzM2NDEzNH0.ZT2xlCIAnSyr_tR9qZAKIB7QAVQjJO2Jv0cwb51f1Uw';
@@ -548,6 +551,100 @@ class SupabaseService {
     }
   }
 
+  /// Métricas del sitio web elguiaya.com (visitas y clics WhatsApp)
+  static Future<Map<String, int>> getMetricasWeb() async {
+    const rutas = ['/', '/descarga', '/tienda'];
+    final ahora = DateTime.now();
+
+    final result = <String, int>{
+      'visitas_home_total': 0,
+      'visitas_home_hoy': 0,
+      'visitas_home_mes': 0,
+      'visitas_descarga_total': 0,
+      'visitas_descarga_hoy': 0,
+      'visitas_descarga_mes': 0,
+      'visitas_tienda_total': 0,
+      'visitas_tienda_hoy': 0,
+      'visitas_tienda_mes': 0,
+      'whatsapp_clicks_total': 0,
+      'whatsapp_clicks_hoy': 0,
+      'whatsapp_clicks_mes': 0,
+    };
+
+    try {
+      final supabase = Supabase.instance.client;
+      final rows = await supabase
+          .from('eventos_web')
+          .select('tipo, ruta, creado_at');
+
+      for (final row in (rows as List)) {
+        final tipo = row['tipo'] as String? ?? '';
+        final ruta = row['ruta'] as String? ?? '';
+        final creadoAt = DateTime.tryParse(row['creado_at'] as String? ?? '');
+        if (creadoAt == null) continue;
+
+        final esHoy = !creadoAt.isBefore(DateTime(ahora.year, ahora.month, ahora.day));
+        final esMes = !creadoAt.isBefore(DateTime(ahora.year, ahora.month, 1));
+
+        if (tipo == 'whatsapp_click') {
+          result['whatsapp_clicks_total'] = result['whatsapp_clicks_total']! + 1;
+          if (esHoy) result['whatsapp_clicks_hoy'] = result['whatsapp_clicks_hoy']! + 1;
+          if (esMes) result['whatsapp_clicks_mes'] = result['whatsapp_clicks_mes']! + 1;
+          continue;
+        }
+
+        if (tipo != 'pageview' || !rutas.contains(ruta)) continue;
+
+        final keyBase = ruta == '/'
+            ? 'visitas_home'
+            : ruta == '/descarga'
+                ? 'visitas_descarga'
+                : 'visitas_tienda';
+
+        result['${keyBase}_total'] = result['${keyBase}_total']! + 1;
+        if (esHoy) result['${keyBase}_hoy'] = result['${keyBase}_hoy']! + 1;
+        if (esMes) result['${keyBase}_mes'] = result['${keyBase}_mes']! + 1;
+      }
+    } catch (e) {
+      print('Error al cargar métricas web: $e');
+    }
+
+    return result;
+  }
+
+  /// Serie temporal mensual: stock de socios y KPIs de actividad (RPC Supabase).
+  static Future<List<Map<String, dynamic>>> getMetricasCrecimientoMensual({
+    int meses = 12,
+  }) async {
+    try {
+      final response = await supabase.rpc(
+        'metricas_crecimiento_mensual',
+        params: {'p_meses': meses},
+      );
+      if (response == null) return [];
+      return List<Map<String, dynamic>>.from(
+        (response as List).map((e) => Map<String, dynamic>.from(e as Map)),
+      );
+    } catch (e) {
+      print('Error al cargar métricas de crecimiento: $e');
+      return [];
+    }
+  }
+
+  /// Operaciones de pago unificadas (pedidos + legacy) vía vista v_operaciones_pago
+  static Future<List<Map<String, dynamic>>> getOperacionesPago() async {
+    try {
+      final rows = await supabase
+          .from('v_operaciones_pago')
+          .select('*')
+          .order('fecha_operacion', ascending: false);
+      return List<Map<String, dynamic>>.from(rows as List);
+    } catch (e) {
+      print('Error al cargar operaciones de pago: $e');
+      return [];
+    }
+  }
+
   /// Aprobar o rechazar documentación de capitán y traspasar a tablas legadas
   static Future<void> actualizarEstadoSocio(String userId, String estado, {String? expediente}) async {
     try {
@@ -937,6 +1034,94 @@ class SupabaseService {
     }
   }
 
+  /// Colores precargados para el admin de variantes
+  static Future<List<OpcionVarianteValor>> getColoresVariante() async {
+    try {
+      final opcion = await supabase
+          .from('opciones_variante')
+          .select('id')
+          .eq('nombre', 'Color')
+          .maybeSingle();
+      if (opcion == null) return [];
+      final response = await supabase
+          .from('opcion_variante_valores')
+          .select('*')
+          .eq('opcion_id', opcion['id'])
+          .eq('activo', true)
+          .order('orden');
+      return List<OpcionVarianteValor>.from(
+        response.map((r) => OpcionVarianteValor.fromSupabase(r)),
+      );
+    } catch (e) {
+      debugPrint('Error getColoresVariante: $e');
+      return [];
+    }
+  }
+
+  static Future<List<ProductoVariante>> getVariantesProducto(String productoId) async {
+    try {
+      final response = await supabase
+          .from('producto_variantes')
+          .select('*')
+          .eq('producto_id', productoId)
+          .order('orden');
+      return List<ProductoVariante>.from(
+        response.map((r) => ProductoVariante.fromSupabase(r)),
+      );
+    } catch (e) {
+      debugPrint('Error getVariantesProducto: $e');
+      return [];
+    }
+  }
+
+  /// Reemplaza todas las variantes de un producto (sync admin).
+  /// Si [variantes] está vacío, elimina las existentes.
+  static Future<void> sincronizarVariantesProducto({
+    required String productoId,
+    required List<ProductoVariante> variantes,
+  }) async {
+    _cachedProductos.clear();
+    final existentes = await supabase
+        .from('producto_variantes')
+        .select('id')
+        .eq('producto_id', productoId);
+    final idsExistentes = (existentes as List)
+        .map((e) => e['id']?.toString() ?? '')
+        .where((id) => id.isNotEmpty)
+        .toSet();
+
+    final idsKeep = <String>{};
+    for (var i = 0; i < variantes.length; i++) {
+      final v = variantes[i];
+      final payload = v.toInsertMap(productoId: productoId)..['orden'] = i;
+      if (v.id.isNotEmpty && !v.id.startsWith('tmp_') && idsExistentes.contains(v.id)) {
+        idsKeep.add(v.id);
+        await supabase.from('producto_variantes').update(payload).eq('id', v.id);
+      } else {
+        final inserted = await supabase
+            .from('producto_variantes')
+            .insert(payload)
+            .select('id')
+            .single();
+        idsKeep.add(inserted['id'].toString());
+      }
+    }
+
+    final toDelete = idsExistentes.difference(idsKeep);
+    for (final id in toDelete) {
+      await supabase.from('producto_variantes').delete().eq('id', id);
+    }
+
+    // Stock del padre = suma de variantes (si hay)
+    if (variantes.isNotEmpty) {
+      final totalStock = variantes.where((v) => v.activo).fold(0, (s, v) => s + v.stock);
+      await supabase.from('productos').update({
+        'stock': totalStock,
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', productoId);
+    }
+  }
+
   /// Obtener todos los productos
   static Future<List<Producto>> getProductos({bool forceRefresh = false}) async {
     if (!forceRefresh && _cachedProductos.isNotEmpty) {
@@ -945,7 +1130,7 @@ class SupabaseService {
     try {
       final response = await supabase
           .from('productos')
-          .select('*')
+          .select('*, producto_variantes(*)')
           .order('created_at', ascending: false);
       
       _cachedProductos = List<Producto>.from(response.map((prod) => Producto.fromSupabase(prod)));
@@ -961,6 +1146,16 @@ class SupabaseService {
 
       return _cachedProductos;
     } catch (e) {
+      // Fallback sin join de variantes (schema cache viejo)
+      try {
+        final response = await supabase
+            .from('productos')
+            .select('*')
+            .order('created_at', ascending: false);
+        _cachedProductos =
+            List<Producto>.from(response.map((prod) => Producto.fromSupabase(prod)));
+        return _cachedProductos;
+      } catch (_) {}
       // Intentar cargar desde cache offline (SharedPreferences)
       try {
         final prefs = await SharedPreferences.getInstance();
@@ -1723,6 +1918,8 @@ class SupabaseService {
   /// se resuelve vía profiles en un segundo paso.
   static Future<List<Map<String, dynamic>>> getPedidosMaestro() async {
     try {
+      // envio_domicilio se carga en un segundo paso: PostgREST solo permite embed
+      // si existe FK pedido_id → pedidos.id (eliminada en fix_envio_domicilio_fk.sql).
       final response = await supabase
           .from('pedidos')
           .select('''
@@ -1733,6 +1930,40 @@ class SupabaseService {
 
       final pedidos = List<Map<String, dynamic>>.from(response);
       if (pedidos.isEmpty) return [];
+
+      final pedidoIds = pedidos
+          .map((p) => p['id']?.toString())
+          .whereType<String>()
+          .toList();
+
+      final envioPorPedido = <String, Map<String, dynamic>>{};
+      if (pedidoIds.isNotEmpty) {
+        try {
+          final enviosResponse = await supabase
+              .from('envio_domicilio')
+              .select('*')
+              .inFilter('pedido_id', pedidoIds);
+          for (final raw in enviosResponse) {
+            final envio = Map<String, dynamic>.from(raw);
+            final pid = envio['pedido_id']?.toString();
+            if (pid != null && pid.isNotEmpty) {
+              // Si hay más de uno por pedido, conservar el más reciente.
+              final prev = envioPorPedido[pid];
+              if (prev == null) {
+                envioPorPedido[pid] = envio;
+              } else {
+                final prevAt = DateTime.tryParse(prev['updated_at']?.toString() ?? prev['created_at']?.toString() ?? '') ??
+                    DateTime.fromMillisecondsSinceEpoch(0);
+                final curAt = DateTime.tryParse(envio['updated_at']?.toString() ?? envio['created_at']?.toString() ?? '') ??
+                    DateTime.fromMillisecondsSinceEpoch(0);
+                if (curAt.isAfter(prevAt)) envioPorPedido[pid] = envio;
+              }
+            }
+          }
+        } catch (_) {
+          // Sin envíos o tabla inaccesible: los pedidos siguen cargando.
+        }
+      }
 
       final userIds = pedidos
           .map((p) => p['usuario_id']?.toString())
@@ -1764,11 +1995,94 @@ class SupabaseService {
           'telefono': profile?['telefono']?.toString(),
           'created_at': profile?['created_at'] ?? pedido['created_at'],
         };
+        final pid = pedido['id']?.toString();
+        pedido['envio_domicilio'] = pid != null ? envioPorPedido[pid] : null;
       }
 
       return pedidos;
     } catch (e) {
       throw Exception('Error al obtener pedidos maestro de Supabase: $e');
+    }
+  }
+
+  /// Fase 3: despachar un pedido de tienda con datos estructurados de tracking
+  /// (código + transportista + URL de seguimiento) y notificar automáticamente
+  /// al comprador (Fase 4).
+  static Future<void> despacharPedidoConTracking({
+    required String pedidoId,
+    String? trackingCodigo,
+    String? trackingTransportista,
+    String? trackingUrl,
+  }) async {
+    try {
+      final ahora = DateTime.now().toIso8601String();
+      final codigo = trackingCodigo?.trim().toUpperCase();
+      await supabase.from('pedidos').update({
+        'estado_logistico': 'despachado',
+        'estado_envio': 'despachado',
+        'tracking_codigo': codigo,
+        'tracking_transportista': trackingTransportista,
+        'tracking_url': trackingUrl,
+        'tracking_cargado_at': ahora,
+        'despachado_at': ahora,
+        'updated_at': ahora,
+      }).eq('id', pedidoId);
+
+      final pedido = await supabase
+          .from('pedidos')
+          .select('usuario_id, numero_pedido')
+          .eq('id', pedidoId)
+          .maybeSingle();
+      final compradorId = pedido?['usuario_id']?.toString();
+      if (compradorId != null && compradorId.isNotEmpty) {
+        await NotificacionHelper.pedidoDespachado(
+          compradorId,
+          pedidoId,
+          pedido?['numero_pedido']?.toString(),
+          trackingCodigo: trackingCodigo,
+          trackingTransportista: trackingTransportista,
+        );
+      }
+    } catch (e) {
+      throw Exception('Error al despachar el pedido: $e');
+    }
+  }
+
+  /// Fase 3: marcar un pedido de tienda como entregado, notificar al
+  /// comprador (Fase 4) y disparar la facturación si corresponde (Fase 5).
+  static Future<void> marcarPedidoLogisticoEntregado(String pedidoId) async {
+    try {
+      final ahora = DateTime.now().toIso8601String();
+      await supabase.from('pedidos').update({
+        'estado_logistico': 'entregado',
+        'estado_envio': 'entregado',
+        'entregado_at': ahora,
+        'updated_at': ahora,
+      }).eq('id', pedidoId);
+
+      final pedido = await supabase
+          .from('pedidos')
+          .select('usuario_id, numero_pedido')
+          .eq('id', pedidoId)
+          .maybeSingle();
+      final compradorId = pedido?['usuario_id']?.toString();
+      if (compradorId != null && compradorId.isNotEmpty) {
+        await NotificacionHelper.pedidoEntregado(
+          compradorId,
+          pedidoId,
+          pedido?['numero_pedido']?.toString(),
+        );
+      }
+
+      Future.microtask(() async {
+        try {
+          await AfipService.generarFacturaSiCorresponde(pedidoId: pedidoId);
+        } catch (ex) {
+          print('⚠️ AFIP: Error en facturación de pedido de tienda entregado: $ex');
+        }
+      });
+    } catch (e) {
+      throw Exception('Error al marcar el pedido como entregado: $e');
     }
   }
 
@@ -2346,21 +2660,49 @@ class SupabaseService {
     }
   }
 
-  /// Obtener cotizaciones de un pescador
+  /// Obtener cotizaciones de un pescador (visibles en tablero según caduca_en).
   static Future<List<Cotizacion>> getCotizacionesPescador(String pescadorId) async {
     try {
-      final limiteExpiracion = DateTime.now().subtract(const Duration(hours: 24)).toIso8601String();
-      
       final response = await supabase
           .from('cotizaciones')
           .select('*')
           .eq('pescador_id', pescadorId)
-          .gt('created_at', limiteExpiracion)
-          .neq('estado', 'cerrada')   // 🔒 No mostrar cotizaciones ya cerradas/pagadas
-          .neq('estado', 'cancelada') // 🔒 No mostrar cotizaciones canceladas
+          .neq('estado', 'cerrada')
+          .neq('estado', 'cancelada')
           .order('created_at', ascending: false);
-      
-      return List<Cotizacion>.from(response.map((cot) => Cotizacion.fromSupabase(cot)));
+
+      final todas = List<Map<String, dynamic>>.from(response);
+      if (todas.isEmpty) return [];
+
+      final presupuestosResp = await supabase
+          .from('presupuestos')
+          .select('id, cotizacion_id, estado')
+          .inFilter(
+            'cotizacion_id',
+            todas.map((c) => c['id']).toList(),
+          );
+
+      final presCountByCot = <String, int>{};
+      for (final p in (presupuestosResp as List)) {
+        if (p['estado']?.toString() == 'descartado') continue;
+        final cid = p['cotizacion_id']?.toString();
+        if (cid != null) {
+          presCountByCot[cid] = (presCountByCot[cid] ?? 0) + 1;
+        }
+      }
+
+      final filtradas = todas.where((cot) {
+        final id = cot['id']?.toString() ?? '';
+        final count = presCountByCot[id] ?? 0;
+        return SubastaLifecyclePolicy.esVisibleEnTablero(
+          cot,
+          cantidadPresupuestos: count,
+        );
+      }).toList();
+
+      return List<Cotizacion>.from(
+        filtradas.map((cot) => Cotizacion.fromSupabase(cot)),
+      );
     } catch (e) {
       throw Exception('Error al obtener cotizaciones del pescador: $e');
     }
@@ -3973,6 +4315,32 @@ class SupabaseService {
     }
   }
 
+  /// Obtener reclamos de la tienda web (tickets)
+  static Future<List<Map<String, dynamic>>> getReclamosTienda() async {
+    try {
+      final List<dynamic> response = await supabase
+          .from('tickets')
+          .select('*')
+          .order('created_at', ascending: false);
+      
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      throw Exception('Error al obtener reclamos de la tienda: $e');
+    }
+  }
+
+  /// Actualizar el estado de un ticket de la tienda
+  static Future<void> actualizarEstadoTicket(String ticketId, String nuevoEstado) async {
+    try {
+      await supabase
+          .from('tickets')
+          .update({'estado': nuevoEstado})
+          .eq('id', ticketId);
+    } catch (e) {
+      throw Exception('Error al actualizar el estado del ticket: $e');
+    }
+  }
+
   /// Verificar si un viaje esta listo para confirmacion
   static Future<bool> verificarViajeListoParaConfirmacion(String pedidoId) async {
     try {
@@ -4370,7 +4738,12 @@ class SupabaseService {
   /// Crear cotizacion tecnica completa
   static Future<Map<String, dynamic>> crearCotizacionTecnica(Map<String, dynamic> datos) async {
     try {
-      final response = await supabase.from('cotizaciones').insert({
+      final tipoSubasta = datos['tipo_subasta']?.toString();
+      final expiraEn = DateTime.now().add(
+        SubastaLifecyclePolicy.duracionSubastaDesdeCreacion(tipoSubasta),
+      );
+
+      final payload = <String, dynamic>{
         'pescador_id': datos['pescador_id'],
         'descripcion': datos['descripcion'],
         'coordenadas_partida': datos['coordenadas_partida'],
@@ -4388,9 +4761,34 @@ class SupabaseService {
         'hora_encuentro': datos['hora_encuentro'],
         'cantidad_personas': datos['cantidad_personas'],
         'track_log': datos['track_log'],
+        'tipo_subasta': tipoSubasta ?? 'normal',
         'estado': 'pendiente',
+        'expira_en': expiraEn.toIso8601String(),
         'created_at': DateTime.now().toIso8601String(),
-      }).select().single();
+      };
+
+      dynamic response;
+      try {
+        response = await supabase
+            .from('cotizaciones')
+            .insert(payload)
+            .select()
+            .single();
+      } on PostgrestException catch (e) {
+        if (e.code == 'PGRST204') {
+          // Schema remoto sin columnas de subasta: insert mínimo compatible
+          final fallback = Map<String, dynamic>.from(payload)
+            ..remove('tipo_subasta')
+            ..remove('expira_en');
+          response = await supabase
+              .from('cotizaciones')
+              .insert(fallback)
+              .select()
+              .single();
+        } else {
+          rethrow;
+        }
+      }
       
       final cotId = response['id'];
 
@@ -5133,28 +5531,14 @@ class SupabaseService {
     return item;
   }
 
-  /// Obtener presupuestos del pescador
+  /// Obtener presupuestos del pescador (cotizaciones visibles en tablero).
   static Future<List<Map<String, dynamic>>> getPresupuestosPescador(String pescadorId) async {
     try {
-      final limiteExpiracion =
-          DateTime.now().subtract(const Duration(hours: 24)).toIso8601String();
+      final cotizaciones = await getCotizacionesPescador(pescadorId);
 
-      // Cotizaciones activas del pescador (misma lógica que el dashboard).
-      // No exigir estado 'presupuestada': el capitán puede enviar oferta
-      // mientras la solicitud sigue en pendiente/solicitada.
-      final cotizaciones = await supabase
-          .from('cotizaciones')
-          .select('id')
-          .eq('pescador_id', pescadorId)
-          .gt('created_at', limiteExpiracion)
-          .neq('estado', 'cerrada')
-          .neq('estado', 'cancelada')
-          .order('created_at', ascending: false);
+      if (cotizaciones.isEmpty) return [];
 
-      if ((cotizaciones as List).isEmpty) return [];
-
-      final cotizacionIds =
-          cotizaciones.map((c) => c['id'].toString()).toList();
+      final cotizacionIds = cotizaciones.map((c) => c.id).toList();
 
       // Obtener presupuestos con snapshot del capitán
       final response = await supabase
@@ -5961,13 +6345,237 @@ class SupabaseService {
 
   /// Obtener alertas de seguridad para administrador
   static Future<List<Map<String, dynamic>>> getAlertasSeguridad() async {
+    Object? rpcError;
+
     try {
       final response = await supabase.rpc('get_alertas_seguridad');
-      
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      throw Exception('Error al obtener alertas de seguridad: $e');
+      rpcError = e;
     }
+
+    try {
+      final rows = await supabase.from('vw_alertas_seguridad_admin').select();
+      return List<Map<String, dynamic>>.from(rows);
+    } catch (_) {}
+
+    try {
+      return await _getAlertasSeguridadDesdeAlertasFraude();
+    } catch (_) {}
+
+    try {
+      return await _getAlertasSeguridadDesdeAlertasModeracion();
+    } catch (tableError) {
+      throw Exception(
+        'Error al obtener alertas de seguridad: ${rpcError ?? tableError}',
+      );
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> _getAlertasSeguridadDesdeAlertasFraude() async {
+    final rows = await supabase
+        .from('alertas_fraude')
+        .select('*')
+        .eq('estado', 'pendiente')
+        .order('creado_at', ascending: false);
+
+    final alertas = List<Map<String, dynamic>>.from(rows);
+    if (alertas.isEmpty) return [];
+
+    final capitanIds = alertas
+        .map((a) => a['capitan_id']?.toString())
+        .whereType<String>()
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList();
+
+    final perfiles = await _fetchPerfilesPorUserIds(capitanIds);
+    final totalPorCapitan = await _contarAlertasFraudePorCapitan(capitanIds);
+    final suspensionesPorCapitan = await _contarSuspensionesActivasPorCapitan(capitanIds);
+    final advertenciasPorCapitan = await _contarAdvertenciasPorCapitan(capitanIds);
+
+    return alertas.map((alerta) {
+      final capitanId = alerta['capitan_id']?.toString() ?? '';
+      final perfil = perfiles[capitanId] ?? {};
+      final severidad = alerta['severidad']?.toString() ?? 'media';
+      final meta = _metaSeveridadAlerta(severidad);
+
+      return {
+        'id': alerta['id'],
+        'capitan_id': capitanId,
+        'capitan_nombre': perfil['nombre'] ?? 'Capitán desconocido',
+        'capitan_email': perfil['email'],
+        'capitan_foto': perfil['foto_url'],
+        'tipo_alerta': alerta['tipo_alerta'],
+        'severidad': severidad,
+        'severidad_formateada': meta.$1,
+        'color_severidad': meta.$2,
+        'texto_original': alerta['texto_original'],
+        'texto_detectado': alerta['texto_detectado'],
+        'patron_detectado': alerta['patron_detectado'],
+        'contexto': alerta['contexto'],
+        'estado': alerta['estado'],
+        'total_alertas': totalPorCapitan[capitanId] ?? 1,
+        'suspensiones_activas': suspensionesPorCapitan[capitanId] ?? 0,
+        'total_advertencias': advertenciasPorCapitan[capitanId] ?? 0,
+        'creado_at': alerta['creado_at'],
+      };
+    }).toList();
+  }
+
+  static Future<List<Map<String, dynamic>>> _getAlertasSeguridadDesdeAlertasModeracion() async {
+    final rows = await supabase
+        .from('alertas_seguridad')
+        .select('*')
+        .eq('estado', 'pendiente')
+        .order('fecha_deteccion', ascending: false);
+
+    final alertas = List<Map<String, dynamic>>.from(rows);
+    if (alertas.isEmpty) return [];
+
+    final userIds = alertas
+        .map((a) => a['usuario_id']?.toString())
+        .whereType<String>()
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList();
+
+    final perfiles = await _fetchPerfilesPorUserIds(userIds);
+
+    return alertas.map((alerta) {
+      final userId = alerta['usuario_id']?.toString() ?? '';
+      final perfil = perfiles[userId] ?? {};
+      final severidad = _severidadTextoDesdeNum(alerta['severidad'] as num?);
+      final meta = _metaSeveridadAlerta(severidad);
+
+      return {
+        'id': alerta['id'],
+        'capitan_id': userId,
+        'capitan_nombre': perfil['nombre'] ?? 'Usuario desconocido',
+        'capitan_email': perfil['email'],
+        'capitan_foto': perfil['foto_url'],
+        'tipo_alerta': alerta['tipo_alerta'],
+        'severidad': severidad,
+        'severidad_formateada': meta.$1,
+        'color_severidad': meta.$2,
+        'texto_original': alerta['mensaje_detectado'],
+        'texto_detectado': alerta['mensaje_detectado'],
+        'patron_detectado': alerta['patron_detectado'],
+        'contexto': alerta['chat_id'],
+        'estado': alerta['estado'],
+        'total_alertas': 1,
+        'suspensiones_activas': 0,
+        'total_advertencias': 0,
+        'creado_at': alerta['fecha_deteccion'],
+      };
+    }).toList();
+  }
+
+  static Future<Map<String, Map<String, dynamic>>> _fetchPerfilesPorUserIds(
+    List<String> userIds,
+  ) async {
+    if (userIds.isEmpty) return {};
+
+    final response = await supabase
+        .from('profiles')
+        .select('user_id, nombre, email, foto_url')
+        .inFilter('user_id', userIds);
+
+    final map = <String, Map<String, dynamic>>{};
+    for (final row in response) {
+      final id = row['user_id']?.toString();
+      if (id != null) {
+        map[id] = Map<String, dynamic>.from(row);
+      }
+    }
+    return map;
+  }
+
+  static Future<Map<String, int>> _contarAlertasFraudePorCapitan(
+    List<String> capitanIds,
+  ) async {
+    if (capitanIds.isEmpty) return {};
+
+    final response = await supabase
+        .from('alertas_fraude')
+        .select('capitan_id')
+        .inFilter('capitan_id', capitanIds);
+
+    final counts = <String, int>{};
+    for (final row in response) {
+      final id = row['capitan_id']?.toString() ?? '';
+      if (id.isEmpty) continue;
+      counts[id] = (counts[id] ?? 0) + 1;
+    }
+    return counts;
+  }
+
+  static Future<Map<String, int>> _contarSuspensionesActivasPorCapitan(
+    List<String> capitanIds,
+  ) async {
+    if (capitanIds.isEmpty) return {};
+
+    try {
+      final response = await supabase
+          .from('suspensiones_capitanes')
+          .select('capitan_id')
+          .eq('estado', 'activa')
+          .inFilter('capitan_id', capitanIds);
+
+      final counts = <String, int>{};
+      for (final row in response) {
+        final id = row['capitan_id']?.toString() ?? '';
+        if (id.isEmpty) continue;
+        counts[id] = (counts[id] ?? 0) + 1;
+      }
+      return counts;
+    } catch (_) {
+      return {};
+    }
+  }
+
+  static Future<Map<String, int>> _contarAdvertenciasPorCapitan(
+    List<String> capitanIds,
+  ) async {
+    if (capitanIds.isEmpty) return {};
+
+    try {
+      final response = await supabase
+          .from('advertencias_capitanes')
+          .select('capitan_id')
+          .inFilter('capitan_id', capitanIds);
+
+      final counts = <String, int>{};
+      for (final row in response) {
+        final id = row['capitan_id']?.toString() ?? '';
+        if (id.isEmpty) continue;
+        counts[id] = (counts[id] ?? 0) + 1;
+      }
+      return counts;
+    } catch (_) {
+      return {};
+    }
+  }
+
+  static (String, String) _metaSeveridadAlerta(String severidad) {
+    switch (severidad) {
+      case 'critica':
+        return ('Crítica', '0xFFDC2626');
+      case 'alta':
+        return ('Alta', '0xFFF59E0B');
+      case 'media':
+        return ('Media', '0xFF10B981');
+      default:
+        return ('Baja', '0xFF6B7280');
+    }
+  }
+
+  static String _severidadTextoDesdeNum(num? value) {
+    final v = value?.toDouble() ?? 0.5;
+    if (v >= 0.85) return 'critica';
+    if (v >= 0.65) return 'alta';
+    if (v >= 0.4) return 'media';
+    return 'baja';
   }
 
   /// Enviar advertencia a capitan
@@ -6580,17 +7188,12 @@ class SupabaseService {
           await registrarViajeCompletadoReputacion(capitanId);
         }
 
-        // 🧾 DISPARAR FACTURACIÓN ELECTRÓNICA AFIP (PRODUCTO_ENTREGADO)
-        final montoTotal = (pedido?['monto_total'] as num?)?.toDouble() ?? 0.0;
-        final pescadorId = pedido?['pescador_id']?.toString() ?? 'sin_dni';
+        // 🧾 FACTURACIÓN ELECTRÓNICA AFIP: punto único de disparo (Fase 5).
+        // Idempotente — si ya se generó al confirmar el pago, no duplica.
         // fire-and-forget: no bloquea el flujo de marcado de entrega
         Future.microtask(() async {
           try {
-            await AfipService.generarFacturaAutomatica(
-              pedidoId: pedidoId,
-              monto: montoTotal,
-              dniCliente: pescadorId,
-            );
+            await AfipService.generarFacturaSiCorresponde(pedidoId: pedidoId);
           } catch (ex) {
             print('⚠️ AFIP: Error en facturación de producto entregado: $ex');
           }
@@ -6649,17 +7252,12 @@ class SupabaseService {
           await registrarViajeCompletadoReputacion(capitanId);
         }
 
-        // 🧾 DISPARAR FACTURACIÓN ELECTRÓNICA AFIP (VIAJE_CONCRETADO)
-        final montoTotal = (pedido?['monto_total'] as num?)?.toDouble() ?? 0.0;
-        final pescadorId = pedido?['pescador_id']?.toString() ?? 'sin_dni';
+        // 🧾 FACTURACIÓN ELECTRÓNICA AFIP: punto único de disparo (Fase 5).
+        // Idempotente — si ya se generó al confirmar el pago, no duplica.
         // fire-and-forget: no bloquea el flujo de marcado del viaje
         Future.microtask(() async {
           try {
-            await AfipService.generarFacturaAutomatica(
-              pedidoId: pedidoId,
-              monto: montoTotal,
-              dniCliente: pescadorId,
-            );
+            await AfipService.generarFacturaSiCorresponde(pedidoId: pedidoId);
           } catch (ex) {
             print('⚠️ AFIP: Error en facturación de viaje concretado: $ex');
           }
@@ -7235,31 +7833,51 @@ class SupabaseService {
   
   // Eliminado duplicado
 
+  /// Extrae lat/lng de JSONB de cotización (punto_partida, coordenadas_partida, etc.).
+  static ({double lat, double lng})? extraerCoordenadasCotizacion(dynamic json) {
+    if (json == null) return null;
+    if (json is! Map) return null;
+    final map = Map<String, dynamic>.from(json);
+    num? lat = map['lat'] as num? ??
+        map['latitude'] as num? ??
+        map['latitud'] as num?;
+    num? lng = map['lng'] as num? ??
+        map['lon'] as num? ??
+        map['longitude'] as num? ??
+        map['longitud'] as num?;
+    if (lat == null || lng == null) return null;
+    return (lat: lat.toDouble(), lng: lng.toDouble());
+  }
+
+  static Map<String, dynamic> _normalizarDetalleCotizacionCapitan(
+    Map<String, dynamic> data,
+  ) {
+    final partida = data['punto_partida'] ?? data['coordenadas_partida'];
+    final destino = data['punto_destino'] ?? data['coordenadas_destino'];
+    final origen = extraerCoordenadasCotizacion(partida);
+    final fin = extraerCoordenadasCotizacion(destino);
+    if (origen != null) {
+      data['coordenada_origen_lat'] = origen.lat;
+      data['coordenada_origen_lng'] = origen.lng;
+    }
+    if (fin != null) {
+      data['coordenada_destino_lat'] = fin.lat;
+      data['coordenada_destino_lng'] = fin.lng;
+    }
+    data['presupuesto_base'] ??= data['presupuesto_monto'];
+    data['respuesta_capitan'] ??= data['observaciones'];
+    data['presupuesto_enviado_at'] ??= data['presupuesto_at'];
+    return data;
+  }
+
   /// Obtener detalles de cotizacion para capitan (sin datos de contacto del pescador)
   static Future<Map<String, dynamic>> getDetallesCotizacionCapitan(String cotizacionId) async {
     try {
+      // Usar * evita 42703 si alguna columna legacy aún no existe en prod.
       final response = await supabase
           .from('cotizaciones')
           .select('''
-            id,
-            pescador_id,
-            capitan_id,
-            estado,
-            descripcion,
-            fecha_ida,
-            fecha_vuelta,
-            hora_encuentro,
-            lugar_encuentro,
-            cantidad_personas,
-            coordenada_origen_lat,
-            coordenada_origen_lng,
-            coordenada_destino_lat,
-            coordenada_destino_lng,
-            presupuesto_base,
-            respuesta_capitan,
-            presupuesto_enviado_at,
-            created_at,
-            updated_at,
+            *,
             profiles!inner(
               user_id,
               nombre
@@ -7269,7 +7887,9 @@ class SupabaseService {
           .maybeSingle();
       
       if (response != null) {
-        return response;
+        return _normalizarDetalleCotizacionCapitan(
+          Map<String, dynamic>.from(response),
+        );
       }
       
       throw Exception('Cotizacion no encontrada');
@@ -7310,8 +7930,8 @@ class SupabaseService {
           .from('cotizaciones')
           .update({
             'estado': 'rechazado',
-            'respuesta_capitan': motivo,
-            'presupuesto_enviado_at': DateTime.now().toIso8601String(),
+            'observaciones': motivo,
+            'respuesta_at': DateTime.now().toIso8601String(),
             'updated_at': DateTime.now().toIso8601String(),
           })
           .eq('id', cotizacionId);
@@ -7617,7 +8237,9 @@ class SupabaseService {
     }
   }
 
-  /// Crear una nueva notificación (para uso interno del sistema)
+  /// Crear una nueva notificación (para uso interno del sistema).
+  /// Delega a NotificacionService que escribe en notificaciones_globales
+  /// (activa el trigger de push FCM) y sincroniza la tabla legada.
   static Future<void> enviarNotificacion({
     required String usuarioId,
     required String titulo,
@@ -7626,12 +8248,19 @@ class SupabaseService {
     Map<String, dynamic>? metadata,
   }) async {
     try {
-      // 🌉 EL PUENTE: Redirección automática al nuevo motor de notificaciones_globales
       String categoriaNueva = 'informativa';
-      if (tipo == 'viaje' || tipo == 'cotizacion' || tipo == 'pago') categoriaNueva = 'comercial';
-      if (tipo == 'fraude' || tipo == 'disputa') categoriaNueva = 'seguridad';
-      if (tipo == 'sistema') categoriaNueva = 'logistica';
+      if (tipo == 'viaje' || tipo == 'cotizacion' || tipo == 'pago' ||
+          tipo.startsWith('viaje_') || tipo.startsWith('presupuesto_') ||
+          tipo.startsWith('pago_')) {
+        categoriaNueva = 'comercial';
+      } else if (tipo == 'fraude' || tipo == 'disputa') {
+        categoriaNueva = 'seguridad';
+      } else if (tipo == 'sistema') {
+        categoriaNueva = 'logistica';
+      }
 
+      // NotificacionService.enviarNotificacion ya escribe en notificaciones_globales
+      // (dispara el trigger FCM) Y en la tabla legada. No hay insert adicional aquí.
       await NotificacionService().enviarNotificacion({
         'receptor_id': usuarioId,
         'tipo_actor': 'sistema',
@@ -7642,22 +8271,8 @@ class SupabaseService {
         'leido': false,
         'payload': metadata ?? {},
       });
-
-      // Mantenimiento de retrocompatibilidad (Doble inserto seguro temporal)
-      final noti = Notificacion(
-        id: '', // Supabase genera el ID
-        usuarioId: usuarioId,
-        titulo: titulo,
-        mensaje: mensaje,
-        fecha: DateTime.now(),
-        leida: false,
-        tipo: tipo,
-        metadata: metadata,
-      );
-      
-      await supabase.from('notificaciones').insert(noti.toMap());
     } catch (e) {
-      print('Error al enviar notificación en el puente: $e');
+      debugPrint('⚠️ [SupabaseService] enviarNotificacion error: $e');
     }
   }
 
@@ -7864,7 +8479,9 @@ class SupabaseService {
           .limit(1)
           .maybeSingle();
 
-      final data = {
+      // Payload completo (incluye logística). Si el schema remoto aún no tiene
+      // esas columnas (PGRST204), reintentamos solo con MP.
+      final dataFull = {
         'mp_public_key': publicKey,
         'mp_access_token': accessToken,
         'is_sandbox': isSandbox,
@@ -7875,17 +8492,35 @@ class SupabaseService {
         'updated_at': DateTime.now().toIso8601String(),
       };
 
-      if (response != null && response['id'] != null) {
-        // Actualizar registro existente
-        await supabase
-            .from('config_sistema')
-            .update(data)
-            .eq('id', response['id']);
-      } else {
-        // Insertar nuevo registro
-        await supabase
-            .from('config_sistema')
-            .insert(data);
+      final dataMpOnly = {
+        'mp_public_key': publicKey,
+        'mp_access_token': accessToken,
+        'is_sandbox': isSandbox,
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+
+      Future<void> persist(Map<String, dynamic> data) async {
+        if (response != null && response['id'] != null) {
+          await supabase
+              .from('config_sistema')
+              .update(data)
+              .eq('id', response['id']);
+        } else {
+          await supabase.from('config_sistema').insert(data);
+        }
+      }
+
+      try {
+        await persist(dataFull);
+      } catch (e) {
+        final msg = e.toString();
+        final missingSchema = msg.contains('PGRST204') ||
+            msg.contains('logistica_') ||
+            msg.contains('mantenimiento_tienda') ||
+            msg.contains('schema cache');
+        if (!missingSchema) rethrow;
+        print('⚠️ [SUPABASE] Schema sin columnas logística; guardando solo MP: $e');
+        await persist(dataMpOnly);
       }
       print('✅ [SUPABASE] Configuración de sistema guardada exitosamente');
     } catch (e) {
