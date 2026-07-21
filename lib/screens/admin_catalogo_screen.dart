@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:capitanya_master/models/categoria.dart';
 import 'package:capitanya_master/models/producto.dart';
+import 'package:capitanya_master/models/producto_variante.dart';
 import 'package:capitanya_master/models/rubro.dart';
 import 'package:capitanya_master/services/supabase_service.dart';
 import 'package:capitanya_master/services/storage_service.dart';
@@ -47,20 +48,47 @@ class _AdminCatalogoScreenState extends State<AdminCatalogoScreen> {
   String? _idEditando;
   bool _isPublicado = true;
 
+  // Paginación
+  int _paginaActualAdmin = 1;
+  static const int _productosPorPaginaAdmin = 15;
+
+  int get _totalPaginasAdmin => (_productosFiltrados.length / _productosPorPaginaAdmin).ceil();
+
+  List<Producto> get _productosEnPaginaAdmin {
+    final inicio = (_paginaActualAdmin - 1) * _productosPorPaginaAdmin;
+    final fin = inicio + _productosPorPaginaAdmin;
+    if (inicio >= _productosFiltrados.length) return [];
+    return _productosFiltrados.sublist(
+      inicio,
+      fin > _productosFiltrados.length ? _productosFiltrados.length : fin,
+    );
+  }
+
   // Galería de Imágenes (Multi-Upload Asíncrono)
   final List<Map<String, dynamic>> _gallerySlots = []; // { 'url': String?, 'isUploading': bool, 'fileName': String? }
+
+  // Variantes por color (stock + imagen por color)
+  final List<_VarianteDraft> _variantes = [];
+  List<OpcionVarianteValor> _coloresCatalogo = [];
 
   @override
   void initState() {
     super.initState();
     _cargarDatos();
+    _cargarColoresCatalogo();
+  }
+
+  Future<void> _cargarColoresCatalogo() async {
+    final colores = await SupabaseService.getColoresVariante();
+    if (!mounted) return;
+    setState(() => _coloresCatalogo = colores);
   }
 
   Future<void> _cargarDatos() async {
     try {
       setState(() => _isLoading = true);
       final results = await Future.wait([
-        SupabaseService.getProductos(),
+        SupabaseService.getProductos(forceRefresh: true),
         SupabaseService.getRubros(),
         SupabaseService.getCategorias(),
       ]);
@@ -70,6 +98,7 @@ class _AdminCatalogoScreenState extends State<AdminCatalogoScreen> {
         _productosFiltrados = _productos;
         _rubros = results[1] as List<Rubro>;
         _categorias = results[2] as List<Categoria>;
+        _paginaActualAdmin = 1;
         _isLoading = false;
       });
     } catch (e) {
@@ -80,6 +109,7 @@ class _AdminCatalogoScreenState extends State<AdminCatalogoScreen> {
 
   void _filtrarProductos(String query) {
     setState(() {
+      _paginaActualAdmin = 1;
       _productosFiltrados = _productos.where((p) => 
         p.nombre.toLowerCase().contains(query.toLowerCase()) || 
         p.rubro.toLowerCase().contains(query.toLowerCase())
@@ -96,27 +126,45 @@ class _AdminCatalogoScreenState extends State<AdminCatalogoScreen> {
     setState(() => _isSaving = true);
 
     try {
-      // La imagen principal es el primer slot
-      final String finalImageUrl = _gallerySlots.isNotEmpty ? (_gallerySlots[0]['url'] ?? '') : '';
-      
-      // La galeria son todos los slots que tienen URL
-      final List<String> galeriaLinks = _gallerySlots
-          .where((s) => s['url'] != null)
+      // Portada = primer slot con URL; galería = el resto (sin duplicar la portada)
+      final urlsConImagen = _gallerySlots
+          .where((s) => s['url'] != null && (s['url'] as String).isNotEmpty)
           .map((s) => s['url'] as String)
           .toList();
+      final String finalImageUrl =
+          urlsConImagen.isNotEmpty ? urlsConImagen.first : '';
+      final List<String> galeriaLinks =
+          urlsConImagen.length > 1 ? urlsConImagen.sublist(1) : <String>[];
 
       final rubroObj = _rubros.firstWhere((r) => r.id == _rubroSeleccionado, orElse: () => Rubro.empty());
+
+      final variantesDraft = _variantesAModelo(_idEditando ?? 'tmp');
+      final stockCalculado = variantesDraft.isNotEmpty
+          ? variantesDraft.fold<int>(0, (s, v) => s + v.stock)
+          : (int.tryParse(_stockController.text) ?? 0);
+
+      // Si no hay galería pero sí variante default con foto, usarla de portada
+      var imagenPortada = finalImageUrl;
+      if (imagenPortada.isEmpty && variantesDraft.isNotEmpty) {
+        final def = variantesDraft.firstWhere(
+          (v) => v.esDefault,
+          orElse: () => variantesDraft.first,
+        );
+        if (def.imagenUrl != null && def.imagenUrl!.isNotEmpty) {
+          imagenPortada = def.imagenUrl!;
+        }
+      }
 
       final producto = Producto(
         id: _idEditando ?? DateTime.now().millisecondsSinceEpoch.toString(),
         nombre: _nombreController.text.trim(),
         descripcion: _descripcionController.text.trim(),
         precio: double.tryParse(_precioController.text) ?? 0.0,
-        stock: int.tryParse(_stockController.text) ?? 0,
+        stock: stockCalculado,
         rubro: rubroObj.nombre,
         rubroId: rubroObj.id,
         categoriaId: _subcategoriaSeleccionada ?? _categoriaPadreSeleccionada ?? '',
-        imagenUrl: finalImageUrl ?? '',
+        imagenUrl: imagenPortada,
         galeriaUrls: galeriaLinks,
         videoUrl: _videoUrlController.text.trim(),
         activo: _isPublicado,
@@ -126,17 +174,79 @@ class _AdminCatalogoScreenState extends State<AdminCatalogoScreen> {
 
       if (_idEditando != null) {
         await SupabaseService.actualizarProducto(producto);
+        await SupabaseService.sincronizarVariantesProducto(
+          productoId: producto.id,
+          variantes: _variantesAModelo(producto.id),
+        );
       } else {
-        await SupabaseService.guardarProducto(producto);
+        final nuevoId = await SupabaseService.guardarProducto(producto);
+        await SupabaseService.sincronizarVariantesProducto(
+          productoId: nuevoId,
+          variantes: _variantesAModelo(nuevoId),
+        );
       }
       
       _limpiarFormulario();
-      _cargarDatos();
+      await _cargarDatos();
       _showMsg('Producto guardado con éxito', Colors.green);
     } catch (e) {
       _showMsg('Error al guardar: $e', Colors.red);
     } finally {
       setState(() => _isSaving = false);
+    }
+  }
+
+  List<ProductoVariante> _variantesAModelo(String productoId) {
+    return List.generate(_variantes.length, (i) {
+      final d = _variantes[i];
+      return ProductoVariante(
+        id: d.id,
+        productoId: productoId,
+        sku: d.sku.isEmpty ? null : d.sku,
+        color: d.color,
+        opcionValorId: d.opcionValorId,
+        stock: d.stock,
+        precio: d.precio,
+        imagenUrl: d.imagenUrl,
+        esDefault: d.esDefault || i == 0,
+        activo: true,
+        orden: i,
+      );
+    }).where((v) => v.color.trim().isNotEmpty).toList();
+  }
+
+  void _agregarVariante({String? color, String? opcionValorId}) {
+    setState(() {
+      _variantes.add(_VarianteDraft(
+        id: 'tmp_${DateTime.now().microsecondsSinceEpoch}',
+        color: color ?? '',
+        opcionValorId: opcionValorId,
+        stock: 0,
+        esDefault: _variantes.isEmpty,
+      ));
+    });
+  }
+
+  Future<void> _subirImagenVariante(int index) async {
+    final picker = ImagePicker();
+    final image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+    if (image == null) return;
+    setState(() => _variantes[index].isUploading = true);
+    try {
+      final url = await StorageService.uploadAdminDocument(
+        file: image,
+        folder: 'admin_catalogo',
+        prefix: 'variante',
+      );
+      if (!mounted) return;
+      setState(() {
+        _variantes[index].imagenUrl = url;
+        _variantes[index].isUploading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _variantes[index].isUploading = false);
+      _showMsg('Error al subir imagen de variante: $e', Colors.red);
     }
   }
 
@@ -153,6 +263,7 @@ class _AdminCatalogoScreenState extends State<AdminCatalogoScreen> {
       _categoriaPadreSeleccionada = null;
       _subcategoriaSeleccionada = null;
       _gallerySlots.clear();
+      _variantes.clear();
       _isPublicado = true;
     });
   }
@@ -192,6 +303,7 @@ class _AdminCatalogoScreenState extends State<AdminCatalogoScreen> {
                       _buildSearchBar(),
                       const SizedBox(height: 15),
                       _buildProductList(),
+                      _buildAdminPaginationControl(),
                     ],
                   ),
                 ),
@@ -242,6 +354,8 @@ class _AdminCatalogoScreenState extends State<AdminCatalogoScreen> {
           _buildCategorizacionSection(),
           const SizedBox(height: 20),
           _buildImageGallerySection(),
+          const SizedBox(height: 25),
+          _buildVariantesSection(),
           const SizedBox(height: 25),
           _buildSaveButton(),
         ],
@@ -335,6 +449,24 @@ class _AdminCatalogoScreenState extends State<AdminCatalogoScreen> {
     );
   }
 
+  void _hacerPortada(int index) {
+    if (index <= 0 || index >= _gallerySlots.length) return;
+    setState(() {
+      final slot = _gallerySlots.removeAt(index);
+      _gallerySlots.insert(0, slot);
+    });
+    _showMsg('Imagen marcada como portada', _capitanNaranja);
+  }
+
+  void _moverImagen(int index, int delta) {
+    final nuevo = index + delta;
+    if (nuevo < 0 || nuevo >= _gallerySlots.length) return;
+    setState(() {
+      final slot = _gallerySlots.removeAt(index);
+      _gallerySlots.insert(nuevo, slot);
+    });
+  }
+
   Widget _buildImageGallerySection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -346,6 +478,11 @@ class _AdminCatalogoScreenState extends State<AdminCatalogoScreen> {
             _buildStatusToggle(),
           ],
         ),
+        const SizedBox(height: 6),
+        const Text(
+          'Tocá + para elegir varias fotos a la vez (Ctrl/Shift). ★ = portada · ← → = orden.',
+          style: TextStyle(color: Colors.white38, fontSize: 10),
+        ),
         const SizedBox(height: 12),
         GridView.builder(
           shrinkWrap: true,
@@ -354,6 +491,7 @@ class _AdminCatalogoScreenState extends State<AdminCatalogoScreen> {
             crossAxisCount: 5,
             crossAxisSpacing: 10,
             mainAxisSpacing: 10,
+            childAspectRatio: 0.85,
           ),
           itemCount: _gallerySlots.length + 1,
           itemBuilder: (context, index) {
@@ -382,14 +520,24 @@ class _AdminCatalogoScreenState extends State<AdminCatalogoScreen> {
 
   Widget _buildAddSlot() {
     return InkWell(
-      onTap: () => _pickAndUploadImage(_gallerySlots.length),
+      onTap: _pickAndUploadImages,
       child: Container(
         decoration: BoxDecoration(
           color: Colors.black26,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: _glassBorder),
         ),
-        child: const Icon(Icons.add_a_photo_outlined, color: _capitanNaranja, size: 20),
+        child: const Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.add_a_photo_outlined, color: _capitanNaranja, size: 20),
+            SizedBox(height: 4),
+            Text(
+              'Varias',
+              style: TextStyle(color: Colors.white38, fontSize: 9),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -398,75 +546,197 @@ class _AdminCatalogoScreenState extends State<AdminCatalogoScreen> {
     final slot = _gallerySlots[index];
     final isUploading = slot['isUploading'] as bool;
     final url = slot['url'] as String?;
+    final esPortada = index == 0 && url != null;
 
-    return Stack(
+    return Column(
       children: [
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.black45,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: url != null ? _capitanNaranja : _glassBorder),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: isUploading
-                ? const Center(child: CircularProgressIndicator(strokeWidth: 2, color: _capitanNaranja))
-                : url != null
-                    ? Image.network(url, fit: BoxFit.cover, width: double.infinity, height: double.infinity)
-                    : const Center(child: Icon(Icons.image, color: Colors.white24)),
+        Expanded(
+          child: Stack(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.black45,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: esPortada
+                        ? _capitanNaranja
+                        : (url != null ? _capitanNaranja.withOpacity(0.45) : _glassBorder),
+                    width: esPortada ? 2 : 1,
+                  ),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: isUploading
+                      ? const Center(child: CircularProgressIndicator(strokeWidth: 2, color: _capitanNaranja))
+                      : url != null
+                          ? Image.network(url, fit: BoxFit.cover, width: double.infinity, height: double.infinity)
+                          : const Center(child: Icon(Icons.image, color: Colors.white24)),
+                ),
+              ),
+              if (esPortada)
+                Positioned(
+                  bottom: 4,
+                  left: 4,
+                  right: 4,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    decoration: BoxDecoration(
+                      color: _capitanNaranja.withOpacity(0.92),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Text(
+                      'PORTADA',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.black87,
+                        fontSize: 8,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                ),
+              Positioned(
+                top: 0,
+                left: 0,
+                child: GestureDetector(
+                  onTap: () => setState(() => _gallerySlots.removeAt(index)),
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                    child: const Icon(Icons.close, color: Colors.white, size: 8),
+                  ),
+                ),
+              ),
+              if (url != null && !esPortada)
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: GestureDetector(
+                    onTap: () => _hacerPortada(index),
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        color: Colors.black87,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: _capitanNaranja.withOpacity(0.6)),
+                      ),
+                      child: const Icon(Icons.star_border, color: _capitanNaranja, size: 12),
+                    ),
+                  ),
+                ),
+              if (esPortada)
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: const BoxDecoration(color: Colors.black87, shape: BoxShape.circle),
+                    child: const Icon(Icons.star, color: _capitanNaranja, size: 12),
+                  ),
+                ),
+            ],
           ),
         ),
-        if (url != null)
-          const Positioned(
-            top: 4, right: 4,
-            child: Icon(Icons.check_circle, color: _capitanNaranja, size: 14),
+        if (url != null && _gallerySlots.length > 1) ...[
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _galleryMoveBtn(
+                icon: Icons.chevron_left,
+                enabled: index > 0,
+                onTap: () => _moverImagen(index, -1),
+              ),
+              const SizedBox(width: 4),
+              _galleryMoveBtn(
+                icon: Icons.chevron_right,
+                enabled: index < _gallerySlots.length - 1,
+                onTap: () => _moverImagen(index, 1),
+              ),
+            ],
           ),
-        Positioned(
-          top: 0, left: 0,
-          child: GestureDetector(
-            onTap: () => setState(() => _gallerySlots.removeAt(index)),
-            child: Container(
-              padding: const EdgeInsets.all(2),
-              decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-              child: const Icon(Icons.close, color: Colors.white, size: 8),
-            ),
-          ),
-        ),
+        ],
       ],
     );
   }
 
-  Future<void> _pickAndUploadImage(int index) async {
+  Widget _galleryMoveBtn({
+    required IconData icon,
+    required bool enabled,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: enabled ? onTap : null,
+      child: Container(
+        width: 22,
+        height: 18,
+        decoration: BoxDecoration(
+          color: enabled ? Colors.black45 : Colors.transparent,
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: enabled ? _glassBorder : Colors.transparent),
+        ),
+        child: Icon(icon, size: 14, color: enabled ? Colors.white70 : Colors.white24),
+      ),
+    );
+  }
+
+  Future<void> _pickAndUploadImages() async {
     final picker = ImagePicker();
-    final image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
-    
-    if (image != null) {
-      setState(() {
-        if (index == _gallerySlots.length) {
-          _gallerySlots.add({'url': null, 'isUploading': true, 'fileName': image.name});
-        } else {
-          _gallerySlots[index] = {'url': null, 'isUploading': true, 'fileName': image.name};
-        }
-      });
+    // En desktop/web permite seleccionar varias con Ctrl/Shift + click
+    final images = await picker.pickMultiImage(imageQuality: 70);
 
-      try {
-        final url = await StorageService.uploadAdminDocument(
-          file: image,
-          folder: 'admin_catalogo',
-          prefix: 'producto',
-        );
+    if (images.isEmpty) return;
 
-        setState(() {
-          _gallerySlots[index] = {
-            'url': url,
-            'isUploading': false,
-            'fileName': image.name,
-          };
+    final slotIds = <String>[];
+    setState(() {
+      for (final image in images) {
+        final id = '${DateTime.now().microsecondsSinceEpoch}_${image.name}_${slotIds.length}';
+        slotIds.add(id);
+        _gallerySlots.add({
+          'id': id,
+          'url': null,
+          'isUploading': true,
+          'fileName': image.name,
         });
-      } catch (e) {
-        setState(() => _gallerySlots.removeAt(index));
-        _showMsg('Error al subir: $e', Colors.red);
       }
+    });
+
+    await Future.wait(
+      List.generate(images.length, (i) async {
+        final slotId = slotIds[i];
+        final image = images[i];
+        try {
+          final url = await StorageService.uploadAdminDocument(
+            file: image,
+            folder: 'admin_catalogo',
+            prefix: 'producto',
+          );
+          if (!mounted) return;
+          setState(() {
+            final idx = _gallerySlots.indexWhere((s) => s['id'] == slotId);
+            if (idx >= 0) {
+              _gallerySlots[idx] = {
+                'id': slotId,
+                'url': url,
+                'isUploading': false,
+                'fileName': image.name,
+              };
+            }
+          });
+        } catch (e) {
+          if (!mounted) return;
+          setState(() {
+            _gallerySlots.removeWhere((s) => s['id'] == slotId);
+          });
+          _showMsg('Error al subir ${image.name}: $e', Colors.red);
+        }
+      }),
+    );
+
+    if (!mounted) return;
+    if (images.length > 1) {
+      _showMsg('${images.length} imágenes cargadas', Colors.green);
     }
   }
 
@@ -499,9 +769,9 @@ class _AdminCatalogoScreenState extends State<AdminCatalogoScreen> {
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: _productosFiltrados.length,
+      itemCount: _productosEnPaginaAdmin.length,
       itemBuilder: (context, index) {
-        final p = _productosFiltrados[index];
+        final p = _productosEnPaginaAdmin[index];
         return Container(
           margin: const EdgeInsets.only(bottom: 10),
           decoration: BoxDecoration(color: _glassColor, borderRadius: BorderRadius.circular(16), border: Border.all(color: _glassBorder)),
@@ -511,7 +781,11 @@ class _AdminCatalogoScreenState extends State<AdminCatalogoScreen> {
               child: p.imagenUrl.isNotEmpty ? Image.network(p.imagenUrl, width: 45, height: 45, fit: BoxFit.cover) : const Icon(Icons.image, color: Colors.white24),
             ),
             title: Text(p.nombre, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
-            subtitle: Text('\$${p.precio} - Stock: ${p.stock}', style: const TextStyle(color: Colors.white60, fontSize: 12)),
+            subtitle: Text(
+              '\$${p.precio} - Stock: ${p.stockDisponible}'
+              '${p.tieneVariantes ? ' · ${p.variantesActivas.length} colores' : ''}',
+              style: const TextStyle(color: Colors.white60, fontSize: 12),
+            ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -560,18 +834,227 @@ class _AdminCatalogoScreenState extends State<AdminCatalogoScreen> {
       _rubroSeleccionado = p.rubroId;
       _categoriaPadreSeleccionada = p.categoriaId;
       
-      // Cargar galeria en los slots
+      // Portada primero; resto de galería sin duplicar la misma URL
       _gallerySlots.clear();
+      final seen = <String>{};
       if (p.imagenUrl.isNotEmpty) {
         _gallerySlots.add({'url': p.imagenUrl, 'isUploading': false, 'fileName': 'Principal'});
+        seen.add(p.imagenUrl);
       }
-      for (var url in p.galeriaUrls) {
+      for (final url in p.galeriaUrls) {
+        if (url.isEmpty || seen.contains(url)) continue;
+        seen.add(url);
         _gallerySlots.add({'url': url, 'isUploading': false, 'fileName': 'Galeria'});
       }
+
+      _variantes
+        ..clear()
+        ..addAll(p.variantes.map((v) => _VarianteDraft.fromModelo(v)));
     });
+    // Por si el listado no trajo el join, recargar variantes
+    if (p.variantes.isEmpty) {
+      SupabaseService.getVariantesProducto(p.id).then((vars) {
+        if (!mounted || _idEditando != p.id) return;
+        if (vars.isEmpty) return;
+        setState(() {
+          _variantes
+            ..clear()
+            ..addAll(vars.map((v) => _VarianteDraft.fromModelo(v)));
+        });
+      });
+    }
     _scrollController.animateTo(0, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
   }
 
+  Widget _buildVariantesSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Expanded(
+              child: Text(
+                'VARIANTES POR COLOR',
+                style: TextStyle(color: Colors.white60, fontSize: 10, fontWeight: FontWeight.bold),
+              ),
+            ),
+            TextButton.icon(
+              onPressed: () => _agregarVariante(),
+              icon: const Icon(Icons.add, size: 16, color: _capitanNaranja),
+              label: const Text('Agregar color', style: TextStyle(color: _capitanNaranja, fontSize: 12)),
+            ),
+          ],
+        ),
+        const Text(
+          'Cada color tiene su foto y stock. Si hay variantes, el stock total se calcula solo.',
+          style: TextStyle(color: Colors.white38, fontSize: 10),
+        ),
+        if (_coloresCatalogo.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: _coloresCatalogo.map((c) {
+              final ya = _variantes.any((v) => v.color.toLowerCase() == c.valor.toLowerCase());
+              return ActionChip(
+                label: Text(c.valor, style: TextStyle(fontSize: 11, color: ya ? Colors.white38 : Colors.white)),
+                backgroundColor: ya ? Colors.white10 : Colors.black45,
+                onPressed: ya
+                    ? null
+                    : () => _agregarVariante(color: c.valor, opcionValorId: c.id),
+                avatar: c.codigoHex != null
+                    ? CircleAvatar(
+                        backgroundColor: _parseHex(c.codigoHex!),
+                        radius: 8,
+                      )
+                    : null,
+              );
+            }).toList(),
+          ),
+        ],
+        const SizedBox(height: 12),
+        if (_variantes.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.black26,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: _glassBorder),
+            ),
+            child: const Text(
+              'Sin variantes: se vende con el stock e imagen principal del producto.',
+              style: TextStyle(color: Colors.white38, fontSize: 12),
+            ),
+          )
+        else
+          ...List.generate(_variantes.length, _buildVarianteCard),
+      ],
+    );
+  }
+
+  Widget _buildVarianteCard(int index) {
+    final v = _variantes[index];
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.black26,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: v.esDefault ? _capitanNaranja : _glassBorder),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          GestureDetector(
+            onTap: () => _subirImagenVariante(index),
+            child: Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: Colors.black45,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: _glassBorder),
+              ),
+              child: v.isUploading
+                  ? const Center(child: CircularProgressIndicator(strokeWidth: 2, color: _capitanNaranja))
+                  : v.imagenUrl != null && v.imagenUrl!.isNotEmpty
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.network(v.imagenUrl!, fit: BoxFit.cover, width: 64, height: 64),
+                        )
+                      : const Icon(Icons.add_a_photo_outlined, color: _capitanNaranja, size: 20),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        initialValue: v.color,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        decoration: InputDecoration(
+                          labelText: 'Color',
+                          labelStyle: const TextStyle(color: Colors.white38, fontSize: 11),
+                          isDense: true,
+                          filled: true,
+                          fillColor: Colors.black26,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: _glassBorder)),
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: _glassBorder)),
+                        ),
+                        onChanged: (val) => v.color = val,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 80,
+                      child: TextFormField(
+                        initialValue: v.stock.toString(),
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        decoration: InputDecoration(
+                          labelText: 'Stock',
+                          labelStyle: const TextStyle(color: Colors.white38, fontSize: 11),
+                          isDense: true,
+                          filled: true,
+                          fillColor: Colors.black26,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: _glassBorder)),
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: _glassBorder)),
+                        ),
+                        onChanged: (val) => v.stock = int.tryParse(val) ?? 0,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => setState(() {
+                        for (final other in _variantes) {
+                          other.esDefault = false;
+                        }
+                        v.esDefault = true;
+                      }),
+                      child: Row(
+                        children: [
+                          Icon(
+                            v.esDefault ? Icons.star : Icons.star_border,
+                            color: _capitanNaranja,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            v.esDefault ? 'Default' : 'Hacer default',
+                            style: const TextStyle(color: Colors.white54, fontSize: 11),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 18),
+                      onPressed: () => setState(() => _variantes.removeAt(index)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _parseHex(String hex) {
+    var h = hex.replaceAll('#', '');
+    if (h.length == 6) h = 'FF$h';
+    return Color(int.tryParse(h, radix: 16) ?? 0xFF888888);
+  }
 
   Widget _buildTextField(TextEditingController controller, String hint, IconData icon, {int maxLines = 1, bool isNumeric = false}) {
     return TextField(
@@ -588,6 +1071,122 @@ class _AdminCatalogoScreenState extends State<AdminCatalogoScreen> {
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: _glassBorder)),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _capitanNaranja)),
       ),
+    );
+  }
+
+  Widget _buildAdminPaginationControl() {
+    final total = _totalPaginasAdmin;
+    if (total <= 1) return const SizedBox.shrink();
+
+    List<Widget> pageButtons = [];
+    for (int i = 1; i <= total; i++) {
+      final isCurrent = i == _paginaActualAdmin;
+      pageButtons.add(
+        GestureDetector(
+          onTap: () => _cambiarPaginaAdmin(i),
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: isCurrent ? _capitanNaranja : Colors.transparent,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isCurrent ? _capitanNaranja : _glassBorder,
+                width: 1,
+              ),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              '$i',
+              style: TextStyle(
+                color: isCurrent ? Colors.black87 : Colors.white,
+                fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(top: 20, bottom: 10),
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        color: _glassColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _glassBorder),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.chevron_left, color: Colors.white),
+            disabledColor: Colors.white24,
+            onPressed: _paginaActualAdmin > 1 ? () => _cambiarPaginaAdmin(_paginaActualAdmin - 1) : null,
+          ),
+          const SizedBox(width: 8),
+          ...pageButtons,
+          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(Icons.chevron_right, color: Colors.white),
+            disabledColor: Colors.white24,
+            onPressed: _paginaActualAdmin < total ? () => _cambiarPaginaAdmin(_paginaActualAdmin + 1) : null,
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _cambiarPaginaAdmin(int pagina) {
+    if (pagina < 1 || pagina > _totalPaginasAdmin) return;
+    setState(() {
+      _paginaActualAdmin = pagina;
+    });
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        650,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+}
+
+class _VarianteDraft {
+  String id;
+  String color;
+  String? opcionValorId;
+  int stock;
+  double? precio;
+  String? imagenUrl;
+  String sku;
+  bool esDefault;
+  bool isUploading;
+
+  _VarianteDraft({
+    required this.id,
+    required this.color,
+    this.opcionValorId,
+    required this.stock,
+    this.precio,
+    this.imagenUrl,
+    this.sku = '',
+    this.esDefault = false,
+    this.isUploading = false,
+  });
+
+  factory _VarianteDraft.fromModelo(ProductoVariante v) {
+    return _VarianteDraft(
+      id: v.id,
+      color: v.color,
+      opcionValorId: v.opcionValorId,
+      stock: v.stock,
+      precio: v.precio,
+      imagenUrl: v.imagenUrl,
+      sku: v.sku ?? '',
+      esDefault: v.esDefault,
     );
   }
 }
