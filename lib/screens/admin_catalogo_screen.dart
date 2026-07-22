@@ -67,21 +67,91 @@ class _AdminCatalogoScreenState extends State<AdminCatalogoScreen> {
   // Galería de Imágenes (Multi-Upload Asíncrono)
   final List<Map<String, dynamic>> _gallerySlots = []; // { 'url': String?, 'isUploading': bool, 'fileName': String? }
 
-  // Variantes por color (stock + imagen por color)
+  // Variantes (tipo configurable: Color, Talle, Litros...)
   final List<_VarianteDraft> _variantes = [];
-  List<OpcionVarianteValor> _coloresCatalogo = [];
+  List<OpcionVariante> _tiposVariante = [];
+  List<OpcionVarianteValor> _valoresCatalogo = [];
+  String? _tipoVarianteId;
+  String _tipoVarianteNombre = 'Color';
 
   @override
   void initState() {
     super.initState();
     _cargarDatos();
-    _cargarColoresCatalogo();
+    _cargarTiposVariante();
   }
 
-  Future<void> _cargarColoresCatalogo() async {
-    final colores = await SupabaseService.getColoresVariante();
+  Future<void> _cargarTiposVariante() async {
+    final tipos = await SupabaseService.getOpcionesVariante();
     if (!mounted) return;
-    setState(() => _coloresCatalogo = colores);
+    setState(() {
+      _tiposVariante = tipos;
+      if (_tipoVarianteId == null && tipos.isNotEmpty) {
+        OpcionVariante color = tipos.first;
+        for (final t in tipos) {
+          if (t.nombre.toLowerCase() == 'color') {
+            color = t;
+            break;
+          }
+        }
+        _tipoVarianteId = color.id;
+        _tipoVarianteNombre = color.nombre;
+      }
+    });
+    await _cargarValoresDelTipo();
+  }
+
+  Future<void> _cargarValoresDelTipo() async {
+    if (_tipoVarianteId == null) {
+      setState(() => _valoresCatalogo = []);
+      return;
+    }
+    final valores =
+        await SupabaseService.getValoresOpcionVariante(_tipoVarianteId!);
+    if (!mounted) return;
+    setState(() => _valoresCatalogo = valores);
+  }
+
+  Future<void> _cambiarTipoVariante(String? opcionId) async {
+    if (opcionId == null) return;
+    OpcionVariante? tipo;
+    for (final t in _tiposVariante) {
+      if (t.id == opcionId) {
+        tipo = t;
+        break;
+      }
+    }
+    if (tipo == null) return;
+
+    final cambiaTipo = _tipoVarianteId != opcionId;
+    if (cambiaTipo && _variantes.isNotEmpty) {
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: _capitanAzul,
+          title: const Text('Cambiar tipo de variante', style: TextStyle(color: Colors.white)),
+          content: Text(
+            'Al pasar a "${tipo!.nombre}" se borran las variantes actuales de este formulario. ¿Continuar?',
+            style: const TextStyle(color: Colors.white70),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Cambiar', style: TextStyle(color: _capitanNaranja)),
+            ),
+          ],
+        ),
+      );
+      if (ok != true) return;
+    }
+
+    setState(() {
+      _tipoVarianteId = opcionId;
+      _tipoVarianteNombre = tipo!.nombre;
+      if (cambiaTipo) _variantes.clear();
+    });
+    await _cargarValoresDelTipo();
   }
 
   Future<void> _cargarDatos() async {
@@ -170,6 +240,8 @@ class _AdminCatalogoScreenState extends State<AdminCatalogoScreen> {
         activo: _isPublicado,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
+        varianteOpcionId: _tipoVarianteId,
+        varianteTipoNombre: _tipoVarianteNombre,
       );
 
       if (_idEditando != null) {
@@ -265,7 +337,17 @@ class _AdminCatalogoScreenState extends State<AdminCatalogoScreen> {
       _gallerySlots.clear();
       _variantes.clear();
       _isPublicado = true;
+      // Mantener tipo actual; si no hay, Color
+      if (_tiposVariante.isNotEmpty && _tipoVarianteId == null) {
+        final color = _tiposVariante.firstWhere(
+          (t) => t.nombre.toLowerCase() == 'color',
+          orElse: () => _tiposVariante.first,
+        );
+        _tipoVarianteId = color.id;
+        _tipoVarianteNombre = color.nombre;
+      }
     });
+    _cargarValoresDelTipo();
   }
 
   void _showMsg(String msg, Color color) {
@@ -850,7 +932,29 @@ class _AdminCatalogoScreenState extends State<AdminCatalogoScreen> {
       _variantes
         ..clear()
         ..addAll(p.variantes.map((v) => _VarianteDraft.fromModelo(v)));
+
+      if (p.varianteOpcionId != null && p.varianteOpcionId!.isNotEmpty) {
+        _tipoVarianteId = p.varianteOpcionId;
+        String? nombreTipo = p.varianteTipoNombre;
+        if (nombreTipo == null || nombreTipo.isEmpty) {
+          for (final t in _tiposVariante) {
+            if (t.id == p.varianteOpcionId) {
+              nombreTipo = t.nombre;
+              break;
+            }
+          }
+        }
+        _tipoVarianteNombre = nombreTipo ?? 'Color';
+      } else if (_tiposVariante.isNotEmpty) {
+        final color = _tiposVariante.firstWhere(
+          (t) => t.nombre.toLowerCase() == 'color',
+          orElse: () => _tiposVariante.first,
+        );
+        _tipoVarianteId = color.id;
+        _tipoVarianteNombre = color.nombre;
+      }
     });
+    _cargarValoresDelTipo();
     // Por si el listado no trajo el join, recargar variantes
     if (p.variantes.isEmpty) {
       SupabaseService.getVariantesProducto(p.id).then((vars) {
@@ -867,34 +971,59 @@ class _AdminCatalogoScreenState extends State<AdminCatalogoScreen> {
   }
 
   Widget _buildVariantesSection() {
+    final tipo = _tipoVarianteNombre;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Text(
+          'VARIANTES POR ${tipo.toUpperCase()}',
+          style: const TextStyle(color: Colors.white60, fontSize: 10, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: Colors.black12,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: _glassBorder),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: _tipoVarianteId,
+              hint: const Text('Tipo de variante', style: TextStyle(color: Colors.white30)),
+              dropdownColor: _capitanAzul,
+              isExpanded: true,
+              icon: const Icon(Icons.arrow_drop_down, color: _capitanAzulClaro),
+              style: const TextStyle(color: Colors.white),
+              items: _tiposVariante
+                  .map((t) => DropdownMenuItem(value: t.id, child: Text(t.nombre)))
+                  .toList(),
+              onChanged: _cambiarTipoVariante,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
         Row(
           children: [
-            const Expanded(
+            Expanded(
               child: Text(
-                'VARIANTES POR COLOR',
-                style: TextStyle(color: Colors.white60, fontSize: 10, fontWeight: FontWeight.bold),
+                'Cada $tipo tiene su foto y stock. Si hay variantes, el stock total se calcula solo.',
+                style: const TextStyle(color: Colors.white38, fontSize: 10),
               ),
             ),
             TextButton.icon(
               onPressed: () => _agregarVariante(),
               icon: const Icon(Icons.add, size: 16, color: _capitanNaranja),
-              label: const Text('Agregar color', style: TextStyle(color: _capitanNaranja, fontSize: 12)),
+              label: Text('Agregar $tipo', style: const TextStyle(color: _capitanNaranja, fontSize: 12)),
             ),
           ],
         ),
-        const Text(
-          'Cada color tiene su foto y stock. Si hay variantes, el stock total se calcula solo.',
-          style: TextStyle(color: Colors.white38, fontSize: 10),
-        ),
-        if (_coloresCatalogo.isNotEmpty) ...[
+        if (_valoresCatalogo.isNotEmpty) ...[
           const SizedBox(height: 8),
           Wrap(
             spacing: 6,
             runSpacing: 6,
-            children: _coloresCatalogo.map((c) {
+            children: _valoresCatalogo.map((c) {
               final ya = _variantes.any((v) => v.color.toLowerCase() == c.valor.toLowerCase());
               return ActionChip(
                 label: Text(c.valor, style: TextStyle(fontSize: 11, color: ya ? Colors.white38 : Colors.white)),
@@ -974,10 +1103,11 @@ class _AdminCatalogoScreenState extends State<AdminCatalogoScreen> {
                   children: [
                     Expanded(
                       child: TextFormField(
+                        key: ValueKey('var_label_${v.id}_$_tipoVarianteNombre'),
                         initialValue: v.color,
                         style: const TextStyle(color: Colors.white, fontSize: 13),
                         decoration: InputDecoration(
-                          labelText: 'Color',
+                          labelText: _tipoVarianteNombre,
                           labelStyle: const TextStyle(color: Colors.white38, fontSize: 11),
                           isDense: true,
                           filled: true,

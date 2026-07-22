@@ -1034,7 +1034,44 @@ class SupabaseService {
     }
   }
 
-  /// Colores precargados para el admin de variantes
+  /// Tipos de variante (Color, Talle, Litros...)
+  static Future<List<OpcionVariante>> getOpcionesVariante() async {
+    try {
+      final response = await supabase
+          .from('opciones_variante')
+          .select('*')
+          .eq('activo', true)
+          .order('orden');
+      return List<OpcionVariante>.from(
+        response.map((r) => OpcionVariante.fromSupabase(r)),
+      );
+    } catch (e) {
+      debugPrint('Error getOpcionesVariante: $e');
+      return [];
+    }
+  }
+
+  /// Valores de un tipo (ej. S/M/L para Talle)
+  static Future<List<OpcionVarianteValor>> getValoresOpcionVariante(
+    String opcionId,
+  ) async {
+    try {
+      final response = await supabase
+          .from('opcion_variante_valores')
+          .select('*')
+          .eq('opcion_id', opcionId)
+          .eq('activo', true)
+          .order('orden');
+      return List<OpcionVarianteValor>.from(
+        response.map((r) => OpcionVarianteValor.fromSupabase(r)),
+      );
+    } catch (e) {
+      debugPrint('Error getValoresOpcionVariante: $e');
+      return [];
+    }
+  }
+
+  /// Compat: colores precargados
   static Future<List<OpcionVarianteValor>> getColoresVariante() async {
     try {
       final opcion = await supabase
@@ -1043,15 +1080,7 @@ class SupabaseService {
           .eq('nombre', 'Color')
           .maybeSingle();
       if (opcion == null) return [];
-      final response = await supabase
-          .from('opcion_variante_valores')
-          .select('*')
-          .eq('opcion_id', opcion['id'])
-          .eq('activo', true)
-          .order('orden');
-      return List<OpcionVarianteValor>.from(
-        response.map((r) => OpcionVarianteValor.fromSupabase(r)),
-      );
+      return getValoresOpcionVariante(opcion['id'].toString());
     } catch (e) {
       debugPrint('Error getColoresVariante: $e');
       return [];
@@ -1130,7 +1159,9 @@ class SupabaseService {
     try {
       final response = await supabase
           .from('productos')
-          .select('*, producto_variantes(*)')
+          .select(
+            '*, producto_variantes(*), opciones_variante!variante_opcion_id(nombre)',
+          )
           .order('created_at', ascending: false);
       
       _cachedProductos = List<Producto>.from(response.map((prod) => Producto.fromSupabase(prod)));

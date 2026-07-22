@@ -20,6 +20,9 @@ class Producto {
 
   final String? videoUrl; // Link de video opcional
   final List<ProductoVariante> variantes;
+  /// Tipo de variante del producto (Color, Talle, Litros...). Null = sin tipo / Color por defecto en UI.
+  final String? varianteOpcionId;
+  final String? varianteTipoNombre;
 
   Producto({
     required this.id,
@@ -39,6 +42,8 @@ class Producto {
     this.rubroId,
     this.vendedorId,
     this.variantes = const [],
+    this.varianteOpcionId,
+    this.varianteTipoNombre,
   });
 
   factory Producto.fromSupabase(Map<String, dynamic> data) {
@@ -64,6 +69,13 @@ class Producto {
           .toList();
     }
 
+    String? tipoNombre;
+    if (data['opciones_variante'] is Map) {
+      tipoNombre = (data['opciones_variante'] as Map)['nombre']?.toString();
+    } else if (data['variante_tipo_nombre'] != null) {
+      tipoNombre = data['variante_tipo_nombre']?.toString();
+    }
+
     return Producto(
       id: data['id']?.toString() ?? '',
       nombre: data['nombre']?.toString() ?? '',
@@ -82,6 +94,8 @@ class Producto {
       createdAt: DateTime.tryParse(data['created_at'] ?? '') ?? DateTime.now(),
       updatedAt: DateTime.tryParse(data['updated_at'] ?? '') ?? DateTime.now(),
       variantes: vars,
+      varianteOpcionId: data['variante_opcion_id']?.toString(),
+      varianteTipoNombre: tipoNombre,
     );
   }
 
@@ -90,9 +104,31 @@ class Producto {
   List<ProductoVariante> get variantesActivas =>
       variantes.where((v) => v.activo).toList();
 
+  /// Etiqueta UI del tipo (Color, Talle, Litros...)
+  String get etiquetaTipoVariante {
+    final n = varianteTipoNombre?.trim();
+    if (n != null && n.isNotEmpty) return n;
+    // Inferencia si no vino el join de opciones_variante
+    for (final v in variantes) {
+      final c = v.color.toLowerCase().trim();
+      if (c.startsWith('variante ')) return 'Variante';
+      if (RegExp(r'^(xs|s|m|l|xl|xxl)$').hasMatch(c)) return 'Talle';
+      if (c.contains('litro') || c.contains(' ml') || c.endsWith(' l')) return 'Litros';
+      if (c.contains('kg') || c.endsWith(' g')) return 'Kilo';
+      if (c.contains('docena')) return 'Docena';
+    }
+    return 'Color';
+  }
+
   ProductoVariante? get varianteDefault {
     final activas = variantesActivas;
     if (activas.isEmpty) return null;
+    for (final v in activas) {
+      if (v.esDefault && v.stock > 0) return v;
+    }
+    for (final v in activas) {
+      if (v.stock > 0) return v;
+    }
     for (final v in activas) {
       if (v.esDefault) return v;
     }
@@ -116,6 +152,8 @@ class Producto {
       'imagen_url': imagenUrl,
       'galeria_urls': galeriaUrls,
       'producto_variantes': variantes.map((v) => v.toMap()).toList(),
+      'variante_opcion_id': varianteOpcionId,
+      'variante_tipo_nombre': varianteTipoNombre,
       'video_url': videoUrl,
       'activo': activo,
       'rubro_id': rubroId,
@@ -141,6 +179,10 @@ class Producto {
       'rubro_id': (rubroId?.isEmpty ?? true) ? null : rubroId,
       'vendedor_id': (vendedorId?.isEmpty ?? true) ? null : vendedorId,
       'destacado': destacado,
+      'variante_opcion_id':
+          (varianteOpcionId == null || varianteOpcionId!.isEmpty)
+              ? null
+              : varianteOpcionId,
     };
   }
 
@@ -177,7 +219,9 @@ class Producto {
         rubroId = null,
         vendedorId = null,
         videoUrl = null,
-        variantes = const [];
+        variantes = const [],
+        varianteOpcionId = null,
+        varianteTipoNombre = null;
 
   Producto copyWith({
     String? id,
@@ -197,6 +241,8 @@ class Producto {
     String? rubroId,
     String? vendedorId,
     List<ProductoVariante>? variantes,
+    String? varianteOpcionId,
+    String? varianteTipoNombre,
   }) {
     return Producto(
       id: id ?? this.id,
@@ -216,6 +262,8 @@ class Producto {
       rubroId: rubroId ?? this.rubroId,
       vendedorId: vendedorId ?? this.vendedorId,
       variantes: variantes ?? this.variantes,
+      varianteOpcionId: varianteOpcionId ?? this.varianteOpcionId,
+      varianteTipoNombre: varianteTipoNombre ?? this.varianteTipoNombre,
     );
   }
 }

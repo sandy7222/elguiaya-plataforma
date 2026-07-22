@@ -67,7 +67,57 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Future<void> _cargarVariantesSiFaltan() async {
-    if (_producto.variantes.isNotEmpty) return;
+    try {
+      // FK explícita: evita que falle el embed y se pierda el tipo (Color vs Variante)
+      final row = await SupabaseService.supabase
+          .from('productos')
+          .select(
+            '*, producto_variantes(*), opciones_variante!variante_opcion_id(nombre)',
+          )
+          .eq('id', widget.producto.id)
+          .maybeSingle();
+
+      Map<String, dynamic>? data = row == null
+          ? null
+          : Map<String, dynamic>.from(row);
+
+      // Fallback si el embed de opción no vino
+      if (data != null &&
+          data['variante_opcion_id'] != null &&
+          data['opciones_variante'] == null) {
+        final op = await SupabaseService.supabase
+            .from('opciones_variante')
+            .select('nombre')
+            .eq('id', data['variante_opcion_id'])
+            .maybeSingle();
+        if (op != null) {
+          data['variante_tipo_nombre'] = op['nombre']?.toString();
+        }
+      }
+
+      if (!mounted) return;
+      if (data == null) {
+        await _cargarSoloVariantes();
+        return;
+      }
+
+      final fresh = Producto.fromSupabase(data);
+      setState(() {
+        _producto = fresh;
+        // Preferir default con stock; si todas en 0, igual mostrar la default para ver foto
+        _varianteSeleccionada = fresh.varianteDefault ??
+            (fresh.variantesActivas.isNotEmpty
+                ? fresh.variantesActivas.first
+                : null);
+        _currentGalleryIndex = 0;
+      });
+    } catch (e) {
+      debugPrint('Error al refrescar producto/variantes: $e');
+      await _cargarSoloVariantes();
+    }
+  }
+
+  Future<void> _cargarSoloVariantes() async {
     final vars = await SupabaseService.getVariantesProducto(_producto.id);
     if (!mounted || vars.isEmpty) return;
     setState(() {
@@ -205,29 +255,85 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Galería de Imágenes con Miniaturas
-            SizedBox(
-              height: MediaQuery.of(context).size.height * 0.45,
-              child: allImages.isEmpty
-                  ? Container(color: _softGrey, child: const Center(child: Icon(Icons.image, size: 48)))
-                  : PageView.builder(
-                controller: _galleryController,
-                itemCount: allImages.length,
-                onPageChanged: (index) => setState(() => _currentGalleryIndex = index),
-                itemBuilder: (context, index) {
-                  return Hero(
-                    tag: index == 0 ? 'prod_${widget.producto.id}' : 'prod_${widget.producto.id}_$index',
-                    child: Image.network(
-                      allImages[index],
-                      fit: BoxFit.contain, // Ajustado para ver todo el producto
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Container(color: _softGrey, child: const Center(child: CircularProgressIndicator()));
-                      },
+            // 1. Galería principal — tocá para zoom
+            Stack(
+              children: [
+                Container(
+                  height: MediaQuery.of(context).size.height * 0.48,
+                  width: double.infinity,
+                  color: _softGrey,
+                  child: allImages.isEmpty
+                      ? const Center(child: Icon(Icons.image, size: 48, color: Colors.black26))
+                      : PageView.builder(
+                          controller: _galleryController,
+                          itemCount: allImages.length,
+                          onPageChanged: (index) =>
+                              setState(() => _currentGalleryIndex = index),
+                          itemBuilder: (context, index) {
+                            return Hero(
+                              tag: index == 0
+                                  ? 'prod_${widget.producto.id}'
+                                  : 'prod_${widget.producto.id}_$index',
+                              child: GestureDetector(
+                                onTap: () => _abrirZoomImagen(
+                                  allImages,
+                                  index,
+                                ),
+                                child: MouseRegion(
+                                  cursor: SystemMouseCursors.zoomIn,
+                                  child: SizedBox.expand(
+                                    child: DecoratedBox(
+                                      decoration: BoxDecoration(
+                                        color: _softGrey,
+                                        image: DecorationImage(
+                                          image: NetworkImage(allImages[index]),
+                                          fit: BoxFit.cover,
+                                          alignment: Alignment.center,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                ),
+                if (allImages.isNotEmpty)
+                  Positioned(
+                    right: 16,
+                    bottom: 16,
+                    child: Material(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(20),
+                      child: InkWell(
+                        onTap: () => _abrirZoomImagen(
+                          allImages,
+                          _currentGalleryIndex,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.zoom_in, color: Colors.white, size: 18),
+                              SizedBox(width: 6),
+                              Text(
+                                'Ampliar',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
-                  );
-                },
-              ),
+                  ),
+              ],
             ),
             
             // Miniaturas (Gallery Strip)
@@ -341,18 +447,38 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   List<String> get _imagenesActuales {
+    final result = <String>[];
+    final seen = <String>{};
+
+    void add(String? url) {
+      final u = url?.trim() ?? '';
+      if (u.isEmpty || seen.contains(u)) return;
+      seen.add(u);
+      result.add(u);
+    }
+
+    // 1) Foto de la variante elegida (para ver qué se compra)
     final v = _varianteSeleccionada;
     if (v != null) {
-      final imgs = <String>{
-        if (v.imagenUrl != null && v.imagenUrl!.isNotEmpty) v.imagenUrl!,
-        ...v.galeriaUrls.where((u) => u.isNotEmpty),
-      };
-      if (imgs.isNotEmpty) return imgs.toList();
+      add(v.imagenUrl);
+      for (final g in v.galeriaUrls) {
+        add(g);
+      }
     }
-    return <String>{
-      if (_producto.imagenUrl.isNotEmpty) _producto.imagenUrl,
-      ..._producto.galeriaUrls.where((u) => u.isNotEmpty),
-    }.toList();
+
+    // 2) Galería de la publicación (portada + decorativas) — siempre
+    add(_producto.imagenUrl);
+    for (final g in _producto.galeriaUrls) {
+      add(g);
+    }
+
+    // 3) Fallback si aún no hay nada
+    if (result.isEmpty) {
+      for (final vari in _producto.variantesActivas) {
+        add(vari.imagenUrl);
+      }
+    }
+    return result;
   }
 
   int get _stockActual =>
@@ -363,11 +489,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Widget _buildSelectorColor() {
     final variantes = _producto.variantesActivas;
+    final tipo = _producto.etiquetaTipoVariante;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'COLOR: ${_varianteSeleccionada?.color ?? 'Elegí uno'}',
+          '${tipo.toUpperCase()}: ${_varianteSeleccionada?.color ?? 'Elegí uno'}',
           style: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w800,
@@ -383,42 +510,95 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             final selected = _varianteSeleccionada?.id == v.id;
             final sinStock = v.stock <= 0;
             return GestureDetector(
-              onTap: sinStock
-                  ? null
-                  : () {
-                      setState(() {
-                        _varianteSeleccionada = v;
-                        _currentGalleryIndex = 0;
-                      });
-                      if (_galleryController.hasClients) {
-                        _galleryController.jumpToPage(0);
-                      }
-                    },
+              // Siempre se puede tocar para ver la foto; el stock solo bloquea la compra
+              onTap: () {
+                setState(() {
+                  _varianteSeleccionada = v;
+                  _currentGalleryIndex = 0;
+                });
+                // Ir a la foto de esa variante (queda primera en la galería)
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (_galleryController.hasClients) {
+                    _galleryController.jumpToPage(0);
+                  }
+                });
+              },
               child: Opacity(
-                opacity: sinStock ? 0.4 : 1,
-                child: Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: selected ? _capitanBlue : Colors.grey.shade300,
-                      width: selected ? 2.5 : 1,
+                opacity: sinStock ? 0.55 : 1,
+                child: Column(
+                  children: [
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: selected ? _capitanBlue : Colors.grey.shade300,
+                          width: selected ? 2.5 : 1,
+                        ),
+                        color: Colors.grey.shade100,
+                        image: (v.imagenUrl != null && v.imagenUrl!.isNotEmpty)
+                            ? DecorationImage(
+                                image: NetworkImage(v.imagenUrl!),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
+                      ),
+                      child: (v.imagenUrl == null || v.imagenUrl!.isEmpty)
+                          ? Center(
+                              child: Text(
+                                v.color.length > 8
+                                    ? v.color.substring(0, 7)
+                                    : v.color,
+                                style: const TextStyle(
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            )
+                          : (sinStock
+                              ? Container(
+                                  alignment: Alignment.bottomCenter,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.transparent,
+                                        Colors.black.withOpacity(0.55),
+                                      ],
+                                    ),
+                                  ),
+                                  padding: const EdgeInsets.only(bottom: 4),
+                                  child: const Text(
+                                    'Agotado',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                )
+                              : null),
                     ),
-                    color: Colors.grey.shade100,
-                    image: (v.imagenUrl != null && v.imagenUrl!.isNotEmpty)
-                        ? DecorationImage(image: NetworkImage(v.imagenUrl!), fit: BoxFit.cover)
-                        : null,
-                  ),
-                  child: (v.imagenUrl == null || v.imagenUrl!.isEmpty)
-                      ? Center(
-                          child: Text(
-                            v.color.length > 4 ? v.color.substring(0, 3) : v.color,
-                            style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold),
-                            textAlign: TextAlign.center,
-                          ),
-                        )
-                      : null,
+                    const SizedBox(height: 4),
+                    SizedBox(
+                      width: 64,
+                      child: Text(
+                        v.color,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
+                          color: selected ? _capitanBlue : Colors.grey.shade700,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             );
@@ -426,7 +606,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          _stockActual > 0 ? 'Stock: $_stockActual' : 'Sin stock en este color',
+          _stockActual > 0
+              ? 'Stock ($tipo): $_stockActual'
+              : 'Sin stock en esta $tipo — podés mirar las fotos, pero no comprar',
           style: TextStyle(
             fontSize: 12,
             color: _stockActual > 0 ? Colors.grey.shade600 : Colors.redAccent,
@@ -620,6 +802,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
 
+  void _abrirZoomImagen(List<String> images, int initialIndex) {
+    if (images.isEmpty) return;
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.92),
+      builder: (ctx) => _ProductImageZoomDialog(
+        images: images,
+        initialIndex: initialIndex.clamp(0, images.length - 1),
+      ),
+    );
+  }
+
   void _agregarAlCarrito(CartProvider cart) {
     if (_producto.tieneVariantes && _varianteSeleccionada == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -681,6 +875,129 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         'https://elguiaya.com/producto?id=${widget.producto.id}';
     
     Share.share(texto, subject: 'Interés en ${widget.producto.nombre}');
+  }
+}
+
+/// Zoom a pantalla completa: rueda del mouse / pellizco / arrastrar.
+class _ProductImageZoomDialog extends StatefulWidget {
+  final List<String> images;
+  final int initialIndex;
+
+  const _ProductImageZoomDialog({
+    required this.images,
+    required this.initialIndex,
+  });
+
+  @override
+  State<_ProductImageZoomDialog> createState() => _ProductImageZoomDialogState();
+}
+
+class _ProductImageZoomDialogState extends State<_ProductImageZoomDialog> {
+  late final PageController _pageController;
+  late final TransformationController _transformController;
+  late int _index;
+
+  @override
+  void initState() {
+    super.initState();
+    _index = widget.initialIndex;
+    _pageController = PageController(initialPage: _index);
+    _transformController = TransformationController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    _transformController.dispose();
+    super.dispose();
+  }
+
+  void _resetZoom() {
+    _transformController.value = Matrix4.identity();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog.fullscreen(
+      backgroundColor: Colors.black,
+      child: Stack(
+        children: [
+          PageView.builder(
+            controller: _pageController,
+            itemCount: widget.images.length,
+            onPageChanged: (i) {
+              setState(() => _index = i);
+              _resetZoom();
+            },
+            itemBuilder: (context, i) {
+              return InteractiveViewer(
+                transformationController: i == _index ? _transformController : null,
+                minScale: 1,
+                maxScale: 5,
+                panEnabled: true,
+                scaleEnabled: true,
+                child: Center(
+                  child: Image.network(
+                    widget.images[i],
+                    fit: BoxFit.contain,
+                    width: MediaQuery.of(context).size.width,
+                    height: MediaQuery.of(context).size.height,
+                    errorBuilder: (_, __, ___) => const Icon(
+                      Icons.broken_image_outlined,
+                      color: Colors.white54,
+                      size: 64,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                    style: IconButton.styleFrom(backgroundColor: Colors.black45),
+                  ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.black45,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text(
+                      '${_index + 1} / ${widget.images.length}',
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: _resetZoom,
+                    tooltip: 'Restablecer zoom',
+                    icon: const Icon(Icons.fit_screen, color: Colors.white, size: 22),
+                    style: IconButton.styleFrom(backgroundColor: Colors.black45),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const Positioned(
+            left: 0,
+            right: 0,
+            bottom: 24,
+            child: Text(
+              'Rueda del mouse o pellizco para acercar · Arrastrá para mover',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
