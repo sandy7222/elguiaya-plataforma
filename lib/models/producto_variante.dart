@@ -1,3 +1,26 @@
+class OpcionVariante {
+  final String id;
+  final String nombre;
+  final int orden;
+  final bool activo;
+
+  OpcionVariante({
+    required this.id,
+    required this.nombre,
+    this.orden = 0,
+    this.activo = true,
+  });
+
+  factory OpcionVariante.fromSupabase(Map<String, dynamic> data) {
+    return OpcionVariante(
+      id: data['id']?.toString() ?? '',
+      nombre: data['nombre']?.toString() ?? '',
+      orden: (data['orden'] as num?)?.toInt() ?? 0,
+      activo: data['activo'] ?? true,
+    );
+  }
+}
+
 class OpcionVarianteValor {
   final String id;
   final String opcionId;
