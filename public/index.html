@@ -3,7 +3,7 @@
 <head>
   <base href="/">
   <meta charset="UTF-8">
-  <title>El Guía YA</title>
+  <title>El Guia YA</title>
   <style>
     body { background-color: #000D26; margin: 0; }
     .loader-container {
@@ -29,8 +29,9 @@
   </div>
 
   <script>
-    // Configuracion de renderizador
-    window.flutterWebRenderer = "html";
+    // CanvasKit: mejor soporte de video_player (<video>/texturas) en banners.
+    // El renderer HTML dejaba platform-views de video en 0x0 dentro de FittedBox/ClipRRect.
+    window.flutterWebRenderer = "canvaskit";
   </script>
 
   <!-- CARGA DIRECTA DEL SCRIPT PRINCIPAL -->
