@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
 import 'package:capitanya_master/models/banner_promo.dart';
@@ -6,6 +7,9 @@ import 'package:capitanya_master/models/producto.dart';
 import 'package:capitanya_master/models/categoria.dart';
 import 'package:capitanya_master/services/supabase_service.dart';
 import 'package:capitanya_master/services/branding_service.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:lottie/lottie.dart';
+import 'package:capitanya_master/widgets/banner_media_widget.dart';
 import '../widgets/safe_button.dart';
 
 class AdminBannersScreen extends StatefulWidget {
@@ -23,6 +27,7 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> with SingleTick
   bool _isLoading = true;
   int _rotationSeconds = 5;
   Uint8List? _imageBytes;
+  String? _pickedFileName;
   String? _selectedCategoryFilterId;
 
   @override
@@ -162,7 +167,27 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> with SingleTick
     );
   }
 
+  bool _urlLooksLikeVideo(String url) {
+    final lower = url.toLowerCase();
+    return lower.contains('.mp4') ||
+        lower.contains('.mov') ||
+        lower.contains('.webm') ||
+        lower.contains('.m4v');
+  }
+
+  String _fileNameFromUrl(String url) {
+    try {
+      final path = Uri.parse(url).path;
+      final name = path.split('/').last;
+      return name.isEmpty ? url : name;
+    } catch (_) {
+      return url;
+    }
+  }
+
   Widget _buildBannerCard(BannerPromo banner) {
+    final hasMedia = banner.imagenUrl.isNotEmpty;
+    final isVideo = hasMedia && _urlLooksLikeVideo(banner.imagenUrl);
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -173,15 +198,53 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> with SingleTick
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (banner.imagenUrl.isNotEmpty)
+          if (hasMedia)
             ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
-              child: Image.network(
-                banner.imagenUrl,
+              child: SizedBox(
                 height: 120,
                 width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(height: 120, color: Colors.grey[900], child: const Icon(Icons.broken_image, color: Colors.white24)),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    BannerMediaWidget(
+                      url: banner.imagenUrl,
+                      fit: BoxFit.cover,
+                    ),
+                    Positioned(
+                      left: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.65),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          isVideo ? 'VIDEO' : 'IMAGEN',
+                          style: TextStyle(
+                            color: isVideo ? Colors.greenAccent : Colors.lightBlueAccent,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            Container(
+              height: 48,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.12),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
+              ),
+              child: const Text(
+                'SIN MEDIA (solo título)',
+                style: TextStyle(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.bold),
               ),
             ),
           Padding(
@@ -196,6 +259,15 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> with SingleTick
                       if (banner.tituloSeccion != null && banner.tituloSeccion!.isNotEmpty)
                         Text('Título Ext: ${banner.tituloSeccion}', style: const TextStyle(color: Colors.orangeAccent, fontSize: 12)),
                       Text(banner.subtitulo, style: const TextStyle(color: Colors.white54, fontSize: 13)),
+                      if (hasMedia) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          _fileNameFromUrl(banner.imagenUrl),
+                          style: const TextStyle(color: Colors.white38, fontSize: 11),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -271,6 +343,7 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> with SingleTick
     String bgColorHex = existingBanner?.backgroundColor ?? '#0D47A1';
     String txtColorHex = existingBanner?.textColor ?? '#FFFFFF';
     _imageBytes = null;
+    _pickedFileName = null;
 
     await showDialog(
       context: context,
@@ -282,7 +355,7 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> with SingleTick
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _buildImagePicker(setDialogState, existingImageUrl: existingBanner?.imagenUrl),
+                _buildImagePicker(setDialogState, existingImageUrl: existingBanner?.imagenUrl, allowVideosAndJSON: true),
                 if (type == 'marquee') ...[
                   const Text('CONFIGURACIÓN DE MARQUESINA', style: TextStyle(color: Colors.orangeAccent, fontSize: 10, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 10),
@@ -384,15 +457,28 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> with SingleTick
         ),
       ),
     ).then((value) async {
-      if (value == true && titulo.isNotEmpty) {
+      if (value == true) {
+        final titleToUse = titulo.trim().isEmpty ? 'Banner ${type.toUpperCase()}' : titulo.trim();
+        // Si el usuario eligió archivo pero los bytes no cargaron (bug web), no fingir éxito.
+        if (_pickedFileName != null && (_imageBytes == null || _imageBytes!.isEmpty)) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('❌ Se eligió "$_pickedFileName" pero no se pudo leer el archivo. No se guardó el media.'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+          return;
+        }
         if (existingBanner == null) {
           if (type == 'marquee' || _imageBytes != null) {
-            await _saveNewBanner(type, titulo, subtitulo, tituloSeccion, selectedProductId, selectedCategoriaId, velocity: velocidad, bgColor: bgColorHex, txtColor: txtColorHex);
+            await _saveNewBanner(type, titleToUse, subtitulo, tituloSeccion, selectedProductId, selectedCategoriaId, velocity: velocidad, bgColor: bgColorHex, txtColor: txtColorHex);
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('❌ Error: Debes subir una imagen')));
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('❌ Error: Debes subir una imagen o video para el banner'), backgroundColor: Colors.red));
           }
         } else {
-          await _updateExistingBanner(existingBanner, titulo, subtitulo, tituloSeccion, selectedProductId, selectedCategoriaId, velocity: velocidad, bgColor: bgColorHex, txtColor: txtColorHex);
+          await _updateExistingBanner(existingBanner, titleToUse, subtitulo, tituloSeccion, selectedProductId, selectedCategoriaId, velocity: velocidad, bgColor: bgColorHex, txtColor: txtColorHex);
         }
       }
     });
@@ -407,14 +493,72 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> with SingleTick
     );
   }
 
-   Widget _buildImagePicker(StateSetter setDialogState, {String? existingImageUrl}) {
+  /// En Flutter Web, `PlatformFile.bytes` a veces viene null aunque el archivo
+  /// se haya elegido (sobre todo videos). Hay que leer stream/path.
+  Future<Uint8List?> _readPlatformFileBytes(PlatformFile file) async {
+    if (file.bytes != null && file.bytes!.isNotEmpty) {
+      return file.bytes;
+    }
+    if (file.readStream != null) {
+      final builder = BytesBuilder(copy: false);
+      await for (final chunk in file.readStream!) {
+        builder.add(chunk);
+      }
+      final bytes = builder.takeBytes();
+      return bytes.isEmpty ? null : bytes;
+    }
+    final path = file.path;
+    if (path != null && path.isNotEmpty) {
+      try {
+        final bytes = await XFile(path).readAsBytes();
+        return bytes.isEmpty ? null : bytes;
+      } catch (e) {
+        debugPrint('⚠️ No se pudo leer archivo por path ($path): $e');
+      }
+    }
+    return null;
+  }
+
+  Widget _buildImagePicker(StateSetter setDialogState, {String? existingImageUrl, bool allowVideosAndJSON = false}) {
     return GestureDetector(
       onTap: () async {
-        final picker = ImagePicker();
-        final image = await picker.pickImage(source: ImageSource.gallery);
-        if (image != null) {
-          final bytes = await image.readAsBytes();
-          setDialogState(() => _imageBytes = bytes);
+        if (allowVideosAndJSON) {
+          final result = await FilePicker.platform.pickFiles(
+            type: FileType.custom,
+            allowedExtensions: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'mov', 'webm', 'json'],
+            withData: true,
+            allowMultiple: false,
+          );
+          if (result == null) return;
+          final file = result.files.single;
+          final bytes = await _readPlatformFileBytes(file);
+          if (bytes == null) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    '❌ No se pudo leer "${file.name}". En web probá un MP4 más liviano (<20 MB) o Chrome.',
+                  ),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+            return;
+          }
+          setDialogState(() {
+            _imageBytes = bytes;
+            _pickedFileName = file.name;
+          });
+        } else {
+          final picker = ImagePicker();
+          final image = await picker.pickImage(source: ImageSource.gallery);
+          if (image != null) {
+            final bytes = await image.readAsBytes();
+            setDialogState(() {
+              _imageBytes = bytes;
+              _pickedFileName = image.name;
+            });
+          }
         }
       },
       child: Container(
@@ -428,33 +572,109 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> with SingleTick
         child: _imageBytes != null
             ? ClipRRect(
                 borderRadius: BorderRadius.circular(15),
-                child: Image.memory(_imageBytes!, fit: BoxFit.cover),
+                child: _buildPickedFilePreview(),
               )
             : (existingImageUrl != null
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(15),
-                    child: Image.network(existingImageUrl, fit: BoxFit.cover),
+                    child: BannerMediaWidget(url: existingImageUrl, fit: BoxFit.cover),
                   )
                 : const Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.add_a_photo, color: Colors.white54, size: 30),
                       SizedBox(height: 8),
-                      Text('Subir Imagen', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                      Text('Subir archivo multimedia', style: TextStyle(color: Colors.white54, fontSize: 12)),
                     ],
                   )),
       ),
     );
   }
 
+  Widget _buildPickedFilePreview() {
+    final name = _pickedFileName?.toLowerCase() ?? '';
+    if (name.endsWith('.json')) {
+      return Lottie.memory(_imageBytes!, fit: BoxFit.cover);
+    } else if (name.contains('.mp4') || name.contains('.mov') || name.contains('.webm')) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.video_collection, color: Colors.greenAccent, size: 40),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              _pickedFileName ?? 'Video seleccionado',
+              style: const TextStyle(color: Colors.white70, fontSize: 11),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+      );
+    }
+    return Image.memory(_imageBytes!, fit: BoxFit.cover);
+  }
+
+  String _detectExtension(String? fileName, Uint8List? bytes) {
+    if (fileName != null && fileName.contains('.')) {
+      final cleanName = fileName.split('?').first;
+      final ext = cleanName.split('.').last.toLowerCase();
+      if (['mp4', 'mov', 'webm', 'json', 'jpg', 'jpeg', 'png', 'gif', 'webp'].contains(ext)) {
+        return ext;
+      }
+    }
+    if (bytes != null && bytes.length >= 12) {
+      final header = String.fromCharCodes(bytes.sublist(4, 12));
+      if (header.contains('ftyp') || header.contains('moov')) {
+        return 'mp4';
+      }
+      if (bytes[0] == 0x7B || bytes[0] == 0x5B) {
+        return 'json';
+      }
+      if (bytes[0] == 0x89 && bytes[1] == 0x50) return 'png';
+      if (bytes[0] == 0x47 && bytes[1] == 0x49) return 'gif';
+    }
+    return 'mp4';
+  }
+
+  String _getMimeType(String ext) {
+    switch (ext.toLowerCase()) {
+      case 'mp4': return 'video/mp4';
+      case 'mov': return 'video/quicktime';
+      case 'webm': return 'video/webm';
+      case 'json': return 'application/json';
+      case 'png': return 'image/png';
+      case 'webp': return 'image/webp';
+      case 'gif': return 'image/gif';
+      default: return 'image/jpeg';
+    }
+  }
+
   Future<void> _saveNewBanner(String type, String titulo, String subtitulo, String? tituloSeccion, String? productId, String? categoriaId, {double? velocity, String? bgColor, String? txtColor}) async {
     setState(() => _isLoading = true);
     try {
       String imageUrl = '';
-      if (_imageBytes != null) {
-        final fileName = 'banner_${type}_${DateTime.now().millisecondsSinceEpoch}.jpg';
-        await SupabaseService.supabase.storage.from('branding').uploadBinary(fileName, _imageBytes!);
+      if (_imageBytes != null && _imageBytes!.isNotEmpty) {
+        final ext = _detectExtension(_pickedFileName, _imageBytes);
+        final fileName = 'banner_${type}_${DateTime.now().millisecondsSinceEpoch}.$ext';
+        final sizeMb = (_imageBytes!.lengthInBytes / (1024 * 1024));
+        debugPrint('⬆️ Subiendo banner $fileName (${sizeMb.toStringAsFixed(2)} MB, ${_getMimeType(ext)})');
+        await SupabaseService.supabase.storage.from('branding').uploadBinary(
+          fileName,
+          _imageBytes!,
+          fileOptions: FileOptions(
+            contentType: _getMimeType(ext),
+            upsert: true,
+          ),
+        );
         imageUrl = SupabaseService.supabase.storage.from('branding').getPublicUrl(fileName);
+        debugPrint('✅ URL pública: $imageUrl');
+      }
+
+      if (type != 'marquee' && imageUrl.isEmpty) {
+        throw Exception('El banner $type requiere imagen o video alojado. No se subió ningún archivo.');
       }
 
       final banner = BannerPromo.temporal(
@@ -471,15 +691,26 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> with SingleTick
       );
 
       await SupabaseService.crearBanner(banner);
+      _imageBytes = null;
+      _pickedFileName = null;
       await _loadInitialData();
       
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ Carrusel guardado con éxito'), backgroundColor: Colors.green));
+        final mediaHint = imageUrl.isEmpty ? ' (sin media)' : (_urlLooksLikeVideo(imageUrl) ? ' + video en Storage' : ' + imagen en Storage');
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('✅ Carrusel guardado$mediaHint'),
+          backgroundColor: Colors.green,
+        ));
       }
     } catch (e) {
       print('Error al guardar: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('❌ Error: $e'), backgroundColor: Colors.red));
+        String msg = '❌ Error: $e';
+        if (e.toString().contains('413') || e.toString().contains('Payload too large') || e.toString().contains('maximum allowed size')) {
+          final sizeTxt = _imageBytes != null ? (_imageBytes!.lengthInBytes / (1024 * 1024)).toStringAsFixed(1) : '?';
+          msg = '⚠️ Archivo demasiado pesado ($sizeTxt MB). El bucket branding acepta hasta 50 MB.';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
       }
     } finally {
       if (mounted) {
@@ -492,12 +723,25 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> with SingleTick
     setState(() => _isLoading = true);
     try {
       String finalImageUrl = banner.imagenUrl;
+      var uploadedNewMedia = false;
 
-      // Si se seleccionó una nueva imagen, subirla
-      if (_imageBytes != null) {
-        final fileName = 'banner_${banner.tipo}_${DateTime.now().millisecondsSinceEpoch}.jpg';
-        await SupabaseService.supabase.storage.from('branding').uploadBinary(fileName, _imageBytes!);
+      // Si se seleccionó una nueva imagen/video, subirla
+      if (_imageBytes != null && _imageBytes!.isNotEmpty) {
+        final ext = _detectExtension(_pickedFileName, _imageBytes);
+        final fileName = 'banner_${banner.tipo}_${DateTime.now().millisecondsSinceEpoch}.$ext';
+        final sizeMb = (_imageBytes!.lengthInBytes / (1024 * 1024));
+        debugPrint('⬆️ Actualizando media $fileName (${sizeMb.toStringAsFixed(2)} MB)');
+        await SupabaseService.supabase.storage.from('branding').uploadBinary(
+          fileName,
+          _imageBytes!,
+          fileOptions: FileOptions(
+            contentType: _getMimeType(ext),
+            upsert: true,
+          ),
+        );
         finalImageUrl = SupabaseService.supabase.storage.from('branding').getPublicUrl(fileName);
+        uploadedNewMedia = true;
+        debugPrint('✅ Nueva URL: $finalImageUrl');
       }
 
       final updatedBanner = banner.copyWith(
@@ -513,15 +757,25 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> with SingleTick
         textColor: txtColor,
       );
       await SupabaseService.actualizarBanner(updatedBanner);
+      _imageBytes = null;
+      _pickedFileName = null;
       await _loadInitialData();
       
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ Carrusel actualizado con éxito'), backgroundColor: Colors.blueAccent));
+        final msg = uploadedNewMedia
+            ? '✅ Carrusel actualizado + media en Storage'
+            : '✅ Carrusel actualizado (sin cambiar media)';
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.blueAccent));
       }
     } catch (e) {
       print('Error al actualizar: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('❌ Error al actualizar: $e'), backgroundColor: Colors.red));
+        String msg = '❌ Error al actualizar: $e';
+        if (e.toString().contains('413') || e.toString().contains('Payload too large') || e.toString().contains('maximum allowed size')) {
+          final sizeTxt = _imageBytes != null ? (_imageBytes!.lengthInBytes / (1024 * 1024)).toStringAsFixed(1) : '?';
+          msg = '⚠️ Archivo demasiado pesado ($sizeTxt MB). El bucket branding acepta hasta 50 MB.';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
       }
     } finally {
       if (mounted) {
@@ -897,6 +1151,7 @@ class _AdminBannersScreenState extends State<AdminBannersScreen> with SingleTick
     bool activo = existingProducto?.activo ?? true;
     bool destacado = existingProducto?.destacado ?? false;
     _imageBytes = null;
+    _pickedFileName = null;
 
     if (categoriaId.isEmpty && _categorias.isNotEmpty) {
       categoriaId = _categorias.first.id;

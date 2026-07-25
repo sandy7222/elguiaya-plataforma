@@ -26,6 +26,23 @@ class BannerVideoCache {
         lower.contains('video');
   }
 
+  /// En web, Chrome bloquea autoplay con audio: hay que mutear ANTES de play().
+  static Future<void> ensureMutedAutoplay(VideoPlayerController controller) async {
+    try {
+      await controller.setVolume(0.0);
+    } catch (_) {}
+    try {
+      await controller.setLooping(true);
+    } catch (_) {}
+    try {
+      await controller.play();
+    } catch (playErr) {
+      debugPrint(
+        '⚠️ [BannerVideoCache] Autoplay suprimido por navegador: $playErr',
+      );
+    }
+  }
+
   Future<VideoPlayerController> acquire(String url) async {
     final key = url.trim();
     final list = _pool.putIfAbsent(key, () => []);
@@ -36,23 +53,25 @@ class BannerVideoCache {
     if (free.isNotEmpty) {
       final entry = free.first;
       entry.refs = 1;
-      try {
-        if (!entry.controller.value.isPlaying) {
-          await entry.controller.play();
-        }
-      } catch (_) {}
+      await ensureMutedAutoplay(entry.controller);
       return entry.controller;
     }
 
-    final controller = VideoPlayerController.networkUrl(Uri.parse(key));
+    final controller = VideoPlayerController.networkUrl(
+      Uri.parse(key),
+      videoPlayerOptions: VideoPlayerOptions(
+        mixWithOthers: true,
+        allowBackgroundPlayback: false,
+      ),
+    );
     try {
       await controller.initialize();
-      await controller.setLooping(true);
-      await controller.setVolume(0.0);
-      await controller.play();
+      // Mute obligatorio en web antes de play (política de autoplay de Chrome).
+      await ensureMutedAutoplay(controller);
       list.add(_CacheEntry(controller, refs: 1));
       return controller;
     } catch (e) {
+      debugPrint('⚠️ [BannerVideoCache] Error al inicializar video ($key): $e');
       await controller.dispose();
       rethrow;
     }

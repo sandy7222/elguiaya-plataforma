@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 import '../providers/cart_provider.dart';
+import '../providers/theme_provider.dart';
 import '../models/categoria.dart';
 import '../models/banner_promo.dart';
 import '../models/producto.dart';
@@ -237,7 +238,7 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
       return _buildMaintenanceScreen(context);
     }
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: LayoutBuilder(
         builder: (context, constraints) {
           final bool isMobile = constraints.maxWidth < 900;
@@ -514,6 +515,7 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
   }
 
   Widget _buildLogoHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -532,23 +534,23 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
           ),
         ),
         const SizedBox(height: 4),
-        const Text(
+        Text(
           'El Guia YA',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w900,
-            color: Colors.black87,
+            color: isDark ? Colors.white : Colors.black87,
             letterSpacing: 0.5,
             height: 1.1,
           ),
         ),
-        const Text(
+        Text(
           'Tu mejor amigo de pesca\nen Argentina',
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 10,
             fontWeight: FontWeight.w600,
-            color: Colors.black54,
+            color: isDark ? Colors.white60 : Colors.black54,
             height: 1.1,
           ),
         ),
@@ -557,13 +559,16 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
   }
 
   Widget _buildModernAppBar(bool isMobile) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final barColor = isDark ? const Color(0xFF121820) : Colors.white;
+
     if (!isMobile) {
-      // ─── DISEÑO DE ESCRITORIO (WINDOWS / PC) ───
+      // ─── DISEÑO DE ESCRITORIO (WINDOWS / PC / WEB) ───
       return SliverAppBar(
         primary: false,
         floating: true,
         pinned: true,
-        backgroundColor: Colors.white,
+        backgroundColor: barColor,
         elevation: 2,
         shadowColor: Colors.black12,
         expandedHeight: 140,
@@ -593,19 +598,20 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
                       height: 42,
                       constraints: const BoxConstraints(maxWidth: 550),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF0F2F5),
+                        color: isDark ? const Color(0xFF1E2836) : const Color(0xFFF0F2F5),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(color: Colors.black.withOpacity(0.05)),
                       ),
                       child: TextField(
                         controller: _searchController,
                         onChanged: (val) => setState(() => _searchQuery = val),
-                        decoration: const InputDecoration(
+                        style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                        decoration: InputDecoration(
                           hintText: '¿Qué estás buscando hoy?',
-                          hintStyle: TextStyle(color: Colors.grey, fontSize: 13),
-                          prefixIcon: Icon(Icons.search, color: Colors.grey, size: 18),
+                          hintStyle: TextStyle(color: isDark ? Colors.white54 : Colors.grey, fontSize: 13),
+                          prefixIcon: Icon(Icons.search, color: isDark ? Colors.white54 : Colors.grey, size: 18),
                           border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(vertical: 10),
+                          contentPadding: const EdgeInsets.symmetric(vertical: 10),
                         ),
                       ),
                     ),
@@ -630,81 +636,90 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
                   ],
                 ),
               ),
-              const SizedBox(width: 24),
-              
-              // 3. Iconos de Acción en el extremo derecho
-              SizedBox(
-                width: 160,
+              // Acciones (tema / fav / carrito / cuenta) van en SliverAppBar.actions
+              // para no quedar recortadas por el title en Flutter Web.
+            ],
+          ),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: Center(child: _buildThemeToggle()),
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.favorite_border,
+              color: isDark ? Colors.white70 : Colors.black54,
+              size: 24,
+            ),
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const FavoritosScreen()));
+            },
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Center(child: _buildCartIndicator()),
+          ),
+          PopupMenuButton<String>(
+            icon: Icon(
+              Icons.person_outline,
+              color: isDark ? Colors.white70 : Colors.black54,
+              size: 24,
+            ),
+            tooltip: 'Mi Cuenta',
+            onSelected: (value) {
+              if (value == 'pedidos') {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const OrderHistoryScreen()));
+              } else if (value == 'perfil') {
+                Navigator.pushNamed(context, '/perfil');
+              } else if (value == 'notificaciones') {
+                Navigator.pushNamed(context, '/notificaciones');
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'pedidos',
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    IconButton(
-                      icon: const Icon(Icons.favorite_border, color: Colors.black54, size: 24),
-                      onPressed: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => const FavoritosScreen()));
-                      },
-                    ),
-                    const SizedBox(width: 8),
-                    const SizedBox(width: 8),
-                    PopupMenuButton<String>(
-                      icon: const Icon(Icons.person_outline, color: Colors.black54, size: 24),
-                      tooltip: 'Mi Cuenta',
-                      onSelected: (value) {
-                        if (value == 'pedidos') {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => const OrderHistoryScreen()));
-                        } else if (value == 'perfil') {
-                          Navigator.pushNamed(context, '/perfil');
-                        } else if (value == 'notificaciones') {
-                          Navigator.pushNamed(context, '/notificaciones');
-                        }
-                      },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 'pedidos',
-                          child: Row(
-                            children: [
-                              Icon(Icons.shopping_bag_outlined, color: Colors.black87),
-                              SizedBox(width: 8),
-                              Text('Mis Compras'),
-                            ],
-                          ),
-                        ),
-                        const PopupMenuItem(
-                          value: 'perfil',
-                          child: Row(
-                            children: [
-                              Icon(Icons.person_outline, color: Colors.black87),
-                              SizedBox(width: 8),
-                              Text('Mi Perfil'),
-                            ],
-                          ),
-                        ),
-                        const PopupMenuItem(
-                          value: 'notificaciones',
-                          child: Row(
-                            children: [
-                              Icon(Icons.notifications_outlined, color: Colors.black87),
-                              SizedBox(width: 8),
-                              Text('Notificaciones'),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                    Icon(Icons.shopping_bag_outlined, color: Colors.black87),
+                    SizedBox(width: 8),
+                    Text('Mis Compras'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'perfil',
+                child: Row(
+                  children: [
+                    Icon(Icons.person_outline, color: Colors.black87),
+                    SizedBox(width: 8),
+                    Text('Mi Perfil'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'notificaciones',
+                child: Row(
+                  children: [
+                    Icon(Icons.notifications_outlined, color: Colors.black87),
+                    SizedBox(width: 8),
+                    Text('Notificaciones'),
                   ],
                 ),
               ),
             ],
           ),
-        ),
+          const SizedBox(width: 12),
+        ],
       );
     } else {
       // ─── DISEÑO DE CELULAR (MOBILE) ───
+      final isDark = Theme.of(context).brightness == Brightness.dark;
       return SliverAppBar(
         primary: false,
         floating: true,
         pinned: true,
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF121820) : Colors.white,
         elevation: 2,
         shadowColor: Colors.black12,
         expandedHeight: 175,
@@ -722,18 +737,19 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
               child: const Icon(Icons.sailing_rounded, color: Color(0xFF2E7D32), size: 16),
             ),
             const SizedBox(width: 8),
-            const Text(
+            Text(
               'El Guia YA',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w900,
-                color: Colors.black87,
+                color: isDark ? Colors.white : Colors.black87,
                 letterSpacing: 0.5,
               ),
             ),
             const Spacer(),
+            _buildThemeToggle(compact: true),
             IconButton(
-              icon: const Icon(Icons.favorite_border, color: Colors.black54, size: 22),
+              icon: Icon(Icons.favorite_border, color: Theme.of(context).iconTheme.color?.withOpacity(0.7) ?? Colors.black54, size: 22),
               onPressed: () {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const FavoritosScreen()));
               },
@@ -742,7 +758,7 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
             _buildCartIndicator(),
             const SizedBox(width: 4),
             PopupMenuButton<String>(
-              icon: const Icon(Icons.person_outline, color: Colors.black54, size: 22),
+              icon: Icon(Icons.person_outline, color: Theme.of(context).iconTheme.color?.withOpacity(0.7) ?? Colors.black54, size: 22),
               tooltip: 'Mi Cuenta',
               onSelected: (value) {
                 if (value == 'pedidos') {
@@ -925,6 +941,7 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
   }
 
   Widget _buildProductCard(Producto prod) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -938,33 +955,40 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
         width: 180,
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF1A2330) : Colors.white,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))
+            BoxShadow(color: Colors.black.withOpacity(isDark ? 0.35 : 0.05), blurRadius: 10, offset: const Offset(0, 4))
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              flex: 3,
+              flex: 7,
               child: Stack(
                 children: [
                   Hero(
                     tag: 'prod_${prod.id}',
                     child: ClipRRect(
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                      child: Image.network(
-                         prod.imagenUrl,
-                        width: double.infinity,
-                        height: double.infinity,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Container(color: const Color(0xFFF0F4F8));
-                        },
-                        errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.image_not_supported, color: Colors.grey)),
+                      child: ColoredBox(
+                        color: isDark ? const Color(0xFF141C26) : const Color(0xFFF4F7F6),
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+                          child: Image.network(
+                            prod.imagenUrl,
+                            width: double.infinity,
+                            height: double.infinity,
+                            fit: BoxFit.contain,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return ColoredBox(color: isDark ? const Color(0xFF141C26) : const Color(0xFFF0F4F8));
+                            },
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Center(child: Icon(Icons.image_not_supported, color: Colors.grey)),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -1007,32 +1031,34 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
 
             ),
             Expanded(
-              flex: 2,
+              flex: 3,
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          prod.nombre,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        _buildStockMiniBadge(prod),
-                      ],
+                    Text(
+                      prod.nombre,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        height: 1.15,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
+                    const SizedBox(height: 3),
+                    _buildStockMiniBadge(prod),
+                    const Spacer(),
                     Text(
                       prod.precioFormateado,
                       style: const TextStyle(
                         color: Color(0xFF00E676),
                         fontWeight: FontWeight.w900,
-                        fontSize: 16,
+                        fontSize: 15,
+                        height: 1.1,
                       ),
                     ),
                   ],
@@ -1102,25 +1128,149 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
     );
   }
 
+  Future<void> _handleBannerTap(dynamic banner) async {
+    BannerPromo? bp;
+    if (banner is BannerPromo) {
+      bp = banner;
+    } else if (banner is Map<String, dynamic>) {
+      try {
+        bp = BannerPromo.fromSupabase(banner);
+      } catch (_) {}
+    }
+
+    final productId = bp?.productId ?? (banner is Map ? banner['product_id']?.toString() : null);
+    final categoriaId = bp?.categoriaId ?? (banner is Map ? banner['categoria_id']?.toString() : null);
+
+    if (productId != null && productId.isNotEmpty) {
+      try {
+        final prods = await SupabaseService.getProductos();
+        final targetProd = prods.firstWhere((p) => p.id == productId);
+        if (mounted) {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailScreen(producto: targetProd)));
+        }
+      } catch (e) {
+        debugPrint('Error navegando a producto desde banner: $e');
+      }
+    } else if (categoriaId != null && categoriaId.isNotEmpty) {
+      if (mounted) {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => ProductCatalogScreen(initialCategoryId: categoriaId)));
+      }
+    } else {
+      if (mounted) {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductCatalogScreen()));
+      }
+    }
+  }
+
   Widget _buildBannerItem(BannerPromo banner, bool isMobile) {
     final String imagenUrl = banner.imagenUrl;
+    final String titulo = banner.titulo.isNotEmpty ? banner.titulo : 'OFERTA DESTACADA DE PESCA';
+    final String subtitulo = banner.subtitulo.isNotEmpty ? banner.subtitulo : 'Equipamiento seleccionado con envío a todo el país';
     
+    final hexColor = banner.textColor.replaceAll('#', '');
+    final Color textColor = hexColor.isNotEmpty ? Color(int.parse('FF$hexColor', radix: 16)) : Colors.white;
+
     return GestureDetector(
-      onTap: () {
-        if (banner.productId != null) {
-          // Navegar a producto
-        }
-      },
+      onTap: () => _handleBannerTap(banner),
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 0),
-        decoration: const BoxDecoration(
-          borderRadius: BorderRadius.zero,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF001F3F), Color(0xFF003366), Color(0xFF0D47A1)],
+          ),
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.25),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.zero,
-          child: BannerMediaWidget(
-            url: imagenUrl,
-            fit: BoxFit.cover,
+          borderRadius: BorderRadius.circular(18),
+          child: Stack(
+            children: [
+              // Imagen o Video de Fondo
+              if (imagenUrl.isNotEmpty)
+                Positioned.fill(
+                  child: BannerMediaWidget(
+                    url: imagenUrl,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              
+              // Overlay de gradiente elegante
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [
+                        const Color(0xFF001F3F).withOpacity(0.90),
+                        const Color(0xFF001F3F).withOpacity(0.55),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              // Contenido de texto y badge
+              Positioned.fill(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF00E676),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text(
+                          'DESTACADO',
+                          style: TextStyle(
+                            color: Color(0xFF001F3F),
+                            fontSize: 9,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        titulo,
+                        style: TextStyle(
+                          color: textColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          height: 1.15,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitulo,
+                        style: TextStyle(
+                          color: textColor.withOpacity(0.8),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -1189,10 +1339,10 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.redAccent,
+                          color: const Color(0xFF00C853),
                           borderRadius: BorderRadius.circular(8),
                           boxShadow: [
-                            BoxShadow(color: Colors.redAccent.withOpacity(0.5), blurRadius: 4, offset: const Offset(0, 2))
+                            BoxShadow(color: const Color(0xFF00C853).withOpacity(0.45), blurRadius: 4, offset: const Offset(0, 2))
                           ],
                         ),
                         child: const Text(
@@ -2232,30 +2382,21 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
                   );
                 },
                 child: GestureDetector(
-                  onTap: () async {
-                    if (banner is BannerPromo) {
-                      if (banner.productId != null) {
-                        try {
-                          final prods = await SupabaseService.getProductos();
-                          final targetProd = prods.firstWhere((p) => p.id == banner.productId);
-                          if (mounted) {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailScreen(producto: targetProd)));
-                          }
-                        } catch (e) {
-                          debugPrint('Error navigando a producto: $e');
-                        }
-                      } else if (banner.categoriaId != null) {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => ProductCatalogScreen(initialCategoryId: banner.categoriaId)));
-                      }
-                    }
-                  },
+                  onTap: () => _handleBannerTap(banner),
                   child: Container(
-                    margin: isMobile ? const EdgeInsets.symmetric(horizontal: 0, vertical: 0) : EdgeInsets.zero,
+                    margin: isMobile ? const EdgeInsets.symmetric(horizontal: 16, vertical: 8) : const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.zero,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.zero,
+                      borderRadius: BorderRadius.circular(16),
                       child: Stack(
                         children: [
                           Positioned.fill(
@@ -2264,82 +2405,77 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
                               fit: BoxFit.cover,
                             ),
                           ),
-                          // Overlay de gradiente mas oscuro para el texto
-                          Positioned.fill(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
-                                  colors: [
-                                    Colors.black.withOpacity(0.85),
-                                    Colors.black.withOpacity(0.2),
-                                    Colors.transparent,
-                                  ],
+                          if (titulo.trim().isNotEmpty || subtitulo.trim().isNotEmpty) ...[
+                            // Overlay de gradiente más oscuro para legibilidad del texto
+                            Positioned.fill(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                    colors: [
+                                      Colors.black.withOpacity(0.85),
+                                      Colors.black.withOpacity(0.35),
+                                      Colors.transparent,
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          Positioned(
-                            top: isMobile ? 25 : 120,
-                            left: isMobile ? 25 : MediaQuery.of(context).size.width * 0.1,
-                            right: isMobile ? 80 : MediaQuery.of(context).size.width * 0.4,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: isMobile ? const Color(0xFFFFD700) : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    isMobile ? 'OFERTA DESTACADA' : 'NUEVA TEMPORADA',
-                                    style: TextStyle(
-                                      color: isMobile ? const Color(0xFF001F3F) : Colors.white70, 
-                                      fontSize: isMobile ? 9 : 14, 
-                                      fontWeight: FontWeight.w900, 
-                                      letterSpacing: 2
+                            Positioned(
+                              top: isMobile ? 20 : 60,
+                              left: isMobile ? 20 : 50,
+                              right: isMobile ? 30 : 100,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: isMobile ? const Color(0xFFFFD700) : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      isMobile ? 'OFERTA DESTACADA' : 'NUEVA TEMPORADA',
+                                      style: TextStyle(
+                                        color: isMobile ? const Color(0xFF001F3F) : Colors.white70, 
+                                        fontSize: isMobile ? 9 : 14, 
+                                        fontWeight: FontWeight.w900, 
+                                        letterSpacing: 2
+                                      ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  titulo,
-                                  style: TextStyle(
-                                    color: textColor,
-                                    fontSize: isMobile ? 22 : 48,
-                                    fontWeight: FontWeight.w900,
-                                    height: 1.1,
-                                    letterSpacing: -0.5,
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  subtitulo,
-                                  style: TextStyle(
-                                    color: textColor.withOpacity(0.9),
-                                    fontSize: isMobile ? 13 : 18,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 24),
-                                ElevatedButton(
-                                  onPressed: () {}, // Accion segun banner
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: isMobile ? Colors.white : const Color(0xFFB2EBF2),
-                                    foregroundColor: isMobile ? const Color(0xFF0D47A1) : const Color(0xFF004D40),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                    padding: EdgeInsets.symmetric(horizontal: isMobile ? 16 : 32, vertical: isMobile ? 8 : 16),
-                                    elevation: 0,
-                                  ),
-                                  child: Text(isMobile ? 'VER MÁS' : 'Explorar Tienda', style: TextStyle(fontWeight: FontWeight.w900, fontSize: isMobile ? 11 : 16)),
-                                ),
-                              ],
+                                  const SizedBox(height: 8),
+                                  if (titulo.trim().isNotEmpty)
+                                    Text(
+                                      titulo,
+                                      style: TextStyle(
+                                        color: textColor,
+                                        fontSize: isMobile ? 20 : 44,
+                                        fontWeight: FontWeight.w900,
+                                        height: 1.1,
+                                        letterSpacing: -0.5,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  if (subtitulo.trim().isNotEmpty) ...[
+                                    const SizedBox(height: 10),
+                                    Text(
+                                      subtitulo,
+                                      style: TextStyle(
+                                        color: textColor.withOpacity(0.9),
+                                        fontSize: isMobile ? 12 : 16,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ],
+                              ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     ),
@@ -2375,21 +2511,62 @@ class _CategoriesGridScreenState extends State<CategoriesGridScreen> {
     );
   }
 
+  Widget _buildThemeToggle({bool compact = false}) {
+    return Consumer<ThemeProvider>(
+      builder: (context, theme, _) {
+        final isDark = theme.isDark;
+        final icon = isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded;
+        final fg = isDark ? Colors.amber.shade200 : const Color(0xFF0D47A1);
+        final bg = isDark ? const Color(0xFF243044) : const Color(0xFFE8EEF7);
+        final size = compact ? 34.0 : 40.0;
+        final iconSize = compact ? 18.0 : 22.0;
+
+        return Tooltip(
+          message: isDark ? 'Modo claro' : 'Modo oscuro',
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => theme.toggle(),
+              borderRadius: BorderRadius.circular(size / 2),
+              child: Ink(
+                width: size,
+                height: size,
+                decoration: BoxDecoration(
+                  color: bg,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isDark ? Colors.white24 : const Color(0xFF0D47A1).withOpacity(0.25),
+                  ),
+                ),
+                child: Icon(icon, color: fg, size: iconSize),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildCartIndicator() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Consumer<CartProvider>(
       builder: (context, cart, _) {
         return GestureDetector(
           onTap: () => Navigator.pushNamed(context, '/carrito'),
           child: Container(
             padding: const EdgeInsets.all(10),
-            decoration: const BoxDecoration(
-              color: Color(0xFFE3F2FD), // Fondo celeste pastel del mock-up
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E3A5F) : const Color(0xFFE3F2FD),
               shape: BoxShape.circle,
             ),
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                const Icon(Icons.shopping_cart_rounded, color: Color(0xFF0D47A1), size: 24),
+                Icon(
+                  Icons.shopping_cart_rounded,
+                  color: isDark ? Colors.lightBlue.shade200 : const Color(0xFF0D47A1),
+                  size: 24,
+                ),
                 if (cart.totalItems > 0)
                   Positioned(
                     right: -6,
