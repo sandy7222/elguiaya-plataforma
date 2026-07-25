@@ -1,8 +1,11 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:video_player/video_player.dart';
 
 import '../services/banner_video_cache.dart';
+import 'banner_html_video_stub.dart'
+    if (dart.library.html) 'banner_html_video_web.dart';
 
 class VideoLoopPlayer extends StatefulWidget {
   final String url;
@@ -24,6 +27,8 @@ class _VideoLoopPlayerState extends State<VideoLoopPlayer>
   bool _initialized = false;
   bool _hasError = false;
   String? _attachedUrl;
+  bool _playRetryScheduled = false;
+  Size _lastKnownSize = Size.zero;
 
   @override
   bool get wantKeepAlive => true;
@@ -43,8 +48,37 @@ class _VideoLoopPlayerState extends State<VideoLoopPlayer>
     }
   }
 
+  void _onControllerTick() {
+    final c = _controller;
+    if (!mounted || c == null) return;
+
+    final v = c.value;
+    final ready = v.isInitialized;
+    final sizeChanged = v.size != _lastKnownSize &&
+        (v.size.width > 0 || v.size.height > 0);
+
+    if (ready != _initialized || sizeChanged) {
+      _lastKnownSize = v.size;
+      setState(() {
+        _initialized = ready;
+        _hasError = false;
+      });
+    }
+
+    // Reintento suave de autoplay muteado (políticas de Chrome).
+    if (ready && !v.isPlaying && !_playRetryScheduled) {
+      _playRetryScheduled = true;
+      Future<void>.delayed(const Duration(milliseconds: 120), () async {
+        if (!mounted || _controller == null) return;
+        await BannerVideoCache.ensureMutedAutoplay(_controller!);
+        _playRetryScheduled = false;
+      });
+    }
+  }
+
   Future<void> _attach(String url) async {
     final trimmed = url.trim();
+    _playRetryScheduled = false;
     if (trimmed.isEmpty) {
       if (mounted) {
         setState(() {
@@ -59,7 +93,6 @@ class _VideoLoopPlayerState extends State<VideoLoopPlayer>
     if (mounted) {
       setState(() {
         _hasError = false;
-        // Si ya hay frame en cache, no forzamos estado "loading" con spinner.
         _initialized = false;
       });
     }
@@ -71,11 +104,15 @@ class _VideoLoopPlayerState extends State<VideoLoopPlayer>
         return;
       }
       _attachedUrl = trimmed;
+      _controller?.removeListener(_onControllerTick);
       _controller = controller;
+      controller.addListener(_onControllerTick);
       setState(() {
         _initialized = controller.value.isInitialized;
         _hasError = false;
       });
+      // Asegurar mute+play otra vez al montar el widget (web).
+      await BannerVideoCache.ensureMutedAutoplay(controller);
     } catch (e) {
       debugPrint('Error initializing video ($e) for URL: $trimmed');
       if (mounted && widget.url.trim() == trimmed) {
@@ -94,6 +131,11 @@ class _VideoLoopPlayerState extends State<VideoLoopPlayer>
     _attachedUrl = null;
     _controller = null;
     _initialized = false;
+    _playRetryScheduled = false;
+    _lastKnownSize = Size.zero;
+    if (controller != null) {
+      controller.removeListener(_onControllerTick);
+    }
     if (url != null && controller != null) {
       BannerVideoCache.instance.release(url, controller);
     }
@@ -123,15 +165,24 @@ class _VideoLoopPlayerState extends State<VideoLoopPlayer>
       return const ColoredBox(color: Color(0xFF001F3F));
     }
 
+    // En Chrome/web, value.size puede ser 0x0 aunque isInitialized sea true.
+    // Un FittedBox con hijo 0x0 colapsa y deja ver el navy del contenedor padre.
+    final raw = _controller!.value.size;
+    final width = raw.width > 0 ? raw.width : 16.0;
+    final height = raw.height > 0 ? raw.height : 9.0;
+
     return IgnorePointer(
-      child: SizedBox.expand(
-        child: FittedBox(
-          fit: widget.fit,
-          clipBehavior: Clip.hardEdge,
-          child: SizedBox(
-            width: _controller!.value.size.width,
-            height: _controller!.value.size.height,
-            child: VideoPlayer(_controller!),
+      child: ColoredBox(
+        color: const Color(0xFF001F3F),
+        child: SizedBox.expand(
+          child: FittedBox(
+            fit: widget.fit,
+            clipBehavior: Clip.hardEdge,
+            child: SizedBox(
+              width: width,
+              height: height,
+              child: VideoPlayer(_controller!),
+            ),
           ),
         ),
       ),
@@ -197,6 +248,14 @@ class _BannerMediaWidgetState extends State<BannerMediaWidget> {
     }
 
     if (_isVideo(url)) {
+      // Web: <video> HTML nativo (autoplay muteado). Más fiable en el carrusel.
+      if (kIsWeb) {
+        return BannerHtmlVideo(
+          key: ValueKey('banner-html-video-$url'),
+          url: url,
+          fit: widget.fit,
+        );
+      }
       return VideoLoopPlayer(
         key: ValueKey('banner-video-$url'),
         url: url,
@@ -210,6 +269,8 @@ class _BannerMediaWidgetState extends State<BannerMediaWidget> {
       height: double.infinity,
       fit: widget.fit,
       errorBuilder: (context, error, stackTrace) {
+        // En web a veces un .mp4 llega sin extensión clara en el path parseado;
+        // si la imagen falla, reintentamos como video.
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted && !_forceVideoMode) {
             setState(() {

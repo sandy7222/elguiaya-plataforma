@@ -12,6 +12,7 @@ import 'package:capitanya_master/app_navigator.dart';
 import 'package:capitanya_master/services/fcm_service.dart';
 import 'package:capitanya_master/providers/cart_provider.dart';
 import 'package:capitanya_master/providers/favoritos_provider.dart';
+import 'package:capitanya_master/providers/theme_provider.dart';
 import 'package:capitanya_master/screens/bienvenida_definitiva_screen.dart';
 import 'package:capitanya_master/screens/verificar_email_screen.dart';
 import 'package:capitanya_master/screens/nueva_password_screen.dart';
@@ -31,6 +32,8 @@ import 'package:capitanya_master/screens/admin_viajes_screen.dart';
 import 'package:capitanya_master/screens/admin_disputas_screen.dart';
 import 'package:capitanya_master/screens/admin_tracking_screen.dart';
 import 'package:capitanya_master/screens/admin_logs_screen.dart';
+import 'package:capitanya_master/screens/admin_reclamos_tienda_screen.dart';
+import 'package:capitanya_master/screens/admin_importacion_screen.dart';
 import 'package:capitanya_master/screens/portal_capitan_screen.dart';
 import 'package:capitanya_master/screens/portal_pescador_screen.dart';
 import 'package:capitanya_master/screens/cart_screen.dart';
@@ -119,6 +122,7 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => FavoritosProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
       child: const MyApp(),
     ),
@@ -139,81 +143,139 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      navigatorKey: navigatorKey,
-      title: 'El Guia YA',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
+  static final ThemeData _lightTheme = ThemeData(
+    useMaterial3: true,
+    brightness: Brightness.light,
+    primarySwatch: Colors.blue,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: const Color(0xFF0D47A1),
+      brightness: Brightness.light,
+    ),
+    scaffoldBackgroundColor: const Color(0xFFF8F9FA),
+    visualDensity: VisualDensity.adaptivePlatformDensity,
+    fontFamily: 'Outfit',
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Color(0xFF001F3F),
+      foregroundColor: Colors.white,
+      iconTheme: IconThemeData(color: Colors.white),
+      actionsIconTheme: IconThemeData(color: Colors.white),
+      titleTextStyle: TextStyle(
+        color: Colors.white,
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
         fontFamily: 'Outfit',
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF001F3F),
-          foregroundColor: Colors.white,
-          iconTheme: IconThemeData(color: Colors.white),
-          actionsIconTheme: IconThemeData(color: Colors.white),
-          titleTextStyle: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'Outfit',
-          ),
-        ),
-        pageTransitionsTheme: const PageTransitionsTheme(
-          builders: {
-            TargetPlatform.android: ZoomPageTransitionsBuilder(),
-            TargetPlatform.iOS: FadeUpwardsPageTransitionsBuilder(),
-          },
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            elevation: 8,
-            shadowColor: Colors.blue.withValues(alpha: 0.5),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            visualDensity: VisualDensity.compact,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
-            ),
-          ),
-        ),
-        outlinedButtonTheme: OutlinedButtonThemeData(
-          style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            visualDensity: VisualDensity.compact,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-        ),
-        textButtonTheme: TextButtonThemeData(
-          style: TextButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            visualDensity: VisualDensity.compact,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-        ),
-        filledButtonTheme: FilledButtonThemeData(
-          style: FilledButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            visualDensity: VisualDensity.compact,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
+      ),
+    ),
+    pageTransitionsTheme: const PageTransitionsTheme(
+      builders: {
+        TargetPlatform.android: ZoomPageTransitionsBuilder(),
+        TargetPlatform.iOS: FadeUpwardsPageTransitionsBuilder(),
+      },
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        elevation: 8,
+        shadowColor: Colors.blue.withValues(alpha: 0.5),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        visualDensity: VisualDensity.compact,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
         ),
       ),
-      // 🚀 ENVOLTORIO ACTUALIZADO: Apunta directo a la vista con AuthGate
-      home: const SessionWrapper(),
-      builder: (context, child) {
-        return Stack(
-          children: [
-            child ?? const SizedBox.shrink(),
-            const GuiaOverlay(),
-          ],
-        );
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        visualDensity: VisualDensity.compact,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        visualDensity: VisualDensity.compact,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+    ),
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        visualDensity: VisualDensity.compact,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+    ),
+  );
+
+  static final ThemeData _darkTheme = ThemeData(
+    useMaterial3: true,
+    brightness: Brightness.dark,
+    primarySwatch: Colors.blue,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: const Color(0xFF64B5F6),
+      brightness: Brightness.dark,
+      surface: const Color(0xFF121820),
+    ),
+    scaffoldBackgroundColor: const Color(0xFF0D1218),
+    cardColor: const Color(0xFF1A2330),
+    visualDensity: VisualDensity.adaptivePlatformDensity,
+    fontFamily: 'Outfit',
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Color(0xFF0A1520),
+      foregroundColor: Colors.white,
+      iconTheme: IconThemeData(color: Colors.white),
+      actionsIconTheme: IconThemeData(color: Colors.white),
+      titleTextStyle: TextStyle(
+        color: Colors.white,
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+        fontFamily: 'Outfit',
+      ),
+    ),
+    pageTransitionsTheme: const PageTransitionsTheme(
+      builders: {
+        TargetPlatform.android: ZoomPageTransitionsBuilder(),
+        TargetPlatform.iOS: FadeUpwardsPageTransitionsBuilder(),
       },
-      routes: {
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        elevation: 4,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        visualDensity: VisualDensity.compact,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+      ),
+    ),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
+        return MaterialApp(
+          navigatorKey: navigatorKey,
+          title: 'El Guia YA',
+          debugShowCheckedModeBanner: false,
+          theme: _lightTheme,
+          darkTheme: _darkTheme,
+          themeMode: themeProvider.themeMode,
+          // 🚀 ENVOLTORIO ACTUALIZADO: Apunta directo a la vista con AuthGate
+          home: const SessionWrapper(),
+          builder: (context, child) {
+            return Stack(
+              children: [
+                child ?? const SizedBox.shrink(),
+                const GuiaOverlay(),
+              ],
+            );
+          },
+          routes: {
         '/inicio': (context) => const InicioScreen(),
         '/admin/catalogo': (context) => const AdminCatalogoScreen(),
+        '/admin/importacion': (context) => const AdminImportacionScreen(),
         '/admin/dashboard': (context) => const AdminDashboardScreen(),
         '/admin/banners': (context) => const AdminBannersScreen(),
         '/admin/directorio_pescadores': (context) =>
@@ -231,6 +293,8 @@ class MyApp extends StatelessWidget {
         '/admin/viajes': (context) => const AdminViajesScreen(),
         '/admin/disputas': (context) =>
             const AdminDisputasScreen(embedMode: false),
+        '/admin/reclamos-tienda': (context) =>
+            const AdminReclamosTiendaScreen(embedMode: false),
         '/admin/trazabilidad': (context) =>
             const AdminTrackingScreen(embedMode: false),
         '/admin/logs': (context) => const AdminLogsScreen(embedMode: false),
@@ -276,19 +340,21 @@ class MyApp extends StatelessWidget {
         '/clima': (context) => const PronosticoScreen(),
         '/historial': (context) => const ViajesProgramadosScreen(esCapitan: false),
         '/panel': (context) => const PortalPescadorScreen(),
-      },
-      onGenerateRoute: (settings) {
-        if (settings.name != null && settings.name!.startsWith('/producto/')) {
-          final parts = settings.name!.split('/');
-          if (parts.length >= 3) {
-            final productId = parts[2];
-            return MaterialPageRoute(
-              builder: (context) => ProductDetailRouteWrapper(productId: productId),
-              settings: settings,
-            );
-          }
-        }
-        return null;
+          },
+          onGenerateRoute: (settings) {
+            if (settings.name != null && settings.name!.startsWith('/producto/')) {
+              final parts = settings.name!.split('/');
+              if (parts.length >= 3) {
+                final productId = parts[2];
+                return MaterialPageRoute(
+                  builder: (context) => ProductDetailRouteWrapper(productId: productId),
+                  settings: settings,
+                );
+              }
+            }
+            return null;
+          },
+        );
       },
     );
   }
