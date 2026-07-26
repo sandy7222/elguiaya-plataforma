@@ -265,6 +265,64 @@ class NotificacionHelper {
     );
   }
 
+  /// Notifica al comprador que su pedido de tienda fue despachado, incluyendo
+  /// los datos de seguimiento cuando están disponibles.
+  static Future<void> pedidoDespachado(
+    String usuarioId,
+    String pedidoId,
+    String? numeroPedido, {
+    String? trackingCodigo,
+    String? trackingTransportista,
+  }) async {
+    final ref = (numeroPedido != null && numeroPedido.isNotEmpty)
+        ? numeroPedido
+        : _codigo(pedidoId);
+    final partesTracking = <String>[];
+    if (trackingTransportista != null && trackingTransportista.trim().isNotEmpty) {
+      partesTracking.add(trackingTransportista.trim());
+    }
+    if (trackingCodigo != null && trackingCodigo.trim().isNotEmpty) {
+      partesTracking.add('seguimiento ${trackingCodigo.trim()}');
+    }
+    final detalleTracking =
+        partesTracking.isEmpty ? '' : ' (${partesTracking.join(' · ')})';
+
+    await enviar(
+      usuarioId: usuarioId,
+      titulo: '📦 ¡Tu pedido fue despachado!',
+      mensaje: 'Tu pedido $ref ya está en camino$detalleTracking.',
+      tipo: 'pedido_despachado',
+      metadata: {
+        'pedido_id': pedidoId,
+        if (numeroPedido != null) 'numero_pedido': numeroPedido,
+        if (trackingCodigo != null) 'tracking_codigo': trackingCodigo,
+        if (trackingTransportista != null)
+          'tracking_transportista': trackingTransportista,
+      },
+    );
+  }
+
+  /// Notifica al comprador que su pedido de tienda fue entregado.
+  static Future<void> pedidoEntregado(
+    String usuarioId,
+    String pedidoId,
+    String? numeroPedido,
+  ) async {
+    final ref = (numeroPedido != null && numeroPedido.isNotEmpty)
+        ? numeroPedido
+        : _codigo(pedidoId);
+    await enviar(
+      usuarioId: usuarioId,
+      titulo: '✅ ¡Pedido Entregado!',
+      mensaje: 'Tu pedido $ref fue entregado. ¡Gracias por tu compra!',
+      tipo: 'pedido_entregado',
+      metadata: {
+        'pedido_id': pedidoId,
+        if (numeroPedido != null) 'numero_pedido': numeroPedido,
+      },
+    );
+  }
+
   // ── Utilidades internas ────────────────────────────────────────────────────
 
   static String _codigo(String pedidoId) {
