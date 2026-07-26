@@ -188,6 +188,482 @@
       ],
       "respuesta_limpia": "Pescar con río despejado, temp 13.8°C y viento suave",
       "gif": "hablaConMate"
+    },
+    {
+      "intencion": "preparacion_para_pescar",
+      "activadores": [
+        "preparacion para pescar",
+        "equipo de pesca",
+        "carnada para pescar"
+      ],
+      "respuesta_limpia": "La preparación para pescar incluye el armado del equipo y la búsqueda de carnada.",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "herramientas_de_pescar",
+      "activadores": [
+        "herramientas de pesca",
+        "caja de pesca",
+        "equipo de pesca"
+      ],
+      "respuesta_limpia": "Bogagrip, pinzas, alicates, tijeras, cuchillo, luminación, boyas, plomadas, líderes de acero",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "herramientas_de_pesca",
+      "activadores": [
+        "herramientas de pesca",
+        "caja de pesca",
+        "equipamiento de pesca"
+      ],
+      "respuesta_limpia": "Bogagrip, pinzas de punta, alicates, tijeras, cuchillo de corte, luminación portátil, boyas y plomadas, líderes de acero",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "modalidades_de_pesca",
+      "activadores": [
+        "pesca con hilo",
+        "pesca tradicional",
+        "modalidades de pesca"
+      ],
+      "respuesta_limpia": "La pesca con hilo es una modalidad tradicional",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "conexion_con_el_medio_ambiente",
+      "activadores": [
+        "observacion_visual",
+        "observacion_auditiva",
+        "conexion_con_la_naturaleza"
+      ],
+      "respuesta_limpia": "Observa el entorno para entender qué comen los peces",
+      "gif": "piensaLeve"
+    },
+    {
+      "intencion": "plan_de_aprendizaje",
+      "activadores": [
+        "aprendizaje",
+        "pesca",
+        "plan"
+      ],
+      "respuesta_limpia": "Aprender sobre pesca con Seba",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "preparacion_caja_pesca",
+      "activadores": [
+        "caja de pesca",
+        "preparacion pesca",
+        "anzuelos y señuelos"
+      ],
+      "respuesta_limpia": "Una caja de pesca debe incluir anzuelos y señuelos para diferentes modalidades de pesca",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "preparacion_equipo_pesca",
+      "activadores": [
+        "preparacion equipo pesca",
+        "organizacion lineas pesca"
+      ],
+      "respuesta_limpia": "Llevar lineas armadas y organizadas en tablillas",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "tecnica_de_pesca_corvina_negra",
+      "activadores": [
+        "corvina negra",
+        "cangrejos",
+        "costa argentina"
+      ],
+      "respuesta_limpia": "Recolectar cangrejos en costas de ríos para usar como carnada",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "conocer_pescador",
+      "activadores": [
+        "nombre pescador",
+        "seba borrego"
+      ],
+      "respuesta_limpia": "Seba Borrego, pescador de surubí, dorado y patí",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "descripcion_corvina_negra",
+      "activadores": [
+        "corvina negra",
+        "pez marino",
+        "pesca deportiva"
+      ],
+      "respuesta_limpia": "Pez marino de gran tamaño, fuerte mandíbula, emite sonidos similares a un tambor",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "corvina_negra_alimentacion",
+      "activadores": [
+        "corvina negra",
+        "alimentación",
+        "cangrejos"
+      ],
+      "respuesta_limpia": "Corvina negra se alimenta de cangrejos en costas",
+      "gif": "piensaLeve"
+    },
+    {
+      "intencion": "equipo_para_pescar_corvina_negra",
+      "activadores": [
+        "equipo de pesca para corvina negra",
+        "caña y reel para corvina negra"
+      ],
+      "respuesta_limpia": "Caña de 2 tramos, reel 5500-8000, nylon 60mm, plomadas 120-150gr, anzuelos 7.0-10",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "como_pescar_corvina_negra",
+      "activadores": [
+        "corvina negra",
+        "pesca en el Mar Argentino",
+        "carnadas para corvina"
+      ],
+      "respuesta_limpia": "Pescar corvina negra con calamares o camarones",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "caracteristicas_corvina_negra",
+      "activadores": [
+        "corvina negra",
+        "tamaño",
+        "alimentación"
+      ],
+      "respuesta_limpia": "La corvina negra puede superar 1,5 m de longitud y pesar más de 35 kg, se alimenta de crustáceos y moluscos",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "donde_pescar_corvina_negra",
+      "activadores": [
+        "corvina negra",
+        "costa bonaerense",
+        "pescar en Mar Chiquita"
+      ],
+      "respuesta_limpia": "Restingas, canales y desembocaduras",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "aprender_panel_control_pescador",
+      "activadores": [
+        "panel de control del pescador",
+        "aprender a manejar el panel"
+      ],
+      "respuesta_limpia": "Aprender a manejar el panel de control del pescador",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "utilizar_tabla_lunar",
+      "activadores": [
+        "tabla lunar",
+        "fase lunar",
+        "iluminacion"
+      ],
+      "respuesta_limpia": "Utilizar la tabla lunar para planificar la pesca",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "consejos_de_pesca",
+      "activadores": [
+        "consejos de pesca",
+        "pesca en condiciones ideales",
+        "cómo pescar en clima despejado"
+      ],
+      "respuesta_limpia": "Elige lugar adecuado, utiliza carnada adecuada, ajusta línea y anzuelo, pesa con paciencia y mantén perfil bajo.",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "caracteristicas_moncholo",
+      "activadores": [
+        "moncholo",
+        "pez norte",
+        "chupín"
+      ],
+      "respuesta_limpia": "Moncholo: pez de 40-50 cm, 5 kg, carne suave, ideal para chupín y frito.",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "caracteristicas_cascarudo",
+      "activadores": [
+        "cascarudo",
+        "el caminador",
+        "peces con aletas especiales"
+      ],
+      "respuesta_limpia": "Cascarudo: pez con aletas que intentan caminar en la superficie",
+      "gif": "piensaLeve"
+    },
+    {
+      "intencion": "conocer_pescado_cuchilleta",
+      "activadores": [
+        "cuchilleta",
+        "pez cuchilleta",
+        "pescado cuchilleta"
+      ],
+      "respuesta_limpia": "Pez cuchilleta, similar a otro pez, vive en el norte argentino",
+      "gif": "piensaLeve"
+    },
+    {
+      "intencion": "entendiendo_la_idea",
+      "activadores": [
+        "idea de aprendizaje",
+        "recordar usuario"
+      ],
+      "respuesta_limpia": "Aprendo y recuerdo",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "caracteristicas_cuchilleta",
+      "activadores": [
+        "cuchilleta",
+        "pez cuchilleta",
+        "caracteristicas cuchilleta"
+      ],
+      "respuesta_limpia": "Pez de superficie, similar a pejerrey y mojarra",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "memoria_local",
+      "activadores": [
+        "memoria en dispositivo",
+        "aprendizaje local"
+      ],
+      "respuesta_limpia": "Cada dispositivo almacena su propia memoria",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "modelo_de_conocimiento",
+      "activadores": [
+        "mochila de conocimiento",
+        "modelo de conocimiento"
+      ],
+      "respuesta_limpia": "Mi modelo se divide en 2 partes",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "almacenar_conocimiento_local",
+      "activadores": [
+        "mochila de conocimiento",
+        "archivos JSON",
+        "memoria local"
+      ],
+      "respuesta_limpia": "Almacenar conocimiento en archivos JSON locales",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "como_pescar_pejerrey",
+      "activadores": [
+        "pescar pejerrey",
+        "técnicas para pejerrey",
+        "carnadas para pejerrey"
+      ],
+      "respuesta_limpia": "Usar carnada de lombriz o mosca",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "entender_comandos",
+      "activadores": [
+        "órdenes",
+        "comandos"
+      ],
+      "respuesta_limpia": "Estoy listo para aprender",
+      "gif": "piensaLeve"
+    },
+    {
+      "intencion": "mostrar_mapa_patagonia",
+      "activadores": [
+        "mapa Patagonia",
+        "pesca en Patagonia"
+      ],
+      "respuesta_limpia": "La Patagonia es una región rica en recursos naturales",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "utilizar_tabla_fase_lunar",
+      "activadores": [
+        "tabla de fase lunar",
+        "fase lunar y pesca"
+      ],
+      "respuesta_limpia": "La fase lunar puede influir en la actividad de los peces",
+      "gif": "piensaLeve"
+    },
+    {
+      "intencion": "extraccion_lombrices_electricidad",
+      "activadores": [
+        "electro-pesca",
+        "extraccion de lombrices con electricidad",
+        "lombrices con bateria"
+      ],
+      "respuesta_limpia": "Se utiliza una bateria de 12v y dos electrodos para atraer lombrices.",
+      "gif": "piensaLeve"
+    },
+    {
+      "intencion": "donde_encontrar_lombrices",
+      "activadores": [
+        "lombrices para pescar",
+        "donde encontrar lombrices",
+        "cebo para pescar"
+      ],
+      "respuesta_limpia": "En suelos húmedos y ricos en materia orgánica",
+      "gif": "piensaLeve"
+    },
+    {
+      "intencion": "conocer_moncholo",
+      "activadores": [
+        "moncholo",
+        "pez del norte",
+        "Pseudoplatystoma fasciatum"
+      ],
+      "respuesta_limpia": "El moncholo es un pez de agua dulce que pertenece a la familia Pimelodidae.",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "donde_se_sacan_lombrices",
+      "activadores": [
+        "lombrices para pescar",
+        "donde se extraen lombrices"
+      ],
+      "respuesta_limpia": "Se extraen de suelos húmedos",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "aprendizaje_automatico",
+      "activadores": [
+        "aprendizaje",
+        "retroalimentacion",
+        "memoria"
+      ],
+      "respuesta_limpia": "Aprendizaje automático con retroalimentación",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "como_afecta_temperatura_pesca",
+      "activadores": [
+        "temperatura y pesca",
+        "cómo afecta la temperatura"
+      ],
+      "respuesta_limpia": "Temperatura afecta comportamiento",
+      "gif": "piensaLeve"
+    },
+    {
+      "intencion": "como_pescar_matungos",
+      "activadores": [
+        "pescar matungos",
+        "técnica para matungos"
+      ],
+      "respuesta_limpia": "Usar carnada viva y anzuelos fuertes",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "donde_se_encuentran_matungos",
+      "activadores": [
+        "matungos en lagunas",
+        "donde viven los matungos"
+      ],
+      "respuesta_limpia": "Matungos en lagunas privadas y remotas",
+      "gif": "piensaLeve"
+    },
+    {
+      "intencion": "que_es_matungo",
+      "activadores": [
+        "matungo",
+        "pejerrey adulto",
+        "lagunas pampeanas"
+      ],
+      "respuesta_limpia": "Matungo: pejerrey adulto en lagunas pampeanas",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "pesca_en_ushuaia",
+      "activadores": [
+        "Ushuaia",
+        "pesca en Ushuaia",
+        "trucha en Ushuaia"
+      ],
+      "respuesta_limpia": "Ushuaia ofrece pesca de trucha, salmón y pejerrey patagónico",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "como_pescar_matungo",
+      "activadores": [
+        "pescar matungo",
+        "pejerrey adulto",
+        "la represa de san luis",
+        "boya paster noster",
+        "mojarra"
+      ],
+      "respuesta_limpia": "Pescar matungo en La Represa de San Luis requiere técnica y estrategia",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "esperar_pique",
+      "activadores": [
+        "caña de pesca",
+        "pique",
+        "pejerrey"
+      ],
+      "respuesta_limpia": "Esperar con paciencia y mantener la caña quieta.",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "pesca_de_salmón_en_ushuaia",
+      "activadores": [
+        "pesca de salmón",
+        "Ushuaia",
+        "salmón del Atlántico"
+      ],
+      "respuesta_limpia": "La pesca de salmón en Ushuaia es emocionante, con peces de hasta 12 kg.",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "avisar_pique",
+      "activadores": [
+        "reel suena",
+        "pique detectado"
+      ],
+      "respuesta_limpia": "¡Sebastián, Sebastián!",
+      "gif": "exito"
+    },
+    {
+      "intencion": "donde_viven_matungos",
+      "activadores": [
+        "matungos en lagunas",
+        "laguna de Cochicó",
+        "pejerreys adultos"
+      ],
+      "respuesta_limpia": "Matungos viven en lagunas profundas como Cochicó",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "conocer_represa_salto_grande",
+      "activadores": [
+        "Represa de Salto Grande",
+        "sistemas de elevación",
+        "conservación de peces"
+      ],
+      "respuesta_limpia": "La Represa de Salto Grande tiene sistemas de elevación para permitir a los peces pasar por encima",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "pescar_pejerrey",
+      "activadores": [
+        "pescar pejerrey",
+        "caña de pesca",
+        "Río de la Plata"
+      ],
+      "respuesta_limpia": "Usar cebo adecuado y esperar pacientemente",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "ubicacion_paso_de_la_patria",
+      "activadores": [
+        "Paso de la Patria",
+        "latitud y longitud"
+      ],
+      "respuesta_limpia": "Lat: 29,75° S, Long: 57,65° O",
+      "gif": "hablaConMate"
     }
   ]
 }

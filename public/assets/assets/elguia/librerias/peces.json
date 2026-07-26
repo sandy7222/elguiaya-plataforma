@@ -200,6 +200,76 @@
       ],
       "respuesta_limpia": "Pez cascarudo: carnada viva, resistente, respira oxígeno fuera del agua.",
       "gif": "hablaConMate"
+    },
+    {
+      "intencion": "que_es_bogagrip",
+      "activadores": [
+        "bogagrip",
+        "dispositivo para sujetar peces"
+      ],
+      "respuesta_limpia": "Dispositivo para sujetar y manipular peces capturados",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "conocer_peces_argentinos",
+      "activadores": [
+        "cuchara",
+        "cuchilleta",
+        "pez cuchara"
+      ],
+      "respuesta_limpia": "Pez cuchara",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "carneada_para_surubi",
+      "activadores": [
+        "cascarudo",
+        "carneada para surubí",
+        "carneada para dorado"
+      ],
+      "respuesta_limpia": "Cascarudo, carnada resistente para surubí y dorado",
+      "gif": "exito"
+    },
+    {
+      "intencion": "conservacion_surubi",
+      "activadores": [
+        "surubí",
+        "conservación",
+        "hábitat"
+      ],
+      "respuesta_limpia": "Proteger los hábitats de reproducción de los surubíes es fundamental para la conservación de la especie.",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "veda_del_surubi",
+      "activadores": [
+        "veda del surubí",
+        "protección del surubí",
+        "conservación de la especie"
+      ],
+      "respuesta_limpia": "La veda del surubí es un período de tiempo en el que se prohíbe la pesca para permitir que se recupere y se reproduzca",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "conocer_conservacion_surubi",
+      "activadores": [
+        "conservación del surubí",
+        "protección del medio ambiente",
+        "veda del surubí"
+      ],
+      "respuesta_limpia": "La conservación del surubí es importante para proteger la especie",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "conocer_habitat_dorados_surubies",
+      "activadores": [
+        "dorados",
+        "surubíes",
+        "río Paraná",
+        "río Bermejo"
+      ],
+      "respuesta_limpia": "Los dorados y surubíes se encuentran en los ríos Paraná y Bermejo",
+      "gif": "hablaConMate"
     }
   ]
 }

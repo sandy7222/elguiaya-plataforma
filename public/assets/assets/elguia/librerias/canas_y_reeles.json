@@ -24,17 +24,28 @@
     "frontal": {
       "descripcion": "Reel de pique frontal",
       "uso": "Pesca liviana a media, muy sensible al pique",
-      "recomendado_para": ["pejerrey", "boga", "dorado", "pati"]
+      "recomendado_para": [
+        "pejerrey",
+        "boga",
+        "dorado",
+        "pati"
+      ]
     },
     "rotativo": {
       "descripcion": "Reel tipo baitcasting o de carrete rotativo",
       "uso": "Pesca pesada y de precision",
-      "recomendado_para": ["surubi", "dorado", "armado"]
+      "recomendado_para": [
+        "surubi",
+        "dorado",
+        "armado"
+      ]
     },
     "spinning": {
       "descripcion": "Reel de spinning clasico",
       "uso": "El mas versatil para todo tipo de pesca",
-      "recomendado_para": ["general"]
+      "recomendado_para": [
+        "general"
+      ]
     }
   },
   "preguntas_seguimiento": [
@@ -43,5 +54,46 @@
     "¿Armaste el botiquín con buen Pervinox, chamigo?",
     "¿Dejaste la radio VHF a la escucha?",
     "¿Revisaste bien el ancla y cabos, viejo?"
+  ],
+  "intenciones": [
+    {
+      "intencion": "pesca_en_canal_15",
+      "activadores": [
+        "pesca en canal 15",
+        "canal 15 pesca",
+        "pesca en el canal"
+      ],
+      "respuesta_limpia": "Pejerrey, bagre y boga en el Canal 15",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "consejos_pesca_canal_15",
+      "activadores": [
+        "pesca en Canal 15",
+        "consejos para pescar en Canal 15",
+        "mejores zonas para pescar en Canal 15"
+      ],
+      "respuesta_limpia": "Verificar pronóstico y nivel del agua, spinning liviano para pejerrey, pesca de fondo para bagre y boga",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "como_funciona_sensor_de_reel",
+      "activadores": [
+        "sensor de reel",
+        "sonido del reel",
+        "avisar de pique"
+      ],
+      "respuesta_limpia": "Sensor de reel para detectar pique",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "avisar_sonido_reel",
+      "activadores": [
+        "sonido del reel",
+        "pique"
+      ],
+      "respuesta_limpia": "Sebastián, Sebastián",
+      "gif": "hablaConMate"
+    }
   ]
 }

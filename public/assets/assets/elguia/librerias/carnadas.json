@@ -109,6 +109,63 @@
       ],
       "respuesta_limpia": "Panza de lisa en aceite con colante rojo",
       "gif": "hablaConMate"
+    },
+    {
+      "intencion": "carnada_para_pejerrey",
+      "activadores": [
+        "carnada para pejerrey",
+        "calamares como carnada",
+        "pescar pejerrey"
+      ],
+      "respuesta_limpia": "Calamares de agua dulce como carnada",
+      "gif": "exito"
+    },
+    {
+      "intencion": "preparar_carnada_corvina",
+      "activadores": [
+        "cómo preparar carnada de corvina",
+        "corvina como carnada",
+        "atrar a la corvina negra"
+      ],
+      "respuesta_limpia": "Cortar pinzas, partir caparazón, atar con hilo elástico",
+      "gif": "exito"
+    },
+    {
+      "intencion": "calamares_como_carnada",
+      "activadores": [
+        "calamares en río salado",
+        "carnada para pejerrey"
+      ],
+      "respuesta_limpia": "Calamares de agua dulce como carnada",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "carnada_sanguchito",
+      "activadores": [
+        "carnada para corvina negra",
+        "cangrejo y sardina",
+        "sanguchito"
+      ],
+      "respuesta_limpia": "Filete de sardina + cangrejo sin pinzas, envuelto con hilo elástico",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "carnada_para_bagre",
+      "activadores": [
+        "bagre",
+        "carnada para bagre"
+      ],
+      "respuesta_limpia": "Lombriz y masa son buenas opciones",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "carnada_para_matungo",
+      "activadores": [
+        "carnada para matungo",
+        "matungo con mojarra"
+      ],
+      "respuesta_limpia": "Mojarra es efectiva",
+      "gif": "hablaConMate"
     }
   ]
 }

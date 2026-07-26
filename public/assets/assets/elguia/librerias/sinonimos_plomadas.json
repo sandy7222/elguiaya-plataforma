@@ -1,0 +1,66 @@
+{
+  "_comentario": "Sinónimos para plomadas.json. Claves mapeadas a tipos de plomadas y condiciones del río en lenguaje rioplatense.",
+
+  "satelite": [
+    "satelite",
+    "satélite",
+    "plomada de destrabe",
+    "plomo de destrabe",
+    "plomada con alambres",
+    "plomo con alambres",
+    "plomo araña",
+    "plomada araña",
+    "destrabe",
+    "corrientes fuertes",
+    "para corriente fuerte"
+  ],
+
+  "pera": [
+    "pera",
+    "plomo pera",
+    "plomada pera",
+    "plomo gota",
+    "plomada gota",
+    "pera de plomo",
+    "plomo de gota",
+    "fondo liso",
+    "corriente media"
+  ],
+
+  "torpedo": [
+    "torpedo",
+    "plomo torpedo",
+    "plomada torpedo",
+    "plomo palito",
+    "plomada palito",
+    "plomo alargado",
+    "plomada alargada",
+    "palito de plomo",
+    "lanzamiento largo"
+  ],
+
+  "pasante": [
+    "pasante",
+    "plomo pasante",
+    "plomada pasante",
+    "plomada con agujero",
+    "plomo con agujero",
+    "agujero al medio",
+    "plomada corrediza",
+    "plomo corredizo",
+    "pesca de laguna",
+    "pesca sutil"
+  ],
+
+  "redonda": [
+    "redonda",
+    "plomo redondo",
+    "plomada redonda",
+    "plomo bola",
+    "plomo esferico",
+    "plomo esférico",
+    "bola de plomo",
+    "plomada de bola",
+    "sin corriente"
+  ]
+}
