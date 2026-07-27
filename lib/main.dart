@@ -19,6 +19,7 @@ import 'package:capitanya_master/screens/nueva_password_screen.dart';
 import 'package:capitanya_master/screens/inicio_screen.dart';
 import 'package:capitanya_master/screens/admin_catalogo_screen.dart';
 import 'package:capitanya_master/screens/admin_dashboard_screen.dart';
+import 'package:capitanya_master/screens/admin_gate_screen.dart';
 import 'package:capitanya_master/screens/admin_banners_screen.dart';
 import 'package:capitanya_master/screens/directorio_pescadores_screen.dart';
 import 'package:capitanya_master/screens/directorio_capitanes_screen.dart';
@@ -276,7 +277,7 @@ class MyApp extends StatelessWidget {
         '/inicio': (context) => const InicioScreen(),
         '/admin/catalogo': (context) => const AdminCatalogoScreen(),
         '/admin/importacion': (context) => const AdminImportacionScreen(),
-        '/admin/dashboard': (context) => const AdminDashboardScreen(),
+        '/admin/dashboard': (context) => const AdminGate(child: AdminDashboardScreen()),
         '/admin/banners': (context) => const AdminBannersScreen(),
         '/admin/directorio_pescadores': (context) =>
             const DirectorioPescadoresScreen(),
@@ -434,6 +435,9 @@ class _SessionWrapperState extends State<SessionWrapper> with WidgetsBindingObse
             _initialized = true;
             _isLoadingPerfil = false;
             SupabaseService.cacheSessionEsCapitan(null);
+            // Al cerrar sesión, volver a bloquear el panel admin para que el
+            // próximo ingreso vuelva a exigir la contraseña.
+            AdminSessionLock.bloquear();
           }
         });
 
@@ -523,7 +527,7 @@ class _SessionWrapperState extends State<SessionWrapper> with WidgetsBindingObse
         (session.user.userMetadata?['rol'] == 'admin') ||
         (_perfil != null && _perfil!['admin'] == true);
 
-    if (isAdmin) return const AdminDashboardScreen();
+    if (isAdmin) return const AdminGate(child: AdminDashboardScreen());
 
     if (EmailVerificationPolicy.requiresEmailVerification(session.user)) {
       final email = session.user.email ?? '';
