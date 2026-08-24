@@ -39,6 +39,7 @@ class HourlyForecast {
 }
 
 class MarineWeather {
+  final bool datosDisponibles;
   final double temperatura;
   final double velocidadViento;
   final double direccionViento;
@@ -50,6 +51,7 @@ class MarineWeather {
   final List<HourlyForecast> pronosticoHorario;
 
   MarineWeather({
+    this.datosDisponibles = true,
     required this.temperatura,
     required this.velocidadViento,
     required this.direccionViento,
@@ -62,12 +64,19 @@ class MarineWeather {
   });
 
   factory MarineWeather.fromJson(Map<String, dynamic> jsonCurrent, Map<String, dynamic>? jsonMarine) {
-    final current = jsonCurrent['current'] ?? {};
-    final temp = (current['temperature_2m'] as num?)?.toDouble() ?? 22.0;
-    final windSpeed = (current['wind_speed_10m'] as num?)?.toDouble() ?? 12.0;
+    final current = jsonCurrent['current'];
+    // Nunca clasificar navegación/pesca a partir de defaults: sin temperatura
+    // o viento reales no existe un pronóstico utilizable.
+    if (current is! Map ||
+        current['temperature_2m'] is! num ||
+        current['wind_speed_10m'] is! num) {
+      return WeatherService.datosNoDisponibles();
+    }
+    final temp = (current['temperature_2m'] as num).toDouble();
+    final windSpeed = (current['wind_speed_10m'] as num).toDouble();
     final windDir = (current['wind_direction_10m'] as num?)?.toDouble() ?? 0.0;
-    final hum = (current['relative_humidity_2m'] as num?)?.toInt() ?? 65;
-    final press = (current['surface_pressure'] as num?)?.toDouble() ?? 1013.0;
+    final hum = (current['relative_humidity_2m'] as num?)?.toInt() ?? 0;
+    final press = (current['surface_pressure'] as num?)?.toDouble() ?? 0;
 
     // Altura de olas: Si es nulo o vacío (ríos/deltas)
     double waveHeight = 0.3; 
@@ -208,6 +217,19 @@ class MarineWeather {
 }
 
 class WeatherService {
+  static MarineWeather datosNoDisponibles() => MarineWeather(
+        datosDisponibles: false,
+        temperatura: 0,
+        velocidadViento: 0,
+        direccionViento: 0,
+        alturaOlas: 0,
+        humedad: 0,
+        presion: 0,
+        descripcion: 'DATOS METEOROLÓGICOS NO DISPONIBLES — NO USAR PARA NAVEGAR',
+        pronosticoExtendido: const [],
+        pronosticoHorario: const [],
+      );
+
   /// Obtiene el reporte del clima real de Open-Meteo y Open-Meteo Marine
   static Future<MarineWeather> fetchMarineWeather(double lat, double lon) async {
     try {
@@ -243,25 +265,7 @@ class WeatherService {
       return MarineWeather.fromJson(weatherJson, marineJson);
     } catch (e) {
       print("⚠️ Error en WeatherService al obtener clima real: $e");
-      // Fallback seguro ante cualquier problema de red o API
-      final List<ExtendedForecastDay> mockExtended = [
-        ExtendedForecastDay(diaSemana: 'JUE', temperaturaMax: 22.0, weatherCode: 0),
-        ExtendedForecastDay(diaSemana: 'VIE', temperaturaMax: 19.0, weatherCode: 3),
-        ExtendedForecastDay(diaSemana: 'SAB', temperaturaMax: 24.0, weatherCode: 0),
-        ExtendedForecastDay(diaSemana: 'DOM', temperaturaMax: 26.0, weatherCode: 0),
-        ExtendedForecastDay(diaSemana: 'LUN', temperaturaMax: 21.0, weatherCode: 95),
-      ];
-      return MarineWeather(
-        temperatura: 22.0,
-        velocidadViento: 12.0,
-        direccionViento: 45.0,
-        alturaOlas: 0.4,
-        humedad: 65,
-        presion: 1013.0,
-        descripcion: "IDEAL PARA PESCA",
-        pronosticoExtendido: mockExtended,
-        pronosticoHorario: [],
-      );
+      return datosNoDisponibles();
     }
   }
 

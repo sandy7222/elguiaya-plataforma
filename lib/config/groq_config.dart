@@ -18,26 +18,13 @@ class GroqConfig {
 
   // ── Clave legada (para migración automática) ──────────────────────────────
   static const String _keyLegado     = 'groq_api_key';
-  static const String _fallbackGuia = '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';
-  static const String _fallbackCentralita = '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';
 
   static const String defaultModel = 'llama-3.3-70b-versatile';
 
   // ── Estado interno ────────────────────────────────────────────────────────
-  // Prioridad: variable específica → variable legada → fallback
-  static String _apiKeyGuia = const String.fromEnvironment('GROQ_API_KEY_GUIA',
-              defaultValue: String.fromEnvironment('GROQ_API_KEY'))
-          .isNotEmpty
-      ? const String.fromEnvironment('GROQ_API_KEY_GUIA',
-          defaultValue: String.fromEnvironment('GROQ_API_KEY'))
-      : _fallbackGuia;
-  static String _apiKeyCentralita = const String.fromEnvironment(
-              'GROQ_API_KEY_CENTRALITA',
-              defaultValue: String.fromEnvironment('GROQ_API_KEY'))
-          .isNotEmpty
-      ? const String.fromEnvironment('GROQ_API_KEY_CENTRALITA',
-          defaultValue: String.fromEnvironment('GROQ_API_KEY'))
-      : _fallbackCentralita;
+  // Fase 0: el cliente no conserva ni recibe claves de proveedor.
+  static String _apiKeyGuia = '';
+  static String _apiKeyCentralita = '';
   static String _modelo           = defaultModel;
 
 
@@ -63,28 +50,15 @@ class GroqConfig {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      // Migración: si existe la clave vieja y las nuevas están vacías, la usamos
-      final keyLegada = prefs.getString(_keyLegado) ?? '';
-      final keyEnv    = const String.fromEnvironment('GROQ_API_KEY');
-
-      _apiKeyGuia = prefs.getString(_keyGuia) ?? '';
-      if (_apiKeyGuia.isEmpty) {
-        _apiKeyGuia = keyLegada.isNotEmpty
-            ? keyLegada
-            : (keyEnv.isNotEmpty ? keyEnv : _fallbackGuia);
-      }
-
-      _apiKeyCentralita = prefs.getString(_keyCentralita) ?? '';
-      if (_apiKeyCentralita.isEmpty) {
-        _apiKeyCentralita = keyLegada.isNotEmpty
-            ? keyLegada
-            : (keyEnv.isNotEmpty ? keyEnv : _fallbackCentralita);
-      }
+      await prefs.remove(_keyLegado);
+      await prefs.remove(_keyGuia);
+      await prefs.remove(_keyCentralita);
+      _apiKeyGuia = '';
+      _apiKeyCentralita = '';
 
       _modelo = prefs.getString(_keyModel) ?? defaultModel;
 
-      debugPrint('[GroqConfig] ✅ Guía key: ${_apiKeyGuia.isNotEmpty ? '${_apiKeyGuia.substring(0, 8)}...' : 'VACÍA'}');
-      debugPrint('[GroqConfig] ✅ Centralita key: ${_apiKeyCentralita.isNotEmpty ? '${_apiKeyCentralita.substring(0, 8)}...' : 'VACÍA'}');
+      debugPrint('[GroqConfig] IA online deshabilitada en cliente (Fase 0).');
     } catch (e) {
       debugPrint('⚠️ [GroqConfig] Error al cargar configuración: $e');
     }

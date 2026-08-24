@@ -64,17 +64,22 @@ class _PronosticoMiniWidgetState extends State<PronosticoMiniWidget> {
       );
     }
 
-    final weather = _weather ?? MarineWeather(
-      temperatura: 22.0,
-      velocidadViento: 12.0,
-      direccionViento: 45.0,
-      alturaOlas: 0.4,
-      humedad: 65,
-      presion: 1013.0,
-      descripcion: "IDEAL PARA PESCA",
-      pronosticoExtendido: const [],
-      pronosticoHorario: const [],
-    );
+    final weather = _weather;
+    if (weather == null || !weather.datosDisponibles) {
+      return Container(
+        height: 120,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: const Color(0xFF001F3F).withOpacity(0.95),
+          borderRadius: BorderRadius.circular(25),
+          border: Border.all(color: Colors.white.withOpacity(0.2)),
+        ),
+        child: const Text(
+          'Clima no disponible',
+          style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600),
+        ),
+      );
+    }
 
     // Mapear icono y color según el clima y la hora del día (Día vs Noche)
     final hora = DateTime.now().hour;

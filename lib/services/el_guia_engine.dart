@@ -2213,7 +2213,7 @@ class ElGuiaEngine {
   String _responderPrefectura(String texto) {
     final lib = _librerias['prefectura_naval_argentina'];
     if (lib == null || lib['prefectura_naval_argentina'] == null) {
-      return 'La Prefectura Naval Argentina (PNA) es la autoridad marítima y fluvial. En caso de emergencia, podés llamar por radio en el canal 16 VHF (canal internacional de socorro) o por teléfono al 0800-999-7622.';
+      return 'La Prefectura Naval Argentina (PNA) es la autoridad marítima y fluvial. En caso de emergencia, podés llamar por radio en el canal 16 VHF (canal internacional de socorro) o por teléfono al 106.';
     }
 
     final pna = lib['prefectura_naval_argentina'] as Map<String, dynamic>;
@@ -2405,7 +2405,7 @@ class ElGuiaEngine {
     // 5. Fallback general: descripción y emergencia nacional
     final desc = pna['descripcion'] as String? ?? '';
     final universal = pna['canal_universal_emergencia'] as Map<String, dynamic>?;
-    final numNacional = pna['numero_emergencia_nacional'] as String? ?? '0800-999-7622';
+    final numNacional = pna['numero_emergencia_nacional'] as String? ?? '106';
 
     String resp = '$desc\n\n';
     if (universal != null) {

@@ -1,7 +1,7 @@
 {
   "prefectura_naval_argentina": {
     "descripcion": "La Prefectura Naval Argentina (PNA) es la autoridad marítima y fluvial de Argentina. En caso de emergencia en el agua, es el primer llamado. El canal 16 VHF es el canal internacional de socorro y escucha permanente.",
-    "numero_emergencia_nacional": "0800-999-7622",
+    "numero_emergencia_nacional": "106",
     "canal_universal_emergencia": {
       "canal": 16,
       "banda": "VHF",
@@ -551,7 +551,7 @@
       "SAME": "107",
       "Bomberos": "100",
       "Policia": "911",
-      "PNA_nacional": "0800-999-7622",
+      "PNA_nacional": "106",
       "nota": "En islas y zonas rurales el único contacto posible puede ser la radio VHF. Siempre llevar equipo a bordo."
     },
     "recomendaciones_equipo_radio": [
