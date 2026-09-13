@@ -6,6 +6,7 @@ import '../services/mercado_pago_service.dart';
 import '../services/guia_copilot_brain.dart';
 import '../services/copilot_channel.dart';
 import '../services/viaje_lifecycle_service.dart';
+import '../models/tipo_checkout.dart';
 import 'ficha_contractual_screen.dart';
 import 'ficha_pescador_screen.dart';
 import '../widgets/safe_button.dart';
@@ -25,6 +26,14 @@ class CheckoutPaymentScreen extends StatefulWidget {
   final String? initPoint;
   final String? dniPagador;
 
+  /// Tipo de checkout del pedido (tienda / viaje / híbrido). Se usa para
+  /// contextualizar el pago y la post-confirmación.
+  final TipoCheckout? tipoCheckout;
+
+  /// Si es true, la pantalla arranca directamente en modo "esperando pago"
+  /// (el link de Mercado Pago ya fue abierto por la pantalla anterior).
+  final bool iniciarEnEspera;
+
   const CheckoutPaymentScreen({
     super.key,
     required this.amount,
@@ -34,6 +43,8 @@ class CheckoutPaymentScreen extends StatefulWidget {
     this.preferenceId,
     this.initPoint,
     this.dniPagador,
+    this.tipoCheckout,
+    this.iniciarEnEspera = false,
   });
 
   @override
