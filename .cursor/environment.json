@@ -1,0 +1,18 @@
+{
+  "name": "Capitán YA / El Guía YA (Flutter Web)",
+  "install": "bash .cursor/install.sh",
+  "terminals": [
+    {
+      "name": "flutter-web",
+      "description": "Servidor de desarrollo Flutter Web de la app (El Guía YA) en el puerto 8080.",
+      "command": "export PATH=\"$HOME/flutter/bin:$PATH\" && flutter run -d web-server --web-hostname 0.0.0.0 --web-port 8080"
+    }
+  ],
+  "ports": [
+    {
+      "name": "flutter-web",
+      "port": 8080
+    }
+  ],
+  "chromeExecutablePath": "/usr/bin/google-chrome-stable"
+}
