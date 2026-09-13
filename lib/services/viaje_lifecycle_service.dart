@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/tipo_checkout.dart';
 import 'billetera_virtual_service.dart';
 import 'disponibilidad_service_final.dart';
 import 'mercado_pago_service.dart';
@@ -38,6 +39,53 @@ class ViajeLifecycleService {
         return 'pago_pendiente';
       case EstadoReservaMP.rechazado:
         return 'cancelado';
+    }
+  }
+
+  /// Sincroniza un pedido de viaje existente que ahora también incluye
+  /// productos de tienda (checkout híbrido).
+  ///
+  /// - Actualiza `tipo_checkout` del pedido.
+  /// - Inserta en `pedido_items` los productos de tienda que aún no estén
+  ///   registrados (idempotente por producto/variante).
+  static Future<void> sincronizarPedidoConCarrito({
+    required String pedidoId,
+    required TipoCheckout tipoCheckout,
+    required double montoViaje,
+    required List<Map<String, dynamic>> itemsTienda,
+  }) async {
+    if (pedidoId.isEmpty) return;
+    try {
+      await _supabase.from('pedidos').update({
+        'tipo_checkout': tipoCheckout.valor,
+        'estado_logistico': 'pendiente_pago',
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', pedidoId);
+
+      for (final item in itemsTienda) {
+        final productoId = item['producto_id']?.toString();
+        if (productoId == null || productoId.isEmpty) continue;
+
+        final existente = await _supabase
+            .from('pedido_items')
+            .select('id')
+            .eq('pedido_id', pedidoId)
+            .eq('producto_id', productoId)
+            .maybeSingle();
+
+        if (existente == null) {
+          await _supabase.from('pedido_items').insert({
+            'pedido_id': pedidoId,
+            'producto_id': productoId,
+            'cantidad': item['cantidad'],
+            'precio_unitario': item['precio_unitario'],
+            'subtotal': item['subtotal'],
+            'created_at': DateTime.now().toIso8601String(),
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('⚠️ sincronizarPedidoConCarrito falló para $pedidoId: $e');
     }
   }
 
