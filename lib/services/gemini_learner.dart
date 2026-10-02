@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/gemini_config.dart';
+import 'el_guia_engine.dart';
 import 'guia_local_updater.dart';
 
 /// GeminiLearner — El auto-distilador del conocimiento.
@@ -28,8 +29,49 @@ class GeminiLearner {
     'ayuda_app',
   };
 
-  static Future<void> evaluarYGuardar(String pregunta, String respuestaCompleta, {bool exito = true}) async {
-    if (!exito) return;
+  /// Observador de los tests: avisa qué hizo [procesar] ('procesando' o
+  /// 'bloqueado:<motivo>'). No se usa en producción.
+  @visibleForTesting
+  static void Function(String evento)? observadorParaTest;
+
+  /// [temaReservado] lo manda el router cuando ya clasificó la consulta como
+  /// seguridad o transaccional: en ese caso no se aprende nada.
+  /// Motivo por el que NO se debe aprender algo, o null si se puede.
+  ///
+  /// Seguridad y transaccional (emergencia, primeros auxilios, VHF/Prefectura,
+  /// perdido, GPS, pagos, viajes) nunca se aprenden: un texto inventado por un
+  /// modelo podría terminar contestando una emergencia. Se mira la PREGUNTA, el
+  /// TÍTULO y cada ACTIVADOR que se iba a guardar (no solo el título que inventa
+  /// Groq). Ante la duda no se aprende: perder un dato de pesca no cuesta nada.
+  static String? motivoDeBloqueo({
+    required String pregunta,
+    required String intencion,
+    Iterable<String> activadores = const [],
+  }) {
+    if (_intencionesProtegidas.contains(intencion) ||
+        ElGuiaEngine.esIntencionDeSeguridadOTransaccional(intencion)) {
+      return 'intencion_protegida';
+    }
+    bool tocaTemaReservado(String texto) {
+      final clase = ElGuiaEngine().clasificarIntencion(texto);
+      return clase == ClaseIntencion.seguridad || clase == ClaseIntencion.transaccional;
+    }
+
+    if (tocaTemaReservado(pregunta) ||
+        tocaTemaReservado(intencion.replaceAll('_', ' ')) ||
+        activadores.any(tocaTemaReservado)) {
+      return 'tema_reservado';
+    }
+    return null;
+  }
+
+  static Future<void> evaluarYGuardar(
+    String pregunta,
+    String respuestaCompleta, {
+    bool exito = true,
+    bool temaReservado = false,
+  }) async {
+    if (!exito || temaReservado) return;
     try {
       debugPrint('Iniciando evaluación de aprendizaje...');
       final datos = parsearBloqueAprendizaje(respuestaCompleta);
@@ -77,11 +119,27 @@ class GeminiLearner {
       final respuesta = datos['respuesta_limpia']?.toString() ?? '';
       if (respuesta.isEmpty) return;
 
-      // 1. Verificar si es intención protegida
-      if (_intencionesProtegidas.contains(intencion)) {
-        await _descartar(intencion, respuesta, preguntaOriginal, 0.0, 'intencion_protegida');
+      // 1. Temas reservados (seguridad y transaccional): no se aprende nada. Se
+      // mira la pregunta, el título y los activadores, no solo el título.
+      final activadoresDeclarados = (datos['activadores'] as List<dynamic>? ?? [])
+          .map((e) => e.toString())
+          .toList();
+      final motivo = motivoDeBloqueo(
+        pregunta: preguntaOriginal,
+        intencion: intencion,
+        activadores: activadoresDeclarados,
+      );
+      if (motivo != null) {
+        observadorParaTest?.call('bloqueado:$motivo');
+        // Una intención protegida se deja anotada como descartada (auditoría);
+        // un tema reservado se descarta sin guardar nada.
+        if (motivo == 'intencion_protegida') {
+          await _descartar(intencion, respuesta, preguntaOriginal, 0.0, 'intencion_protegida');
+        }
         return;
       }
+
+      observadorParaTest?.call('procesando');
 
       // 2. Calcular Scoring Híbrido
       final geminiScore = (datos['puntaje'] as num?)?.toDouble() ?? 0.0;

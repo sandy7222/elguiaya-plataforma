@@ -125,6 +125,11 @@ class ElGuiaEngine {
     'que_puede_hacer_bot',
   };
 
+  /// ¿Es una intención de seguridad o transaccional? La usa el aprendizaje
+  /// automático para no guardar nunca conocimiento sobre estos temas.
+  static bool esIntencionDeSeguridadOTransaccional(String intencion) =>
+      _intencionesSeguridad.contains(intencion) || _intencionesTransaccionales.contains(intencion);
+
   /// Social / personalidad: el router no las toca. 'ayuda_general' va acá y no
   /// en las transaccionales: su activador "que hago" es tan amplio que atrapa
   /// preguntas de pesca ("¿qué hago con este pescado?") y no toca viajes ni
@@ -4272,6 +4277,16 @@ class ElGuiaEngine {
   }
 
   String _fallback() {
+    // En una emergencia "no entendí, probemos de nuevo" no es una respuesta: se
+    // contesta con las frases de emergencia ("Mantené la calma. Voy a
+    // orientarte."). Los contactos los antepone el router.
+    if (_enSeguridad) {
+      final puentes = _librerias['emergencia']?['respuestas_puente'] as List<dynamic>?;
+      if (puentes != null && puentes.isNotEmpty) {
+        return puentes[_random.nextInt(puentes.length)] as String;
+      }
+      return 'Mantené la calma. Voy a orientarte.';
+    }
     final fallbacks = _personalidad['fallback'] != null
         ? List<String>.from(_personalidad['fallback'] as List)
         : [

@@ -492,11 +492,24 @@ void main() {
     }
 
     test('los turnos del modo pegajoso también traen los contactos', () async {
-      _prepararCaso(conSenal: true);
-      await BaqueanoIAService.responder('se hunde la lancha');
-      for (final frase in ['y ahora qué hago?', 'no sé qué hacer', 'qué más']) {
-        final resp = await BaqueanoIAService.responder(frase);
-        contactos(resp.texto);
+      // Varias vueltas: la respuesta de "no entendí" es al azar y una sola
+      // pasada puede salir bien por casualidad.
+      // El modo pegajoso dura 3 turnos: se prueban de a tres, con distintas frases.
+      const seguimientos = [
+        ['y ahora qué hago?', 'no sé qué hacer', 'qué más'],
+        ['sí', 'no', 'ok'],
+        ['ayuda', 'qué hago', 'dale'],
+        ['no puedo', 'y después', 'gracias'],
+      ];
+      for (var i = 0; i < 8; i++) {
+        for (final turnos in seguimientos) {
+          _prepararCaso(conSenal: true);
+          await BaqueanoIAService.responder('se hunde la lancha');
+          for (final frase in turnos) {
+            final resp = await BaqueanoIAService.responder(frase);
+            contactos(resp.texto);
+          }
+        }
       }
     });
 

@@ -311,6 +311,8 @@ class BaqueanoIAService {
       return _responderConReglas(pregunta);
     }
     final soloReglas = clase == ClaseIntencion.transaccional;
+    // Lo que el aprendizaje automático nunca toca (ver GeminiLearner.motivoDeBloqueo).
+    final temaReservado = clase == ClaseIntencion.seguridad || clase == ClaseIntencion.transaccional;
 
     // Diagnóstico verbal: el robot reporta su estado de conexión
     if (_esConsultaEstado(pq)) return await _respuestaEstado();
@@ -454,6 +456,7 @@ class BaqueanoIAService {
           pregunta,
           analizado.texto,
           exito: analizado.exito,
+          temaReservado: temaReservado,
         );
         _actualizarHistorial(pregunta, analizado.texto);
         return analizado;
@@ -490,6 +493,7 @@ class BaqueanoIAService {
           pregunta,
           analizado.texto,
           exito: analizado.exito,
+          temaReservado: temaReservado,
         );
         _actualizarHistorial(pregunta, analizado.texto);
         return analizado;
@@ -504,6 +508,7 @@ class BaqueanoIAService {
         pregunta,
         analizado.texto,
         exito: analizado.exito,
+        temaReservado: temaReservado,
       );
       _actualizarHistorial(pregunta, analizado.texto);
       return analizado;
@@ -519,6 +524,7 @@ class BaqueanoIAService {
         pregunta,
         errorResp.texto,
         exito: errorResp.exito,
+        temaReservado: temaReservado,
       );
       return errorResp;
     }
