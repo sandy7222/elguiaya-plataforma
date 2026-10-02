@@ -166,19 +166,37 @@ class ElGuiaEngine {
   /// los errores de voz "unde", "undo", "undiendo".
   static final RegExp _formaDeHundir = RegExp(r'\b(?:hund|und)[a-z]*');
 
-  /// Persona que se hunde: "me hundo", "nos estamos hundiendo" (pero NO "se me
-  /// hundió la boya": ahí "me" es de la boya) o un familiar o amigo.
+  static const String _sustantivosPersona =
+      'amigo|amiga|hijo|hija|hermano|hermana|pibe|pibes|pibas|nene|nena|chico|chica|'
+      'hombre|persona|gente|alguien|companero|companera|esposa|esposo|padre|madre|papa|'
+      'mama|abuelo|abuela|primo|prima|tio|tia|nino|nina|guri';
+
+  /// Persona que se hunde, se ahoga o se cae: "me hundo", "nos estamos
+  /// hundiendo", "me caí" (pero NO "se me hundió la boya" ni "se me cayó la
+  /// caña": ahí "me" es de la cosa) o un familiar o amigo.
   static final RegExp _nombraPersona = RegExp(
-    r'(?<!\bse )\b(?:me|nos) (?:estoy |estamos |esta |estan )?(?:hund|und)'
-    r'|\b(?:amigo|amiga|hijo|hija|hermano|hermana|pibe|pibes|pibas|nene|nena|chico|chica|'
-    r'hombre|persona|gente|alguien|companero|companera|esposa|esposo|padre|madre|papa|mama|'
-    r'abuelo|abuela|primo|prima|tio|tia|nino|nina|guri)s?\b',
+    r'(?<!\bse )\b(?:me|nos) (?:estoy |estamos |esta |estan )?'
+    r'(?:hund|und|ahog|allog|cai|cayo|caimos|tire|tiro|tiramos|arroje)'
+    '|\\b(?:$_sustantivosPersona)s?\\b',
   );
+
+  /// Objetos que no son personas ni aparejos: "se me cayó el celular al agua".
+  static final RegExp _nombraObjeto = RegExp(
+    r'\b(?:celular|telefono|mate|termo|gorra|sombrero|mochila|billetera|llaves|anteojos|'
+    r'lentes|reloj|camara|balde|heladera|caja)(?:s|es)?\b',
+  );
+
+  /// La frase habla solo de aparejos, peces u objetos: no nombra ni una
+  /// embarcación ni una persona.
+  bool _soloCosas(String t) =>
+      (_nombraPesca.hasMatch(t) || _nombraObjeto.hasMatch(t)) &&
+      !_nombraEmbarcacion.hasMatch(t) &&
+      !_nombraPersona.hasMatch(t);
 
   /// Elementos de pesca (y peces): si la frase nombra uno y NO nombra una
   /// embarcación ni una persona, lo que se hunde es un aparejo.
   static final RegExp _nombraPesca = RegExp(
-    r'\b(?:boya|corcho|plomada|plomo|senuelo|anzuelo|linea|carnada|mosca|tanza|flote|reel|'
+    r'\b(?:boya|corcho|plomada|plomo|senuelo|anzuelo|linea|carnada|mosca|tanza|(?<!\ba )flote|reel|'
     r'cana|nylon|sedal|aparejo|pez|pescado|pejerrey|dorado|surubi|boga|tararira|bagre|'
     r'sabalo|pati|carpa)(?:s|es)?\b',
   );
@@ -203,6 +221,55 @@ class ElGuiaEngine {
   bool _esVuelcoDeEmbarcacion(String texto) {
     final t = _normalizar(texto);
     return _formaDeVuelco.hasMatch(t) && _nombraEmbarcacion.hasMatch(t);
+  }
+
+  // Caída o tirada al agua: "se cayó mi hijo al agua", "se cayeron dos pibes al
+  // río", "mi amigo se tiró al agua y no sale". Con aparejos u objetos ("tiré la
+  // línea al agua", "se me cayó el celular al río") no es una emergencia.
+  static final RegExp _formaDeCaida = RegExp(
+    r'\b(?:cay[a-z]*|cae[a-z]*|cai|caigo|caimos|tir[oe]|tira[a-z]*|arroj[a-z]*|empuj[a-z]*)\b',
+  );
+  static final RegExp _alAgua = RegExp(
+    r'\bal (?:agua|rio|mar|arroyo|canal|delta|lago|laguna|parana|uruguay)\b',
+  );
+
+  bool _esCaidaAlAgua(String t) =>
+      _formaDeCaida.hasMatch(t) && _alAgua.hasMatch(t) && !_soloCosas(t);
+
+  /// "El nene no sale del agua", "no sale a flote", "no puede salir del agua".
+  static final RegExp _noSaleDelAgua = RegExp(
+    r'\bno (?:(?:puedo|podemos|puede|pueden|logro|logramos|logra|logran|pudo) )?'
+    r'(?:sale|salen|salgo|salimos|salir) (?:del agua|a flote|a la superficie|del rio|del mar)\b',
+  );
+
+  /// Agua que entra o llena una embarcación, en cualquier forma verbal: "se
+  /// está llenando de agua", "se nos llenó de agua el bote", "entra agua por
+  /// el casco del barco", "se inunda la embarcación".
+  static final RegExp _formaDeLlenado = RegExp(
+    r'\b(?:llen[a-z]*|inund[a-z]*|entra|entran|entrando|entro|hace|hacen|haciendo|ase|'
+    r'ingresa|ingresando)\b',
+  );
+
+  bool _esAguaEnEmbarcacion(String t) =>
+      _nombraEmbarcacion.hasMatch(t) &&
+      _formaDeLlenado.hasMatch(t) &&
+      (t.contains('agua') || t.contains('inund'));
+
+  /// Ahogamiento en cualquier forma ("se ahoga", "se está ahogando", "se
+  /// ahogó"), salvo que hable de un aparejo ("la carnada se ahogó").
+  static final RegExp _formaDeAhogo = RegExp(r'\b(?:ahog|allog)[a-z]*');
+
+  bool _esAhogamiento(String t) => _formaDeAhogo.hasMatch(t) && !_soloCosas(t);
+
+  /// Todo lo que es una emergencia en el agua. Ante la duda, gana seguridad.
+  bool _esEmergenciaDeAgua(String texto) {
+    final t = _normalizar(texto);
+    return _esHundimientoSeguridad(t) ||
+        _esVuelcoDeEmbarcacion(t) ||
+        _esCaidaAlAgua(t) ||
+        (_noSaleDelAgua.hasMatch(t) && !_soloCosas(t)) ||
+        _esAguaEnEmbarcacion(t) ||
+        _esAhogamiento(t);
   }
 
   /// "Estoy perdido", "estamos perdidos", "nos perdimos", "me perdí" y "estoy
@@ -382,18 +449,14 @@ class ElGuiaEngine {
       'persona al agua',
       'cayo al agua',
       'cayo al rio',
+      // El agua en el cuerpo o en la embarcación, el ahogamiento y las caídas
+      // se resuelven por contexto (ver _esEmergenciaDeAgua): aceptan cualquier
+      // forma verbal y palabras en el medio. Acá quedan solo las frases en
+      // primera persona, que siempre son una emergencia.
       'me ahog', // me ahogo, me ahogando
-      'se ahog',
       'nos ahog',
       'me allog',
-      'entra agua al',
-      'entra agua en el',
-      'entra agua en la',
-      'entrando agua',
-      'hace agua',
-      'hacen agua',
-      'ase agua',
-      'llena de agua',
+      'ase agua', // error de voz de "hace agua"
       'dio vuelta el bote',
       'dio vuelta la lancha',
       'vuelta el bote',
@@ -2134,8 +2197,7 @@ class ElGuiaEngine {
 
     // Detecciones que dependen del contexto de la frase (no alcanza con una
     // palabra suelta): hundimiento de una embarcación y "perdido" de lugar.
-    if ((_esHundimientoSeguridad(textoNormalizado) || _esVuelcoDeEmbarcacion(textoNormalizado)) &&
-        !intenciones.contains('emergencia')) {
+    if (_esEmergenciaDeAgua(textoNormalizado) && !intenciones.contains('emergencia')) {
       intenciones.add('emergencia');
     }
     if (_esPerdido(textoNormalizado) && !intenciones.contains('perdido')) {
@@ -2887,8 +2949,7 @@ class ElGuiaEngine {
       // Paso 1: matching por activadores exactos. El hundimiento de una
       // embarcación se resuelve por contexto y responde como rescate.
       bool matched = activadores.any((act) => texto.contains(act)) ||
-          (entry.key == 'rescate' &&
-              (_esHundimientoSeguridad(texto) || _esVuelcoDeEmbarcacion(texto)));
+          (entry.key == 'rescate' && _esEmergenciaDeAgua(texto));
 
       // Paso 2: si no matcheó, buscar en sinónimos específicos de la librería
       if (!matched) {
