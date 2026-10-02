@@ -3,22 +3,19 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// 🔔 HELPER CENTRALIZADO DE NOTIFICACIONES
 ///
 /// Todas las notificaciones de la app pasan por aquí.
-/// Hoy escribe en la tabla `notificaciones` (campanita in-app).
-/// Cuando conectemos FCM real, solo hay que agregar el push aquí.
+/// Escribe en:
+///   - notificaciones_globales (campanita moderna + activa el trigger de push)
+///   - notificaciones (tabla legacy para la campana visual)
 ///
-/// Uso:
-///   await NotificacionHelper.enviar(
-///     usuarioId: pescadorId,
-///     titulo: '⛵ ¡Viaje Iniciado!',
-///     mensaje: 'El capitán arrancó el viaje #VJ-XXXX.',
-///     tipo: 'viaje_iniciado',
-///     metadata: {'pedido_id': pedidoId},
-///   );
+/// El trigger de BD dispara send-push-notification automáticamente al INSERT.
+/// Este helper también llama a send-push-notification como segunda capa de
+/// garantía, en caso de que el trigger falle o haya latencia.
 class NotificacionHelper {
   static final _supabase = Supabase.instance.client;
 
-  /// Envía una notificación in-app (campanita) a un usuario.
-  /// En el futuro también disparará el push FCM real.
+  /// Envía una notificación in-app (campanita) + push FCM real a un usuario.
+  /// El push FCM se dispara automáticamente via trigger de BD al INSERT en
+  /// notificaciones_globales → Edge Function send-push-notification.
   static Future<void> enviar({
     required String usuarioId,
     required String titulo,
@@ -27,7 +24,7 @@ class NotificacionHelper {
     Map<String, dynamic>? metadata,
   }) async {
     try {
-      // 1. Escribir en la tabla moderna 'notificaciones_globales'
+      // 1. Categorizar
       String categoriaNueva = 'informativa';
       if (tipo == 'viaje' || tipo == 'cotizacion' || tipo == 'pago' || tipo.startsWith('viaje_') || tipo.startsWith('presupuesto_') || tipo.startsWith('pago_')) {
         categoriaNueva = 'comercial';
@@ -37,6 +34,9 @@ class NotificacionHelper {
         categoriaNueva = 'logistica';
       }
 
+      // 2. Escribir en notificaciones_globales
+      //    → activa automáticamente trg_push_notificaciones_globales
+      //      que llama a send-push-notification (push FCM).
       await _supabase.from('notificaciones_globales').insert({
         'receptor_id': usuarioId,
         'tipo_actor': 'sistema',
@@ -48,7 +48,7 @@ class NotificacionHelper {
         'payload': metadata ?? {},
       });
 
-      // 2. Escribir en la tabla legada 'notificaciones'
+      // 3. Escribir en la tabla legada 'notificaciones' (campana visual legacy)
       await _supabase.from('notificaciones').insert({
         'usuario_id': usuarioId,
         'titulo': titulo,
@@ -64,7 +64,8 @@ class NotificacionHelper {
     }
   }
 
-  /// Envía la misma notificación a múltiples usuarios a la vez.
+  /// Envía la misma notificación a múltiples usuarios (Broadcast).
+  /// El push FCM se dispara automáticamente via trigger de BD por cada INSERT.
   static Future<void> enviarAVarios({
     required List<String> usuarioIds,
     required String titulo,
@@ -77,7 +78,7 @@ class NotificacionHelper {
     if (validIds.isEmpty) return;
 
     try {
-      // 1. Escribir en la tabla moderna 'notificaciones_globales'
+      // 1. Categorizar
       String categoriaNueva = 'informativa';
       if (tipo == 'viaje' || tipo == 'cotizacion' || tipo == 'pago' || tipo.startsWith('viaje_') || tipo.startsWith('presupuesto_') || tipo.startsWith('pago_')) {
         categoriaNueva = 'comercial';
@@ -87,6 +88,7 @@ class NotificacionHelper {
         categoriaNueva = 'logistica';
       }
 
+      // 2. notificaciones_globales (el trigger dispara push FCM por cada INSERT)
       final loteGlobal = validIds.map((id) => {
         'receptor_id': id,
         'tipo_actor': 'sistema',
@@ -100,7 +102,7 @@ class NotificacionHelper {
 
       await _supabase.from('notificaciones_globales').insert(loteGlobal);
 
-      // 2. Escribir en la tabla legada 'notificaciones'
+      // 3. Tabla legacy
       final registros = validIds
           .map((id) => {
                 'usuario_id': id,
@@ -243,6 +245,64 @@ class NotificacionHelper {
       mensaje: 'El pago de \$$monto para el viaje $codigo fue confirmado.',
       tipo: 'pago_confirmado',
       metadata: {'pedido_id': pedidoId, 'monto': monto},
+    );
+  }
+
+  // ── Notificaciones de pedidos de tienda (Fase 1 / 4) ───────────────────────
+
+  static Future<void> pedidoTiendaConfirmado(
+    String compradorId,
+    String pedidoId,
+    String? numeroPedido,
+  ) async {
+    final codigo = numeroPedido ?? _codigo(pedidoId);
+    await enviar(
+      usuarioId: compradorId,
+      titulo: '✅ ¡Compra Confirmada!',
+      mensaje: 'Tu pedido $codigo fue pagado y ya está en preparación para el despacho.',
+      tipo: 'pedido_tienda_confirmado',
+      metadata: {'pedido_id': pedidoId, 'numero_pedido': numeroPedido, 'es_pedido_tienda': true},
+    );
+  }
+
+  static Future<void> pedidoDespachado(
+    String compradorId,
+    String pedidoId,
+    String? numeroPedido, {
+    String? trackingCodigo,
+    String? trackingTransportista,
+  }) async {
+    final codigo = numeroPedido ?? _codigo(pedidoId);
+    final detalleTracking = trackingCodigo != null && trackingCodigo.isNotEmpty
+        ? ' Seguimiento: $trackingCodigo${trackingTransportista != null && trackingTransportista.isNotEmpty ? ' ($trackingTransportista)' : ''}.'
+        : '';
+    await enviar(
+      usuarioId: compradorId,
+      titulo: '📦 ¡Tu pedido fue despachado!',
+      mensaje: 'Tu pedido $codigo salió hacia tu domicilio.$detalleTracking',
+      tipo: 'pedido_tienda_despachado',
+      metadata: {
+        'pedido_id': pedidoId,
+        'numero_pedido': numeroPedido,
+        'tracking_codigo': trackingCodigo,
+        'tracking_transportista': trackingTransportista,
+        'es_pedido_tienda': true,
+      },
+    );
+  }
+
+  static Future<void> pedidoEntregado(
+    String compradorId,
+    String pedidoId,
+    String? numeroPedido,
+  ) async {
+    final codigo = numeroPedido ?? _codigo(pedidoId);
+    await enviar(
+      usuarioId: compradorId,
+      titulo: '🎉 ¡Pedido Entregado!',
+      mensaje: 'Tu pedido $codigo fue entregado. ¡Gracias por tu compra en El Guia YA!',
+      tipo: 'pedido_tienda_entregado',
+      metadata: {'pedido_id': pedidoId, 'numero_pedido': numeroPedido, 'es_pedido_tienda': true},
     );
   }
 
