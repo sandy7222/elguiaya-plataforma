@@ -1,0 +1,6 @@
+{
+  "id": "consultar-pago-mp",
+  "entrypoint": "index.ts",
+  "verify_jwt": true,
+  "import_map": null
+}
