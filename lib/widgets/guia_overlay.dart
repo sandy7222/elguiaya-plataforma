@@ -8,7 +8,7 @@ import '../services/baqueano_ia_service.dart';
 import '../models/el_guia_respuesta.dart';
 import '../services/voice_service.dart';
 import '../services/connectivity_bridge.dart';
-import '../services/intent_service.dart';
+import '../services/guia_atajos.dart';
 import '../screens/pescador_perfil_edit_screen.dart';
 import 'package:capitanya_master/app_navigator.dart';
 import '../services/supabase_service.dart';
@@ -742,19 +742,13 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
     if (cleanText.isEmpty) return;
     _reiniciarTemporizadorInactividad();
 
-    final tLower = cleanText.toLowerCase();
+    // Atajos que se resuelven ANTES del motor IA: silenciar, volver a hablar,
+    // despedida y navegación. Una frase de seguridad no es un atajo: GuiaAtajos
+    // la deja pasar al router (misma regla que el portón del router).
+    final atajo = GuiaAtajos.detectar(cleanText);
 
     // Verbal mute/unmute triggers
-    final muteTriggers = [
-      'silenciar',
-      'callate',
-      'cállate',
-      'no hables',
-      'mudo',
-    ];
-    final unmuteTriggers = ['habla', 'hablá', 'desmutear', 'activar voz'];
-
-    if (muteTriggers.any((trigger) => tLower.contains(trigger))) {
+    if (atajo?.tipo == TipoAtajo.silenciar) {
       const resp = 'Dale, me quedo mudo, chamigo';
       setState(() {
         _chatHistory.add({'text': cleanText, 'isUser': 'true'});
@@ -766,7 +760,7 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
       return;
     }
 
-    if (unmuteTriggers.any((trigger) => tLower.contains(trigger))) {
+    if (atajo?.tipo == TipoAtajo.activarVoz) {
       const resp = '¡Volví a hablar, chamigo!';
       await GuiaOverlayController.setSilenciado(false);
       setState(() {
@@ -779,24 +773,7 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
     }
 
     // Despedida verbal
-    final despedidaTriggers = [
-      'chau',
-      'adios',
-      'adiós',
-      'apagar',
-      'apagate',
-      'apágate',
-      'hasta luego',
-      'hablamos mas tarde',
-      'hablamos más tarde',
-      'desconecte',
-      'desconéctate',
-      'desconectate',
-      'desconectar',
-      'nos vemos',
-    ];
-
-    if (despedidaTriggers.any((trigger) => tLower.contains(trigger))) {
+    if (atajo?.tipo == TipoAtajo.despedida) {
       setState(() => _chatHistory.add({'text': cleanText, 'isUser': 'true'}));
       const despedida = '¡Nos vemos, amigo! Buenas pescas...';
       setState(() => _chatHistory.add({'text': despedida, 'isUser': 'false'}));
@@ -807,7 +784,7 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
 
     // ── Comandos de navegación instantánea ───────────────────────────────────
     // Se ejecutan ANTES del motor IA — sin esperar Gemini ni el engine local.
-    final navIntent = IntentService.detectarNavegacion(cleanText);
+    final navIntent = atajo?.navegacion;
     if (navIntent != null) {
       setState(() {
         _chatHistory.add({'text': cleanText, 'isUser': 'true'});

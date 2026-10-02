@@ -530,6 +530,17 @@ class BaqueanoIAService {
     }
   }
 
+  /// ¿Esta consulta tiene que atenderla SOLO el motor de reglas, sin atajos?
+  ///
+  /// Es la MISMA decisión del portón de seguridad de [responder] (clasificador
+  /// del motor + modo emergencia pegajoso), expuesta para que quien actúe antes
+  /// del router (los atajos del overlay: silenciar, despedida, navegación) no
+  /// tenga su propia copia de la regla. No consume turnos del modo pegajoso:
+  /// eso lo hace [responder] al contestar.
+  static bool esConsultaDeSeguridad(String texto) =>
+      _turnosEmergenciaRestantes > 0 ||
+      _motorLocal.clasificarIntencion(texto) == ClaseIntencion.seguridad;
+
   /// Responde con el motor de reglas, sin nube y sin retraso artificial. Es el
   /// único camino de los temas de seguridad. Si el motor fallara, devuelve
   /// igual el aviso de emergencia: en seguridad nunca se responde un error.

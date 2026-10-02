@@ -125,6 +125,11 @@ class ElGuiaEngine {
     'que_puede_hacer_bot',
   };
 
+  /// La persona pide dónde está ella, no que se le muestre una pantalla.
+  static final RegExp _pideSuUbicacion = RegExp(
+    r'donde estoy|no se donde|ubicacion|posicion|coordenadas|orientarme|mi lugar',
+  );
+
   /// ¿Es una intención de seguridad o transaccional? La usa el aprendizaje
   /// automático para no guardar nunca conocimiento sobre estos temas.
   static bool esIntencionDeSeguridadOTransaccional(String intencion) =>
@@ -190,8 +195,19 @@ class ElGuiaEngine {
   /// se la manda. Si la frase roza seguridad en CUALQUIERA de sus intenciones,
   /// gana seguridad aunque la principal sea otra.
   ClaseIntencion clasificarIntencion(String texto) {
-    final intenciones = detectarIntenciones(_limpiarYNormalizarEntrada(texto));
-    if (intenciones.any(_esIntencionDeSeguridad)) return ClaseIntencion.seguridad;
+    final normalizado = _limpiarYNormalizarEntrada(texto);
+    final intenciones = detectarIntenciones(normalizado);
+    final deSeguridad = intenciones.where(_esIntencionDeSeguridad).toList();
+    if (deSeguridad.isNotEmpty) {
+      // "gps" también tiene activadores de NAVEGACIÓN ("mapa", "ver mapa",
+      // "llevame al", "cómo llegar"): pedir el mapa es usar la app, no una
+      // emergencia. Es seguridad solo si pide su UBICACIÓN ("dónde estoy").
+      final soloGps = deSeguridad.every((i) => i == 'gps');
+      if (soloGps && !_pideSuUbicacion.hasMatch(normalizado)) {
+        return ClaseIntencion.transaccional;
+      }
+      return ClaseIntencion.seguridad;
+    }
     final principal = _obtenerMayorPrioridad(intenciones);
     if (_intencionesTransaccionales.contains(principal)) return ClaseIntencion.transaccional;
     if (_intencionesSociales.contains(principal)) return ClaseIntencion.social;
@@ -539,6 +555,13 @@ class ElGuiaEngine {
       'volco el bote',
       'volco la lancha',
       'volcamos',
+      // El ancla que no agarra: la embarcación se va con la corriente.
+      'arrastra la corriente',
+      'arrastran la corriente',
+      'perdi el ancla',
+      'perdimos el ancla',
+      'garrea',
+      'garreando',
       'estoy a la deriva',
       'estamos a la deriva',
       'quedamos a la deriva',
