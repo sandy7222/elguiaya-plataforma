@@ -26,6 +26,12 @@ const String _marcaNube = 'RESPUESTA-DE-LA-NUBE-NO-DEBE-USARSE';
 const Map<String, List<String>> _seguridad = {
   'emergencia directa': [
     'me hundo',
+    'nos hundimos',
+    'se hunde el bote',
+    'se hunde el barco',
+    'se hunde el kayak',
+    'se hunde la embarcación',
+    'se me hundió la lancha',
     'se hunde la lancha',
     'hombre al agua',
     'necesito ayuda urgente',
@@ -66,6 +72,11 @@ const Map<String, List<String>> _seguridad = {
   ],
   'perdido y GPS': [
     'estoy perdido',
+    'me perdí',
+    'estoy perdido en el río',
+    'nos perdimos en el arroyo',
+    'estoy perdido en la isla y anochece',
+    'no encuentro la salida',
     'me perdí en las islas',
     'no sé dónde estoy',
     'dónde estoy',
@@ -260,6 +271,30 @@ void main() {
       'me recomendás una caña para surubí',
       'qué nudo uso para atar el anzuelo',
       'cuál es el mejor reel para el río',
+      // Aparejos que se hunden: sin embarcación ni persona, no es emergencia.
+      'cuando la boya se hunde clavá',
+      'se me hundió la boya y no clavé',
+      'el corcho se hundió y era una boga',
+      'la plomada se hunde mucho en la correntada',
+      'el señuelo se hunde muy rápido en este tramo',
+      'el anzuelo se hundió en el barro',
+      'la línea se hunde y se enreda con el pique',
+      'por qué se hunde el flote cuando pica el pejerrey',
+      'se hundió el corcho dos veces seguidas',
+      'qué plomada se hunde más rápido',
+      'cuánto tarda en hundirse el señuelo',
+      'la boya se hundio y no pude clavar',
+      'se undio el corcho y recogí tarde',
+      'el flote se me hunde con la corriente',
+      'si el corcho se hunde despacio es una mojarra',
+      // "Perdido" como "confundido": no es perderse en el río.
+      'estoy perdido con los nudos, cuál me conviene',
+      'estoy perdido con tanta marca de reel',
+      'estoy perdido en el tema de las carnadas',
+      'me perdí con tantas opciones de cañas',
+      'me perdí el pique por mirar el celular',
+      'estoy perdido con los tipos de plomadas',
+      'me perdí en la explicación de los nudos',
     ];
     for (final frase in pescaNormal) {
       test('"$frase"', () {
@@ -267,6 +302,42 @@ void main() {
           ElGuiaEngine().clasificarIntencion(frase),
           isNot(ClaseIntencion.seguridad),
           reason: 'una consulta de pesca normal no debe tratarse como emergencia',
+        );
+      });
+    }
+  });
+
+  // ── "qué hago" solo es ayuda de la app si habla de la app ──────────────────
+  // El activador genérico "que hago" atrapaba preguntas de pesca. Sin señal,
+  // una intención reservada impide que el buscador de fichas la vea.
+  group('ayuda general exige contexto de la app', () {
+    const dePesca = [
+      'qué hago con este pescado',
+      'qué hago con la carnada que me sobró',
+      'qué hago si el pejerrey no come',
+    ];
+    for (final frase in dePesca) {
+      test('"$frase" no es ayuda de la app', () {
+        expect(
+          ElGuiaEngine().clasificarIntencion(frase),
+          ClaseIntencion.otra,
+          reason: 'una pregunta de pesca no debe quedar reservada como ayuda de la app',
+        );
+      });
+    }
+
+    const deLaApp = [
+      'no sé usar la app',
+      'cómo funciona esto',
+      'qué hago en la app',
+      'cómo uso la app',
+    ];
+    for (final frase in deLaApp) {
+      test('"$frase" sí es ayuda de la app', () {
+        expect(
+          ElGuiaEngine().clasificarIntencion(frase),
+          isNot(ClaseIntencion.otra),
+          reason: 'es ayuda de la app: la responde el motor, no queda como pregunta libre',
         );
       });
     }

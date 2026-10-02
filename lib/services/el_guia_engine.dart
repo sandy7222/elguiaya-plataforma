@@ -153,6 +153,55 @@ class ElGuiaEngine {
     return ClaseIntencion.otra;
   }
 
+  static const String _embarcaciones =
+      'lancha|bote|barco|embarcacion|kayak|canoa|velero|gomon|barca';
+
+  /// Hundimiento de una EMBARCACIÓN ("se hunde la lancha", "se me hundió el
+  /// bote", "nesesito ayuda se undio el bote", "el barco se hunde"). Una boya,
+  /// un corcho, una plomada o un señuelo que se hunden son pesca, no emergencia.
+  static final RegExp _hundimientoReg = RegExp(
+    '(?:se(?: me| nos)? (?:hunde|hundio|undio)|(?:esta|estan) hundiendo|hundiendo)'
+    '\\s+(?:la |el |mi |mis |nuestra |nuestro |esta |este |una |un )?(?:$_embarcaciones)'
+    '|(?:$_embarcaciones)\\s+(?:se(?: me| nos)? )?(?:hunde|hundio|undio|esta hundiendo)',
+  );
+
+  bool _esHundimientoDeEmbarcacion(String texto) =>
+      _hundimientoReg.hasMatch(_normalizar(texto));
+
+  /// "Estoy perdido" / "me perdí" son seguridad solo si hablan de un LUGAR:
+  /// a secas, o con río, isla, arroyo, canal, costa, etc. "Perdido con/en un
+  /// tema" ("estoy perdido con los nudos") es "confundido"; "me perdí el
+  /// pique" es "me lo perdí".
+  static final RegExp _perdidoReg = RegExp(
+    r'\b(?:estoy|estamos|andamos|quede|quedamos) perdid[oa]s?\b|\b(?:me|nos) perdi(?:mos)?\b',
+  );
+  static const Set<String> _lugares = {
+    'rio', 'isla', 'islas', 'arroyo', 'arroyos', 'canal', 'costa', 'laguna', 'monte',
+    'riacho', 'delta', 'banado', 'zona', 'camino', 'ruta', 'selva', 'orilla', 'bosque',
+    'mar', 'pantano', 'estero',
+  };
+  static const Set<String> _articulos = {
+    'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'mi', 'mis', 'tu', 'tus',
+  };
+
+  bool _esPerdidoDeLugar(String texto) {
+    final t = _normalizar(texto);
+    for (final m in _perdidoReg.allMatches(t)) {
+      final palabras = t
+          .substring(m.end)
+          .split(RegExp(r'[^a-z0-9]+'))
+          .where((w) => w.isNotEmpty)
+          .take(4)
+          .toList();
+      if (palabras.isEmpty) return true; // "estoy perdido" a secas
+      if (palabras.any(_lugares.contains)) return true;
+      final primera = palabras.first;
+      if (primera == 'con' || primera == 'en' || _articulos.contains(primera)) continue;
+      return true; // "estoy perdido y no tengo señal"
+    }
+    return false;
+  }
+
   /// Las librerías "críticas" dinámicas mezclan seguridad con intenciones
   /// transaccionales (crear viaje, pagar…): estas últimas no son seguridad.
   bool _esIntencionDeSeguridad(String intencion) =>
@@ -286,15 +335,11 @@ class ElGuiaEngine {
       'estoy en peligro',
       'estamos en peligro',
       'en peligro de muerte',
-      'se hunde',
+      // Hundimiento: solo si la frase nombra a una persona ("me hundo", "nos
+      // hundimos") o a una embarcación (ver _hundimientoReg). "se hunde la
+      // boya" o "el corcho se hundió" son pesca, no emergencia.
       'me hundo',
       'nos hundimos',
-      'hundiendo',
-      'se hundio',
-      'se undio',
-      'se undo',
-      'hundio', // se me hundió la lancha
-      'undio', // error de voz de "hundió"
       'incendi', // incendio, incendia, incendió
       'hombre al agua',
       'persona al agua',
@@ -346,11 +391,13 @@ class ElGuiaEngine {
       'no veo tierra',
       'no veo la orilla',
     ],
+    // "estoy perdido" y "me perdí" NO van acá: se usan también como "confundido"
+    // ("estoy perdido con los nudos"). Los resuelve _esPerdidoDeLugar.
     'perdido': [
-      'me perdi',
-      'me perdí',
-      'estoy perdido',
       'no encuentro salida',
+      'no encuentro la salida',
+      'no encuentro la costa',
+      'no encuentro la orilla',
       'no encuentro el camino',
       'estoy solo en la isla',
       'aislado',
@@ -993,7 +1040,16 @@ class ElGuiaEngine {
       'no tengo idea',
       'me podes ayudar',
       'podrias ayudarme',
-      'que hago',
+      // "que hago" a secas atrapaba preguntas de pesca ("qué hago con este
+      // pescado"): solo cuenta si habla de la app.
+      'que hago en la app',
+      'que hago aca',
+      'como funciona esto',
+      'como funciona la app',
+      'como uso la app',
+      'como se usa la app',
+      'no se usar la app',
+      'no se como usar la app',
     ],
     // ── Reserva genérica (fallback de viajes) ───────────────────────────────
     'reserva': [
@@ -2007,6 +2063,15 @@ class ElGuiaEngine {
       }
     }
 
+    // Detecciones que dependen del contexto de la frase (no alcanza con una
+    // palabra suelta): hundimiento de una embarcación y "perdido" de lugar.
+    if (_esHundimientoDeEmbarcacion(textoNormalizado) && !intenciones.contains('emergencia')) {
+      intenciones.add('emergencia');
+    }
+    if (_esPerdidoDeLugar(textoNormalizado) && !intenciones.contains('perdido')) {
+      intenciones.add('perdido');
+    }
+
     // Integrar GuiaLocalUpdater: buscar coincidencias en intenciones aprendidas consolidadas
     final intencionAprendida = GuiaLocalUpdater.detectarIntencion(
       textoExpandido,
@@ -2749,8 +2814,10 @@ class ElGuiaEngine {
       final sub = entry.value as Map<String, dynamic>;
       final activadores = List<String>.from(sub['activadores'] as List);
 
-      // Paso 1: matching por activadores exactos
-      bool matched = activadores.any((act) => texto.contains(act));
+      // Paso 1: matching por activadores exactos. El hundimiento de una
+      // embarcación se resuelve por contexto y responde como rescate.
+      bool matched = activadores.any((act) => texto.contains(act)) ||
+          (entry.key == 'rescate' && _esHundimientoDeEmbarcacion(texto));
 
       // Paso 2: si no matcheó, buscar en sinónimos específicos de la librería
       if (!matched) {
