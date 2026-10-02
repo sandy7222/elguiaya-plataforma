@@ -121,14 +121,17 @@ class ElGuiaEngine {
   static const Set<String> _intencionesTransaccionales = {
     'crear_viaje', 'ver_cotizaciones', 'estado_viaje', 'pagar_viaje', 'confirmar_viaje',
     'calificar', 'tienda', 'notificaciones', 'perfil_pescador', 'activar_guia', 'reserva',
-    'ayuda_app', 'elegir_capitan', 'carrito', 'historial_viajes', 'ayuda_general',
+    'ayuda_app', 'elegir_capitan', 'carrito', 'historial_viajes',
     'que_puede_hacer_bot',
   };
 
-  /// Social / personalidad: el router no las toca.
+  /// Social / personalidad: el router no las toca. 'ayuda_general' va acá y no
+  /// en las transaccionales: su activador "que hago" es tan amplio que atrapa
+  /// preguntas de pesca ("¿qué hago con este pescado?") y no toca viajes ni
+  /// plata, así que no hay motivo para sacarla de la nube.
   static const Set<String> _intencionesSociales = {
     'hora', 'agradecimiento', 'preguntas_humanas', 'mate', 'charla_cotidiana', 'chiste',
-    'saludo', 'despedida',
+    'saludo', 'despedida', 'ayuda_general',
   };
 
   /// Intenciones que SIEMPRE responde el motor de reglas, nunca el retriever.
@@ -290,6 +293,8 @@ class ElGuiaEngine {
       'se hundio',
       'se undio',
       'se undo',
+      'hundio', // se me hundió la lancha
+      'undio', // error de voz de "hundió"
       'incendi', // incendio, incendia, incendió
       'hombre al agua',
       'persona al agua',
@@ -471,6 +476,8 @@ class ElGuiaEngine {
       'hipotermia',
       'golpe de calor',
       'insolacion',
+      'picadura de raya',
+      'me pico una raya',
     ],
     'peces': [
       'dorado',

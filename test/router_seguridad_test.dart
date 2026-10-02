@@ -144,6 +144,11 @@ void main() {
       for (final frase in grupo.value) {
         test('"$frase"', () async {
           _prepararCaso(conSenal: true);
+          expect(
+            ElGuiaEngine().clasificarIntencion(frase),
+            ClaseIntencion.seguridad,
+            reason: 'el motor no reconoce esta frase como seguridad (si pasa el resto del test, es por casualidad)',
+          );
           final resp = await BaqueanoIAService.responder(frase);
           expect(_llamadasANube, 0, reason: 'se llamó a la nube con un tema de seguridad');
           expect(resp.texto, isNot(contains(_marcaNube)));
@@ -186,6 +191,56 @@ void main() {
         expect(resp.texto, isNot(contains(_marcaNube)));
       });
     }
+  });
+
+  // ── Paso 0.3: el filtro de impaciencia no confunde palabras comunes ───────
+  // "dale", "rápido" y "pura" salen del filtro: aparecen en frases normales
+  // ("pura suerte", "dale, contame…") y en urgencias reales. Quedan solo las
+  // frases largas de impaciencia ("hace rato espero", "apurate").
+  group('filtro de impaciencia', () {
+    const noEsImpaciencia = [
+      'dale contame cómo se arma una línea con boyas',
+      'respondeme rápido qué carnada se usa para el dorado',
+      'es pura suerte pescar un surubí grande',
+      'el dorado es pura fuerza en la pelea',
+      'dale che qué hago con este pescado',
+      'cuál es la carnada más rápida de conseguir para pejerrey',
+    ];
+    for (final frase in noEsImpaciencia) {
+      test('"$frase" llega a la nube, no recibe el chiste', () async {
+        _prepararCaso(conSenal: true);
+        final resp = await BaqueanoIAService.responder(frase);
+        expect(
+          _llamadasANube,
+          1,
+          reason: 'una palabra común ("dale", "rápido", "pura") no debe cortar la consulta con un chiste',
+        );
+        expect(resp.texto, contains(_marcaNube));
+      });
+    }
+
+    const siEsImpaciencia = [
+      'apurate con la respuesta',
+      'hace rato espero que me contestes',
+      'no me apures tanto',
+    ];
+    for (final frase in siEsImpaciencia) {
+      test('"$frase" sigue recibiendo la respuesta de impaciencia', () async {
+        _prepararCaso(conSenal: true);
+        final resp = await BaqueanoIAService.responder(frase);
+        expect(_llamadasANube, 0, reason: 'la impaciencia real la atiende el filtro, no la nube');
+        expect(resp.texto, isNot(contains(_marcaNube)));
+      });
+    }
+
+    test('"dale rápido que se hunde la lancha" es una emergencia, no impaciencia', () async {
+      _prepararCaso(conSenal: true);
+      final resp = await BaqueanoIAService.responder('dale rápido que se hunde la lancha');
+      expect(_llamadasANube, 0);
+      expect(resp.texto, isNot(contains(_marcaNube)));
+      expect(IARouterState.estado.value, IAEstado.offline);
+      expect(resp.gifSugerido, isNot('enojado'), reason: 'el GIF de enojo es el del chiste de impaciencia');
+    });
   });
 
   // ── Control de falsos positivos: la pesca normal no es seguridad ──────────

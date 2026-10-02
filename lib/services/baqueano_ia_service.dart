@@ -855,14 +855,12 @@ class BaqueanoIAService {
       }
     }
 
-    // 2. Impaciencia
-    if (pq.contains('dale') ||
-        pq.contains('apúrate') ||
+    // 2. Impaciencia. Solo frases que lo dicen de forma inequívoca: "dale",
+    // "rápido" y "pura" salieron porque aparecen en frases normales ("pura
+    // suerte") y en urgencias reales ("dale rápido que se hunde la lancha").
+    if (pq.contains('apúrate') ||
         pq.contains('apurate') ||
         pq.contains('hace rato espero') ||
-        pq.contains('rapido') ||
-        pq.contains('rápido') ||
-        pq.contains('pura') ||
         pq.contains('apuras') ||
         pq.contains('apure')) {
       _nivelFrustracion = (_nivelFrustracion + 1).clamp(0, 3);
