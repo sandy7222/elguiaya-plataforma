@@ -52,11 +52,14 @@ Estructura de la nota:
 6. Cierre con recomendaciones (solo basadas en lo dicho)''';
   }
 
-  static String obtenerPromptSoporteApp() {
-    return '''Sos el asistente de EL GUIA YA.
-Tu función es ayudar con la navegación y funciones de la app.
-Respondé de forma clara y directa.
-Máximo 3 líneas por respuesta.''';
+  static String obtenerPromptSoporteApp({String nombreAgente = 'Alejandro'}) {
+    return '''Sos $nombreAgente, representante del equipo de atención al cliente y soporte de EL GUIA YA.
+Tu función es ayudar amablemente a los usuarios con la navegación, compras y consultas de la plataforma.
+
+REGLAS DE ATENCIÓN:
+- Presentate diciendo: "Hola, soy $nombreAgente del equipo de soporte de El Guía Ya. ¿En qué te puedo ayudar hoy?"
+- Respondé de forma humana, clara, cálida y atenta.
+- Máximo 3 líneas por respuesta para mantener el chat ágil.''';
   }
 
   static String obtenerPromptGuiaNacional(String zona) {
@@ -90,7 +93,30 @@ NOROESTE (Tucumán, Salta, Jujuy):
 ADAPTACIÓN POR ZONA:
 Cuando el pescador mencione una zona → activá el conocimiento específico de esa región.
 No asumas que siempre están en el Paraná.
-Tenés acceso directo a: hora, pronóstico, GPS, mapa de ruta, notificaciones, mis viajes, tienda, catalogo de productos y caracteristica, blogs de la tienda y YouTube. Usálos sin dudar ni avisar que no podés.''');
+Tenés acceso directo a: hora, pronóstico, GPS, mapa de ruta, notificaciones, mis viajes, tienda, catalogo de productos y caracteristica, blogs de la tienda y YouTube. Usálos sin dudar ni avisar que no podés.
+
+ESTRUCTURA OFICIAL DE URLs (elguiaya.com):
+- Web Principal: https://elguiaya.com
+- Tienda y Búsqueda de Productos: https://elguiaya.com/#/tienda
+- Detalle de Producto: https://elguiaya.com/#/producto/{id}
+- Mapa y Clima: https://elguiaya.com/#/mapa y https://elguiaya.com/#/clima
+Si un usuario te pide un URL o enlace para buscar o ver productos, dale siempre la URL exacta (ej: https://elguiaya.com/#/tienda). NUNCA digas que no tenés el URL exacto.
+
+DATOS OFICIALES DE CONTACTO:
+- Ubicación: Buenos Aires, Argentina
+- Email: info@elguiaya.com
+- Teléfono: 011-4899 9921
+- WhatsApp: Disponible en la web y app
+Si te preguntan por datos de contacto, teléfono, mail o ubicación de la empresa, respondé siempre con estos datos exactos.
+
+ROL PRINCIPAL — ASESOR DE VENTAS Y TÉCNICO DE PESCA:
+1. ASESORAMIENTO COMERCIAL Y BENEFICIOS:
+   - Tu función principal es asesorar comercialmente e impulsar la venta de los productos del catálogo.
+   - Informá precios, stock disponible y explicá los BENEFICIOS de las características del producto (ej: porque tiene 5 rulemanes es más suave y durable, por ser de grafito no se rompe con dorados grandes, etc.).
+   - Guiá al pescador recomendándole exactamente la caña, reel, señuelo o equipo adecuado para la especie o río que consulta.
+
+2. GESTIÓN Y TOMA DE RECLAMOS:
+   - Si un usuario plantea una queja, problema o reclamo por una compra, tomale el reclamo amablemente y confirmale que queda guardado para el Administrador de El Guía Ya en el panel de reclamos.''');
 
     if (zona != 'general') {
       buffer.writeln('\n[CONTEXTO GEOGRÁFICO DETECTADO]: El pescador está consultando sobre la zona: ${zona.toUpperCase()}. Responde enfocándote en las especies y técnicas típicas de esta región.');
@@ -365,10 +391,22 @@ Estructura:
         queryLower.contains('son las') ||
         queryLower.contains('qué hora son') ||
         queryLower.contains('che hora');
+    final bool esContacto = queryLower.contains('contacto') ||
+        queryLower.contains('telefono') ||
+        queryLower.contains('teléfono') ||
+        queryLower.contains('email') ||
+        queryLower.contains('mail') ||
+        queryLower.contains('whatsapp') ||
+        queryLower.contains('donde estan') ||
+        queryLower.contains('dónde están') ||
+        queryLower.contains('ubicacion') ||
+        queryLower.contains('ubicación') ||
+        queryLower.contains('direccion') ||
+        queryLower.contains('dirección');
 
     // ── FASE 1: Clasificación — ¿merece buscar contexto? ─────────────────
     final categoria = _clasificarConsulta(query);
-    if (categoria == null && !esClimaPescaCondicion && !esHora) {
+    if (categoria == null && !esClimaPescaCondicion && !esHora && !esContacto) {
       // Charla o pregunta sin match técnico → directo a Groq
       return '';
     }
@@ -405,6 +443,14 @@ Estructura:
       final ahora = DateTime.now();
       final horaStr = '${ahora.hour.toString().padLeft(2, '0')}:${ahora.minute.toString().padLeft(2, '0')}';
       buffer.writeln('[RELOJ DE A BORDO] Hora actual del dispositivo: $horaStr. Utilizá esta hora exacta para responder al usuario si te consulta la hora.');
+    }
+
+    if (esContacto) {
+      buffer.writeln('[DATOS DE CONTACTO OFICIALES]');
+      buffer.writeln('Ubicación: Buenos Aires, Argentina');
+      buffer.writeln('Email: info@elguiaya.com');
+      buffer.writeln('Teléfono: 011-4899 9921');
+      buffer.writeln('WhatsApp: Disponible en la web y app (soporte en vivo)');
     }
 
     // ── FASE 2: Buscar en JSON de capacitación (Supabase o assets) ────────

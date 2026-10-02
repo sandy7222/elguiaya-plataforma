@@ -9,6 +9,10 @@ class GuiaClimaService {
     try {
       final loc = await LocationPreferenceService.getPredefinedLocation();
       final weather = await WeatherService.fetchMarineWeather(loc.latitude, loc.longitude);
+      if (!weather.datosDisponibles) {
+        return '[CONDICIONES REALES] Clima no disponible en este momento. No inventes ni estimes clima, viento, olas ni mareas: indicá que no hay datos y recomendá consultar el parte oficial del SMN/Prefectura.';
+      }
+      final olas = weather.olajeDisponible ? '${weather.alturaOlas.toStringAsFixed(1)}m' : 'sin dato';
       
       String solunarStr = '';
       try {
@@ -23,7 +27,7 @@ class GuiaClimaService {
         solunarStr = ' Fase Lunar: ${solunar.moonPhaseIcon} ${solunar.moonPhaseName} (${(solunar.moonIllumination * 100).toStringAsFixed(0)}% iluminada). Actividad de Pesca: $rating.';
       } catch (_) {}
 
-      return '[CONDICIONES REALES EN ${loc.name}] Temp: ${weather.temperatura.toStringAsFixed(1)}°C, Humedad: ${weather.humedad}%, Viento: ${weather.velocidadViento.toStringAsFixed(1)} km/h (Rumbo ${weather.direccionViento.toStringAsFixed(0)}°), Olas: ${weather.alturaOlas.toStringAsFixed(1)}m. Estado: ${weather.descripcion}.$solunarStr';
+      return '[CONDICIONES REALES EN ${loc.name}] Temp: ${weather.temperatura.toStringAsFixed(1)}°C, Humedad: ${weather.humedad}%, Viento: ${weather.velocidadViento.toStringAsFixed(1)} km/h (Rumbo ${weather.direccionViento.toStringAsFixed(0)}°), Olas: $olas. Estado: ${weather.descripcion}.$solunarStr';
     } catch (e) {
       return '[CONDICIONES REALES] Clima y mareas no disponibles en este momento.';
     }

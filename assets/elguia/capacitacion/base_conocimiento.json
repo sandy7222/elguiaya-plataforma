@@ -32,7 +32,13 @@
       "Cerrado: ambas partes calificaron. El viaje está completo."
     ],
     "calificaciones": "Se usan anclas del 1 al 5. Cuantas más anclas tiene un capitán, mejor es su historial.",
-    "pago": "El método de pago es Mercado Pago. Solo se paga la seña/reserva desde la app."
+    "pago": "El método de pago es Mercado Pago. Solo se paga la seña/reserva desde la app.",
+    "contacto": {
+      "ubicacion": "Buenos Aires, Argentina",
+      "email": "info@elguiaya.com",
+      "telefono": "011-4899 9921",
+      "whatsapp": "Soporte activo en la web y app elguiaya.com"
+    }
   },
   "conocimiento_pesca": {
     "especies_principales": [
@@ -95,6 +101,14 @@
     {
       "pregunta": "¿Cuándo es la mejor época para pescar dorado?",
       "respuesta": "El dorado pica mejor en primavera y verano cuando el río está bajo y claro. Con el río crecido y turbio es más difícil localizarlo."
+    },
+    {
+      "pregunta": "¿Cómo me contacto con El Guía Ya?",
+      "respuesta": "Podés contactarnos por email a info@elguiaya.com, por teléfono al 011-4899 9921 o vía WhatsApp. Estamos en Buenos Aires, Argentina."
+    },
+    {
+      "pregunta": "¿Cuál es el teléfono o email de contacto?",
+      "respuesta": "Teléfono: 011-4899 9921, Email: info@elguiaya.com, Ubicación: Buenos Aires, Argentina. También podés comunicarte por WhatsApp."
     },
     {
       "pregunta": "¿Cómo califico a mi capitán?",

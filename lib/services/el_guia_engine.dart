@@ -1,3 +1,4 @@
+import 'dart:async' show Timer, TimeoutException, unawaited;
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -5,11 +6,21 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http; // 'http://localhost:11434'
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'el_guia_context.dart';
 import 'guia_local_updater.dart';
 import 'el_guia_app_engine.dart';
 import 'el_guia_humor_engine.dart';
 import 'guia_logger.dart';
+import 'guia_memoria_service.dart';
+import 'guia_retrieval/guia_bm25.dart';
+import 'guia_retrieval/guia_corpus_builder.dart';
+import 'guia_retrieval/guia_embedder.dart';
+import 'guia_retrieval/guia_ficha.dart';
+import 'guia_retrieval/guia_indice_semantico.dart';
+import 'guia_retrieval/guia_modelo_descarga.dart';
+import 'guia_retrieval/guia_retriever.dart';
+import 'guia_retrieval/guia_texto_es.dart';
 import '../models/el_guia_respuesta.dart';
 
 /// Motor Conversacional Híbrido — El Guía  v2.0
@@ -54,6 +65,49 @@ class ElGuiaEngine {
 
   // ── Motor de humor contextual ───────────────────────────────────────────────
   final ElGuiaHumorEngine _humor = ElGuiaHumorEngine();
+
+  // ── Retrieval-first (Fase 5, ver mini_model_lab/INFORME_RETRIEVAL.md) ──────
+  // Antes de adivinar con reglas, se BUSCA la ficha correcta en las
+  // librerías (BM25 + índice semántico cuando está) y se muestra tal cual.
+  // Las intenciones críticas (seguridad, transaccional) y sociales nunca
+  // pasan por acá: las sigue respondiendo el motor de reglas.
+  /// Flag global. Se puede apagar desde SharedPreferences (`guia_retrieval_first`
+  /// = false) sin recompilar.
+  static bool retrievalFirstHabilitado = false; // OFF por defecto: llama.cpp (~150 MB RAM) solo si el flag/prefs lo pide y hay RAM.
+  static const String prefRetrievalFirst = 'guia_retrieval_first';
+  GuiaRetriever? _retriever;
+  Future<void>? _retrieverEnConstruccion;
+  /// Puntuador semántico (Paso 5). Se enchufa con [configurarSemantico].
+  GuiaPuntuadorSemantico? _semantico;
+  /// Índice e5 + embedder llama.cpp (Paso 5). Se activan solos cuando el
+  /// modelo está bajado ([GuiaModeloDescarga]); si no, el retriever es léxico.
+  GuiaIndiceSemantico? _indiceSemantico;
+  GuiaEmbedder? _embedder;
+  Future<GuiaEmbedder?>? _embedderAbriendo;
+  Timer? _cierreEmbedder;
+  Future<void>? _semanticoActivando;
+  /// Tras este tiempo sin consultas se descarga el modelo de la RAM
+  /// (~150 MB); volver a abrirlo cuesta ~1 s con mmap.
+  static const Duration inactividadEmbedder = Duration(seconds: 90);
+  /// Opciones ofrecidas en el último "¿te referís a...?", a la espera de
+  /// que el usuario elija.
+  List<GuiaFicha>? _aclaracionPendiente;
+  /// Intenciones definidas en librerías críticas (se completa al inicializar).
+  final Set<String> _intencionesCriticasDinamicas = {};
+
+  /// Intenciones que SIEMPRE responde el motor de reglas, nunca el retriever.
+  static const Set<String> _intencionesReservadas = {
+    // seguridad
+    'emergencia', 'prefectura_naval_argentina', 'perdido', 'primeros_auxilios', 'gps',
+    // transaccional / navegación de la app
+    'crear_viaje', 'ver_cotizaciones', 'estado_viaje', 'pagar_viaje', 'confirmar_viaje',
+    'calificar', 'tienda', 'notificaciones', 'perfil_pescador', 'activar_guia', 'reserva',
+    'ayuda_app', 'elegir_capitan', 'carrito', 'historial_viajes', 'ayuda_general',
+    'que_puede_hacer_bot',
+    // social / personalidad
+    'hora', 'agradecimiento', 'preguntas_humanas', 'mate', 'charla_cotidiana', 'chiste',
+    'saludo', 'despedida',
+  };
 
   // ── Pool de frases de cierre (cuando el bot hizo una pregunta y el usuario responde) ──
   static const List<String> _frasesDeCierre = [
@@ -1281,9 +1335,338 @@ class ElGuiaEngine {
       debugPrint('✅ [EL-GUIA] v2.0 inicializado. Librerías: ${_librerias.length}');
       // Cargar aprendizajes del local updater
       await GuiaLocalUpdater.cargar();
+
+      // Retrieval-first: flag y corpus. El corpus se arma en segundo plano
+      // para no demorar la primera respuesta; hasta que esté, responde el
+      // motor de reglas como siempre.
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        retrievalFirstHabilitado = prefs.getBool(prefRetrievalFirst) ?? retrievalFirstHabilitado;
+      } catch (_) {}
+      unawaited(reconstruirIndiceRetrieval().then((_) {
+        if (retrievalFirstHabilitado) unawaited(activarSemantico());
+      }));
+      GuiaModeloDescarga.onModeloListo = (_, __) {
+        if (retrievalFirstHabilitado) {
+          unawaited(activarSemantico(reabrir: true));
+        }
+      };
     } catch (e) {
       debugPrint('⚠️ [EL-GUIA] Error al inicializar: $e');
     }
+  }
+
+  // ── RETRIEVAL-FIRST · capa semántica (Paso 5) ─────────────────────────────
+
+  /// Si hay un modelo e5 instalado, abre el embedder, carga/actualiza el
+  /// índice de vectores para el corpus actual y lo enchufa al retriever.
+  /// Idempotente y tolerante: cualquier falla deja el retriever léxico.
+  Future<void> activarSemantico({bool reabrir = false}) {
+    return _semanticoActivando ??= _activarSemantico(reabrir: reabrir).whenComplete(() {
+      _semanticoActivando = null;
+    });
+  }
+
+  Future<int?> _ramTotalMb() async {
+    if (kIsWeb) return null;
+    try {
+      if (Platform.isAndroid || Platform.isLinux) {
+        final lineas = await File('/proc/meminfo').readAsLines();
+        for (final linea in lineas) {
+          if (linea.startsWith('MemTotal:')) {
+            final kb = int.tryParse(linea.replaceAll(RegExp(r'[^0-9]'), ''));
+            if (kb != null) return kb ~/ 1024;
+          }
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  Future<bool> _ramAlcanza(int minRamMb) async {
+    if (minRamMb <= 0) return true;
+    final total = await _ramTotalMb();
+    if (total == null) {
+      debugPrint('[EL-GUIA] RAM desconocida; no se abre llama.cpp (pide $minRamMb MB).');
+      return false;
+    }
+    if (total < minRamMb) {
+      debugPrint('[EL-GUIA] Semántico omitido: $total MB RAM < $minRamMb MB requeridos.');
+      return false;
+    }
+    return true;
+  }
+
+  Future<void> _activarSemantico({required bool reabrir}) async {
+    if (!retrievalFirstHabilitado || !GuiaEmbedder.plataformaSoportada) return;
+    try {
+      final manifest = await GuiaModeloDescarga.manifestInstalado();
+      final archivo = await GuiaModeloDescarga.modeloInstalado();
+      if (manifest == null || archivo == null) return;
+      if (!await _ramAlcanza(manifest.minRamMb)) return;
+
+      if (reabrir || (_embedder != null && _embedder!.manifest.version != manifest.version)) {
+        await _cerrarEmbedder();
+        _indiceSemantico = null;
+      }
+      if (_retriever == null) await reconstruirIndiceRetrieval();
+      final fichas = fichasRetrieval;
+      if (fichas.isEmpty) return;
+
+      final base = await getApplicationDocumentsDirectory();
+      _indiceSemantico ??= await GuiaIndiceSemantico.cargar(Directory('${base.path}/elguia/indice'), manifest);
+      final indice = _indiceSemantico!;
+      indice.obtenerEmbedder = _obtenerEmbedder;
+
+      final embedder = await _obtenerEmbedder();
+      if (embedder == null) return;
+      final t0 = DateTime.now();
+      final nuevas = await indice.actualizar(fichas, embedder);
+      debugPrint('🧠 [EL-GUIA] Índice semántico: ${indice.fichasIndexadas} fichas, ${indice.filas} vectores '
+          '($nuevas nuevas) en ${DateTime.now().difference(t0).inMilliseconds} ms · disponible=${indice.disponible}');
+      configurarSemantico(indice.disponible ? indice : null);
+      _programarCierreEmbedder();
+    } catch (e) {
+      debugPrint('⚠️ [EL-GUIA] No se pudo activar la capa semántica: $e');
+      configurarSemantico(null);
+    }
+  }
+
+  /// Abre el embedder si hace falta (una sola apertura concurrente) y
+  /// reprograma su cierre por inactividad.
+  Future<GuiaEmbedder?> _obtenerEmbedder() async {
+    _programarCierreEmbedder();
+    final actual = _embedder;
+    if (actual != null && actual.disponible) return actual;
+    return _embedderAbriendo ??= () async {
+      try {
+        final manifest = await GuiaModeloDescarga.manifestInstalado();
+        final archivo = await GuiaModeloDescarga.modeloInstalado();
+        if (manifest == null || archivo == null) return null;
+        if (!await _ramAlcanza(manifest.minRamMb)) return null;
+        _embedder = await GuiaEmbedder.abrir(archivo, manifest);
+        return _embedder;
+      } finally {
+        _embedderAbriendo = null;
+      }
+    }();
+  }
+
+  void _programarCierreEmbedder() {
+    _cierreEmbedder?.cancel();
+    _cierreEmbedder = Timer(inactividadEmbedder, () {
+      if (_indiceSemantico?.actualizando == true) {
+        _programarCierreEmbedder();
+        return;
+      }
+      unawaited(_cerrarEmbedder());
+    });
+  }
+
+  Future<void> _cerrarEmbedder() async {
+    _cierreEmbedder?.cancel();
+    _cierreEmbedder = null;
+    final e = _embedder;
+    _embedder = null;
+    if (e != null) {
+      await e.cerrar();
+      debugPrint('🧠 [EL-GUIA] Embedder liberado por inactividad.');
+    }
+  }
+
+  /// Estado para el panel de diagnóstico.
+  Map<String, dynamic> get estadoSemantico => {
+        'modelo_abierto': _embedder?.disponible ?? false,
+        'fichas_indexadas': _indiceSemantico?.fichasIndexadas ?? 0,
+        'vectores': _indiceSemantico?.filas ?? 0,
+        'disponible': _indiceSemantico?.disponible ?? false,
+        'actualizando': _indiceSemantico?.actualizando ?? false,
+      };
+
+  // ── RETRIEVAL-FIRST ───────────────────────────────────────────────────────
+
+  /// Enchufa (o saca, con null) el puntuador semántico del Paso 5.
+  void configurarSemantico(GuiaPuntuadorSemantico? semantico) {
+    _semantico = semantico;
+    final r = _retriever;
+    if (r != null) {
+      _retriever = GuiaRetriever(r.fichas, semantico: semantico, sinonimos: r.sinonimos);
+    }
+  }
+
+  /// Fichas del corpus actual (para construir el índice semántico).
+  List<GuiaFicha> get fichasRetrieval => _retriever?.fichas ?? const [];
+
+  /// ¿El retriever ya está listo para responder?
+  bool get retrievalListo => _retriever != null;
+
+  /// Vuelve a armar el corpus de fichas desde assets + overrides sincronizados.
+  /// Lo llama [inicializar] y `GuiaKnowledgeSyncService` después de bajar
+  /// conocimiento nuevo. Idempotente: si ya hay una construcción en curso,
+  /// devuelve ese mismo Future.
+  Future<void> reconstruirIndiceRetrieval() {
+    return _retrieverEnConstruccion ??= _construirRetriever().whenComplete(() {
+      _retrieverEnConstruccion = null;
+    });
+  }
+
+  Future<void> _construirRetriever() async {
+    try {
+      final t0 = DateTime.now();
+      final libs = await GuiaCorpusBuilder.cargarLibreriasDeApp();
+      // Si el manifest no listó nada (tests, plataforma rara), al menos usar
+      // lo que el motor ya tiene en memoria.
+      for (final e in _librerias.entries) {
+        libs.putIfAbsent(e.key, () => e.value);
+      }
+      final corpus = GuiaCorpusBuilder.construir(libs);
+
+      _intencionesCriticasDinamicas.clear();
+      libs.forEach((nombre, data) {
+        if (GuiaCorpusBuilder.motivoExclusion(nombre) != 'critica') return;
+        final intenciones = data['intenciones'];
+        if (intenciones is List) {
+          for (final it in intenciones) {
+            if (it is Map && it['intencion'] != null) {
+              _intencionesCriticasDinamicas.add(it['intencion'].toString());
+            }
+          }
+        }
+      });
+
+      // El índice semántico quedó alineado con el corpus anterior: se saca
+      // hasta que activarSemantico() lo vuelva a alinear (incremental: solo
+      // embebe las fichas que cambiaron).
+      final habiaSemantico = _indiceSemantico != null && _semantico != null;
+      if (habiaSemantico) _semantico = null;
+      _retriever = GuiaRetriever(corpus.fichas, semantico: _semantico, sinonimos: _sinonimos);
+      debugPrint('🔎 [EL-GUIA] Retriever listo: ${corpus.reporte} '
+          'en ${DateTime.now().difference(t0).inMilliseconds} ms');
+      if (corpus.reporte.sinConvertir.isNotEmpty) {
+        debugPrint('🔎 [EL-GUIA] Claves sin regla de conversión: ${corpus.reporte.sinConvertir}');
+      }
+      if (habiaSemantico) unawaited(activarSemantico());
+    } catch (e) {
+      debugPrint('⚠️ [EL-GUIA] No se pudo armar el retriever: $e');
+    }
+  }
+
+  bool _esIntencionReservada(String intencion) =>
+      _intencionesReservadas.contains(intencion) || _intencionesCriticasDinamicas.contains(intencion);
+
+  /// Corre el retriever y decide: ficha directa, "¿te referís a...?" o null
+  /// (seguir con el motor de reglas).
+  Future<ElGuiaRespuesta?> _responderConRetriever(
+    String entrada,
+    String textoNormalizado,
+    String intencionPrincipal,
+  ) async {
+    final retriever = _retriever;
+    if (retriever == null) return null;
+    try {
+      final res = await retriever.buscar(textoNormalizado, consultaSemantica: entrada);
+      unawaited(GuiaLogger.registrarRetrieval(
+        texto: entrada,
+        decision: res.decision.name,
+        intencionReglas: intencionPrincipal,
+        usoSemantico: res.usoSemantico,
+        s1: res.s1,
+        s2: res.s2,
+        ms: res.duracion.inMilliseconds,
+        top3: res.resumenTop3,
+      ));
+
+      switch (res.decision) {
+        case GuiaDecision.directa:
+          return _respuestaDesdeFicha(res.mejor!, textoNormalizado);
+        case GuiaDecision.aclarar:
+          // Si las reglas ya reconocieron una intención concreta (nudos,
+          // carnadas, una intención del educador...), su handler responde
+          // mejor que una lista de opciones.
+          if (intencionPrincipal != 'fallback') return null;
+          final opciones = res.candidatos.take(3).map((c) => c.ficha).toList();
+          if (opciones.isEmpty) return null;
+          _aclaracionPendiente = opciones;
+          final textoAcl = _textoAclaracion(opciones);
+          _actualizarContexto('informacion', textoNormalizado);
+          _contexto.ultimaRespuesta = textoAcl;
+          _contexto.esperandoCierre = false; // la próxima entrada es la elección, no un cierre
+          return ElGuiaRespuesta(texto: textoAcl, gifSugerido: 'duda');
+        case GuiaDecision.ninguna:
+          return null;
+      }
+    } catch (e) {
+      debugPrint('⚠️ [EL-GUIA] Retriever falló, sigue el motor de reglas: $e');
+      return null;
+    }
+  }
+
+  ElGuiaRespuesta _respuestaDesdeFicha(GuiaFicha ficha, String textoNormalizado) {
+    _actualizarContexto('informacion', textoNormalizado);
+    _registrarObjetivoDeFicha(ficha);
+    _guardarRespuestaYDetectarPregunta(ficha.texto);
+    return ElGuiaRespuesta(texto: ficha.texto, gifSugerido: 'explica');
+  }
+
+  /// Memoria contextual ligera: la entrada de la ficha ("palomar", "dorado",
+  /// "chupetona") queda como objetivo reciente, igual que hace
+  /// [_buscarEnLibreriasDinamico], para que "¿y cómo se hace?" a continuación
+  /// tenga de qué agarrarse.
+  void _registrarObjetivoDeFicha(GuiaFicha ficha) {
+    final partes = ficha.id.split('/');
+    if (partes.length < 2) return;
+    final objetivo = _normalizar(partes.last.replaceAll('_', ' '));
+    if (objetivo.isEmpty || int.tryParse(objetivo) != null) return;
+    _contexto.objetivosRecientes.remove(objetivo);
+    _contexto.objetivosRecientes.add(objetivo);
+    if (_contexto.objetivosRecientes.length > 5) {
+      _contexto.objetivosRecientes.removeAt(0);
+    }
+  }
+
+  String _textoAclaracion(List<GuiaFicha> opciones) {
+    if (opciones.length == 1) {
+      return 'Mirá, creo que me preguntás por "${opciones.first.titulo}". ¿Es eso? Decime "sí" o contame con más detalle.';
+    }
+    final sb = StringBuffer('Tengo un par de cosas que pueden ser. ¿Te referís a...?\n');
+    for (var i = 0; i < opciones.length; i++) {
+      sb.writeln('${i + 1}. ${opciones[i].titulo}');
+    }
+    sb.write('Decime el número o preguntame con más detalle.');
+    return sb.toString();
+  }
+
+  /// Interpreta la respuesta del usuario a un "¿te referís a...?".
+  /// Devuelve la ficha elegida o null si parece una pregunta nueva.
+  GuiaFicha? _elegirFichaAclarada(String textoNormalizado, List<GuiaFicha> opciones) {
+    final t = ' ${GuiaTextoEs.normalizar(textoNormalizado)} ';
+    const ordinales = <int, List<String>>{
+      1: ['1', 'uno', 'primero', 'primera', 'el primero', 'la primera', 'si', 'sí', 'dale', 'ese', 'esa', 'eso'],
+      2: ['2', 'dos', 'segundo', 'segunda', 'el segundo', 'la segunda'],
+      3: ['3', 'tres', 'tercero', 'tercera', 'el tercero', 'la tercera'],
+    };
+    final palabras = t.trim().split(' ').where((p) => p.isNotEmpty).length;
+    if (palabras <= 3) {
+      for (final e in ordinales.entries) {
+        if (e.key > opciones.length) continue;
+        if (opciones.length == 1 && e.key != 1) continue;
+        if (e.value.any((v) => t.contains(' $v '))) return opciones[e.key - 1];
+      }
+      if (t.contains(' no ') && palabras <= 2) return null;
+    }
+    // Si repite (parte de) un título, esa.
+    for (final f in opciones) {
+      final tit = GuiaTextoEs.normalizar(f.titulo);
+      if (tit.isNotEmpty && (t.contains(' $tit ') || (tit.contains(t.trim()) && t.trim().length >= 4))) return f;
+    }
+    // Último intento: la opción que mejor puntúa léxicamente, si es clara.
+    final scores = GuiaBm25(opciones).puntuar(textoNormalizado);
+    var mejor = -1;
+    for (var i = 0; i < scores.length; i++) {
+      if (mejor < 0 || scores[i] > scores[mejor]) mejor = i;
+    }
+    if (mejor >= 0 && scores[mejor] >= 0.6) return opciones[mejor];
+    return null;
   }
 
   // ── RESPUESTA PRINCIPAL ────────────────────────────────────────────────────
@@ -1295,6 +1678,19 @@ class ElGuiaEngine {
 
     final intenciones = detectarIntenciones(texto);
     final intencionPrincipal = _obtenerMayorPrioridad(intenciones);
+
+    // ── RETRIEVAL: elección de un "¿te referís a...?" pendiente ──────────────
+    // Va antes del interceptor de cierre: "2" o "la primera" no son un
+    // cierre de charla, son la elección. Si no eligió nada, la entrada se
+    // trata como pregunta nueva. Una emergencia detectada siempre gana.
+    final pendientes = _aclaracionPendiente;
+    if (pendientes != null) {
+      _aclaracionPendiente = null;
+      if (!_esIntencionReservada(intencionPrincipal) || intencionPrincipal == 'fallback') {
+        final elegida = _elegirFichaAclarada(texto, pendientes);
+        if (elegida != null) return _respuestaDesdeFicha(elegida, texto);
+      }
+    }
 
     // ── INTERCEPTOR: Cierre ordenado de pregunta de seguimiento ──────────────
     // Si el bot había hecho una pregunta en su última respuesta, cualquier
@@ -1317,6 +1713,15 @@ class ElGuiaEngine {
 
     if (intencionPrincipal != 'fallback') {
       _contexto.esperandoCierre = false;
+    }
+
+    // ── RETRIEVAL-FIRST (Fase 5) ─────────────────────────────────────────────
+    // Después de detectar intenciones (las críticas y sociales ya quedaron
+    // reservadas al motor de reglas) y antes de la búsqueda dinámica por
+    // regex: buscar la ficha correcta y mostrarla tal cual.
+    if (retrievalFirstHabilitado && _retriever != null && !_esIntencionReservada(intencionPrincipal)) {
+      final desdeRetriever = await _responderConRetriever(entrada, texto, intencionPrincipal);
+      if (desdeRetriever != null) return desdeRetriever;
     }
 
     // Búsqueda directa inteligente en librerías locales basada en frases de acción ("cómo se prepara", "qué hago", etc.)
@@ -1634,12 +2039,12 @@ class ElGuiaEngine {
     switch (intencion) {
       case 'saludo':
         return ElGuiaRespuesta(
-          texto: _responderSaludo(),
+          texto: await _responderSaludoPersonalizado(),
           gifSugerido: 'saludo',
         );
       case 'despedida':
         return ElGuiaRespuesta(
-          texto: _responderDespedida(),
+          texto: await _responderDespedidaPersonalizada(),
           gifSugerido: 'saludo',
         );
       case 'agradecimiento':
@@ -1847,6 +2252,80 @@ class ElGuiaEngine {
   }
 
   // ── HANDLERS ─────────────────────────────────────────────────────────────
+
+  Future<String?> _memoriaLocalSocial() async {
+    try {
+      return await GuiaMemoriaService.cargarContextoRehidratado(
+        permitirRed: false,
+      ).timeout(const Duration(milliseconds: 250));
+    } on TimeoutException {
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  ({String? nombre, String? nivel}) _parsearMemoriaSocial(String? contexto) {
+    if (contexto == null || contexto.trim().isEmpty) {
+      return (nombre: null, nivel: null);
+    }
+    String? nombre;
+    String? nivel;
+    for (final linea in contexto.split('\n')) {
+      final t = linea.trim();
+      if (t.startsWith('Estás hablando con ') && t.endsWith('.')) {
+        nombre = t.substring('Estás hablando con '.length, t.length - 1).trim();
+        if (nombre.isEmpty) nombre = null;
+      } else if (t.startsWith('Nivel: ')) {
+        nivel = t.substring('Nivel: '.length).replaceAll('.', '').trim();
+        if (nivel.isEmpty) nivel = null;
+      }
+    }
+    return (nombre: nombre, nivel: nivel);
+  }
+
+  String _insertarNombreSocial(String base, String nombre, {required bool esSaludo}) {
+    if (nombre.isEmpty) return base;
+    if (base.toLowerCase().contains(nombre.toLowerCase())) return base;
+    final reemplazo = RegExp(
+      r'\b(pescador|chamigo|amigo)\b',
+      caseSensitive: false,
+    );
+    if (reemplazo.hasMatch(base)) {
+      return base.replaceFirst(reemplazo, nombre);
+    }
+    if (esSaludo) {
+      return '¡Hola, $nombre! $base';
+    }
+    return 'Nos vemos, $nombre. $base';
+  }
+
+  Future<String> _responderSaludoPersonalizado() async {
+    final base = _responderSaludo();
+    final parsed = _parsearMemoriaSocial(await _memoriaLocalSocial());
+    var texto = base;
+    final nombre = parsed.nombre;
+    if (nombre != null) {
+      texto = _insertarNombreSocial(texto, nombre, esSaludo: true);
+    }
+    final nivel = parsed.nivel?.toLowerCase();
+    if (nivel == 'principiante' &&
+        !texto.toLowerCase().contains('arrancando')) {
+      texto = '$texto Si estás arrancando, preguntame lo que sea.';
+    } else if (nivel == 'avanzado' &&
+        !texto.toLowerCase().contains('armando')) {
+      texto = '$texto Decime qué estás armando y lo vemos.';
+    }
+    return texto;
+  }
+
+  Future<String> _responderDespedidaPersonalizada() async {
+    final base = _responderDespedida();
+    final parsed = _parsearMemoriaSocial(await _memoriaLocalSocial());
+    final nombre = parsed.nombre;
+    if (nombre == null) return base;
+    return _insertarNombreSocial(base, nombre, esSaludo: false);
+  }
 
   String _responderSaludo() {
     final lib = _librerias['saludos'];
@@ -2139,7 +2618,11 @@ class ElGuiaEngine {
 
     if (!subintencionEncontrada) {
       final puente = List<String>.from(lib['respuestas_puente'] as List);
-      respBase = puente[_random.nextInt(puente.length)];
+      // Toda respuesta de emergencia sin tipo reconocido debe dar igual los
+      // contactos oficiales: no se puede depender de que el usuario repregunte.
+      respBase = '${puente[_random.nextInt(puente.length)]} '
+          'Si hay peligro en el agua: Prefectura Naval por radio VHF canal 16 '
+          'o por teléfono al 106.';
     }
 
     // Pregunta de seguimiento (30% de probabilidad)
@@ -2607,54 +3090,73 @@ class ElGuiaEngine {
     String respBase =
         'En el Paraná encontrás: dorado, surubí, boga, bagre, patí, tararira, pejerrey y sábalo. Cuál te interesa?';
     bool especieEncontrada = false;
+
+    // Elegimos la clave de especie MÁS ESPECÍFICA (la más larga) entre todas
+    // las que matchean, no la primera que aparezca en el mapa. Antes, con
+    // `break` en el primer match, una entrada genérica como "bagre" le
+    // ganaba siempre a una más específica como "bagre de mar" apenas
+    // apareciera antes en el JSON — sin importar que la más específica
+    // también matcheara el texto.
+    String? mejorClaveEspecie;
     for (final entry in especies.entries) {
       if (texto.contains(entry.key)) {
-        final especie = entry.value as Map<String, dynamic>;
-        _contexto.especieActual = entry.key;
-        final carnadas = List<String>.from(especie['carnada'] as List);
-        final intro = puente[_random.nextInt(puente.length)];
-        respBase =
-            '$intro ${especie['descripcion']} Carnada: ${carnadas.take(2).join(' o ')}. ${especie['equipo']}';
-        especieEncontrada = true;
-        break;
+        if (mejorClaveEspecie == null || entry.key.length > mejorClaveEspecie.length) {
+          mejorClaveEspecie = entry.key;
+        }
       }
+    }
+    if (mejorClaveEspecie != null) {
+      final especie = especies[mejorClaveEspecie] as Map<String, dynamic>;
+      _contexto.especieActual = mejorClaveEspecie;
+      final carnadas = List<String>.from(especie['carnada'] as List);
+      final intro = puente[_random.nextInt(puente.length)];
+      respBase =
+          '$intro ${especie['descripcion']} Carnada: ${carnadas.take(2).join(' o ')}. ${especie['equipo']}';
+      especieEncontrada = true;
     }
 
     if (!especieEncontrada) {
-      // Buscar en especies/intenciones aprendidas en el local updater
-      for (final entry in GuiaLocalUpdater.obtenerActivadoresParaMotor().entries) {
-        for (final act in entry.value) {
-          if (texto.contains(act)) {
-            final respuestaDinamica = GuiaLocalUpdater.obtenerRespuesta(entry.key);
-            if (respuestaDinamica != null) {
-              _contexto.especieActual = act;
-              return respuestaDinamica;
-            }
-          }
+      // Buscar en especies/intenciones aprendidas en el local updater.
+      // GuiaLocalUpdater.detectarIntencion ya elige el activador más
+      // específico internamente (mismo criterio de arriba), así que no
+      // repetimos la búsqueda "primer match" acá.
+      final intencionAprendida = GuiaLocalUpdater.detectarIntencion(texto);
+      if (intencionAprendida != null) {
+        final respuestaDinamica = GuiaLocalUpdater.obtenerRespuesta(intencionAprendida);
+        if (respuestaDinamica != null) {
+          _contexto.especieActual = intencionAprendida;
+          return respuestaDinamica;
         }
       }
 
-      // Buscar en intenciones dinámicas sincronizadas en las librerías
+      // Buscar en intenciones dinámicas sincronizadas en las librerías,
+      // de nuevo prefiriendo el activador más largo (más específico) que
+      // matchee, en vez de devolver apenas se encuentra el primero.
+      String? mejorActivador;
+      Map<String, dynamic>? mejorItem;
       for (final lib in _librerias.values) {
         if (lib.containsKey('intenciones')) {
           final intencionesList = lib['intenciones'];
           if (intencionesList is List) {
             for (final item in intencionesList) {
               if (item is Map<String, dynamic>) {
-                final String intentName = item['intencion']?.toString() ?? '';
                 final List<String> acts = List<String>.from((item['activadores'] as List? ?? []).map((e) => e.toString().toLowerCase().trim()));
                 for (final act in acts) {
-                  if (texto.contains(act)) {
-                    final respuestas = List<String>.from(item['respuestas'] ?? [item['respuesta_limpia']]);
-                    if (respuestas.isNotEmpty) {
-                      _contexto.especieActual = act;
-                      return respuestas[_random.nextInt(respuestas.length)];
-                    }
+                  if (texto.contains(act) && (mejorActivador == null || act.length > mejorActivador.length)) {
+                    mejorActivador = act;
+                    mejorItem = item;
                   }
                 }
               }
             }
           }
+        }
+      }
+      if (mejorItem != null) {
+        final respuestas = List<String>.from(mejorItem['respuestas'] ?? [mejorItem['respuesta_limpia']]);
+        if (respuestas.isNotEmpty) {
+          _contexto.especieActual = mejorActivador!;
+          return respuestas[_random.nextInt(respuestas.length)];
         }
       }
     }
@@ -3398,14 +3900,22 @@ class ElGuiaEngine {
       'pacu',
       'armado',
     ];
+    // Elegimos, entre TODO lo que matchea (lista fija + aprendidas +
+    // sincronizadas), el texto más largo/específico — no el primero que
+    // aparece. Con "return" en el primer match, "bagre" (fijo, genérico)
+    // le ganaba siempre a "bagre de mar" (aprendido/sincronizado, más
+    // específico) apenas el texto contuviera la palabra "bagre".
+    String? mejorMatch;
     for (final especie in especies) {
-      if (texto.contains(especie)) return especie;
+      if (texto.contains(especie) && (mejorMatch == null || especie.length > mejorMatch.length)) {
+        mejorMatch = especie;
+      }
     }
     // Buscar en activadores de intenciones aprendidas/sincronizadas
     for (final entry in GuiaLocalUpdater.obtenerActivadoresParaMotor().entries) {
       for (final act in entry.value) {
-        if (texto.contains(act)) {
-          return act;
+        if (texto.contains(act) && (mejorMatch == null || act.length > mejorMatch.length)) {
+          mejorMatch = act;
         }
       }
     }
@@ -3417,8 +3927,8 @@ class ElGuiaEngine {
             if (item is Map<String, dynamic>) {
               final List<String> acts = List<String>.from((item['activadores'] as List? ?? []).map((e) => e.toString().toLowerCase().trim()));
               for (final act in acts) {
-                if (texto.contains(act)) {
-                  return act;
+                if (texto.contains(act) && (mejorMatch == null || act.length > mejorMatch.length)) {
+                  mejorMatch = act;
                 }
               }
             }
@@ -3426,7 +3936,7 @@ class ElGuiaEngine {
         }
       }
     }
-    return '';
+    return mejorMatch ?? '';
   }
 
   String _detectarEstadoRio(String texto) {

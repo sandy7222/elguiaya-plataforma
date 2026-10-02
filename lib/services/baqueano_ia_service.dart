@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:async' show unawaited;
 import 'package:flutter/foundation.dart';
 import 'package:capitanya_master/models/el_guia_respuesta.dart';
 import 'package:capitanya_master/models/producto.dart';
@@ -138,16 +139,35 @@ class BaqueanoIAService {
   static List<Producto> get catalogo => _catalogo;
   static List<Categoria> get categorias => _categorias;
 
-  static Future<void> inicializar() async {
-    await _motorLocal.inicializar();
-    await GroqConfig.cargar();
-    IARouterState.inicializar();
+  static bool _inicializado = false;
+  static Future<void>? _inicializando;
 
-    if (_ultimaCarga != null &&
+  static Future<void> inicializar() {
+    return _inicializando ??= () async {
+      if (_inicializado) return;
+      try {
+        await _motorLocal.inicializar();
+        await GroqConfig.cargar();
+        IARouterState.inicializar();
+        unawaited(cargarCatalogo());
+        _inicializado = true;
+      } catch (e) {
+        _inicializando = null;
+        rethrow;
+      }
+    }();
+  }
+
+  static Future<void> _asegurarInicializado() async {
+    if (_inicializado) return;
+    await inicializar();
+  }
+
+  static Future<void> cargarCatalogo({bool forzar = false}) async {
+    if (!forzar && _ultimaCarga != null &&
         DateTime.now().difference(_ultimaCarga!) < const Duration(minutes: 5)) {
       return;
     }
-    // Timeout de 5s: Supabase lento no bloquea el arranque
     try {
       _catalogo = await SupabaseService.getProductos().timeout(
         const Duration(seconds: 5),
@@ -217,6 +237,7 @@ class BaqueanoIAService {
   }
 
   static Future<ElGuiaRespuesta> responder(String pregunta) async {
+    await _asegurarInicializado();
     final pq = pregunta.toLowerCase().trim();
 
     // (La rehidratación del contexto del usuario ahora se maneja directamente dentro de GroqService de forma unificada)
@@ -676,7 +697,7 @@ class BaqueanoIAService {
       try {
         final svc = GroqService();
         final respuesta = await svc
-            .probarConexion(GroqConfig.apiKey)
+            .probarConexion('')
             .timeout(const Duration(seconds: 4));
         if (respuesta.contains('operativo') || respuesta.isNotEmpty) {
           return const ElGuiaRespuesta(

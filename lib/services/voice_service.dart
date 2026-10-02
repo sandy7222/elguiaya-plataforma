@@ -3,6 +3,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'connectivity_bridge.dart';
 
 class VoiceService {
   static final VoiceService _instance = VoiceService._internal();
@@ -29,6 +30,23 @@ class VoiceService {
   bool _isWakeWordListening = false;
   Timer? _wakeWordTimer;
 
+  /// Último texto que devolvió el STT en la sesión principal (parcial o final).
+  String _ultimoTextoReconocido = '';
+  String get ultimoTextoReconocido => _ultimoTextoReconocido;
+
+  Function(String, bool)? _onResultCallback;
+  VoidCallback? _onSessionEnded;
+  void Function(String error)? _onSttError;
+  bool _escuchaPrincipalActiva = false;
+  bool _usandoOnDevice = false;
+  bool _reintentandoEnNube = false;
+  bool _silenciarCompletionHandler = false;
+  bool _vioListeningEstaSesion = false;
+  DateTime? _escuchaIniciadaEn;
+  int _sesionStt = 0;
+  int _reaperturasSilencio = 0;
+  String? _localeSttResuelto;
+
   // Frases trigger aceptadas para activar el GuIA por voz.
   // Se detectan por contains() en minúsculas — tolerante a variaciones.
   static const List<String> _wakeWordTriggers = [
@@ -53,9 +71,10 @@ class VoiceService {
   Future<void> _initTts() async {
     try {
       await _flutterTts.setLanguage("es-AR");
+      await _configurarVozOptima(_flutterTts);
       await _flutterTts.setSpeechRate(
-        kIsWeb ? 0.9 : 0.45,
-      ); // Adaptar velocidad según plataforma (0.9 en Web, 0.45 en móvil)
+        kIsWeb ? 0.5 : 0.45,
+      ); // Adaptar velocidad según plataforma (0.5 en Web, 0.45 en móvil)
       await _flutterTts.setVolume(1.0);
       await _flutterTts.setPitch(0.9); // Tono ligeramente más grave
       try {
@@ -70,6 +89,44 @@ class VoiceService {
     }
   }
 
+  Future<void> _configurarVozOptima(FlutterTts tts) async {
+    try {
+      final List<dynamic>? voices = await tts.getVoices;
+      if (voices != null && voices.isNotEmpty) {
+        dynamic selectedVoice;
+        final locales = ['es-AR', 'es-419', 'es-MX', 'es-US', 'es-ES'];
+        for (final loc in locales) {
+          for (final voice in voices) {
+            if (voice is Map) {
+              final locale = (voice['locale'] ?? voice['lang'] ?? '').toString().toLowerCase();
+              final name = (voice['name'] ?? '').toString().toLowerCase();
+              if (locale.contains(loc.toLowerCase()) || name.contains(loc.toLowerCase())) {
+                selectedVoice = voice;
+                break;
+              }
+            } else {
+              final voiceStr = voice.toString().toLowerCase();
+              if (voiceStr.contains(loc.toLowerCase())) {
+                selectedVoice = voice;
+                break;
+              }
+            }
+          }
+          if (selectedVoice != null) break;
+        }
+
+        if (selectedVoice != null && selectedVoice is Map) {
+          final name = (selectedVoice['name'] ?? '').toString();
+          final locale = (selectedVoice['locale'] ?? selectedVoice['lang'] ?? '').toString();
+          await tts.setVoice({"name": name, "locale": locale});
+          debugPrint('Voz optimizada seleccionada para El Guía: $name ($locale)');
+        }
+      }
+    } catch (e) {
+      debugPrint('Error al configurar voz óptima en El Guía: $e');
+    }
+  }
+
   Future<void> _initStt() async {
     if (_isSttInitialized) return;
     try {
@@ -78,7 +135,7 @@ class VoiceService {
       _isSttInitialized = await _speech.initialize(
         onError: (val) {
           debugPrint('Error STT: ${val.errorMsg}');
-          isListeningNotifier.value = false;
+          _manejarErrorSttPrincipal(val.errorMsg);
         },
         onStatus: (val) {
           debugPrint('Status STT: $val');
@@ -86,9 +143,17 @@ class VoiceService {
             return;
           }
           if (val == 'listening') {
+            _vioListeningEstaSesion = true;
             isListeningNotifier.value = true;
           } else if (val == 'notListening' || val == 'done') {
+            if (!_puedeCerrarSesionStt()) {
+              debugPrint(
+                '[VoiceService] Status $val ignorado (sesión aún no establecida)',
+              );
+              return;
+            }
             isListeningNotifier.value = false;
+            _notificarFinSesionStt();
           }
         },
       );
@@ -133,7 +198,12 @@ class VoiceService {
     if (cleanText.isNotEmpty) {
       _isSpeaking = true;
       _registerCompletionHandler(); // Re-registrar para evitar pérdida del callback en transiciones de foco de audio/mic
-      await _flutterTts.speak(cleanText);
+      try {
+        await _flutterTts.speak(cleanText);
+      } catch (e) {
+        _isSpeaking = false;
+        debugPrint('Error en _flutterTts.speak: $e');
+      }
     }
   }
 
@@ -147,38 +217,65 @@ class VoiceService {
   void _registerCompletionHandler() {
     _flutterTts.setCompletionHandler(() {
       debugPrint('[VoiceService] TTS Completion Callback');
-      _isSpeaking = false;
-      if (_completionHandler != null) {
-        _completionHandler!();
-      }
+      _manejarFinTts();
     });
     _flutterTts.setCancelHandler(() {
       debugPrint('[VoiceService] TTS Cancel Callback');
-      _isSpeaking = false;
-      if (_completionHandler != null) {
-        _completionHandler!();
-      }
+      _manejarFinTts();
     });
     _flutterTts.setErrorHandler((message) {
       debugPrint('[VoiceService] TTS Error Callback: $message');
-      _isSpeaking = false;
-      if (_completionHandler != null) {
-        _completionHandler!();
-      }
+      _manejarFinTts();
     });
   }
 
-  Future<void> stop() async {
+  void _manejarFinTts() {
     _isSpeaking = false;
+    if (_silenciarCompletionHandler) {
+      _silenciarCompletionHandler = false;
+      return;
+    }
+    _completionHandler?.call();
+  }
+
+  Future<void> stop({bool notifyCompletion = true}) async {
+    _isSpeaking = false;
+    if (!notifyCompletion) {
+      _silenciarCompletionHandler = true;
+    }
     await _flutterTts.stop();
+    if (!notifyCompletion) {
+      Future.delayed(const Duration(milliseconds: 300), () {
+        _silenciarCompletionHandler = false;
+      });
+    }
   }
 
   bool get isListening => _speech.isListening;
 
-  Future<bool> startListening(Function(String, bool) onResult) async {
-    // Detener otros reconocedores para liberar el recurso nativo de audio
+  Future<bool> startListening(
+    Function(String, bool) onResult, {
+    VoidCallback? onSessionEnded,
+    void Function(String error)? onError,
+  }) async {
+    // Liberar TTS y otros reconocedores para no pelear el foco de audio.
+    await stop(notifyCompletion: false);
     await stopVADListener();
     await stopWakeWordListener();
+
+    // El stop() nativo emite notListening; hay que esperar a que se drene
+    // antes de marcar la sesión nueva, si no la matamos al milisegundo.
+    await Future.delayed(const Duration(milliseconds: 250));
+
+    _onResultCallback = onResult;
+    _onSessionEnded = onSessionEnded;
+    _onSttError = onError;
+    _ultimoTextoReconocido = '';
+    _reintentandoEnNube = false;
+    _vioListeningEstaSesion = false;
+    _reaperturasSilencio = 0;
+    _sesionStt++;
+    final sesion = _sesionStt;
 
     // Pedir permiso de micrófono aquí, solo cuando el usuario lo necesita
     if (!_isSttInitialized) {
@@ -187,35 +284,223 @@ class VoiceService {
         if (!status.isGranted) {
           debugPrint('Permiso de micrófono denegado.');
           isListeningNotifier.value = false;
+          onError?.call('permiso_denegado');
           return false;
         }
       }
       await _initStt();
     }
-    if (_isSttInitialized) {
-      isListeningNotifier.value = true;
+    if (!_isSttInitialized) {
+      isListeningNotifier.value = false;
+      onError?.call('stt_no_disponible');
+      return false;
+    }
+
+    final hayRed = ConnectivityBridge.estaConectado;
+    // Con señal: STT de Google en la nube (el mic se queda abierto).
+    // Sin señal: on-device. Forzar on-device con Wi‑Fi corta el mic en ~1s
+    // si el celular no tiene el paquete offline.
+    _usandoOnDevice = !hayRed;
+    debugPrint(
+      '[VoiceService] startListening onDevice=$_usandoOnDevice hayRed=$hayRed',
+    );
+
+    final localeId = await _resolverLocaleStt();
+    _escuchaPrincipalActiva = true;
+    _escuchaIniciadaEn = DateTime.now();
+    isListeningNotifier.value = true;
+
+    var ok = await _escuchar(localeId: localeId, onDevice: _usandoOnDevice);
+
+    if (!ok && !_usandoOnDevice) {
+      debugPrint('[VoiceService] Nube no arrancó; último intento on-device...');
+      _usandoOnDevice = true;
+      ok = await _escuchar(localeId: localeId, onDevice: true);
+    } else if (!ok && _usandoOnDevice && hayRed) {
+      debugPrint('[VoiceService] On-device no arrancó; reintento en nube...');
+      _usandoOnDevice = false;
+      ok = await _escuchar(localeId: localeId, onDevice: false);
+    }
+
+    if (!ok || sesion != _sesionStt) {
+      _escuchaPrincipalActiva = false;
+      isListeningNotifier.value = false;
+      onError?.call(hayRed ? 'stt_no_disponible' : 'stt_offline');
+      return false;
+    }
+    return true;
+  }
+
+  Future<bool> _escuchar({
+    required String localeId,
+    required bool onDevice,
+  }) async {
+    try {
       await _speech.listen(
         onResult: (result) {
-          onResult(result.recognizedWords, result.finalResult);
+          _ultimoTextoReconocido = result.recognizedWords;
+          _onResultCallback?.call(result.recognizedWords, result.finalResult);
         },
-        localeId: "es_AR",
-        listenFor: const Duration(
-          seconds: 40,
-        ), // Aumentado a 40s para que no se corte al formular preguntas largas
-        pauseFor: const Duration(
-          seconds: 3,
-        ), // Aumentado a 3s para evitar que se corte inmediatamente en Android/iOS
+        localeId: localeId,
+        listenFor: const Duration(seconds: 40),
+        pauseFor: const Duration(seconds: 4),
         cancelOnError: false,
+        partialResults: true,
+        onDevice: onDevice,
       );
       return true;
+    } catch (e) {
+      debugPrint('[VoiceService] Error listen onDevice=$onDevice: $e');
+      return false;
     }
+  }
+
+  Future<String> _resolverLocaleStt() async {
+    if (_localeSttResuelto != null) return _localeSttResuelto!;
+    const preferidos = [
+      'es_AR',
+      'es-AR',
+      'es_419',
+      'es-419',
+      'es_MX',
+      'es-MX',
+      'es_ES',
+      'es-ES',
+      'es_US',
+      'es-US',
+    ];
+    String norm(String s) => s.replaceAll('-', '_').toLowerCase();
+    try {
+      final locales = await _speech.locales();
+      final ids = locales.map((l) => l.localeId).toList();
+      if (ids.isEmpty) {
+        _localeSttResuelto = 'es_AR';
+        return 'es_AR';
+      }
+      for (final preferido in preferidos) {
+        for (final id in ids) {
+          if (norm(id) == norm(preferido)) {
+            _localeSttResuelto = id;
+            debugPrint('[VoiceService] Locale STT: $id');
+            return id;
+          }
+        }
+      }
+      for (final id in ids) {
+        if (id.toLowerCase().startsWith('es')) {
+          _localeSttResuelto = id;
+          debugPrint('[VoiceService] Locale STT (fallback es): $id');
+          return id;
+        }
+      }
+    } catch (e) {
+      debugPrint('[VoiceService] Error listando locales STT: $e');
+    }
+    _localeSttResuelto = 'es_ES';
+    return _localeSttResuelto!;
+  }
+
+  bool _esErrorOnDeviceNoDisponible(String msg) {
+    final m = msg.toLowerCase();
+    return m.contains('language') ||
+        m.contains('unavailable') ||
+        m.contains('not_supported') ||
+        m.contains('listen_failed') ||
+        m.contains('error_client') ||
+        m.contains('error_busy');
+  }
+
+  bool _esErrorSilencio(String msg) {
+    final m = msg.toLowerCase();
+    return m.contains('error_no_match') ||
+        m.contains('error_speech_timeout') ||
+        m.contains('no_match') ||
+        m.contains('speech_timeout');
+  }
+
+  bool _puedeCerrarSesionStt() {
+    if (!_escuchaPrincipalActiva || _reintentandoEnNube) return false;
+    // El stop() anterior emite notListening; no cerrar hasta que esta
+    // sesión haya llegado a 'listening'.
+    if (!_vioListeningEstaSesion) return false;
+    return true;
+  }
+
+  void _manejarErrorSttPrincipal(String errorMsg) {
+    if (_isVadListening || _isWakeWordListening) return;
+    if (!_escuchaPrincipalActiva) return;
+
+    if (_esErrorSilencio(errorMsg)) {
+      if (_ultimoTextoReconocido.trim().isNotEmpty) {
+        isListeningNotifier.value = false;
+        _notificarFinSesionStt();
+        return;
+      }
+      if (_reaperturasSilencio < 4) {
+        _reaperturasSilencio++;
+        debugPrint(
+          '[VoiceService] STT silencio ($errorMsg), reabriendo mic (#$_reaperturasSilencio)...',
+        );
+        Future.microtask(() async {
+          if (!_escuchaPrincipalActiva) return;
+          final localeId = await _resolverLocaleStt();
+          await _escuchar(localeId: localeId, onDevice: _usandoOnDevice);
+        });
+        return;
+      }
+    }
+
+    if (_usandoOnDevice &&
+        !_reintentandoEnNube &&
+        ConnectivityBridge.estaConectado &&
+        _esErrorOnDeviceNoDisponible(errorMsg)) {
+      debugPrint(
+        '[VoiceService] STT on-device falló ($errorMsg), reintentando en nube...',
+      );
+      _reintentandoEnNube = true;
+      Future.microtask(() async {
+        _usandoOnDevice = false;
+        _vioListeningEstaSesion = false;
+        _escuchaIniciadaEn = DateTime.now();
+        final localeId = await _resolverLocaleStt();
+        final ok = await _escuchar(localeId: localeId, onDevice: false);
+        _reintentandoEnNube = false;
+        if (!ok) {
+          _escuchaPrincipalActiva = false;
+          isListeningNotifier.value = false;
+          _onSttError?.call(errorMsg);
+        }
+      });
+      return;
+    }
+
+    if (_reintentandoEnNube) return;
     isListeningNotifier.value = false;
-    return false;
+    _escuchaPrincipalActiva = false;
+    _onSttError?.call(
+      ConnectivityBridge.estaConectado ? errorMsg : 'stt_offline',
+    );
+  }
+
+  void _notificarFinSesionStt() {
+    if (_isVadListening || _isWakeWordListening) return;
+    if (_reintentandoEnNube) return;
+    if (!_escuchaPrincipalActiva) return;
+    if (!_puedeCerrarSesionStt() && _ultimoTextoReconocido.trim().isEmpty) {
+      return;
+    }
+    _escuchaPrincipalActiva = false;
+    _onSessionEnded?.call();
   }
 
   Future<void> stopListening() async {
+    final debiaNotificar = _escuchaPrincipalActiva;
+    _escuchaPrincipalActiva = false;
     await _speech.stop();
     isListeningNotifier.value = false;
+    if (debiaNotificar) {
+      _onSessionEnded?.call();
+    }
   }
 
   // ── VAD (Voice Activity Detection) ──────────────────────────────────────

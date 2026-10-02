@@ -31,9 +31,12 @@ class GuiaMemoriaService {
   }
 
   /// Compila el mini-contexto de rehidratación (máximo 5 líneas) y lo retorna.
-  /// Si la caché local está vacía, busca restaurarla desde Supabase.
-  /// También actualiza la fecha de la última sesión.
-  static Future<String?> cargarContextoRehidratado() async {
+  /// Si [permitirRed] es true (default) y la caché local está vacía, busca
+  /// restaurarla desde Supabase y dispara backup. El motor offline debe
+  /// pasar `permitirRed: false` para no tocar la red.
+  static Future<String?> cargarContextoRehidratado({
+    bool permitirRed = true,
+  }) async {
     await inicializar();
     if (_prefs == null) return null;
 
@@ -46,7 +49,11 @@ class GuiaMemoriaService {
     
     // Si la caché local está vacía y hay sesión activa de Supabase, intentamos restaurar
     final userId = SupabaseService.currentUserId;
-    if (cachedNombre == null && (cachedEspecies == null || cachedEspecies.isEmpty) && (cachedZonas == null || cachedZonas.isEmpty) && userId != null) {
+    if (permitirRed &&
+        cachedNombre == null &&
+        (cachedEspecies == null || cachedEspecies.isEmpty) &&
+        (cachedZonas == null || cachedZonas.isEmpty) &&
+        userId != null) {
       debugPrint('[GuiaMemoriaService] Caché local vacía. Intentando restaurar desde Supabase...');
       await _restaurarDesdeSupabase(userId, prefix);
     }
@@ -64,8 +71,9 @@ class GuiaMemoriaService {
     final ahora = DateTime.now().toIso8601String();
     await _prefs!.setString('${prefix}fecha_sesion', ahora);
     
-    // Ejecutar el backup en segundo plano para actualizar la fecha en Supabase
-    _backupToSupabase();
+    if (permitirRed) {
+      _backupToSupabase();
+    }
 
     if (nombre == null &&
         especies.isEmpty &&

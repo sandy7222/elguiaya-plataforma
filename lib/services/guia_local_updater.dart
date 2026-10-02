@@ -64,17 +64,27 @@ class GuiaLocalUpdater {
 
   /// Detecta si el texto coincide con alguna intención aprendida.
   /// Retorna el nombre de la intención o null si no hay match.
+  ///
+  /// IMPORTANTE: elige el activador MÁS ESPECÍFICO (el más largo) entre
+  /// todos los que matchean, no el primero que aparezca. Antes esto
+  /// devolvía la primera intención cuyo activador fuera substring del
+  /// texto, así que un activador genérico como "bagre" siempre le ganaba
+  /// a uno más específico como "bagre de mar" con solo aparecer antes en
+  /// el mapa — sin importar si la intención específica también matcheaba.
   static String? detectarIntencion(String textoNormalizado) {
     if (!_cargado || _cache.isEmpty) return null;
 
+    String? mejorIntencion;
+    int mejorLongitud = 0;
     for (final entry in _cache.entries) {
       for (final activador in entry.value.activadores) {
-        if (textoNormalizado.contains(activador)) {
-          return entry.key;
+        if (textoNormalizado.contains(activador) && activador.length > mejorLongitud) {
+          mejorLongitud = activador.length;
+          mejorIntencion = entry.key;
         }
       }
     }
-    return null;
+    return mejorIntencion;
   }
 
   /// Obtiene una respuesta aleatoria para la intención aprendida.

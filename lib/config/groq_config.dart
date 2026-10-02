@@ -1,15 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// GroqConfig — Claves API y modelo Groq para todos los servicios de la app.
-///
-/// Hay DOS claves independientes para que la centralita y El Guía
-/// no se pisen nunca entre sí:
-///   • _keyGuia       → clave de El Guía (asistente del robot flotante)
-///   • _keyCentralita → clave de la Centralita (uso administrativo/operativo)
-///
-/// Si solo tenés una clave en Groq, ponela en ambos campos — o dejá
-/// la centralita vacía y El Guía usará su propia.
+/// Configuración pública de Groq. Las claves viven exclusivamente como secretos
+/// de la Edge Function y no se aceptan ni se persisten en Flutter.
 class GroqConfig {
   // ── Claves de SharedPreferences ───────────────────────────────────────────
   static const String _keyGuia       = 'groq_api_key_guia';
@@ -19,7 +12,7 @@ class GroqConfig {
   // ── Clave legada (para migración automática) ──────────────────────────────
   static const String _keyLegado     = 'groq_api_key';
 
-  static const String defaultModel = 'llama-3.3-70b-versatile';
+  static const String defaultModel = 'openai/gpt-oss-120b';
 
   // ── Estado interno ────────────────────────────────────────────────────────
   // Fase 0: el cliente no conserva ni recibe claves de proveedor.
@@ -30,22 +23,21 @@ class GroqConfig {
 
   // ── Getters públicos ──────────────────────────────────────────────────────
 
-  /// Clave que usa El Guía (robot flotante / BaqueanoIAService).
-  static String get apiKey        => _apiKeyGuia;
-  static String get apiKeyGuia    => _apiKeyGuia;
-
-  /// Clave que usa la Centralita (panel administrativo).
-  static String get apiKeyCentralita => _apiKeyCentralita;
-
   static String get modelo => _modelo;
+  static bool get iaOnlineHabilitada => true;
 
-  static bool get tieneApiKey          => _apiKeyGuia.trim().isNotEmpty;
-  static bool get tieneApiKeyCentralita => _apiKeyCentralita.trim().isNotEmpty;
+  @Deprecated('Las claves no se exponen al cliente.')
+  static String get apiKey => '';
+  @Deprecated('Las claves no se exponen al cliente.')
+  static String get apiKeyGuia => '';
+  @Deprecated('Las claves no se exponen al cliente.')
+  static String get apiKeyCentralita => '';
+  static bool get tieneApiKey => iaOnlineHabilitada;
+  static bool get tieneApiKeyCentralita => iaOnlineHabilitada;
 
   // ── Carga ─────────────────────────────────────────────────────────────────
 
-  /// Carga ambas claves desde SharedPreferences.
-  /// Migra automáticamente la clave legada si existe y las nuevas están vacías.
+  /// Elimina credenciales de instalaciones anteriores sin leerlas ni mostrarlas.
   static Future<void> cargar() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -66,32 +58,22 @@ class GroqConfig {
 
   // ── Setters ───────────────────────────────────────────────────────────────
 
-  /// Guarda la clave de El Guía de forma persistente.
+  /// Ya no se admite almacenar claves de proveedor en el dispositivo.
   static Future<void> setApiKey(String key) async {
-    await setApiKeyGuia(key);
+    await _rechazarClaveLocal(key);
   }
 
-  /// Guarda la clave de El Guía de forma persistente.
   static Future<void> setApiKeyGuia(String key) async {
-    _apiKeyGuia = key.trim();
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_keyGuia, _apiKeyGuia);
-      debugPrint('[GroqConfig] 💾 Clave El Guía guardada: ${_apiKeyGuia.substring(0, 8)}...');
-    } catch (e) {
-      debugPrint('⚠️ [GroqConfig] Error al guardar clave Guía: $e');
-    }
+    await _rechazarClaveLocal(key);
   }
 
-  /// Guarda la clave de la Centralita de forma persistente.
   static Future<void> setApiKeyCentralita(String key) async {
-    _apiKeyCentralita = key.trim();
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_keyCentralita, _apiKeyCentralita);
-      debugPrint('[GroqConfig] 💾 Clave Centralita guardada: ${_apiKeyCentralita.substring(0, 8)}...');
-    } catch (e) {
-      debugPrint('⚠️ [GroqConfig] Error al guardar clave Centralita: $e');
+    await _rechazarClaveLocal(key);
+  }
+
+  static Future<void> _rechazarClaveLocal(String key) async {
+    if (key.trim().isNotEmpty) {
+      throw UnsupportedError('Las claves de Groq se configuran como secretos de la Edge Function.');
     }
   }
 
@@ -110,12 +92,6 @@ class GroqConfig {
 
   /// Devuelve un string de estado para mostrar en UI de diagnóstico.
   static String get estadoDiagnostico {
-    final guia = _apiKeyGuia.isNotEmpty
-        ? '${_apiKeyGuia.substring(0, 8)}...'
-        : 'SIN CLAVE';
-    final centralita = _apiKeyCentralita.isNotEmpty
-        ? '${_apiKeyCentralita.substring(0, 8)}...'
-        : 'SIN CLAVE';
-    return 'Guía: $guia | Centralita: $centralita | Modelo: $_modelo';
+    return 'Proveedor: Edge Function | Modelo: $_modelo';
   }
 }

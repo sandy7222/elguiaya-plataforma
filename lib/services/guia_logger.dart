@@ -154,6 +154,82 @@ class GuiaLogger {
     return File('${dir.path}/$_nombreArchivo');
   }
 
+  // ── Retrieval-first (Fase 5) ─────────────────────────────────────────────
+  static const String _nombreArchivoRetrieval = 'guia_retrieval.csv';
+  static const String _headerRetrieval =
+      'timestamp,decision,intencion_reglas,uso_semantico,s1,s2,ms,top3,texto\n';
+
+  /// Registra cada búsqueda del retriever: pregunta, franja (directa /
+  /// aclarar / ninguna), top-3 con puntajes y tiempos. Es la materia prima
+  /// del Paso 6 (calibración con logs reales): se lee con [leerRetrieval] o
+  /// se exporta con `mini_model_lab/retrieval/analizar_logs.py`.
+  static Future<void> registrarRetrieval({
+    required String texto,
+    required String decision,
+    required String intencionReglas,
+    required bool usoSemantico,
+    required double s1,
+    required double s2,
+    required int ms,
+    required String top3,
+  }) async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final archivo = File('${dir.path}/$_nombreArchivoRetrieval');
+      if (!await archivo.exists()) {
+        await archivo.writeAsString(_headerRetrieval, mode: FileMode.write);
+      }
+      String limpiar(String s) =>
+          s.replaceAll('"', "'").replaceAll(',', ';').replaceAll('\n', ' ').trim();
+      final linea = '${DateTime.now().toIso8601String()},$decision,$intencionReglas,'
+          '${usoSemantico ? 'si' : 'no'},${s1.toStringAsFixed(3)},${s2.toStringAsFixed(3)},'
+          '$ms,"${limpiar(top3)}","${limpiar(texto)}"\n';
+      await archivo.writeAsString(linea, mode: FileMode.append);
+
+      final lineas = await archivo.readAsLines();
+      if (lineas.length > _maxEntradas) {
+        final mitad = lineas.sublist(lineas.length - (_maxEntradas ~/ 2));
+        await archivo.writeAsString('$_headerRetrieval${mitad.skip(1).join('\n')}\n');
+      }
+    } catch (e) {
+      // ignore: avoid_print
+      print('[GuiaLogger] Error al registrar retrieval: $e');
+    }
+  }
+
+  /// Devuelve las últimas [n] búsquedas del retriever (más recientes al final),
+  /// ya parseadas. Para la pantalla de admin / calibración.
+  static Future<List<Map<String, String>>> leerRetrieval({int n = 200}) async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final archivo = File('${dir.path}/$_nombreArchivoRetrieval');
+      if (!await archivo.exists()) return [];
+      final lineas = await archivo.readAsLines();
+      final campos = _headerRetrieval.trim().split(',');
+      final salida = <Map<String, String>>[];
+      for (final l in lineas.skip(1)) {
+        final partes = l.split(',');
+        if (partes.length < campos.length) continue;
+        // los dos últimos campos van entre comillas y no tienen comas (se
+        // reemplazaron por ';'), así que el split directo alcanza
+        final fila = <String, String>{};
+        for (var i = 0; i < campos.length; i++) {
+          fila[campos[i]] = partes[i].replaceAll('"', '');
+        }
+        salida.add(fila);
+      }
+      return salida.length > n ? salida.sublist(salida.length - n) : salida;
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Ruta del CSV de retrieval (para compartirlo / copiarlo al laboratorio).
+  static Future<String> obtenerRutaRetrieval() async {
+    final dir = await getApplicationDocumentsDirectory();
+    return '${dir.path}/$_nombreArchivoRetrieval';
+  }
+
   /// Registra un fallo de búsqueda en librerías offline en un archivo JSON local.
   static Future<void> registrarFalloOffline({
     required String pregunta,

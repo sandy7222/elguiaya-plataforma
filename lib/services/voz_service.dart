@@ -10,13 +10,45 @@ class VozService {
     if (_configurado) return;
 
     try {
-      // Configuramos el idioma en español
-      await _tts.setLanguage(
-        "es-AR",
-      ); // "es-AR" para acento argentino si está disponible, o "es-ES" / "es-MX"
+      await _tts.setLanguage("es-AR");
+      try {
+        final List<dynamic>? voices = await _tts.getVoices;
+        if (voices != null && voices.isNotEmpty) {
+          dynamic selectedVoice;
+          final locales = ['es-AR', 'es-419', 'es-MX', 'es-US', 'es-ES'];
+          for (final loc in locales) {
+            for (final voice in voices) {
+              if (voice is Map) {
+                final locale = (voice['locale'] ?? voice['lang'] ?? '').toString().toLowerCase();
+                final name = (voice['name'] ?? '').toString().toLowerCase();
+                if (locale.contains(loc.toLowerCase()) || name.contains(loc.toLowerCase())) {
+                  selectedVoice = voice;
+                  break;
+                }
+              } else {
+                final voiceStr = voice.toString().toLowerCase();
+                if (voiceStr.contains(loc.toLowerCase())) {
+                  selectedVoice = voice;
+                  break;
+                }
+              }
+            }
+            if (selectedVoice != null) break;
+          }
+
+          if (selectedVoice != null && selectedVoice is Map) {
+            final name = (selectedVoice['name'] ?? '').toString();
+            final locale = (selectedVoice['locale'] ?? selectedVoice['lang'] ?? '').toString();
+            await _tts.setVoice({"name": name, "locale": locale});
+            print("🔊 El GuIA VozService: Voz optimizada seleccionada: $name ($locale)");
+          }
+        }
+      } catch (e) {
+        print("⚠️ Error configurando voz en VozService: $e");
+      }
 
       // Velocidad del habla (1. o 1.5 es ideal, ni muy lento ni modo ardilla)
-      await _tts.setSpeechRate(kIsWeb ? 0.9 : 0.45);
+      await _tts.setSpeechRate(kIsWeb ? 0.5 : 0.45);
 
       // Tono de la voz (1.0 es el valor por defecto técnico)
       await _tts.setPitch(1.0);

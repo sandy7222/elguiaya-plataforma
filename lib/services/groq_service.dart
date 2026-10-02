@@ -13,10 +13,10 @@ import 'connectivity_bridge.dart';
 import 'supabase_service.dart';
 import 'guia_memoria_service.dart';
 import 'guia_copilot_brain.dart';
+import 'ia_edge_function_client.dart';
 
 
 class GroqService {
-  static const String _baseUrl = 'https://api.groq.com/openai/v1/chat/completions';
 
   // ID temporal para la corrección de aprendizaje
   static String? _ultimoRegistroId;
@@ -31,10 +31,6 @@ class GroqService {
   }) async {
     if (!ConnectivityBridge.estaConectado) {
       throw Exception('Failsafe: Dispositivo sin conexión a internet, forzando fallback local');
-    }
-
-    if (!GroqConfig.tieneApiKey) {
-      throw Exception('Sin API Key de Groq configurada');
     }
 
     // Detectar si el usuario corrige el aprendizaje previo
@@ -144,17 +140,10 @@ El campo "respuesta_limpia" máximo 120 caracteres, sin asteriscos ni markdown.
 
     for (int intento = 1; intento <= maxIntentos; intento++) {
       try {
-        tempResponse = await http.post(
-          Uri.parse(_baseUrl),
-          headers: {
-            'Content-Type': 'application/json; charset=utf-8',
-            'Authorization': 'Bearer ${GroqConfig.apiKey}',
-          },
-          body: jsonEncode({
-            'model': GroqConfig.modelo,
-            'messages': apiMessages,
-            'temperature': 0.7,
-          }),
+        tempResponse = await AiEdgeFunctionClient.groqChat(
+          model: GroqConfig.modelo,
+          messages: apiMessages,
+          temperature: 0.7,
         ).timeout(
           const Duration(seconds: 12), // Ajustado a 12s para evitar cortes por congestión
         );
@@ -377,19 +366,17 @@ El campo "respuesta_limpia" máximo 120 caracteres, sin asteriscos ni markdown.
 
   /// Prueba la conexión contra Groq con una clave específica.
   Future<String> probarConexion(String apiKey) async {
-    final response = await http.post(
-      Uri.parse(_baseUrl),
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        'Authorization': 'Bearer $apiKey',
-      },
-      body: jsonEncode({
-        'model': GroqConfig.modelo,
-        'messages': [
-          {'role': 'user', 'content': 'Respond strictly with: "Groq Llama 3.3 operativo"'},
-        ],
-        'temperature': 0.1,
-      }),
+    // El parámetro se conserva por compatibilidad con la UI, pero nunca se
+    // transmite ni persiste en el cliente.
+    if (apiKey.trim().isNotEmpty) {
+      throw UnsupportedError('Las claves de Groq se configuran como secretos del servidor.');
+    }
+    final response = await AiEdgeFunctionClient.groqChat(
+      model: GroqConfig.modelo,
+      messages: [
+        {'role': 'user', 'content': 'Respond strictly with: "Groq Llama 3.3 operativo"'},
+      ],
+      temperature: 0.1,
     ).timeout(const Duration(seconds: 8));
 
     if (response.statusCode == 200) {
@@ -409,10 +396,6 @@ El campo "respuesta_limpia" máximo 120 caracteres, sin asteriscos ni markdown.
     if (!ConnectivityBridge.estaConectado) {
       throw Exception('Dispositivo sin conexión a internet.');
     }
-    if (!GroqConfig.tieneApiKey) {
-      throw Exception('Sin API Key de Groq configurada');
-    }
-
     final systemPrompt = CapacitacionService.obtenerPromptRedactor();
     final userPrompt = """
 Tomá este relato de pesca y redactá la nota periodística basada estrictamente en él:
@@ -424,20 +407,13 @@ Fecha de la salida: $fecha
 Zona de pesca: $zona
 """;
 
-    final response = await http.post(
-      Uri.parse(_baseUrl),
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        'Authorization': 'Bearer ${GroqConfig.apiKey}',
-      },
-      body: jsonEncode({
-        'model': GroqConfig.modelo,
-        'messages': [
-          {'role': 'system', 'content': systemPrompt},
-          {'role': 'user', 'content': userPrompt},
-        ],
-        'temperature': 0.7,
-      }),
+    final response = await AiEdgeFunctionClient.groqChat(
+      model: GroqConfig.modelo,
+      messages: [
+        {'role': 'system', 'content': systemPrompt},
+        {'role': 'user', 'content': userPrompt},
+      ],
+      temperature: 0.7,
     ).timeout(const Duration(seconds: 15));
 
     if (response.statusCode == 200) {

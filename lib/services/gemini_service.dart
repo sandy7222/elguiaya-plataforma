@@ -6,7 +6,8 @@ import '../models/el_guia_respuesta.dart';
 import 'capacitacion_service.dart';
 import 'gemini_learner.dart';
 import 'el_guia_engine.dart';
-import 'el_guia_context.dart';
+import 'el_guia_context.dart';
+import 'ia_edge_function_client.dart';
 
 /// GeminiService â El cerebro online de El Guía.
 ///
@@ -20,8 +21,8 @@ import 'el_guia_context.dart';
 /// Usa http directamente para no requerir el paquete google_generative_ai
 /// hasta que esté disponible en pubspec. Compatible con REST v1beta.
 class GeminiService {
-  static const String _baseUrl =
-      'https://generativelanguage.googleapis.com/v1beta/models';
+  // Provider URL lives in ia-proxy.
+  // No provider endpoint is kept in Flutter.
 
   static final ElGuiaEngine _motorLocal = ElGuiaEngine();
 
@@ -109,7 +110,7 @@ class GeminiService {
   /// Llamada de prueba para el botón "Probar conexión" del panel admin.
   /// Devuelve el texto crudo de Gemini o lanza excepción con el motivo.
   Future<String> probarConexion() async {
-    if (!GeminiConfig.tieneApiKey) throw Exception('Sin API key');
+    // La autenticación del proveedor se resuelve en ia-proxy.
     return await _llamarApi('¿Hola! ¿Estás funcionando? Respondé solo: "Sí, Gemini 1.5 Flash operativo"');
   }
 
@@ -117,13 +118,13 @@ class GeminiService {
   /// Usa Google Search Grounding para buscar info en tiempo real.
   /// Devuelve un mapa con { 'respuesta': texto, 'aprendido': bool, 'intencion': nombre }.
   Future<Map<String, dynamic>> buscarYMemorizar(String tema) async {
-    if (!GeminiConfig.tieneApiKey) throw Exception('Sin API key');
+    // La autenticación del proveedor se resuelve en ia-proxy.
 
-    final url = Uri.parse(
-      '$_baseUrl/${GeminiConfig.modelo}:generateContent?key=${GeminiConfig.apiKey}',
+    /* final url = Uri.parse(
+      // Endpoint y clave de proveedor eliminados del cliente.
     );
 
-    final promptEntrenamiento = '''
+    */ final promptEntrenamiento = '''
 Sos El Guía, el asistente de EL GUIA YA, una app de pesca deportiva argentina en el Río Paraná.
 El administrador de la app te pide que aprendas sobre este tema para poder responderlo offline a los pescadores:
 
@@ -170,13 +171,18 @@ Formato obligatorio del JSON:
       },
     });
 
-    final response = await http
+    /* final response = await http
         .post(
           url,
           headers: {'Content-Type': 'application/json'},
           body: body,
         )
-        .timeout(const Duration(seconds: 20));
+        .timeout(const Duration(seconds: 20)); */
+
+    final response = await AiEdgeFunctionClient.geminiGenerate(
+      model: GeminiConfig.modelo,
+      body: json.decode(body) as Map<String, dynamic>,
+    ).timeout(const Duration(seconds: 20));
 
     if (response.statusCode == 429) throw Exception('Límite de cuota alcanzado. Esperá unos minutos.');
     if (response.statusCode != 200) {
@@ -214,11 +220,11 @@ Formato obligatorio del JSON:
         ..ultimaConsulta = pregunta
         ..esBlog = false,
     );
-    final url = Uri.parse(
-      '$_baseUrl/${GeminiConfig.modelo}:generateContent?key=${GeminiConfig.apiKey}',
+    /* final url = Uri.parse(
+      // Endpoint y clave de proveedor eliminados del cliente.
     );
 
-    final body = json.encode({
+    */ final body = json.encode({
       // camelCase obligatorio en la REST API de Gemini
       'systemInstruction': {
         'parts': [{'text': systemInstruction}],
@@ -253,13 +259,18 @@ Formato obligatorio del JSON:
       ],
     });
 
-    final response = await http
+    /* final response = await http
         .post(
           url,
           headers: {'Content-Type': 'application/json'},
           body: body,
         )
-        .timeout(Duration(seconds: GeminiConfig.timeoutSegundos));
+        .timeout(Duration(seconds: GeminiConfig.timeoutSegundos)); */
+
+    final response = await AiEdgeFunctionClient.geminiGenerate(
+      model: GeminiConfig.modelo,
+      body: json.decode(body) as Map<String, dynamic>,
+    ).timeout(Duration(seconds: GeminiConfig.timeoutSegundos));
 
     if (response.statusCode == 429) throw _RateLimitException();
     if (response.statusCode != 200) {

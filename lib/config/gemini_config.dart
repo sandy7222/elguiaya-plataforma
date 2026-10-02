@@ -1,9 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// GeminiConfig — Interruptor maestro y control de cuota del modo educador.
-///
-/// Gestiona: API key, toggle on/off, contador diario, pausa por rate-limit.
-/// Todo se persiste en SharedPreferences → configurable desde admin sin recompilar.
+/// Interruptor maestro y control local de cuota del modo educador.
+/// La clave de Gemini se gestiona únicamente como secreto de la Edge Function.
 class GeminiConfig {
   // ── Claves SharedPreferences ──────────────────────────────────────────────
   static const String _keyEducadorActivo  = 'gemini_educador_activo';
@@ -27,7 +25,6 @@ class GeminiConfig {
 
   // ── Estado en memoria ─────────────────────────────────────────────────────
   static bool   _educadorActivo  = false;
-  static String _apiKey          = '';
   static int    _limiteDiario    = limiteDiarioDefault;
   static int    _consultasHoy    = 0;
   static String _fechaContador   = '';
@@ -44,18 +41,19 @@ class GeminiConfig {
 
   // ── Getters públicos ──────────────────────────────────────────────────────
   static bool   get educadorActivo  => _educadorActivo;
-  static String get apiKey          => _apiKey;
   static int    get limiteDiario    => _limiteDiario;
   static int    get consultasHoy    => _consultasHoy;
   static int    get totalAprendidas => _totalAprendidas;
   static int    get totalPreguntas  => _totalPreguntas;
   static int    get totalConsultasTotal => _totalConsultasTotal;
   static String get ultimaActividad => _ultimaActividad;
-  static bool   get tieneApiKey     => _apiKey.trim().isNotEmpty;
+  @Deprecated('Las claves no se exponen al cliente.')
+  static String get apiKey => '';
+  static bool get tieneApiKey => true;
 
   /// true solo si puede hacer llamadas a Gemini ahora mismo.
   static bool get puedeConsultar {
-    if (!_educadorActivo || !tieneApiKey) return false;
+    if (!_educadorActivo) return false;
     if (_estaPausadaPorRateLimit()) return false;
     _verificarResetDiario();
     return _consultasHoy < _limiteDiario;
@@ -64,7 +62,6 @@ class GeminiConfig {
   /// Razón por la que no puede consultar (para el panel admin).
   static String get estadoDescripcion {
     if (!_educadorActivo) return 'Educador apagado';
-    if (!tieneApiKey)     return 'Sin API key';
     if (_estaPausadaPorRateLimit()) {
       final restante = _pausadaHasta!.difference(DateTime.now());
       final mins = restante.inMinutes + 1;
@@ -83,7 +80,7 @@ class GeminiConfig {
   static Future<void> cargar() async {
     final prefs = await SharedPreferences.getInstance();
     _educadorActivo  = prefs.getBool(_keyEducadorActivo) ?? false;
-    _apiKey          = prefs.getString(_keyApiKey) ?? '';
+    await prefs.remove(_keyApiKey);
     _limiteDiario    = prefs.getInt(_keyLimiteDiario) ?? limiteDiarioDefault;
     _consultasHoy    = prefs.getInt(_keyConsultasHoy) ?? 0;
     _fechaContador   = prefs.getString(_keyFechaContador) ?? '';
@@ -112,9 +109,9 @@ class GeminiConfig {
 
 
   static Future<void> setApiKey(String key) async {
-    _apiKey = key.trim();
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_keyApiKey, _apiKey);
+    if (key.trim().isNotEmpty) {
+      throw UnsupportedError('Las claves de Gemini se configuran como secretos de la Edge Function.');
+    }
   }
 
   static Future<void> setLimiteDiario(int limite) async {

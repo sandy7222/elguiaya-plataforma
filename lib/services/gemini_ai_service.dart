@@ -2,9 +2,8 @@
 
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
-
 import 'seguridad_service.dart';
+import 'ia_edge_function_client.dart';
 import 'maestro_pescador_skill.dart';
 import 'emergencia_nautica_skill.dart';
 import 'navegacion_gps_skill.dart';
@@ -75,8 +74,6 @@ class DeteccionFraude {
 
 /// Servicio de Inteligencia Artificial - Asistente El Guia YA
 class GeminiAIService {
-  static const String _apiKey = String.fromEnvironment('GEMINI_API_KEY', defaultValue: 'AIzaSy...'); // Reemplazar con API key real
-  static const String _baseUrl = 'https://generativelanguage.googleapis.com/v1beta';
   static const String _model = 'gemini-2.5-flash';
   
   static String get _identidadAsistente => '''
@@ -483,13 +480,7 @@ Genera un reporte profesional y detallado (300-500 palabras).
 
   /// Llamada principal a la API de Gemini con soporte opcional de búsqueda en Google e Imágenes
   static Future<Map<String, dynamic>> _callGemini(String prompt, {bool useSearch = false, String? imageBase64}) async {
-    if (_apiKey == 'AIzaSy...' || _apiKey.isEmpty) {
-      throw Exception('API Key de Gemini no configurada (valor por defecto detectado).');
-    }
-
     try {
-      final url = Uri.parse('$_baseUrl/$_model:generateContent?key=$_apiKey');
-      
       final parts = <Map<String, dynamic>>[
         {
           'text': prompt,
@@ -525,10 +516,9 @@ Genera un reporte profesional y detallado (300-500 palabras).
         },
       };
 
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode(body),
+      final response = await AiEdgeFunctionClient.geminiGenerate(
+        model: _model,
+        body: body,
       );
 
       if (response.statusCode == 200) {

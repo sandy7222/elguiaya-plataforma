@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/services.dart';
@@ -5,10 +6,19 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'guia_local_updater.dart';
+import 'guia_retrieval/guia_modelo_descarga.dart';
 import 'el_guia_engine.dart';
 
 class GuiaKnowledgeSyncService {
   static const String _syncKeyPrefix = 'guia_sync_';
+  // Marca de agua incremental (fecha_aprobacion más reciente ya aplicada)
+  // — separada de _syncKeyPrefix, que guarda CUÁNDO se hizo el último
+  // intento de sync (para el throttling de 24h/7d). Si usáramos la misma
+  // clave para las dos cosas, un sync que no encuentra nada nuevo para
+  // aplicar dejaría de actualizar "cuándo fue el último intento", y el
+  // throttle terminaría disparando el sync en cada arranque de la app en
+  // vez de esperar el intervalo correspondiente.
+  static const String _watermarkKeyPrefix = 'guia_sync_watermark_';
 
   // Obtiene el límite máximo por librería según la especificación
   static int obtenerLimiteLibreria(String libreria) {
@@ -58,20 +68,58 @@ class GuiaKnowledgeSyncService {
   static Future<void> _sincronizarPorCategoria(String categoria) async {
     try {
       final client = Supabase.instance.client;
-      // Consultar Supabase filtrando aprobado: true y categoria correspondiente
-      final response = await client
+      final prefs = await SharedPreferences.getInstance();
+      final marcaAguaStr = prefs.getString('${_watermarkKeyPrefix}$categoria');
+
+      // Consultar Supabase filtrando aprobado: true y categoria correspondiente.
+      //
+      // IMPORTANTE — esto ya NO borra nada de Supabase al terminar (ver más
+      // abajo). Antes este método bajaba TODO lo aprobado de la categoría y
+      // llamaba a limpiar_conocimiento_aprobado_por_categoria() para
+      // borrarlo de la tabla apenas terminaba. Eso corría en paralelo con
+      // el GitHub Action nocturno (consolidate.yml →
+      // limpiar_conocimiento_aprobado()), que hace exactamente lo mismo
+      // para consolidar el conocimiento en los JSON del repo. Los dos
+      // procesos compiten por las mismas filas: quien borra primero le
+      // deja al otro la tabla vacía, así que según el orden de la carrera
+      // el conocimiento aprobado quedaba solo en el celular que sincronizó
+      // primero (y nunca en el repo/próximo build) o solo en el repo (y
+      // nunca llegaba a un celular ya instalado sin actualizar).
+      //
+      // Ahora este método es de solo lectura respecto a Supabase: filtra
+      // incrementalmente por fecha_aprobacion > última sincronización de
+      // este dispositivo para esta categoría, y deja el borrado como
+      // responsabilidad exclusiva del proceso nocturno. Así puede volver a
+      // leer lo mismo sin romper nada si hace falta, y no le saca la fila a
+      // nadie más.
+      var query = client
           .from('guia_conocimiento_distribuido')
           .select('*')
           .eq('aprobado', true)
           .eq('categoria', categoria);
+
+      if (marcaAguaStr != null && marcaAguaStr.isNotEmpty) {
+        final fechaCorte = marcaAguaStr.substring(0, 10); // yyyy-MM-dd, mismo formato que fecha_aprobacion
+        query = query.gt('fecha_aprobacion', fechaCorte);
+      }
+
+      final response = await query;
 
       if (response == null) return;
 
       final intencionesAprobadas = List<Map<String, dynamic>>.from(response as List);
       if (intencionesAprobadas.isEmpty) return;
 
+      // Marca de throttle: registramos que efectivamente corrimos una
+      // sincronización con datos para esta categoría, igual que antes
+      // (así sincronizarDiario/sincronizarSemanal respetan sus ventanas de
+      // 24h/7 días en verificarYEjecutarSincronizaciones en vez de
+      // reintentar en cada arranque).
+      await prefs.setString('${_syncKeyPrefix}$categoria', DateTime.now().toIso8601String());
+
       final baseDir = await getApplicationDocumentsDirectory();
       bool huboCambios = false;
+      String? fechaAplicadaMasReciente;
 
       for (final item in intencionesAprobadas) {
         final String libreria = item['libreria']?.toString() ?? 'resto';
@@ -107,7 +155,7 @@ class GuiaKnowledgeSyncService {
         final int totalActual = intencionesList.length;
         if (totalActual >= (maxLimite * 0.9).round()) {
           // ignore: avoid_print
-          print('[SyncService] ⚠️ Librería $libreria al 90% o más ($totalActual/$maxLimite). Sync omitido para $intencion.');
+          print('[SyncService] ⚠️ Librería $libreria al 90% o más ($totalActual/$maxLimite). Sync omitido para $intencion — no avanzamos la marca de agua para esta fecha, se reintentará.');
           continue;
         }
 
@@ -147,6 +195,15 @@ class GuiaKnowledgeSyncService {
           const JsonEncoder.withIndent('  ').convert(jsonContent),
         );
         huboCambios = true;
+
+        // Vamos guardando la fecha_aprobacion más reciente entre lo que SÍ
+        // se aplicó, para usarla como marca de agua — así un ítem saltado
+        // por el límite del 90% no queda perdido para siempre.
+        final String? fechaItem = item['fecha_aprobacion']?.toString();
+        if (fechaItem != null &&
+            (fechaAplicadaMasReciente == null || fechaItem.compareTo(fechaAplicadaMasReciente) > 0)) {
+          fechaAplicadaMasReciente = fechaItem;
+        }
       }
 
       if (huboCambios) {
@@ -154,21 +211,18 @@ class GuiaKnowledgeSyncService {
         await GuiaLocalUpdater.recargar();
         // Inicializar ElGuiaEngine para recargar librerías y activar nuevas intenciones
         await ElGuiaEngine().inicializar();
-
-        // Autolimpieza en el servidor: como ya se copiaron localmente, las borramos de Supabase
-        try {
-          await client.rpc('limpiar_conocimiento_aprobado_por_categoria', params: {
-            'cat_name': categoria,
-          });
-        } catch (rpcErr) {
-          // ignore: avoid_print
-          print('[SyncService] ⚠️ Error al autolimpiar Supabase: $rpcErr');
-        }
+        // Re-armar el corpus del retriever con los overrides recién bajados
+        // (y, si hay modelo, re-vectorizar solo las fichas que cambiaron).
+        await ElGuiaEngine().reconstruirIndiceRetrieval();
       }
 
-      // Guardar fecha de última sincronización en SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('${_syncKeyPrefix}$categoria', DateTime.now().toIso8601String());
+      // Marca de agua incremental: solo avanza hasta la fecha_aprobacion
+      // más reciente que realmente se aplicó. Si todo se saltó por el
+      // límite del 90%, no avanza nada, así se reintenta la próxima vez en
+      // vez de perderse para siempre.
+      if (fechaAplicadaMasReciente != null) {
+        await prefs.setString('${_watermarkKeyPrefix}$categoria', fechaAplicadaMasReciente);
+      }
 
     } catch (e) {
       // ignore: avoid_print
@@ -205,6 +259,13 @@ class GuiaKnowledgeSyncService {
         if (ahora.difference(ultimaSemanal).inDays >= 7) {
           await sincronizarSemanal();
         }
+      }
+
+      // Modelo de embeddings para el retriever (Fase 5): solo por WiFi, a lo
+      // sumo un chequeo por día, en segundo plano. Si baja algo nuevo,
+      // GuiaModeloDescarga.onModeloListo avisa al motor para armar el índice.
+      if (ElGuiaEngine.retrievalFirstHabilitado) {
+        unawaited(GuiaModeloDescarga.verificarYDescargar());
       }
     } catch (e) {
       // ignore: avoid_print

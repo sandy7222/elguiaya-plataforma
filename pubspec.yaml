@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+1
+version: 11.5.2026+20260713
 
 environment:
   sdk: ^3.11.5
@@ -74,6 +74,7 @@ dependencies:
   printing: ^5.14.3
   share_plus: 12.0.2
   table_calendar: ^3.0.9
+  fl_chart: ^0.70.2
   uuid: any
   path: any
 
@@ -83,6 +84,8 @@ dependencies:
   connectivity_plus: ^7.1.1
   youtube_player_flutter: ^10.0.1
   shared_preferences: ^2.3.2
+  video_player: ^2.8.2
+  lottie: ^3.1.0
 
   # Notificaciones locales programadas (despertador, recordatorios con pantalla apagada)
   flutter_local_notifications: ^18.0.1
@@ -90,6 +93,23 @@ dependencies:
   firebase_core: ^4.11.0
   firebase_messaging: ^16.4.1
   file_picker: 8.3.7
+  excel: ^4.0.6
+  flutter_markdown: ^0.7.7+1
+
+  # El Guía retrieval-first (lib/services/guia_retrieval/): hash de fichas
+  crypto: ^3.0.6
+  # Embeddings offline (multilingual-e5-small GGUF) vía llama.cpp. Versión
+  # fijada: es prerelease y el binario nativo de Android
+  # (android/app/libs/llama-cpp-dart.aar) debe ser de la MISMA release.
+  # dev.12 exige Flutter >= 3.44; el proyecto está en 3.41.
+  llama_cpp_dart: 0.9.0-dev.10
+
+dependency_overrides:
+  # llama_cpp_dart declara `image ^4.7.2` (→ archive 4) pero no lo importa en
+  # lib/ (solo en sus ejemplos multimodales); `excel` exige archive ^3. Se
+  # fija `image` en la 4.3.0 que la app ya resolvía antes, sin cambiar nada
+  # del árbol actual. Revisar al subir excel o llama_cpp_dart.
+  image: 4.3.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
