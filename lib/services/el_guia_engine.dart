@@ -23,6 +23,21 @@ import 'guia_retrieval/guia_retriever.dart';
 import 'guia_retrieval/guia_texto_es.dart';
 import '../models/el_guia_respuesta.dart';
 
+/// Clase de una consulta, según a quién se la puede mandar el router.
+enum ClaseIntencion {
+  /// Emergencia, primeros auxilios, VHF/Prefectura, "estoy perdido", GPS.
+  seguridad,
+
+  /// Viajes, pagos, tienda y ayuda de la app.
+  transaccional,
+
+  /// Saludo, mate, chistes, charla.
+  social,
+
+  /// Todo lo demás (pesca, clima, conversación general).
+  otra,
+}
+
 /// Motor Conversacional Híbrido — El Guía  v2.0
 /// Arquitectura de tres capas:
 ///   Capa 1: Personalidad (personalidad.json)
@@ -95,19 +110,52 @@ class ElGuiaEngine {
   /// Intenciones definidas en librerías críticas (se completa al inicializar).
   final Set<String> _intencionesCriticasDinamicas = {};
 
-  /// Intenciones que SIEMPRE responde el motor de reglas, nunca el retriever.
-  static const Set<String> _intencionesReservadas = {
-    // seguridad
+  /// Seguridad: las responde SIEMPRE el motor de reglas. Ni la nube, ni un
+  /// filtro de humor, ni un retraso artificial (ver [clasificarIntencion]).
+  static const Set<String> _intencionesSeguridad = {
     'emergencia', 'prefectura_naval_argentina', 'perdido', 'primeros_auxilios', 'gps',
-    // transaccional / navegación de la app
+  };
+
+  /// Transaccional / navegación de la app: puede seguir por acción directa o
+  /// tienda, pero nunca llega a la nube.
+  static const Set<String> _intencionesTransaccionales = {
     'crear_viaje', 'ver_cotizaciones', 'estado_viaje', 'pagar_viaje', 'confirmar_viaje',
     'calificar', 'tienda', 'notificaciones', 'perfil_pescador', 'activar_guia', 'reserva',
     'ayuda_app', 'elegir_capitan', 'carrito', 'historial_viajes', 'ayuda_general',
     'que_puede_hacer_bot',
-    // social / personalidad
+  };
+
+  /// Social / personalidad: el router no las toca.
+  static const Set<String> _intencionesSociales = {
     'hora', 'agradecimiento', 'preguntas_humanas', 'mate', 'charla_cotidiana', 'chiste',
     'saludo', 'despedida',
   };
+
+  /// Intenciones que SIEMPRE responde el motor de reglas, nunca el retriever.
+  static const Set<String> _intencionesReservadas = {
+    ..._intencionesSeguridad,
+    ..._intencionesTransaccionales,
+    ..._intencionesSociales,
+  };
+
+  /// Qué clase de consulta es una frase, para que el router decida a quién
+  /// se la manda. Si la frase roza seguridad en CUALQUIERA de sus intenciones,
+  /// gana seguridad aunque la principal sea otra.
+  ClaseIntencion clasificarIntencion(String texto) {
+    final intenciones = detectarIntenciones(_limpiarYNormalizarEntrada(texto));
+    if (intenciones.any(_esIntencionDeSeguridad)) return ClaseIntencion.seguridad;
+    final principal = _obtenerMayorPrioridad(intenciones);
+    if (_intencionesTransaccionales.contains(principal)) return ClaseIntencion.transaccional;
+    if (_intencionesSociales.contains(principal)) return ClaseIntencion.social;
+    return ClaseIntencion.otra;
+  }
+
+  /// Las librerías "críticas" dinámicas mezclan seguridad con intenciones
+  /// transaccionales (crear viaje, pagar…): estas últimas no son seguridad.
+  bool _esIntencionDeSeguridad(String intencion) =>
+      _intencionesSeguridad.contains(intencion) ||
+      (_intencionesCriticasDinamicas.contains(intencion) &&
+          !_intencionesTransaccionales.contains(intencion));
 
   // ── Pool de frases de cierre (cuando el bot hizo una pregunta y el usuario responde) ──
   static const List<String> _frasesDeCierre = [
@@ -199,6 +247,10 @@ class ElGuiaEngine {
       'comunicar',
       'comunicacion',
       'comunicación',
+      // Errores de voz de "prefectura".
+      'prefetura',
+      'perfectura',
+      'prefeutra',
     ],
     'emergencia': [
       'ayuda urgente',
@@ -224,6 +276,70 @@ class ElGuiaEngine {
       'emergecia',
       'soccorro',
       'me lastimo',
+      // Emergencias de navegación (texto normalizado, sin tildes) y errores de voz.
+      'emerjencia',
+      'emergensia',
+      'mayday',
+      'estoy en peligro',
+      'estamos en peligro',
+      'en peligro de muerte',
+      'se hunde',
+      'me hundo',
+      'nos hundimos',
+      'hundiendo',
+      'se hundio',
+      'se undio',
+      'se undo',
+      'incendi', // incendio, incendia, incendió
+      'hombre al agua',
+      'persona al agua',
+      'cayo al agua',
+      'cayo al rio',
+      'me ahog', // me ahogo, me ahogando
+      'se ahog',
+      'nos ahog',
+      'me allog',
+      'entra agua al',
+      'entra agua en el',
+      'entra agua en la',
+      'entrando agua',
+      'hace agua',
+      'hacen agua',
+      'ase agua',
+      'llena de agua',
+      'dio vuelta el bote',
+      'dio vuelta la lancha',
+      'vuelta el bote',
+      'vuelta la lancha',
+      'volco el bote',
+      'volco la lancha',
+      'volcamos',
+      'estoy a la deriva',
+      'estamos a la deriva',
+      'quedamos a la deriva',
+      'bote a la deriva',
+      'lancha a la deriva',
+      'varado',
+      'varados',
+      'sin combustible',
+      'sin nafta',
+      'apago el motor', // se apagó / se me apagó el motor
+      'rompio el motor',
+      'rompio el timon',
+      'pibe al agua',
+      'pibe al rio',
+      'nene al agua',
+      'nene al rio',
+      'nena al agua',
+      'nena al rio',
+      'chico al agua',
+      'chico al rio',
+      'nino al agua',
+      'nino al rio',
+      'guri al agua',
+      'no veo la costa',
+      'no veo tierra',
+      'no veo la orilla',
     ],
     'perdido': [
       'me perdi',
@@ -347,6 +463,14 @@ class ElGuiaEngine {
       'me desmaié',
       'me lastime',
       'me lastimé',
+      // Texto normalizado (sin tildes) y otras situaciones de primeros auxilios.
+      'me clave',
+      'desmay', // se desmayó, desmayado
+      'convulsi',
+      'atragant',
+      'hipotermia',
+      'golpe de calor',
+      'insolacion',
     ],
     'peces': [
       'dorado',
@@ -573,6 +697,12 @@ class ElGuiaEngine {
       'salida de pesca',
       'planificar salida',
       'quiero ir al rio',
+      'como creo un viaje',
+      'crear un viaje',
+      'crear mi viaje',
+      'como armo un viaje',
+      'armar un viaje',
+      'como pido un viaje',
     ],
     'ver_cotizaciones': [
       'ver cotizaciones',
@@ -592,6 +722,10 @@ class ElGuiaEngine {
       'cuanto me cobran',
       'que precios tienen',
       'llegaron precios',
+      'mis cotizaciones',
+      'veo mis cotizaciones',
+      'veo las cotizaciones',
+      'mis ofertas',
     ],
     'elegir_capitan': [
       'como elijo',
@@ -632,6 +766,9 @@ class ElGuiaEngine {
       'que paso con mi viaje',
       'cuando salimos',
       'cuando zarpa el capitan',
+      'estado de mi viaje',
+      'como esta mi viaje',
+      'como va el viaje',
     ],
     'pagar_viaje': [
       'como pago',
@@ -655,6 +792,8 @@ class ElGuiaEngine {
       'no me deja pagar',
       'pago rechazado',
       'no me acepta el pago',
+      'pagar con tarjeta',
+      'pagar con mercado',
     ],
     'confirmar_viaje': [
       'confirmar arribo',
@@ -785,6 +924,10 @@ class ElGuiaEngine {
       'donde esta el carrito',
       'el carro',
       'agregue algo al carrito',
+      'agregar al carrito',
+      'agrego al carrito',
+      'sumar al carrito',
+      'al carrito',
     ],
     // ── Historial de viajes ───────────────────────────────────────
     'historial_viajes': [

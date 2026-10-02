@@ -17,6 +17,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:capitanya_master/models/el_guia_respuesta.dart';
 import 'package:capitanya_master/services/baqueano_ia_service.dart';
+import 'package:capitanya_master/services/el_guia_engine.dart';
 import 'package:capitanya_master/services/ia_router_state.dart';
 
 const String _marcaNube = 'RESPUESTA-DE-LA-NUBE-NO-DEBE-USARSE';
@@ -183,6 +184,35 @@ void main() {
         final resp = await BaqueanoIAService.responder(frase);
         expect(_llamadasANube, 0, reason: 'se llamó a la nube con un tema transaccional');
         expect(resp.texto, isNot(contains(_marcaNube)));
+      });
+    }
+  });
+
+  // ── Control de falsos positivos: la pesca normal no es seguridad ──────────
+  // Ampliar el reconocimiento de emergencias no debe hacer que el ayudante
+  // conteste con teléfonos de Prefectura cuando alguien pregunta por pesca.
+  group('no confunde la pesca con seguridad', () {
+    const pescaNormal = [
+      'cómo pesco a la deriva con mosca',
+      'qué carnada uso para el dorado',
+      'qué especies están en peligro de extinción en el paraná',
+      'se me cayó la caña al río qué hago',
+      'cómo armo una línea con tres boyas',
+      'a qué hora es mejor pescar pejerrey',
+      'cómo preparo el mate con agua caliente',
+      'qué hago si no pica nada',
+      'cómo limpio un surubí',
+      'me recomendás una caña para surubí',
+      'qué nudo uso para atar el anzuelo',
+      'cuál es el mejor reel para el río',
+    ];
+    for (final frase in pescaNormal) {
+      test('"$frase"', () {
+        expect(
+          ElGuiaEngine().clasificarIntencion(frase),
+          isNot(ClaseIntencion.seguridad),
+          reason: 'una consulta de pesca normal no debe tratarse como emergencia',
+        );
       });
     }
   });

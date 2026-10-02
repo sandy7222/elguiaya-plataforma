@@ -142,6 +142,18 @@ class BaqueanoIAService {
   static bool _inicializado = false;
   static Future<void>? _inicializando;
 
+  // ── Modo emergencia pegajoso ─────────────────────────────────────────────
+  // Después de una consulta de seguridad, los próximos turnos ("¿y ahora qué
+  // hago?") también los responde el motor de reglas, aunque no repitan la
+  // palabra clave. Una nueva consulta de seguridad lo renueva.
+  static const int _turnosEmergenciaPegajosos = 3;
+  static int _turnosEmergenciaRestantes = 0;
+
+  /// Respuesta mínima si el motor de reglas fallara en un tema de seguridad.
+  static const String _textoSeguridadDeEmergencia =
+      'Chamigo, si es una emergencia no esperes: llamá ya a Prefectura al 106 '
+      'o por radio VHF en el canal 16.';
+
   // ── Costuras para tests (no se usan en producción) ───────────────────────
 
   /// Reemplaza la llamada a Groq del Tier 2. Si no es null, el router la llama
@@ -168,6 +180,7 @@ class BaqueanoIAService {
     _ultimaPregunta = null;
     _coincidenciasPregunta = 0;
     _consultasOffline = 0;
+    _turnosEmergenciaRestantes = 0;
     _cacheRespuestas.clear();
     _historialSesion.clear();
     _motorLocal.contexto.resetearContexto();
@@ -276,6 +289,22 @@ class BaqueanoIAService {
 
     // Actualizar la memoria del pescador en segundo plano (asíncrono)
     GuiaMemoriaService.actualizarMemoria(pregunta);
+
+    // ── PORTÓN DE SEGURIDAD ───────────────────────────────────────────────────
+    // Va ANTES de cualquier filtro (estado, enojo, tristeza, temas prohibidos).
+    // Seguridad: responde el motor de reglas, sin nube y sin retraso. Si la
+    // consulta es transaccional sigue su camino de siempre (acción directa,
+    // tienda), pero nunca llega a la nube. Lo social no cambia.
+    final clase = _motorLocal.clasificarIntencion(pregunta);
+    if (clase == ClaseIntencion.seguridad) {
+      _turnosEmergenciaRestantes = _turnosEmergenciaPegajosos;
+      return _responderConReglas(pregunta);
+    }
+    if (_turnosEmergenciaRestantes > 0) {
+      _turnosEmergenciaRestantes--;
+      return _responderConReglas(pregunta);
+    }
+    final soloReglas = clase == ClaseIntencion.transaccional;
 
     // Diagnóstico verbal: el robot reporta su estado de conexión
     if (_esConsultaEstado(pq)) return await _respuestaEstado();
@@ -389,7 +418,8 @@ class BaqueanoIAService {
     );
 
     // ── TIER 2: Groq Cloud ───────────────────────────────────
-    if (IARouterState.modoOnline.value &&
+    if (!soloReglas &&
+        IARouterState.modoOnline.value &&
         ConnectivityBridge.estaConectado &&
         GroqConfig.tieneApiKey) {
       try {
@@ -485,6 +515,29 @@ class BaqueanoIAService {
         exito: errorResp.exito,
       );
       return errorResp;
+    }
+  }
+
+  /// Responde con el motor de reglas, sin nube y sin retraso artificial. Es el
+  /// único camino de los temas de seguridad. Si el motor fallara, devuelve
+  /// igual el aviso de emergencia: en seguridad nunca se responde un error.
+  static Future<ElGuiaRespuesta> _responderConReglas(String pregunta) async {
+    IARouterState.reportarEstado(IAEstado.offline);
+    _consultasOffline++;
+    try {
+      final respuesta = await _motorLocal.responder(pregunta);
+      final intencion = _motorLocal.obtenerIntencionPrincipal(pregunta.toLowerCase().trim());
+      final conRuta = _agregarRuta(respuesta, _obtenerRutaParaIntencion(intencion));
+      final analizado = _analizarSentimientoYEnriquecer(conRuta);
+      _actualizarHistorial(pregunta, analizado.texto);
+      return analizado;
+    } catch (e) {
+      debugPrint('[BaqueanoRouter] Motor de reglas falló en un tema de seguridad: $e');
+      return const ElGuiaRespuesta(
+        texto: _textoSeguridadDeEmergencia,
+        gifSugerido: 'enojado',
+        exito: false,
+      );
     }
   }
 
