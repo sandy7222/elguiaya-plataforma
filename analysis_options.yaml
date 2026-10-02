@@ -5,6 +5,13 @@ analyzer:
     - scratch/**
     - scripts/**
     - test/**
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
   errors:
     deprecated_member_use: ignore
     unused_import: ignore
