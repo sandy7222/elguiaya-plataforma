@@ -12,6 +12,19 @@
 //
 // Este archivo nace en ROJO a propósito (paso 0.1): prueba la falla del código
 // de hoy. Los pasos 0.2 a 0.5 lo ponen en verde.
+//
+// ═══ REGLA DE DISEÑO: ANTE LA DUDA, GANA SEGURIDAD ═══════════════════════════
+// Una pregunta de pesca tratada como emergencia cuesta una respuesta con el
+// teléfono de Prefectura. Una emergencia tratada como pesca puede costar una
+// vida. Por eso la detección va de "salvo que" y no de "solo si": una frase es
+// seguridad SALVO que sea claramente otra cosa.
+//   · Hundimiento ("hund-", "und-"): seguridad salvo que nombre un elemento de
+//     pesca (boya, corcho, plomada, señuelo, anzuelo, línea, carnada...) y no
+//     nombre una embarcación ni una persona.
+//   · Perdido ("estoy perdido", "nos perdimos", "me perdí"): seguridad salvo
+//     "con [algo]" ("estoy perdido con los nudos") o "me perdí el/la [pique]".
+//     "Perdido en [cualquier cosa]" SIEMPRE es seguridad, aunque suene a
+//     "confundido": no se mantiene una lista de lugares.
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -41,6 +54,34 @@ const Map<String, List<String>> _seguridad = {
     'estoy en peligro',
     'tengo una emergencia',
     'pedido de socorro',
+  ],
+  'hundimiento (formas, personas y errores de voz)': [
+    'me estoy hundiendo',
+    'nos estamos hundiendo',
+    'mi amigo se hunde en el agua',
+    'se hunde',
+    'se me unde el bote',
+    'me undo',
+    'se está hundiendo mi hijo en el río',
+    'mi hermano se hunde',
+    'se hunden los chicos',
+    'nos undimos',
+    'se nos hunde la canoa',
+    'el barco se hunde',
+    'el bote se está hundiendo',
+    'estamos undiendo',
+    'se undió el velero',
+    'se hunde el gomón',
+    'la barca se undió',
+    'ayuda mi nena se hunde',
+  ],
+  'vuelco de embarcación': [
+    'el kayak se da vuelta',
+    'se dio vuelta la canoa',
+    'se dio vuelta el velero',
+    'volcó el gomón',
+    'volcamos con la barca',
+    'se nos da vuelta el bote',
   ],
   'emergencia indirecta': [
     'se dio vuelta el bote',
@@ -76,6 +117,13 @@ const Map<String, List<String>> _seguridad = {
     'estoy perdido en el río',
     'nos perdimos en el arroyo',
     'estoy perdido en la isla y anochece',
+    'estoy perdido en el paraná',
+    'estoy perdido en el delta',
+    'estoy perdido en el uruguay',
+    'estoy en la isla perdido, cómo consigo agua?',
+    'estoy en el monte perdido',
+    'estamos perdidos',
+    'nos perdimos',
     'no encuentro la salida',
     'me perdí en las islas',
     'no sé dónde estoy',
@@ -94,6 +142,12 @@ const Map<String, List<String>> _seguridad = {
     'se atragantó',
     'me mordió una víbora',
     'convulsiona',
+    'tengo una fractura, qué hago?',
+    'algo me picó porque se hincha',
+    'creo que me quebré el brazo',
+    'se me dislocó el hombro',
+    'me picó una avispa y tengo la cara hinchada',
+    'se me hincha la mano después de la picadura',
   ],
   'VHF y Prefectura': [
     'canal 16',
@@ -179,6 +233,11 @@ void main() {
       for (final frase in grupo.value) {
         test('"$frase"', () async {
           _prepararCaso(conSenal: false);
+          expect(
+            ElGuiaEngine().clasificarIntencion(frase),
+            ClaseIntencion.seguridad,
+            reason: 'el motor no reconoce esta frase como seguridad (si pasa el resto del test, es por casualidad)',
+          );
           final resp = await BaqueanoIAService.responder(frase);
           expect(_llamadasANube, 0);
           expect(resp.texto, isNot(contains(_marcaNube)));
@@ -290,11 +349,10 @@ void main() {
       // "Perdido" como "confundido": no es perderse en el río.
       'estoy perdido con los nudos, cuál me conviene',
       'estoy perdido con tanta marca de reel',
-      'estoy perdido en el tema de las carnadas',
       'me perdí con tantas opciones de cañas',
       'me perdí el pique por mirar el celular',
+      'me perdí la pesca de ayer por trabajar',
       'estoy perdido con los tipos de plomadas',
-      'me perdí en la explicación de los nudos',
     ];
     for (final frase in pescaNormal) {
       test('"$frase"', () {
@@ -302,6 +360,30 @@ void main() {
           ElGuiaEngine().clasificarIntencion(frase),
           isNot(ClaseIntencion.seguridad),
           reason: 'una consulta de pesca normal no debe tratarse como emergencia',
+        );
+      });
+    }
+  });
+
+  // ── Ante la duda, gana seguridad ──────────────────────────────────────────
+  // Frases ambiguas que se tratan como seguridad A PROPÓSITO. Suenan a
+  // "confundido", pero "perdido en…" siempre es seguridad: el costo de un falso
+  // positivo es un teléfono de más; el de un falso negativo, una persona
+  // perdida sin respuesta. Si alguna vez se cambia esta regla, que sea a
+  // conciencia y no por accidente.
+  group('ante la duda, gana seguridad', () {
+    const ambiguas = [
+      'estoy perdido en el tema de las carnadas',
+      'me perdí en la explicación de los nudos',
+      'estoy perdido en este foro de pesca',
+      'mi amigo se hunde mientras pesca dorados',
+    ];
+    for (final frase in ambiguas) {
+      test('"$frase" se trata como seguridad', () {
+        expect(
+          ElGuiaEngine().clasificarIntencion(frase),
+          ClaseIntencion.seguridad,
+          reason: 'ante la duda, gana seguridad',
         );
       });
     }

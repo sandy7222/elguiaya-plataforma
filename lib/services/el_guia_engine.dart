@@ -153,51 +153,88 @@ class ElGuiaEngine {
     return ClaseIntencion.otra;
   }
 
+  // ── Detección por contexto: "ante la duda, gana seguridad" ───────────────────
+  // Una pregunta de pesca tratada como emergencia cuesta un teléfono de más;
+  // una emergencia tratada como pesca puede costar una vida. Por eso estas
+  // reglas van de "salvo que" y no de "solo si".
+
   static const String _embarcaciones =
       'lancha|bote|barco|embarcacion|kayak|canoa|velero|gomon|barca';
+  static final RegExp _nombraEmbarcacion = RegExp('\\b(?:$_embarcaciones)s?\\b');
 
-  /// Hundimiento de una EMBARCACIÓN ("se hunde la lancha", "se me hundió el
-  /// bote", "nesesito ayuda se undio el bote", "el barco se hunde"). Una boya,
-  /// un corcho, una plomada o un señuelo que se hunden son pesca, no emergencia.
-  static final RegExp _hundimientoReg = RegExp(
-    '(?:se(?: me| nos)? (?:hunde|hundio|undio)|(?:esta|estan) hundiendo|hundiendo)'
-    '\\s+(?:la |el |mi |mis |nuestra |nuestro |esta |este |una |un )?(?:$_embarcaciones)'
-    '|(?:$_embarcaciones)\\s+(?:se(?: me| nos)? )?(?:hunde|hundio|undio|esta hundiendo)',
+  /// Cualquier forma de "hund-" o "und-": hunde, hundió, hundiendo, hundimos y
+  /// los errores de voz "unde", "undo", "undiendo".
+  static final RegExp _formaDeHundir = RegExp(r'\b(?:hund|und)[a-z]*');
+
+  /// Persona que se hunde: "me hundo", "nos estamos hundiendo" (pero NO "se me
+  /// hundió la boya": ahí "me" es de la boya) o un familiar o amigo.
+  static final RegExp _nombraPersona = RegExp(
+    r'(?<!\bse )\b(?:me|nos) (?:estoy |estamos |esta |estan )?(?:hund|und)'
+    r'|\b(?:amigo|amiga|hijo|hija|hermano|hermana|pibe|pibes|pibas|nene|nena|chico|chica|'
+    r'hombre|persona|gente|alguien|companero|companera|esposa|esposo|padre|madre|papa|mama|'
+    r'abuelo|abuela|primo|prima|tio|tia|nino|nina|guri)s?\b',
   );
 
-  bool _esHundimientoDeEmbarcacion(String texto) =>
-      _hundimientoReg.hasMatch(_normalizar(texto));
+  /// Elementos de pesca (y peces): si la frase nombra uno y NO nombra una
+  /// embarcación ni una persona, lo que se hunde es un aparejo.
+  static final RegExp _nombraPesca = RegExp(
+    r'\b(?:boya|corcho|plomada|plomo|senuelo|anzuelo|linea|carnada|mosca|tanza|flote|reel|'
+    r'cana|nylon|sedal|aparejo|pez|pescado|pejerrey|dorado|surubi|boga|tararira|bagre|'
+    r'sabalo|pati|carpa)(?:s|es)?\b',
+  );
 
-  /// "Estoy perdido" / "me perdí" son seguridad solo si hablan de un LUGAR:
-  /// a secas, o con río, isla, arroyo, canal, costa, etc. "Perdido con/en un
-  /// tema" ("estoy perdido con los nudos") es "confundido"; "me perdí el
-  /// pique" es "me lo perdí".
+  /// Hundimiento de una persona o una embarcación: seguridad. Cualquier forma de
+  /// "hund-"/"und-" lo es, SALVO que nombre un elemento de pesca y no nombre
+  /// una embarcación ni una persona ("se hundió el corcho", "la plomada se
+  /// hunde mucho", "cuando la boya se hunde clavá").
+  bool _esHundimientoSeguridad(String texto) {
+    final t = _normalizar(texto);
+    if (!_formaDeHundir.hasMatch(t)) return false;
+    if (!_nombraPesca.hasMatch(t)) return true;
+    return _nombraEmbarcacion.hasMatch(t) || _nombraPersona.hasMatch(t);
+  }
+
+  static final RegExp _formaDeVuelco = RegExp(
+    r'\b(?:se (?:me |nos )?(?:da|dio|dan|dieron) vuelta|volco|volcaron|volcamos|volcando|vuelca|vuelco)\b',
+  );
+
+  /// Vuelco de CUALQUIER embarcación de la lista ("el kayak se da vuelta",
+  /// "se dio vuelta la canoa", "volcó el gomón").
+  bool _esVuelcoDeEmbarcacion(String texto) {
+    final t = _normalizar(texto);
+    return _formaDeVuelco.hasMatch(t) && _nombraEmbarcacion.hasMatch(t);
+  }
+
+  /// "Estoy perdido", "estamos perdidos", "nos perdimos", "me perdí" y "estoy
+  /// en [lugar] perdido" son seguridad, SALVO que sigan "con [algo]" ("estoy
+  /// perdido con los nudos") o "me perdí el/la [pique]". "Perdido en…" siempre
+  /// es seguridad: no se mantiene una lista de lugares, y ante la duda gana
+  /// seguridad (aunque "estoy perdido en el tema de las carnadas" suene a
+  /// "confundido").
   static final RegExp _perdidoReg = RegExp(
-    r'\b(?:estoy|estamos|andamos|quede|quedamos) perdid[oa]s?\b|\b(?:me|nos) perdi(?:mos)?\b',
+    r'\b(?:estoy|estamos|andamos|quede|quedamos) perdid[oa]s?\b'
+    r'|\b(?:estoy|estamos|ando|andamos|quede|quedamos) en (?:[a-z]+ ){1,4}perdid[oa]s?\b'
+    r'|\b(?:me|nos) perdi(?:mos)?\b',
   );
-  static const Set<String> _lugares = {
-    'rio', 'isla', 'islas', 'arroyo', 'arroyos', 'canal', 'costa', 'laguna', 'monte',
-    'riacho', 'delta', 'banado', 'zona', 'camino', 'ruta', 'selva', 'orilla', 'bosque',
-    'mar', 'pantano', 'estero',
-  };
   static const Set<String> _articulos = {
     'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'mi', 'mis', 'tu', 'tus',
   };
 
-  bool _esPerdidoDeLugar(String texto) {
+  bool _esPerdido(String texto) {
     final t = _normalizar(texto);
     for (final m in _perdidoReg.allMatches(t)) {
-      final palabras = t
+      final siguientes = t
           .substring(m.end)
           .split(RegExp(r'[^a-z0-9]+'))
           .where((w) => w.isNotEmpty)
-          .take(4)
+          .take(2)
           .toList();
-      if (palabras.isEmpty) return true; // "estoy perdido" a secas
-      if (palabras.any(_lugares.contains)) return true;
-      final primera = palabras.first;
-      if (primera == 'con' || primera == 'en' || _articulos.contains(primera)) continue;
-      return true; // "estoy perdido y no tengo señal"
+      if (siguientes.isEmpty) return true; // "estoy perdido" a secas
+      final primera = siguientes.first;
+      if (primera == 'con') continue; // "estoy perdido con los nudos"
+      final esMePerdi = !m.group(0)!.contains('perdid'); // "me perdí" / "nos perdimos"
+      if (esMePerdi && _articulos.contains(primera)) continue; // "me perdí el pique"
+      return true;
     }
     return false;
   }
@@ -335,9 +372,9 @@ class ElGuiaEngine {
       'estoy en peligro',
       'estamos en peligro',
       'en peligro de muerte',
-      // Hundimiento: solo si la frase nombra a una persona ("me hundo", "nos
-      // hundimos") o a una embarcación (ver _hundimientoReg). "se hunde la
-      // boya" o "el corcho se hundió" son pesca, no emergencia.
+      // Hundimiento y vuelco: se resuelven por contexto (ver
+      // _esHundimientoSeguridad y _esVuelcoDeEmbarcacion). "Se hunde la boya"
+      // o "el corcho se hundió" son pesca; "se hunde" a secas no.
       'me hundo',
       'nos hundimos',
       'incendi', // incendio, incendia, incendió
@@ -392,7 +429,7 @@ class ElGuiaEngine {
       'no veo la orilla',
     ],
     // "estoy perdido" y "me perdí" NO van acá: se usan también como "confundido"
-    // ("estoy perdido con los nudos"). Los resuelve _esPerdidoDeLugar.
+    // ("estoy perdido con los nudos"). Los resuelve _esPerdido.
     'perdido': [
       'no encuentro salida',
       'no encuentro la salida',
@@ -525,6 +562,31 @@ class ElGuiaEngine {
       'insolacion',
       'picadura de raya',
       'me pico una raya',
+      // Huesos y articulaciones.
+      'fractura',
+      'me fracture',
+      'me quebre',
+      'hueso roto',
+      'esguince',
+      'luxacion',
+      'disloc', // dislocó, dislocado
+      // Picaduras e hinchazón (posible alergia grave). No se usa "me pico" a
+      // secas: también es "me picó un dorado".
+      'algo me pico',
+      'me picaron',
+      'me pico una avispa',
+      'me pico una abeja',
+      'me pico una arana',
+      'me pico un alacran',
+      'me pico una medusa',
+      'se hincha',
+      'se me hincha',
+      'me hincho',
+      'hinchazon',
+      'cara hinchad',
+      'mano hinchad',
+      'pie hinchad',
+      'labios hinchad',
     ],
     'peces': [
       'dorado',
@@ -953,7 +1015,14 @@ class ElGuiaEngine {
       'como hablo con vos',
       'el asistente',
       'la ia',
-      'el bot',
+      // "el bot" a secas matcheaba dentro de "el bote" (la embarcación): una
+      // frase con "el bote" se leía como "cómo activo el asistente".
+      'donde esta el bot',
+      'como uso el bot',
+      'activar el bot',
+      'hablar con el bot',
+      'no veo el bot',
+      'el bot no aparece',
       'como desactivo el robot',
       'apagar el robot',
       'desactivar guia',
@@ -2065,10 +2134,11 @@ class ElGuiaEngine {
 
     // Detecciones que dependen del contexto de la frase (no alcanza con una
     // palabra suelta): hundimiento de una embarcación y "perdido" de lugar.
-    if (_esHundimientoDeEmbarcacion(textoNormalizado) && !intenciones.contains('emergencia')) {
+    if ((_esHundimientoSeguridad(textoNormalizado) || _esVuelcoDeEmbarcacion(textoNormalizado)) &&
+        !intenciones.contains('emergencia')) {
       intenciones.add('emergencia');
     }
-    if (_esPerdidoDeLugar(textoNormalizado) && !intenciones.contains('perdido')) {
+    if (_esPerdido(textoNormalizado) && !intenciones.contains('perdido')) {
       intenciones.add('perdido');
     }
 
@@ -2817,7 +2887,8 @@ class ElGuiaEngine {
       // Paso 1: matching por activadores exactos. El hundimiento de una
       // embarcación se resuelve por contexto y responde como rescate.
       bool matched = activadores.any((act) => texto.contains(act)) ||
-          (entry.key == 'rescate' && _esHundimientoDeEmbarcacion(texto));
+          (entry.key == 'rescate' &&
+              (_esHundimientoSeguridad(texto) || _esVuelcoDeEmbarcacion(texto)));
 
       // Paso 2: si no matcheó, buscar en sinónimos específicos de la librería
       if (!matched) {
