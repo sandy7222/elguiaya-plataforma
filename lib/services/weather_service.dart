@@ -40,6 +40,16 @@ class HourlyForecast {
 
 class MarineWeather {
   final bool datosDisponibles;
+
+  /// Falso cuando el proveedor no devolvió altura de olas: [alturaOlas] no es
+  /// un dato real y la UI/IA no deben presentarlo como medición.
+  final bool olajeDisponible;
+
+  /// Hora del último intento de obtener datos.
+  final DateTime obtenidoEn;
+
+  /// Fuente de los datos; vacío cuando no hay datos.
+  final String fuente;
   final double temperatura;
   final double velocidadViento;
   final double direccionViento;
@@ -52,6 +62,9 @@ class MarineWeather {
 
   MarineWeather({
     this.datosDisponibles = true,
+    this.olajeDisponible = true,
+    DateTime? obtenidoEn,
+    this.fuente = 'Open-Meteo',
     required this.temperatura,
     required this.velocidadViento,
     required this.direccionViento,
@@ -61,7 +74,7 @@ class MarineWeather {
     required this.descripcion,
     required this.pronosticoExtendido,
     required this.pronosticoHorario,
-  });
+  }) : obtenidoEn = obtenidoEn ?? DateTime.now();
 
   factory MarineWeather.fromJson(Map<String, dynamic> jsonCurrent, Map<String, dynamic>? jsonMarine) {
     final current = jsonCurrent['current'];
@@ -78,23 +91,31 @@ class MarineWeather {
     final hum = (current['relative_humidity_2m'] as num?)?.toInt() ?? 0;
     final press = (current['surface_pressure'] as num?)?.toDouble() ?? 0;
 
-    // Altura de olas: Si es nulo o vacío (ríos/deltas)
-    double waveHeight = 0.3; 
-    if (jsonMarine != null && jsonMarine['current'] != null) {
-      final marineCurrent = jsonMarine['current'];
-      if (marineCurrent['wave_height'] != null) {
+    // Altura de olas: en ríos/deltas el proveedor suele no informarla. Sin dato
+    // real NO se asume un valor "tranquilo": queda 0 y olajeDisponible=false.
+    double waveHeight = 0.0;
+    bool olajeDisponible = false;
+    if (jsonMarine != null && jsonMarine['current'] is Map) {
+      final marineCurrent = jsonMarine['current'] as Map;
+      if (marineCurrent['wave_height'] is num) {
         waveHeight = (marineCurrent['wave_height'] as num).toDouble();
+        olajeDisponible = true;
       }
     }
 
-    // Clasificación lógica para navegación y pesca
-    String desc = "DESPEJADO - IDEAL PARA PESCA";
+    // Clasificación: solo se emiten alertas. Nunca se califica una salida como
+    // "ideal" o segura; la decisión final es del capitán con el parte oficial.
+    String desc;
     if (windSpeed > 28.0 || waveHeight > 1.8) {
       desc = "TEMPORAL - NO RECOMENDADO NAVEGAR";
     } else if (windSpeed > 18.0 || waveHeight > 1.2) {
       desc = "PRECAUCIÓN - VIENTO Y OLAJE MODERADO";
     } else if (temp < 10.0) {
       desc = "FRÍO - ABRIGARSE PARA NAVEGAR";
+    } else if (!olajeDisponible) {
+      desc = "SIN ALERTAS DE VIENTO - OLAJE NO DISPONIBLE, CONSULTAR PARTE OFICIAL";
+    } else {
+      desc = "SIN ALERTAS SEGÚN DATOS DISPONIBLES - CONSULTAR PARTE OFICIAL";
     }
 
     // 1. Parsear pronóstico de 5 días
@@ -119,17 +140,7 @@ class MarineWeather {
       }
     }
 
-    // Fallback extendido
-    if (extended.isEmpty) {
-      final mockDays = ['HOY', 'MAÑ', 'PAS', 'SAB', 'DOM'];
-      for (int i = 0; i < 5; i++) {
-        extended.add(ExtendedForecastDay(
-          diaSemana: mockDays[i],
-          temperaturaMax: temp + (i * 1.5) - 2.0,
-          weatherCode: 0,
-        ));
-      }
-    }
+    // Sin pronóstico diario real la lista queda vacía: no se fabrican días.
 
     // 2. Parsear pronóstico horario detallado
     final List<HourlyForecast> hourly = [];
@@ -163,8 +174,8 @@ class MarineWeather {
           final double wgKt = wg * 0.539957;
 
           // Altura de ola horaria
-          double wh = 0.3; // Río / Delta fallback
-          if (waveHeights != null && i < waveHeights.length && waveHeights[i] != null) {
+          double wh = 0.0; // sin dato real de olas (ríos/deltas)
+          if (waveHeights != null && i < waveHeights.length && waveHeights[i] is num) {
             wh = (waveHeights[i] as num).toDouble();
           }
 
@@ -183,26 +194,10 @@ class MarineWeather {
       }
     }
 
-    // Fallback horario vacío (por seguridad)
-    if (hourly.isEmpty) {
-      final baseTime = DateTime.now();
-      for (int i = 0; i < 48; i++) {
-        final forecastTime = DateTime(baseTime.year, baseTime.month, baseTime.day, baseTime.hour + i);
-        hourly.add(HourlyForecast(
-          hora: forecastTime,
-          temperatura: temp,
-          humedad: hum,
-          vientoKmH: windSpeed,
-          vientoNudos: windSpeed * 0.539957,
-          rafagasKmH: windSpeed * 1.3,
-          rafagasNudos: windSpeed * 1.3 * 0.539957,
-          direccionViento: windDir,
-          alturaOlas: waveHeight,
-        ));
-      }
-    }
+    // Sin pronóstico horario real la lista queda vacía: no se repite el valor actual.
 
     return MarineWeather(
+      olajeDisponible: olajeDisponible,
       temperatura: temp,
       velocidadViento: windSpeed,
       direccionViento: windDir,
@@ -219,6 +214,8 @@ class MarineWeather {
 class WeatherService {
   static MarineWeather datosNoDisponibles() => MarineWeather(
         datosDisponibles: false,
+        olajeDisponible: false,
+        fuente: '',
         temperatura: 0,
         velocidadViento: 0,
         direccionViento: 0,
