@@ -1,0 +1,6 @@
+{
+  "id": "crear-preferencia",
+  "entrypoint": "index.ts",
+  "verify_jwt": true,
+  "import_map": null
+}

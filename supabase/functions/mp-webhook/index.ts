@@ -4,12 +4,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { crypto } from "https://deno.land/std@0.168.0/crypto/mod.ts";
+import { claveWebhook, configMp, modoSandbox } from "../_shared/mp_config.ts";
 
 const MP_API = "https://api.mercadopago.com";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const MP_ACCESS_TOKEN = Deno.env.get("MP_ACCESS_TOKEN") ?? "";
-const MP_WEBHOOK_SECRET = Deno.env.get("MP_WEBHOOK_SECRET") ?? "";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
@@ -20,8 +19,10 @@ serve(async (req: Request) => {
 
   const bodyText = await req.text();
 
+  // La clave de firma depende del modo (prueba/produccion) que fija el panel de administracion.
+  const MP_WEBHOOK_SECRET = claveWebhook(await modoSandbox(supabase));
   if (!MP_WEBHOOK_SECRET) {
-    console.error("[MP-WEBHOOK] MP_WEBHOOK_SECRET no configurado; se rechaza el evento.");
+    console.error("[MP-WEBHOOK] clave de firma no configurada para el modo actual; se rechaza el evento.");
     return new Response("Webhook no configurado", { status: 503 });
   }
   {
@@ -37,13 +38,17 @@ serve(async (req: Request) => {
     }
     const v1 = parts["v1"] ?? "";
 
-    let dataId = "";
-    try {
-      const bodyJson = JSON.parse(bodyText);
-      dataId = bodyJson?.data?.id?.toString() ?? "";
-    } catch (_) {
-      /* ignore */
+    // Mercado Pago firma con el data.id de la URL (en minusculas); el del cuerpo es el respaldo.
+    let dataId = new URL(req.url).searchParams.get("data.id") ?? "";
+    if (!dataId) {
+      try {
+        const bodyJson = JSON.parse(bodyText);
+        dataId = bodyJson?.data?.id?.toString() ?? "";
+      } catch (_) {
+        /* ignore */
+      }
     }
+    dataId = dataId.toLowerCase();
 
     const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`;
     const key = await crypto.subtle.importKey(
@@ -62,7 +67,7 @@ serve(async (req: Request) => {
       .map((b) => b.toString(16).padStart(2, "0"))
       .join("");
 
-    if (sigHex !== v1) {
+    if (!iguales(sigHex, v1)) {
       console.warn("[MP-WEBHOOK] Firma inválida");
       return new Response("Unauthorized", { status: 401 });
     }
@@ -87,7 +92,7 @@ serve(async (req: Request) => {
 
   let pagoMP: Record<string, unknown>;
   try {
-    const token = await obtenerAccessToken();
+    const { accessToken: token } = await configMp(supabase);
     const mpRes = await fetch(`${MP_API}/v1/payments/${dataId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -109,6 +114,10 @@ serve(async (req: Request) => {
   }
 
   // external_reference = UUID de pedidos (flujo actual)
+  if (!UUID.test(externalRef)) {
+    await logWebhook(dataId, null, "external_ref_invalida", bodyText, null);
+    return new Response(JSON.stringify({ skipped: "external_ref_invalida" }), { status: 200 });
+  }
   const pedidoId = externalRef;
 
   const { data: rpcResult, error: rpcError } = await supabase.rpc(
@@ -163,18 +172,15 @@ serve(async (req: Request) => {
   });
 });
 
-async function obtenerAccessToken(): Promise<string> {
-  if (MP_ACCESS_TOKEN) return MP_ACCESS_TOKEN;
-  const { data } = await supabase
-    .from("config_sistema")
-    .select("mp_access_token")
-    .order("updated_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  const token = data?.mp_access_token?.toString() ?? "";
-  if (!token) throw new Error("MP_ACCESS_TOKEN no configurado");
-  return token;
+/** Comparacion en tiempo constante (evita filtrar la firma por diferencias de tiempo). */
+function iguales(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
 }
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 async function logWebhook(
   paymentId: string,
