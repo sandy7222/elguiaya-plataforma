@@ -142,6 +142,38 @@ class BaqueanoIAService {
   static bool _inicializado = false;
   static Future<void>? _inicializando;
 
+  // ── Costuras para tests (no se usan en producción) ───────────────────────
+
+  /// Reemplaza la llamada a Groq del Tier 2. Si no es null, el router la llama
+  /// en vez de `GroqService().responder`.
+  @visibleForTesting
+  static Future<ElGuiaRespuesta> Function(
+    String pregunta,
+    List<Map<String, String>> historial,
+  )? groqParaTest;
+
+  /// Arranca solo el motor local: saltea Supabase, la voz, SharedPreferences y
+  /// la carga del catálogo, que no existen en un test.
+  @visibleForTesting
+  static Future<void> inicializarParaTest() async {
+    await _motorLocal.inicializar();
+    _inicializado = true;
+    _inicializando = Future<void>.value();
+  }
+
+  /// Deja el router como recién arrancado, para que un test no afecte a otro.
+  @visibleForTesting
+  static void reiniciarEstadoParaTest() {
+    _nivelFrustracion = 0;
+    _ultimaPregunta = null;
+    _coincidenciasPregunta = 0;
+    _consultasOffline = 0;
+    _cacheRespuestas.clear();
+    _historialSesion.clear();
+    _motorLocal.contexto.resetearContexto();
+    groqParaTest = null;
+  }
+
   static Future<void> inicializar() {
     return _inicializando ??= () async {
       if (_inicializado) return;
@@ -362,15 +394,20 @@ class BaqueanoIAService {
         GroqConfig.tieneApiKey) {
       try {
         debugPrint('[BaqueanoRouter] → GROQ ONLINE');
-        final contextoExtra = await CapacitacionService.getContextoContextual(
-          pregunta,
-        );
         final copiaHistorial = List<Map<String, String>>.from(_historialSesion);
-        final resp = await GroqService().responder(
-          pregunta,
-          contextoExtra: contextoExtra,
-          historial: copiaHistorial,
-        );
+        final ElGuiaRespuesta resp;
+        if (groqParaTest != null) {
+          resp = await groqParaTest!(pregunta, copiaHistorial);
+        } else {
+          final contextoExtra = await CapacitacionService.getContextoContextual(
+            pregunta,
+          );
+          resp = await GroqService().responder(
+            pregunta,
+            contextoExtra: contextoExtra,
+            historial: copiaHistorial,
+          );
+        }
         IARouterState.reportarEstado(IAEstado.cloud);
         final finalResp = _agregarRuta(
           resp,
