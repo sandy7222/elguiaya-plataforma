@@ -29,11 +29,12 @@
       "clubes_y_guarderias": 71
     },
     "como_llamar_por_radio": [
-      "Sintonizá el canal 16 o el canal local de tu zona (ver tabla).",
+      "Sintonizá el canal 16 (el de socorro) o el canal local de tu zona.",
       "Presioná el botón de transmisión (PTT) y decí 3 veces: 'Prefectura, Prefectura, Prefectura'.",
       "Soltá el botón y esperá respuesta.",
       "Cuando respondan, informá: tu posición (km del río o referencia cercana), cantidad de personas, tipo de emergencia.",
-      "Si no hay respuesta en canal local, siempre probá el canal 16."
+      "Si no hay respuesta en canal local, siempre probá el canal 16.",
+      "Si tenés señal de celular, también podés llamar a Prefectura al 106."
     ],
     "estaciones": [
       {

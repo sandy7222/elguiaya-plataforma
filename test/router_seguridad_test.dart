@@ -461,6 +461,191 @@ void main() {
     }
   });
 
+  // ═══ PASO 0.4 ═════════════════════════════════════════════════════════════
+  // Toda respuesta de seguridad trae el 106 y el canal 16 (y en primeros
+  // auxilios, también el 107 o el 911), y ninguna es "no lo tengo claro".
+  // Los contactos van ANTES de cualquier pregunta o dato extra.
+  final canal16 = RegExp(r'canal\s+(?:vhf\s+)?16');
+
+  void contactos(String texto, {bool ambulancia = false}) {
+    final t = texto.toLowerCase();
+    expect(t, contains('106'), reason: 'falta el 106 de Prefectura');
+    expect(canal16.hasMatch(t), isTrue, reason: 'falta el canal 16 de VHF');
+    if (ambulancia) {
+      expect(t, contains('107'), reason: 'en primeros auxilios falta el 107');
+      expect(t, contains('911'), reason: 'en primeros auxilios falta el 911');
+    }
+    expect(t, isNot(contains('no lo tengo claro')));
+    expect(t, isNot(contains('no tengo esa información')));
+    expect(t, isNot(contains('ver tabla')), reason: 'remite a una tabla que el usuario no ve');
+  }
+
+  group('contactos en TODA respuesta de seguridad', () {
+    for (final grupo in _seguridad.entries) {
+      for (final frase in grupo.value) {
+        test('[${grupo.key}] "$frase"', () async {
+          _prepararCaso(conSenal: true);
+          final resp = await BaqueanoIAService.responder(frase);
+          contactos(resp.texto, ambulancia: grupo.key == 'primeros auxilios');
+        });
+      }
+    }
+
+    test('los turnos del modo pegajoso también traen los contactos', () async {
+      _prepararCaso(conSenal: true);
+      await BaqueanoIAService.responder('se hunde la lancha');
+      for (final frase in ['y ahora qué hago?', 'no sé qué hacer', 'qué más']) {
+        final resp = await BaqueanoIAService.responder(frase);
+        contactos(resp.texto);
+      }
+    });
+
+    test('si el motor de reglas falla, igual sale el aviso con 106 y canal 16 (y un GIF serio)', () async {
+      _prepararCaso(conSenal: true);
+      BaqueanoIAService.simularFalloDeReglasParaTest = true;
+      final resp = await BaqueanoIAService.responder('se hunde la lancha');
+      contactos(resp.texto);
+      expect(resp.gifSugerido, isNot('enojado'), reason: 'el aviso de emergencia no puede tener cara de enojo');
+    });
+
+    test('las respuestas de seguridad no traen preguntas de seguimiento al azar', () async {
+      // Antes salía, por ejemplo, "¿Pediste baquía obligatoria para el Paraná?".
+      for (var i = 0; i < 40; i++) {
+        _prepararCaso(conSenal: true);
+        final resp = await BaqueanoIAService.responder('estoy perdido qué hago?');
+        expect(resp.texto, isNot(contains('baquía')));
+        expect(resp.texto, isNot(contains('cheraí')));
+        expect(resp.texto, isNot(contains('¿')), reason: 'en una emergencia no se piden más datos');
+      }
+    });
+  });
+
+  // ── Test de oro: preguntas reales del dueño ───────────────────────────────
+  group('test de oro: preguntas reales del dueño', () {
+    Future<ElGuiaRespuesta> preguntar(String frase, {bool conSenal = true}) async {
+      _prepararCaso(conSenal: conSenal);
+      final resp = await BaqueanoIAService.responder(frase);
+      expect(_llamadasANube, 0);
+      return resp;
+    }
+
+    void esSeguridad(String frase) => expect(
+          ElGuiaEngine().clasificarIntencion(frase),
+          ClaseIntencion.seguridad,
+          reason: '"$frase" tiene que clasificarse como seguridad',
+        );
+
+    test('"estoy en la isla perdido, cómo consigo agua?"', () async {
+      const p = 'estoy en la isla perdido, cómo consigo agua?';
+      esSeguridad(p);
+      final r = await preguntar(p);
+      contactos(r.texto);
+      expect(r.texto.toLowerCase(), contains('herv'), reason: 'tiene que decir cómo potabilizar el agua del río');
+    });
+
+    test('"cómo hago fuego?" suelta no es seguridad y se responde bien', () async {
+      const p = 'cómo hago fuego?';
+      expect(ElGuiaEngine().clasificarIntencion(p), isNot(ClaseIntencion.seguridad));
+      // Sin señal: no es seguridad, así que con señal iría a la nube; acá se
+      // prueba lo que contesta el motor de reglas.
+      final r = await preguntar(p, conSenal: false);
+      expect(r.texto.toLowerCase(), matches(RegExp(r'rami|rama|encend|enciend')));
+    });
+
+    test('"me picó una raya en la pierna qué hago?"', () async {
+      const p = 'me picó una raya en la pierna qué hago?';
+      esSeguridad(p);
+      final r = await preguntar(p);
+      contactos(r.texto, ambulancia: true);
+      expect(r.texto.toLowerCase(), contains('agua caliente'));
+      expect(r.texto.toLowerCase(), matches(RegExp(r'm[eé]dic')));
+      expect(r.texto.toLowerCase(), isNot(contains('presiona la herida')), reason: 'eso es de un corte, no de una raya');
+    });
+
+    test('"me mordió una yarará o una víbora qué hago?"', () async {
+      const p = 'me mordió una yarará o una víbora qué hago?';
+      esSeguridad(p);
+      final r = await preguntar(p);
+      contactos(r.texto, ambulancia: true);
+      expect(r.texto.toLowerCase(), matches(RegExp(r'm[eé]dic')));
+    });
+
+    test('"estoy perdido cómo llamo a prefectura?"', () async {
+      const p = 'estoy perdido cómo llamo a prefectura?';
+      esSeguridad(p);
+      contactos((await preguntar(p)).texto);
+    });
+
+    test('"me corté la piel, cómo paro el sangrado?"', () async {
+      const p = 'me corté la piel, cómo paro el sangrado?';
+      esSeguridad(p);
+      final r = await preguntar(p);
+      contactos(r.texto, ambulancia: true);
+      expect(r.texto.toLowerCase(), contains('presion'));
+    });
+
+    test('"tengo una fractura, qué hago?"', () async {
+      const p = 'tengo una fractura, qué hago?';
+      esSeguridad(p);
+      final r = await preguntar(p);
+      contactos(r.texto, ambulancia: true);
+      expect(r.texto.toLowerCase(), contains('inmoviliz'));
+      expect(r.texto.toLowerCase(), contains('acomod'), reason: 'tiene que decir que NO se intente acomodar');
+    });
+
+    test('"cómo llamo a prefectura?"', () async {
+      const p = 'cómo llamo a prefectura?';
+      esSeguridad(p);
+      contactos((await preguntar(p)).texto);
+    });
+
+    test('"cómo pido auxilio?"', () async {
+      const p = 'cómo pido auxilio?';
+      esSeguridad(p);
+      final r = await preguntar(p);
+      contactos(r.texto);
+      expect(r.texto, contains('911'));
+    });
+
+    test('"estoy perdido qué hago?" da pasos concretos y contactos', () async {
+      const p = 'estoy perdido qué hago?';
+      esSeguridad(p);
+      final r = await preguntar(p);
+      contactos(r.texto);
+      expect(r.texto.toLowerCase(), contains('agua'));
+      expect(r.texto.toLowerCase(), contains('señal'), reason: 'tiene que incluir cómo hacerse ver');
+    });
+
+    test('anzuelo: con y sin el error "una anzuelo" dan la MISMA respuesta buena', () async {
+      const bien = 'se me clavó un anzuelo qué hago?';
+      const mal = 'se me clavo una anzuelo';
+      esSeguridad(bien);
+      esSeguridad(mal);
+      final a = await preguntar(bien);
+      final b = await preguntar(mal);
+      contactos(a.texto, ambulancia: true);
+      expect(a.texto.toLowerCase(), contains('anzuelo'));
+      expect(a.texto.toLowerCase(), contains('no intentes'));
+      expect(b.texto, a.texto, reason: 'el error de tipeo no puede cambiar la respuesta');
+    });
+
+    test('"algo me picó porque se hincha": primeros auxilios y signos de alarma', () async {
+      const p = 'algo me picó porque se hincha';
+      esSeguridad(p);
+      final r = await preguntar(p);
+      contactos(r.texto, ambulancia: true);
+      expect(r.texto.toLowerCase(), matches(RegExp(r'garganta|respirar')), reason: 'tiene que nombrar los signos de alergia grave');
+    });
+
+    test('"estoy perdido en la isla, qué puedo hacer para comer?"', () async {
+      const p = 'estoy perdido en la isla, qué puedo hacer para comer?';
+      esSeguridad(p);
+      final r = await preguntar(p);
+      contactos(r.texto);
+      expect(r.texto.toLowerCase(), contains('pesc'), reason: 'tiene que orientar sobre alimento (la pesca)');
+    });
+  });
+
   // ── Modo emergencia pegajoso: los 3 turnos siguientes también van a reglas ─
   group('modo emergencia pegajoso', () {
     const seguimientos = [

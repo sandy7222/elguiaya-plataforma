@@ -141,6 +141,41 @@ class ElGuiaEngine {
     ..._intencionesSociales,
   };
 
+  // ── Contactos de emergencia: toda respuesta de seguridad los trae ─────────
+  static const String _lineaContactos =
+      'Si hay peligro, llamá ya: Prefectura Naval al 106 o por radio VHF, canal 16.';
+  // REVISAR: persona idónea (médico, guardavidas o Cruz Roja) antes del
+  // lanzamiento. Los textos de primeros auxilios que se agregaron en el 0.4
+  // (raya, fractura, picadura con signos de alergia grave) están en
+  // assets/elguia/librerias/primeros_auxilios.json, cada uno con el campo
+  // "revisar". Acá solo está la línea de contactos de ambulancia.
+  static const String _lineaAmbulancia = 'Ambulancia: 107 o 911.';
+  static final RegExp _canal16Reg = RegExp(r'canal\s+(?:vhf\s+)?16', caseSensitive: false);
+  static final RegExp _primerosAuxiliosReg = RegExp(
+    r'mordi|mordedura|vibora|yarara|picadura|algo me pico|me pico|picaron|herida|sangr|'
+    r'anzuelo|fractur|quebre|esguince|luxacion|disloc|quemad|queme|desmay|convuls|'
+    r'atragant|hipotermia|golpe de calor|insolacion|hincha|hinchaz|hinchad',
+  );
+
+  /// Garantiza que una respuesta de seguridad traiga el 106 y el canal 16 (y,
+  /// si es de primeros auxilios, el 107 y el 911). Si faltan, los pone AL
+  /// PRINCIPIO: en una emergencia los contactos van antes que cualquier otro
+  /// dato. Lo usa el router, así también cubre los turnos del modo pegajoso.
+  String asegurarContactos(String respuesta, String pregunta) {
+    final t = _normalizar(pregunta);
+    final ambulancia = _primerosAuxiliosReg.hasMatch(t) ||
+        detectarIntenciones(t).contains('primeros_auxilios');
+    final r = respuesta.toLowerCase();
+    final faltaPrefectura = !(r.contains('106') && _canal16Reg.hasMatch(r));
+    final faltaAmbulancia = ambulancia && !(r.contains('107') && r.contains('911'));
+    if (!faltaPrefectura && !faltaAmbulancia) return respuesta;
+    final linea = [
+      if (faltaPrefectura) _lineaContactos,
+      if (faltaAmbulancia) _lineaAmbulancia,
+    ].join(' ');
+    return '$linea $respuesta';
+  }
+
   /// Qué clase de consulta es una frase, para que el router decida a quién
   /// se la manda. Si la frase roza seguridad en CUALQUIERA de sus intenciones,
   /// gana seguridad aunque la principal sea otra.
@@ -260,6 +295,18 @@ class ElGuiaEngine {
   static final RegExp _formaDeAhogo = RegExp(r'\b(?:ahog|allog)[a-z]*');
 
   bool _esAhogamiento(String t) => _formaDeAhogo.hasMatch(t) && !_soloCosas(t);
+
+  /// Anzuelo clavado en cualquier redacción, también con errores de tipeo ("se
+  /// me clavo una anzuelo", "anzuelo clavado en el dedo"). Todas dan la misma
+  /// respuesta: la de la subintención "anzuelo" de emergencia.json.
+  ///
+  /// "Clavar" también es dar el golpe para enganchar al pez ("cómo clavar el
+  /// anzuelo cuando pica"): solo cuenta "se me clavó", "me clavé" o "clavado".
+  static final RegExp _formaDeClavada = RegExp(r'\b(?:se me |me |se nos |nos )clav[a-z]*|\bclavad[oa]s?\b');
+  bool _esAnzueloClavado(String texto) {
+    final t = _normalizar(texto);
+    return RegExp(r'\banzuelos?\b').hasMatch(t) && _formaDeClavada.hasMatch(t);
+  }
 
   /// Todo lo que es una emergencia en el agua. Ante la duda, gana seguridad.
   bool _esEmergenciaDeAgua(String texto) {
@@ -2008,7 +2055,15 @@ class ElGuiaEngine {
   }
 
   // ── RESPUESTA PRINCIPAL ────────────────────────────────────────────────────
-  Future<ElGuiaRespuesta> responder(String entrada) async {
+  /// En una respuesta de seguridad no hay humor, ni cierre automático de
+  /// charla, ni respuesta de "problemas con la app", ni preguntas de
+  /// seguimiento al azar ("¿Pediste baquía obligatoria?"). Se calcula en cada
+  /// llamada a [responder].
+  bool _enSeguridad = false;
+
+  /// [modoSeguridad] lo pone el router cuando ya decidió que la consulta es de
+  /// seguridad (o es un turno del modo emergencia pegajoso).
+  Future<ElGuiaRespuesta> responder(String entrada, {bool modoSeguridad = false}) async {
     if (!_inicializado) await inicializar();
 
     _contexto.registrarActividad();
@@ -2016,6 +2071,7 @@ class ElGuiaEngine {
 
     final intenciones = detectarIntenciones(texto);
     final intencionPrincipal = _obtenerMayorPrioridad(intenciones);
+    _enSeguridad = modoSeguridad || intenciones.any(_esIntencionDeSeguridad);
 
     // ── RETRIEVAL: elección de un "¿te referís a...?" pendiente ──────────────
     // Va antes del interceptor de cierre: "2" o "la primera" no son un
@@ -2036,7 +2092,9 @@ class ElGuiaEngine {
     // a esa pregunta y se cierra la conversación con una frase natural.
     // BYPASS: Si la consulta tiene una intención clara estructurada (distinta de fallback/agradecimiento),
     // se procesa de forma directa sin interceptar.
-    if (_contexto.esperandoCierre && (intenciones.isEmpty || intencionPrincipal == 'fallback' || intencionPrincipal == 'agradecimiento')) {
+    if (!_enSeguridad &&
+        _contexto.esperandoCierre &&
+        (intenciones.isEmpty || intencionPrincipal == 'fallback' || intencionPrincipal == 'agradecimiento')) {
       _contexto.esperandoCierre = false;
       _contexto.ultimaPreguntaHecha = '';
       _contexto.nivelFrustracion = 0; // resetear frustración, la charla cerró bien
@@ -2063,7 +2121,10 @@ class ElGuiaEngine {
     }
 
     // Búsqueda directa inteligente en librerías locales basada en frases de acción ("cómo se prepara", "qué hago", etc.)
-    final respuestaBusquedaDinamica = await _buscarEnLibreriasDinamico(texto);
+    // En seguridad se saltea: está pensada para preguntas de pesca y puede
+    // pisar una respuesta de seguridad ("tengo una fractura, qué hago?" caía en
+    // el texto "puente" de primeros auxilios). Responde el responder de seguridad.
+    final respuestaBusquedaDinamica = _enSeguridad ? null : await _buscarEnLibreriasDinamico(texto);
     if (respuestaBusquedaDinamica != null) {
       _actualizarContexto('informacion', texto);
       _guardarRespuestaYDetectarPregunta(respuestaBusquedaDinamica.texto);
@@ -2100,8 +2161,8 @@ class ElGuiaEngine {
 
     ElGuiaRespuesta respuesta;
 
-    // Si la frustración es alta, responder de forma asistida
-    if (_contexto.nivelFrustracion >= 2) {
+    // Si la frustración es alta, responder de forma asistida (nunca en seguridad)
+    if (_contexto.nivelFrustracion >= 2 && !_enSeguridad) {
       respuesta = ElGuiaRespuesta(
         texto:
             'Pará, chamigo, vamos con calma que el río está picado. Veo que andás con problemas con la app. ¿Querés que te guíe paso a paso? Decime "sí" o "ayuda" y lo hacemos juntos.',
@@ -2117,8 +2178,10 @@ class ElGuiaEngine {
 
     _actualizarContexto(intencionPrincipal, texto);
 
-    // Intentar humor contextual (10% probabilidad, solo en modo normal y sin frustración)
-    if (_contexto.nivelFrustracion == 0 &&
+    // Intentar humor contextual (10% probabilidad, solo en modo normal y sin
+    // frustración). Nunca en una respuesta de seguridad.
+    if (!_enSeguridad &&
+        _contexto.nivelFrustracion == 0 &&
         !respuesta.esHumorContextual &&
         intencionPrincipal != 'chiste') {
       final conHumor = _humor.intentarHumorContextual(
@@ -2197,7 +2260,8 @@ class ElGuiaEngine {
 
     // Detecciones que dependen del contexto de la frase (no alcanza con una
     // palabra suelta): hundimiento de una embarcación y "perdido" de lugar.
-    if (_esEmergenciaDeAgua(textoNormalizado) && !intenciones.contains('emergencia')) {
+    if ((_esEmergenciaDeAgua(textoNormalizado) || _esAnzueloClavado(textoNormalizado)) &&
+        !intenciones.contains('emergencia')) {
       intenciones.add('emergencia');
     }
     if (_esPerdido(textoNormalizado) && !intenciones.contains('perdido')) {
@@ -2436,7 +2500,7 @@ class ElGuiaEngine {
       case 'perdido':
         _contexto.modoActual = 'supervivencia';
         return ElGuiaRespuesta(
-          texto: _responderSupervivencia(),
+          texto: _responderSupervivencia(texto),
           gifSugerido: 'duda',
         );
       case 'agua':
@@ -2691,7 +2755,7 @@ class ElGuiaEngine {
     final listaMomento = lib[clave] as List<dynamic>?;
     if (listaMomento != null &&
         listaMomento.isNotEmpty &&
-        _random.nextDouble() < 0.3) {
+        !_enSeguridad && _random.nextDouble() < 0.3) {
       return listaMomento[_random.nextInt(listaMomento.length)] as String;
     }
 
@@ -2715,7 +2779,7 @@ class ElGuiaEngine {
     final listaMomento = lib[clave] as List<dynamic>?;
     if (listaMomento != null &&
         listaMomento.isNotEmpty &&
-        _random.nextDouble() < 0.3) {
+        !_enSeguridad && _random.nextDouble() < 0.3) {
       return listaMomento[_random.nextInt(listaMomento.length)] as String;
     }
 
@@ -2889,7 +2953,7 @@ class ElGuiaEngine {
     final preguntas = lib['preguntas_seguimiento'] as List<dynamic>?;
     if (preguntas != null &&
         preguntas.isNotEmpty &&
-        _random.nextDouble() < 0.3) {
+        !_enSeguridad && _random.nextDouble() < 0.3) {
       final pregunta = preguntas[_random.nextInt(preguntas.length)] as String;
       return '$respBase $pregunta';
     }
@@ -2949,7 +3013,8 @@ class ElGuiaEngine {
       // Paso 1: matching por activadores exactos. El hundimiento de una
       // embarcación se resuelve por contexto y responde como rescate.
       bool matched = activadores.any((act) => texto.contains(act)) ||
-          (entry.key == 'rescate' && _esEmergenciaDeAgua(texto));
+          (entry.key == 'rescate' && _esEmergenciaDeAgua(texto)) ||
+          (entry.key == 'anzuelo' && _esAnzueloClavado(texto));
 
       // Paso 2: si no matcheó, buscar en sinónimos específicos de la librería
       if (!matched) {
@@ -2989,7 +3054,7 @@ class ElGuiaEngine {
       );
       if (preguntas != null &&
           preguntas.isNotEmpty &&
-          _random.nextDouble() < 0.3) {
+          !_enSeguridad && _random.nextDouble() < 0.3) {
         final pregunta = preguntas[_random.nextInt(preguntas.length)] as String;
         return '$respBase $pregunta';
       }
@@ -3249,20 +3314,42 @@ class ElGuiaEngine {
     return resp;
   }
 
-  String _responderSupervivencia() {
+  /// Agua del río, con lo que ya dice la librería de agua: cómo potabilizarla.
+  String _responderAguaDelRio() {
+    final rio = (_librerias['agua']?['fuentes'] as Map<String, dynamic>?)?['rio'] as Map<String, dynamic>?;
+    if (rio == null) return 'Herví el agua del río durante 5 minutos mínimo antes de tomar.';
+    return '${rio['consejo']} ${rio['metodo_purificacion'] ?? ''}'.trim();
+  }
+
+  /// "Estoy perdido": el orden de prioridades de la librería, más lo que la
+  /// persona preguntó (agua, comida, fuego, refugio) con los textos que ya están
+  /// en las librerías, y cómo hacerse ver. Los contactos los agrega el router.
+  String _responderSupervivencia([String texto = '']) {
     final lib = _librerias['supervivencia'];
     if (lib == null)
       return 'Bueno, tranquilo. Vamos paso a paso. Primero agua, después refugio.';
 
     final puente = List<String>.from(lib['respuestas_puente'] as List);
     final intro = puente[_random.nextInt(puente.length)];
-    final respBase = '$intro ${lib['consejo_general']}';
+    final partes = <String>[intro, '${lib['consejo_general']}'];
+
+    final t = _normalizar(texto);
+    if (RegExp(r'\bagua\b|\bsed\b|beber|tomar').hasMatch(t)) partes.add(_responderAguaDelRio());
+    if (RegExp(r'comer|comida|hambre|alimento').hasMatch(t)) partes.add(_responderAlimento());
+    if (RegExp(r'fuego|prender|fogata').hasMatch(t)) partes.add(_responderFuego());
+    if (RegExp(r'refugio|dormir|noche').hasMatch(t)) partes.add(_responderRefugio());
+
+    // Cómo hacerse ver (de la librería): siempre el primero, que es el más claro.
+    final senales = lib['senal_rescate'] as List<dynamic>?;
+    if (senales != null && senales.isNotEmpty) partes.add(senales.first as String);
+
+    final respBase = partes.join(' ');
 
     // Pregunta de seguimiento (30% de probabilidad)
     final preguntas = lib['preguntas_seguimiento'] as List<dynamic>?;
     if (preguntas != null &&
         preguntas.isNotEmpty &&
-        _random.nextDouble() < 0.3) {
+        !_enSeguridad && _random.nextDouble() < 0.3) {
       final pregunta = preguntas[_random.nextInt(preguntas.length)] as String;
       return '$respBase $pregunta';
     }
@@ -3336,7 +3423,7 @@ class ElGuiaEngine {
     final preguntas = lib['preguntas_seguimiento'] as List<dynamic>?;
     if (preguntas != null &&
         preguntas.isNotEmpty &&
-        _random.nextDouble() < 0.3) {
+        !_enSeguridad && _random.nextDouble() < 0.3) {
       final pregunta = preguntas[_random.nextInt(preguntas.length)] as String;
       return '$respBase $pregunta';
     }
@@ -3378,7 +3465,7 @@ class ElGuiaEngine {
     final preguntas = lib['preguntas_seguimiento'] as List<dynamic>?;
     if (preguntas != null &&
         preguntas.isNotEmpty &&
-        _random.nextDouble() < 0.3) {
+        !_enSeguridad && _random.nextDouble() < 0.3) {
       final pregunta = preguntas[_random.nextInt(preguntas.length)] as String;
       return '$respBase $pregunta';
     }
@@ -3421,7 +3508,7 @@ class ElGuiaEngine {
     final preguntas = lib['preguntas_seguimiento'] as List<dynamic>?;
     if (preguntas != null &&
         preguntas.isNotEmpty &&
-        _random.nextDouble() < 0.3) {
+        !_enSeguridad && _random.nextDouble() < 0.3) {
       final pregunta = preguntas[_random.nextInt(preguntas.length)] as String;
       return '$respBase $pregunta';
     }
@@ -3514,7 +3601,7 @@ class ElGuiaEngine {
     final preguntas = lib['preguntas_seguimiento'] as List<dynamic>?;
     if (preguntas != null &&
         preguntas.isNotEmpty &&
-        _random.nextDouble() < 0.3) {
+        !_enSeguridad && _random.nextDouble() < 0.3) {
       final pregunta = preguntas[_random.nextInt(preguntas.length)] as String;
       return '$respBase $pregunta';
     }
@@ -3561,7 +3648,7 @@ class ElGuiaEngine {
     final preguntas = lib['preguntas_seguimiento'] as List<dynamic>?;
     if (preguntas != null &&
         preguntas.isNotEmpty &&
-        _random.nextDouble() < 0.3) {
+        !_enSeguridad && _random.nextDouble() < 0.3) {
       final pregunta = preguntas[_random.nextInt(preguntas.length)] as String;
       return '${buffer.toString()} $pregunta';
     }
@@ -3634,7 +3721,7 @@ class ElGuiaEngine {
     final preguntas = lib['preguntas_seguimiento'] as List<dynamic>?;
     if (preguntas != null &&
         preguntas.isNotEmpty &&
-        _random.nextDouble() < 0.3) {
+        !_enSeguridad && _random.nextDouble() < 0.3) {
       final pregunta = preguntas[_random.nextInt(preguntas.length)] as String;
       return '$respBase $pregunta';
     }
@@ -3705,7 +3792,7 @@ class ElGuiaEngine {
     final preguntas = lib['preguntas_seguimiento'] as List<dynamic>?;
     if (preguntas != null &&
         preguntas.isNotEmpty &&
-        _random.nextDouble() < 0.3) {
+        !_enSeguridad && _random.nextDouble() < 0.3) {
       final pregunta = preguntas[_random.nextInt(preguntas.length)] as String;
       return '$respBase $pregunta';
     }
@@ -3754,7 +3841,7 @@ class ElGuiaEngine {
     final preguntas = lib['preguntas_seguimiento'] as List<dynamic>?;
     if (preguntas != null &&
         preguntas.isNotEmpty &&
-        _random.nextDouble() < 0.3) {
+        !_enSeguridad && _random.nextDouble() < 0.3) {
       final pregunta = preguntas[_random.nextInt(preguntas.length)] as String;
       return '$respBase $pregunta';
     }
@@ -3963,7 +4050,7 @@ class ElGuiaEngine {
       final preguntas = cat['preguntas_seguimiento'] as List<dynamic>?;
       if (preguntas != null &&
           preguntas.isNotEmpty &&
-          _random.nextDouble() < 0.3) {
+          !_enSeguridad && _random.nextDouble() < 0.3) {
         final pregunta = preguntas[_random.nextInt(preguntas.length)] as String;
         return '$respBase $pregunta';
       }
@@ -3995,7 +4082,7 @@ class ElGuiaEngine {
     final preguntas = lib['preguntas_seguimiento'] as List<dynamic>?;
     if (preguntas != null &&
         preguntas.isNotEmpty &&
-        _random.nextDouble() < 0.3) {
+        !_enSeguridad && _random.nextDouble() < 0.3) {
       final pregunta = preguntas[_random.nextInt(preguntas.length)] as String;
       return '$respBase $pregunta';
     }
@@ -4770,7 +4857,7 @@ class ElGuiaEngine {
         );
       case 'supervivencia':
         return ElGuiaRespuesta(
-          texto: _responderSupervivencia(),
+          texto: _responderSupervivencia(textoOriginal),
           gifSugerido: 'duda',
         );
       case 'agua':

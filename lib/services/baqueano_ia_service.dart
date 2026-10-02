@@ -164,6 +164,11 @@ class BaqueanoIAService {
     List<Map<String, String>> historial,
   )? groqParaTest;
 
+  /// Hace que el motor de reglas falle en un tema de seguridad, para probar el
+  /// aviso de respaldo.
+  @visibleForTesting
+  static bool simularFalloDeReglasParaTest = false;
+
   /// Arranca solo el motor local: saltea Supabase, la voz, SharedPreferences y
   /// la carga del catálogo, que no existen en un test.
   @visibleForTesting
@@ -185,6 +190,7 @@ class BaqueanoIAService {
     _historialSesion.clear();
     _motorLocal.contexto.resetearContexto();
     groqParaTest = null;
+    simularFalloDeReglasParaTest = false;
   }
 
   static Future<void> inicializar() {
@@ -525,17 +531,33 @@ class BaqueanoIAService {
     IARouterState.reportarEstado(IAEstado.offline);
     _consultasOffline++;
     try {
-      final respuesta = await _motorLocal.responder(pregunta);
+      if (simularFalloDeReglasParaTest) throw StateError('falla simulada del motor de reglas');
+      final respuesta = await _motorLocal.responder(pregunta, modoSeguridad: true);
       final intencion = _motorLocal.obtenerIntencionPrincipal(pregunta.toLowerCase().trim());
       final conRuta = _agregarRuta(respuesta, _obtenerRutaParaIntencion(intencion));
       final analizado = _analizarSentimientoYEnriquecer(conRuta);
-      _actualizarHistorial(pregunta, analizado.texto);
-      return analizado;
+      // Toda respuesta de seguridad trae el 106 y el canal 16 (y en primeros
+      // auxilios, el 107 y el 911), también los turnos del modo pegajoso.
+      final conContactos = ElGuiaRespuesta(
+        texto: _motorLocal.asegurarContactos(analizado.texto, pregunta),
+        gifSugerido: analizado.gifSugerido,
+        esHumorContextual: false,
+        origenGemini: analizado.origenGemini,
+        rutaNavegacion: analizado.rutaNavegacion,
+        exito: analizado.exito,
+        mensaje: analizado.mensaje,
+        error: analizado.error,
+        tipoError: analizado.tipoError,
+        accionPayload: analizado.accionPayload,
+      );
+      _actualizarHistorial(pregunta, conContactos.texto);
+      return conContactos;
     } catch (e) {
       debugPrint('[BaqueanoRouter] Motor de reglas falló en un tema de seguridad: $e');
+      // GIF neutro ('explica'): el aviso de emergencia no puede tener cara de enojo.
       return const ElGuiaRespuesta(
         texto: _textoSeguridadDeEmergencia,
-        gifSugerido: 'enojado',
+        gifSugerido: 'explica',
         exito: false,
       );
     }

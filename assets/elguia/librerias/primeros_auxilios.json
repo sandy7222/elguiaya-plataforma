@@ -37,6 +37,32 @@
         "Aplica agua fresca en cuello, axilas y muecas.",
         "Da agua en pequeños sorbos si esta consciente."
       ]
+    },
+    "raya": {
+      "revisar": "REVISAR: persona idónea (médico, guardavidas o Cruz Roja) antes del lanzamiento",
+      "activadores": ["picadura de raya", "me pico una raya", "una raya"],
+      "pasos": [
+        "Sumergí la zona en agua caliente, que se pueda aguantar sin quemarse: calma el dolor.",
+        "Buscá atención médica: puede quedar parte de la espina adentro y la herida puede infectarse."
+      ]
+    },
+    "fractura": {
+      "revisar": "REVISAR: persona idónea (médico, guardavidas o Cruz Roja) antes del lanzamiento",
+      "activadores": ["fractura", "me fracture", "me quebre", "hueso roto", "esguince", "luxacion", "disloc"],
+      "pasos": [
+        "No intentes acomodar el hueso ni mover a la persona más de lo necesario.",
+        "Inmovilizá la zona tal como está, sin apretar.",
+        "Buscá atención médica urgente."
+      ]
+    },
+    "picadura_alergia": {
+      "revisar": "REVISAR: persona idónea (médico, guardavidas o Cruz Roja) antes del lanzamiento",
+      "activadores": ["se hincha", "se me hincha", "me hincho", "hinchazon", "hinchad", "algo me pico", "me picaron", "me pico una avispa", "me pico una abeja", "me pico una arana", "me pico un alacran", "me pico una medusa", "picadura"],
+      "pasos": [
+        "Lavá la zona con agua y aplicá frío.",
+        "Estate atento a los signos de alergia grave: hinchazón de la cara, los labios o la garganta, dificultad para respirar, mareo o desmayo.",
+        "Si aparece alguno, es una emergencia: llamá ya al 107 o al 911."
+      ]
     }
   },
   "preguntas_seguimiento": [
