@@ -154,6 +154,11 @@ class ElGuiaEngine {
   // (raya, fractura, picadura con signos de alergia grave) están en
   // assets/elguia/librerias/primeros_auxilios.json, cada uno con el campo
   // "revisar". Acá solo está la línea de contactos de ambulancia.
+  //
+  // REVISAR: persona idónea (guardavidas, Prefectura o curso de navegación)
+  // antes del lanzamiento. Las pautas náuticas de las subintenciones
+  // "persona_al_agua" y "entra_agua" (0.4b) están en
+  // assets/elguia/librerias/emergencia.json, también con el campo "revisar".
   static const String _lineaAmbulancia = 'Ambulancia: 107 o 911.';
   static final RegExp _canal16Reg = RegExp(r'canal\s+(?:vhf\s+)?16', caseSensitive: false);
   static final RegExp _primerosAuxiliosReg = RegExp(
@@ -223,7 +228,7 @@ class ElGuiaEngine {
   /// Objetos que no son personas ni aparejos: "se me cayó el celular al agua".
   static final RegExp _nombraObjeto = RegExp(
     r'\b(?:celular|telefono|mate|termo|gorra|sombrero|mochila|billetera|llaves|anteojos|'
-    r'lentes|reloj|camara|balde|heladera|caja)(?:s|es)?\b',
+    r'lentes|reloj|camara|balde|heladera|caja|conservadora|hielera|cooler|nevera|hielo)(?:s|es)?\b',
   );
 
   /// La frase habla solo de aparejos, peces u objetos: no nombra ni una
@@ -290,10 +295,28 @@ class ElGuiaEngine {
     r'ingresa|ingresando)\b',
   );
 
+  /// "Hace agua" (jerga náutica de filtración) y "se está llenando de agua",
+  /// aunque no nombren la embarcación, salvo que hablen de una cosa ("la
+  /// conservadora hace agua", "se llena de agua la caja de señuelos").
+  static final RegExp _haceAgua = RegExp(r'\b(?:hace|hacen|haciendo|ase|asen) agua\b');
+  static final RegExp _llenandoDeAgua = RegExp(r'\bllen[a-z]* de agua\b');
+
   bool _esAguaEnEmbarcacion(String t) =>
-      _nombraEmbarcacion.hasMatch(t) &&
-      _formaDeLlenado.hasMatch(t) &&
-      (t.contains('agua') || t.contains('inund'));
+      (_nombraEmbarcacion.hasMatch(t) &&
+          _formaDeLlenado.hasMatch(t) &&
+          (t.contains('agua') || t.contains('inund'))) ||
+      ((_haceAgua.hasMatch(t) || _llenandoDeAgua.hasMatch(t)) && !_soloCosas(t));
+
+  /// Persona en el agua: se cayó, se tiró, no sale, se ahoga, "hombre al agua".
+  /// Tiene sus propias pautas (subintención "persona_al_agua" de emergencia.json).
+  bool _esPersonaAlAgua(String texto) {
+    final t = _normalizar(texto);
+    return t.contains('hombre al agua') ||
+        t.contains('persona al agua') ||
+        _esCaidaAlAgua(t) ||
+        (_noSaleDelAgua.hasMatch(t) && !_soloCosas(t)) ||
+        _esAhogamiento(t);
+  }
 
   /// Ahogamiento en cualquier forma ("se ahoga", "se está ahogando", "se
   /// ahogó"), salvo que hable de un aparejo ("la carnada se ahogó").
@@ -3017,7 +3040,12 @@ class ElGuiaEngine {
 
       // Paso 1: matching por activadores exactos. El hundimiento de una
       // embarcación se resuelve por contexto y responde como rescate.
+      // Las subintenciones de agua van en este orden en emergencia.json: persona
+      // al agua y agua que entra tienen pautas propias; el resto de las
+      // emergencias en el agua (hundimiento, vuelco) cae en "rescate".
       bool matched = activadores.any((act) => texto.contains(act)) ||
+          (entry.key == 'persona_al_agua' && _esPersonaAlAgua(texto)) ||
+          (entry.key == 'entra_agua' && _esAguaEnEmbarcacion(_normalizar(texto))) ||
           (entry.key == 'rescate' && _esEmergenciaDeAgua(texto)) ||
           (entry.key == 'anzuelo' && _esAnzueloClavado(texto));
 

@@ -95,6 +95,10 @@ const Map<String, List<String>> _seguridad = {
   'agua en la embarcación (cualquier forma)': [
     'la lancha se está llenando de agua',
     'se nos llenó de agua el bote',
+    'hace agua',
+    'se está llenando de agua',
+    'el barco hace agua',
+    'entra agua al bote',
     'el kayak se está llenando de agua',
     'se llena de agua la canoa',
     'el bote está entrando agua',
@@ -389,6 +393,10 @@ void main() {
       'se llena de agua el balde de los peces',
       'cómo evito que entre agua en la caja de señuelos',
       'tiré el reel al río sin querer',
+      // "Hace agua" / "se llena de agua" hablando de cosas, no de una embarcación.
+      'la conservadora hace agua',
+      'el hielo hace agua al derretirse',
+      'cómo evito que se llene de agua la caja de señuelos',
     ];
     for (final frase in pescaNormal) {
       test('"$frase"', () {
@@ -627,6 +635,57 @@ void main() {
       contactos(r.texto);
       expect(r.texto.toLowerCase(), contains('agua'));
       expect(r.texto.toLowerCase(), contains('señal'), reason: 'tiene que incluir cómo hacerse ver');
+    });
+
+    // ── 0.4b: persona al agua y agua que entra tienen pautas propias ─────────
+    // Antes caían en la frase genérica de rescate ("hacer fuego visible para
+    // rescate aéreo"), que no sirve cuando alguien se cayó al agua.
+    group('persona al agua', () {
+      const frases = [
+        'se cayó mi hijo al agua',
+        'hombre al agua',
+        'persona al agua',
+        'mi amigo se tiró al agua y no sale',
+        'se ahoga mi hijo',
+        'el nene no sale del agua',
+      ];
+      for (final p in frases) {
+        test('"$p"', () async {
+          esSeguridad(p);
+          final r = await preguntar(p);
+          contactos(r.texto);
+          final t = r.texto.toLowerCase();
+          expect(t, contains('pierdas de vista'), reason: 'no perderla de vista');
+          expect(t, contains('flote'), reason: 'tirarle algo que flote');
+          expect(t, contains('no te tires'), reason: 'no tirarse salvo que no haya otra opción');
+          expect(t, contains('neutro'), reason: 'acercar la embarcación con el motor en neutro');
+          expect(t, isNot(contains('fuego visible')), reason: 'esa es la frase genérica de rescate');
+        });
+      }
+    });
+
+    group('entra agua en la embarcación', () {
+      const frases = [
+        'la lancha se está llenando de agua',
+        'se nos llenó de agua el bote',
+        'hace agua',
+        'se está llenando de agua',
+        'entra agua al bote',
+        'el barco hace agua',
+      ];
+      for (final p in frases) {
+        test('"$p"', () async {
+          esSeguridad(p);
+          final r = await preguntar(p);
+          contactos(r.texto);
+          final t = r.texto.toLowerCase();
+          expect(t, contains('chaleco'), reason: 'todos con el chaleco puesto');
+          expect(t, contains('achic'), reason: 'achicar el agua');
+          expect(t, contains('costa'), reason: 'ir hacia la costa más cercana');
+          expect(t, contains('no abandones'), reason: 'no abandonar la embarcación mientras flote');
+          expect(t, isNot(contains('fuego visible')), reason: 'esa es la frase genérica de rescate');
+        });
+      }
     });
 
     test('anzuelo: con y sin el error "una anzuelo" dan la MISMA respuesta buena', () async {
