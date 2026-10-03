@@ -15,6 +15,10 @@ void main() {
   late ElGuiaEngine engine;
 
   setUpAll(() async {
+    // El buscador (BM25) viene prendido por defecto (lo prueba guia_flags_test.dart);
+    // acá se prende de forma explícita para que este archivo no dependa del
+    // valor por defecto.
+    ElGuiaEngine.bm25Habilitado = true;
     engine = ElGuiaEngine();
     await engine.inicializar();
     await engine.reconstruirIndiceRetrieval();
@@ -85,15 +89,15 @@ void main() {
     expect(esFicha(elegida.texto), isTrue, reason: 'ACLARACION: $aclaracion\nELEGIDA: ${elegida.texto}');
   });
 
-  test('con el flag apagado no interviene', () async {
-    ElGuiaEngine.retrievalFirstHabilitado = false;
+  test('con BM25 apagado no interviene', () async {
+    ElGuiaEngine.bm25Habilitado = false;
     try {
       final r = await engine.responder('¿cómo se hace el nudo palomar?');
       // El motor de reglas contesta con su handler de nudos (o fallback),
       // nunca con una ficha del retriever.
       expect(esFicha(r.texto), isFalse, reason: r.texto);
     } finally {
-      ElGuiaEngine.retrievalFirstHabilitado = true;
+      ElGuiaEngine.bm25Habilitado = true;
     }
   });
 }

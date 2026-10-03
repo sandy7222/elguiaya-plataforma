@@ -10,6 +10,10 @@ import 'guia_retrieval/guia_modelo_descarga.dart';
 import 'el_guia_engine.dart';
 
 class GuiaKnowledgeSyncService {
+  /// ¿Hay que bajar el modelo de embeddings (126 MB por WiFi)? Solo si se pidió
+  /// la capa semántica. BM25 solo no necesita ningún modelo.
+  static bool get debeBajarModelo => ElGuiaEngine.capaSemanticaPermitida;
+
   static const String _syncKeyPrefix = 'guia_sync_';
   // Marca de agua incremental (fecha_aprobacion más reciente ya aplicada)
   // — separada de _syncKeyPrefix, que guarda CUÁNDO se hizo el último
@@ -264,7 +268,7 @@ class GuiaKnowledgeSyncService {
       // Modelo de embeddings para el retriever (Fase 5): solo por WiFi, a lo
       // sumo un chequeo por día, en segundo plano. Si baja algo nuevo,
       // GuiaModeloDescarga.onModeloListo avisa al motor para armar el índice.
-      if (ElGuiaEngine.retrievalFirstHabilitado) {
+      if (debeBajarModelo) {
         unawaited(GuiaModeloDescarga.verificarYDescargar());
       }
     } catch (e) {

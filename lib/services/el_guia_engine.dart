@@ -86,10 +86,36 @@ class ElGuiaEngine {
   // librerías (BM25 + índice semántico cuando está) y se muestra tal cual.
   // Las intenciones críticas (seguridad, transaccional) y sociales nunca
   // pasan por acá: las sigue respondiendo el motor de reglas.
-  /// Flag global. Se puede apagar desde SharedPreferences (`guia_retrieval_first`
-  /// = false) sin recompilar.
-  static bool retrievalFirstHabilitado = false; // OFF por defecto: llama.cpp (~150 MB RAM) solo si el flag/prefs lo pide y hay RAM.
+  // Dos flags independientes (antes era uno solo que prendía las dos cosas):
+  //  · BM25 ("guia_bm25"): el buscador léxico por fichas. No usa RAM extra ni
+  //    baja ningún modelo.
+  //  · Semántico ("guia_semantico"): embeddings e5 con llama.cpp (~150 MB de RAM
+  //    y un modelo de 126 MB por WiFi). Requiere BM25.
+  // Se pueden cambiar desde SharedPreferences sin recompilar.
+  static bool bm25Habilitado = true;
+  static const String prefBm25 = 'guia_bm25';
+  static bool semanticoHabilitado = false;
+  static const String prefSemantico = 'guia_semantico';
+
+  /// Clave del flag único anterior. Se sigue leyendo para respetar lo que alguien
+  /// haya guardado a mano: `false` apaga BM25; `true` también prendía el
+  /// semántico.
   static const String prefRetrievalFirst = 'guia_retrieval_first';
+
+  /// Nombre anterior de "BM25 prendido": el buscador por fichas ("retrieval-first").
+  static bool get retrievalFirstHabilitado => bm25Habilitado;
+  static set retrievalFirstHabilitado(bool valor) => bm25Habilitado = valor;
+
+  /// La capa semántica solo funciona sobre BM25 y si se la pidió.
+  static bool get capaSemanticaPermitida => bm25Habilitado && semanticoHabilitado;
+
+  /// Lee los flags de SharedPreferences. Los flags nuevos mandan sobre el
+  /// legado ("guia_retrieval_first"); lo que no está guardado queda como está.
+  static void aplicarFlags(SharedPreferences prefs) {
+    final legado = prefs.getBool(prefRetrievalFirst);
+    bm25Habilitado = prefs.getBool(prefBm25) ?? (legado == false ? false : bm25Habilitado);
+    semanticoHabilitado = prefs.getBool(prefSemantico) ?? (legado == true ? true : semanticoHabilitado);
+  }
   GuiaRetriever? _retriever;
   Future<void>? _retrieverEnConstruccion;
   /// Puntuador semántico (Paso 5). Se enchufa con [configurarSemantico].
@@ -1776,14 +1802,13 @@ class ElGuiaEngine {
       // para no demorar la primera respuesta; hasta que esté, responde el
       // motor de reglas como siempre.
       try {
-        final prefs = await SharedPreferences.getInstance();
-        retrievalFirstHabilitado = prefs.getBool(prefRetrievalFirst) ?? retrievalFirstHabilitado;
+        aplicarFlags(await SharedPreferences.getInstance());
       } catch (_) {}
       unawaited(reconstruirIndiceRetrieval().then((_) {
-        if (retrievalFirstHabilitado) unawaited(activarSemantico());
+        if (capaSemanticaPermitida) unawaited(activarSemantico());
       }));
       GuiaModeloDescarga.onModeloListo = (_, __) {
-        if (retrievalFirstHabilitado) {
+        if (capaSemanticaPermitida) {
           unawaited(activarSemantico(reabrir: true));
         }
       };
@@ -1834,7 +1859,7 @@ class ElGuiaEngine {
   }
 
   Future<void> _activarSemantico({required bool reabrir}) async {
-    if (!retrievalFirstHabilitado || !GuiaEmbedder.plataformaSoportada) return;
+    if (!capaSemanticaPermitida || !GuiaEmbedder.plataformaSoportada) return;
     try {
       final manifest = await GuiaModeloDescarga.manifestInstalado();
       final archivo = await GuiaModeloDescarga.modeloInstalado();
