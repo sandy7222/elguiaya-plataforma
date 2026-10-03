@@ -19,6 +19,7 @@ import 'guia_retrieval/guia_embedder.dart';
 import 'guia_retrieval/guia_ficha.dart';
 import 'guia_retrieval/guia_indice_semantico.dart';
 import 'guia_retrieval/guia_modelo_descarga.dart';
+import 'guia_retrieval/guia_presentador.dart';
 import 'guia_retrieval/guia_retriever.dart';
 import 'guia_retrieval/guia_texto_es.dart';
 import '../models/el_guia_respuesta.dart';
@@ -94,6 +95,11 @@ class ElGuiaEngine {
   // Se pueden cambiar desde SharedPreferences sin recompilar.
   static bool bm25Habilitado = true;
   static const String prefBm25 = 'guia_bm25';
+
+  /// El presentador de fichas (paso 1.2): limpia la ficha y la convierte en una
+  /// respuesta. Apagado, se muestra la ficha cruda como antes.
+  static bool presentadorHabilitado = true;
+  static const String prefPresentador = 'guia_presentador';
   static bool semanticoHabilitado = false;
   static const String prefSemantico = 'guia_semantico';
 
@@ -115,6 +121,7 @@ class ElGuiaEngine {
     final legado = prefs.getBool(prefRetrievalFirst);
     bm25Habilitado = prefs.getBool(prefBm25) ?? (legado == false ? false : bm25Habilitado);
     semanticoHabilitado = prefs.getBool(prefSemantico) ?? (legado == true ? true : semanticoHabilitado);
+    presentadorHabilitado = prefs.getBool(prefPresentador) ?? presentadorHabilitado;
   }
   GuiaRetriever? _retriever;
   Future<void>? _retrieverEnConstruccion;
@@ -2062,11 +2069,93 @@ class ElGuiaEngine {
     }
   }
 
+  // ── Dictado paso a paso ───────────────────────────────────────────────────
+  // Un procedimiento que no entra entero se resume y se ofrece decirlo paso a
+  // paso. Si el usuario acepta, se dicta de a uno hasta el final.
+  List<String>? _dictadoMensajes;
+  int _dictadoIdx = -1;
+
+  bool get hayDictadoPendiente => _dictadoMensajes != null;
+
+  void _limpiarDictado() {
+    _dictadoMensajes = null;
+    _dictadoIdx = -1;
+  }
+
+  @visibleForTesting
+  void reiniciarDictadoParaTest() => _limpiarDictado();
+
+  void _prepararDictado(GuiaPresentacion p) {
+    _dictadoMensajes = [
+      if (p.ingredientes.isNotEmpty) GuiaPresentador.mensajeDeIngredientes(p.ingredientes),
+      for (var i = 0; i < p.pasos.length; i++) GuiaPresentador.mensajeDePaso(p.pasos, i),
+    ];
+    _dictadoIdx = -1;
+  }
+
+  static const Set<String> _quiereSeguir = {
+    'si', 'sii', 'dale', 'ok', 'okey', 'oka', 'bueno', 'claro', 'segui', 'sigue', 'siguiente',
+    'continua', 'continuar', 'decime', 'decimelo', 'mandale', 'adelante', 'porfa', 'listo', 'vamos',
+  };
+  static const Set<String> _frasesSeguir = {
+    'y despues', 'y luego', 'despues', 'luego', 'paso a paso', 'de a uno', 'que sigue', 'que mas',
+    'y ahora', 'y entonces', 'por favor',
+  };
+
+  /// "seguir", "repetir", "parar" o null si no tiene que ver con el dictado.
+  String? _tipoDeContinuacion(String texto) {
+    final t = GuiaTextoEs.normalizar(texto);
+    final palabras = t.split(' ').where((w) => w.isNotEmpty).toList();
+    if (palabras.isEmpty || palabras.length > 5) return null;
+    final primera = palabras.first;
+    if (t == 'no entendi' || primera.startsWith('repet') || t.contains('otra vez') || t.contains('de nuevo')) {
+      return 'repetir';
+    }
+    if (primera == 'no' || primera == 'nop' || primera == 'basta' || primera == 'alcanza' ||
+        primera == 'suficiente' || t.contains('gracias')) {
+      return 'parar';
+    }
+    if (_quiereSeguir.contains(primera) || _frasesSeguir.contains(t)) return 'seguir';
+    return null;
+  }
+
+  /// ¿Esta frase es "sí / dale / seguí" de un dictado en curso? El router lo usa
+  /// para no mandar un "sí" suelto a la nube, que no sabe de qué se habla.
+  bool esContinuacionDeDictado(String texto) => hayDictadoPendiente && _tipoDeContinuacion(texto) != null;
+
+  ElGuiaRespuesta _continuarDictado(String tipo) {
+    final mensajes = _dictadoMensajes!;
+    _contexto.esperandoCierre = false;
+    if (tipo == 'parar') {
+      _limpiarDictado();
+      return const ElGuiaRespuesta(texto: 'Dale, cuando quieras te lo repito.', gifSugerido: 'explica');
+    }
+    if (tipo == 'seguir' || _dictadoIdx < 0) _dictadoIdx++;
+    final texto = mensajes[_dictadoIdx.clamp(0, mensajes.length - 1)];
+    if (_dictadoIdx >= mensajes.length - 1) _limpiarDictado();
+    return ElGuiaRespuesta(texto: texto, gifSugerido: 'explica');
+  }
+
+  /// Para los tests: lo que contesta el motor cuando el buscador encontró [ficha].
+  @visibleForTesting
+  ElGuiaRespuesta presentarFichaParaTest(GuiaFicha ficha, String pregunta) =>
+      _respuestaDesdeFicha(ficha, GuiaTextoEs.normalizar(pregunta));
+
   ElGuiaRespuesta _respuestaDesdeFicha(GuiaFicha ficha, String textoNormalizado) {
     _actualizarContexto('informacion', textoNormalizado);
     _registrarObjetivoDeFicha(ficha);
-    _guardarRespuestaYDetectarPregunta(ficha.texto);
-    return ElGuiaRespuesta(texto: ficha.texto, gifSugerido: 'explica');
+    _limpiarDictado();
+    if (!presentadorHabilitado) {
+      _guardarRespuestaYDetectarPregunta(ficha.texto);
+      return ElGuiaRespuesta(texto: ficha.texto, gifSugerido: 'explica');
+    }
+    final p = GuiaPresentador.presentar(ficha, textoNormalizado);
+    _guardarRespuestaYDetectarPregunta(p.texto);
+    if (p.ofreceDictado) {
+      _prepararDictado(p);
+      _contexto.esperandoCierre = false; // el "sí" lo atiende el dictado, no el cierre de charla
+    }
+    return ElGuiaRespuesta(texto: p.texto, gifSugerido: 'explica');
   }
 
   /// Memoria contextual ligera: la entrada de la ficha ("palomar", "dorado",
@@ -2148,6 +2237,15 @@ class ElGuiaEngine {
     final intenciones = detectarIntenciones(texto);
     final intencionPrincipal = _obtenerMayorPrioridad(intenciones);
     _enSeguridad = modoSeguridad || intenciones.any(_esIntencionDeSeguridad);
+
+    // Dictado paso a paso en curso: un "sí / dale / repetime / no" lo continúa; una
+    // emergencia lo cancela (la atiende seguridad); cualquier otra cosa también lo
+    // cancela y se contesta normal.
+    if (_dictadoMensajes != null) {
+      final tipo = _enSeguridad ? null : _tipoDeContinuacion(entrada);
+      if (tipo != null) return _continuarDictado(tipo);
+      _limpiarDictado();
+    }
 
     // ── RETRIEVAL: elección de un "¿te referís a...?" pendiente ──────────────
     // Va antes del interceptor de cierre: "2" o "la primera" no son un

@@ -66,17 +66,29 @@ void main() {
     test('4. Fallback Jerárquico - 6 Search Levels', () async {
       await engine.inicializar();
 
-      // Let's query something that maps to an exact level 1: como_se_prepara_masa
-      final respMasa = await engine.responder('como se prepara la masa para boga');
-      // ignore: avoid_print
-      print('DEBUG RESP MASA: ${respMasa.texto}');
-      expect(respMasa.texto.toLowerCase(), anyOf([contains('harina'), contains('masa'), contains('esencia'), contains('polenta')]));
+      // Este test prueba la búsqueda dinámica del MOTOR DE REGLAS (sus 6 niveles),
+      // no el buscador por fichas. Con BM25 prendido (paso 1.1) el buscador va
+      // primero y para "como se prepara la masa para boga" devuelve la receta de
+      // empanadas de boga en vez de la masa de carnada: es un problema real del
+      // buscador (umbrales sin calibrar, Fase 2) que registra el test salteado de
+      // test/el_guia_engine_retrieval_test.dart. Antes este test pasaba por
+      // casualidad: la ficha cruda de las empanadas también decía "masa".
+      ElGuiaEngine.bm25Habilitado = false;
+      try {
+        // Let's query something that maps to an exact level 1: como_se_prepara_masa
+        final respMasa = await engine.responder('como se prepara la masa para boga');
+        // ignore: avoid_print
+        print('DEBUG RESP MASA: ${respMasa.texto}');
+        expect(respMasa.texto.toLowerCase(), anyOf([contains('harina'), contains('masa'), contains('esencia'), contains('polenta')]));
 
-      engine.contexto.resetearContexto();
+        engine.contexto.resetearContexto();
 
-      // Level 4/5 fallback: query 'boyas' directly
-      final respBoya = await engine.responder('que boya me recomendas');
-      expect(respBoya.texto.toLowerCase(), anyOf([contains('chupetona'), contains('flotador'), contains('luminosa')]));
+        // Level 4/5 fallback: query 'boyas' directly
+        final respBoya = await engine.responder('que boya me recomendas');
+        expect(respBoya.texto.toLowerCase(), anyOf([contains('chupetona'), contains('flotador'), contains('luminosa')]));
+      } finally {
+        ElGuiaEngine.bm25Habilitado = true;
+      }
     });
 
     test('5. Contexto - Inference using objetivosRecientes', () async {

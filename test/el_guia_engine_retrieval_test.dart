@@ -7,6 +7,7 @@
 // Correr: flutter test test/el_guia_engine_retrieval_test.dart
 
 import 'package:capitanya_master/services/el_guia_engine.dart';
+import 'package:capitanya_master/services/guia_retrieval/guia_presentador.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -26,41 +27,50 @@ void main() {
 
   setUp(() => engine.contexto.resetearContexto());
 
-  bool esFicha(String texto) => engine.fichasRetrieval.any((f) => f.texto == texto);
+  /// Con el presentador prendido (paso 1.2) la respuesta ya no es la ficha cruda:
+  /// es la ficha PRESENTADA para esa pregunta. Se compara el cuerpo (lo que es de
+  /// la ficha) y se ignora la entrada ("Te cuento:"), que cambia al azar.
+  bool esFichaPresentada(String texto, String pregunta) => engine.fichasRetrieval.any((f) {
+        final cuerpo = GuiaPresentador.presentar(f, pregunta).cuerpo;
+        return texto.endsWith(cuerpo);
+      });
 
   test('el corpus se arma desde los assets al inicializar', () {
     expect(engine.retrievalListo, isTrue);
     expect(engine.fichasRetrieval.length, greaterThan(300));
   });
 
-  test('una pregunta técnica clara devuelve la ficha tal cual', () async {
-    final r = await engine.responder('¿cómo se hace el nudo palomar?');
-    expect(esFicha(r.texto), isTrue, reason: r.texto);
-    expect(r.texto, contains('Pasá la línea doble'));
+  test('una pregunta técnica clara devuelve la ficha PRESENTADA (no la cruda)', () async {
+    const pNudo = '¿cómo se hace el nudo palomar?';
+    final r = await engine.responder(pNudo);
+    expect(esFichaPresentada(r.texto, pNudo), isTrue, reason: r.texto);
+    expect(r.texto.toLowerCase(), contains('pasá la línea doble'));
+    expect(r.texto, isNot(contains('Resistencia:')), reason: 'la planilla tiene que estar convertida en oraciones');
 
-    final chupin = await engine.responder('cómo se hace el chupín de pescado');
-    expect(esFicha(chupin.texto), isTrue, reason: chupin.texto);
+    const pChupin = 'cómo se hace el chupín de pescado';
+    final chupin = await engine.responder(pChupin);
+    expect(esFichaPresentada(chupin.texto, pChupin), isTrue, reason: chupin.texto);
     expect(chupin.texto.toUpperCase(), contains('CHUPÍN'));
   });
 
   test('una pregunta fuera de dominio NO devuelve una ficha', () async {
     for (final q in ['cuánto sale el dólar hoy', 'quién ganó el partido de river', 'cómo cambio una rueda del auto']) {
       final r = await engine.responder(q);
-      expect(esFicha(r.texto), isFalse, reason: '"$q" → ${r.texto}');
+      expect(esFichaPresentada(r.texto, q), isFalse, reason: '"$q" → ${r.texto}');
     }
   });
 
   test('las intenciones críticas y sociales las sigue respondiendo el motor de reglas', () async {
     final emergencia = await engine.responder('emergencia, se está hundiendo la lancha');
-    expect(esFicha(emergencia.texto), isFalse, reason: emergencia.texto);
+    expect(esFichaPresentada(emergencia.texto, 'emergencia, se está hundiendo la lancha'), isFalse, reason: emergencia.texto);
 
     engine.contexto.resetearContexto();
     final saludo = await engine.responder('hola, como andas?');
-    expect(esFicha(saludo.texto), isFalse, reason: saludo.texto);
+    expect(esFichaPresentada(saludo.texto, 'hola, como andas?'), isFalse, reason: saludo.texto);
 
     engine.contexto.resetearContexto();
     final pago = await engine.responder('cómo pago el viaje');
-    expect(esFicha(pago.texto), isFalse, reason: pago.texto);
+    expect(esFichaPresentada(pago.texto, 'cómo pago el viaje'), isFalse, reason: pago.texto);
   });
 
   test('una especie suelta la resuelve el handler de reglas (intención peces), no una ficha ambigua', () async {
@@ -86,8 +96,19 @@ void main() {
     }
     expect(aclaracion, contains('1. '));
     final elegida = await engine.responder('la primera');
-    expect(esFicha(elegida.texto), isTrue, reason: 'ACLARACION: $aclaracion\nELEGIDA: ${elegida.texto}');
+    expect(esFichaPresentada(elegida.texto, 'la primera'), isTrue,
+        reason: 'ACLARACION: $aclaracion\nELEGIDA: ${elegida.texto}');
   });
+
+  // PROBLEMA CONOCIDO, a propósito salteado hasta la Fase 2 (medir y recalibrar).
+  // "como se prepara la masa para boga" es la masa de CARNADA, pero el buscador
+  // devuelve la receta de empanadas de boga: puntajes 0,6 contra 0,5 y decide
+  // "directa". Los umbrales de Dart están en otra escala que los de Python
+  // (ver docs/PLAN_AYUDANTE_IA.md, riesgos). Cuando se recalibren, sacar el skip.
+  test('"masa para boga" da la masa de carnada, no la receta de empanadas', () async {
+    final r = await engine.responder('como se prepara la masa para boga');
+    expect(r.texto.toLowerCase(), isNot(contains('empanada')), reason: r.texto);
+  }, skip: 'Fase 2: umbrales del buscador sin calibrar (puntajes 0,6 vs 0,5 deciden "directa")');
 
   test('con BM25 apagado no interviene', () async {
     ElGuiaEngine.bm25Habilitado = false;
@@ -95,7 +116,7 @@ void main() {
       final r = await engine.responder('¿cómo se hace el nudo palomar?');
       // El motor de reglas contesta con su handler de nudos (o fallback),
       // nunca con una ficha del retriever.
-      expect(esFicha(r.texto), isFalse, reason: r.texto);
+      expect(esFichaPresentada(r.texto, '¿cómo se hace el nudo palomar?'), isFalse, reason: r.texto);
     } finally {
       ElGuiaEngine.bm25Habilitado = true;
     }

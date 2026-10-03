@@ -189,6 +189,7 @@ class BaqueanoIAService {
     _cacheRespuestas.clear();
     _historialSesion.clear();
     _motorLocal.contexto.resetearContexto();
+    _motorLocal.reiniciarDictadoParaTest();
     groqParaTest = null;
     simularFalloDeReglasParaTest = false;
   }
@@ -310,7 +311,9 @@ class BaqueanoIAService {
       _turnosEmergenciaRestantes--;
       return _responderConReglas(pregunta);
     }
-    final soloReglas = clase == ClaseIntencion.transaccional;
+    // Un "sí / dale / seguí" en medio de un dictado paso a paso lo atiende el
+    // motor: la nube no sabe de qué receta se está hablando.
+    final soloReglas = clase == ClaseIntencion.transaccional || _motorLocal.esContinuacionDeDictado(pregunta);
     // Lo que el aprendizaje automático nunca toca (ver GeminiLearner.motivoDeBloqueo).
     final temaReservado = clase == ClaseIntencion.seguridad || clase == ClaseIntencion.transaccional;
 
