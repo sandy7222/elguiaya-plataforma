@@ -9,6 +9,7 @@ import '../models/el_guia_respuesta.dart';
 import '../services/voice_service.dart';
 import '../services/connectivity_bridge.dart';
 import '../services/guia_atajos.dart';
+import '../services/intent_service.dart';
 import '../screens/pescador_perfil_edit_screen.dart';
 import 'package:capitanya_master/app_navigator.dart';
 import '../services/supabase_service.dart';
@@ -114,6 +115,9 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
   // â”€â”€ Conversación â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   final TextEditingController _chatController = TextEditingController();
   final List<Map<String, String>> _chatHistory = [];
+  /// Oferta de navegación pendiente (paso 1.0): el Guía respondió y ofreció llevar
+  /// a una pantalla; si la persona dice "sí" se la abre, si dice otra cosa se descarta.
+  String? _ofertaRutaPendiente;
   bool _isListening = false;
   bool _isMuted = false;
   bool _isTyping = false;
@@ -747,6 +751,24 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
     // la deja pasar al router (misma regla que el portón del router).
     final atajo = GuiaAtajos.detectar(cleanText);
 
+    // Un "sí" a una oferta de navegación pendiente ("si querés, te abro el mapa").
+    // Cualquier otra frase la descarta. Una emergencia nunca la acepta.
+    final ofertaAceptada = _ofertaRutaPendiente;
+    _ofertaRutaPendiente = null;
+    if (ofertaAceptada != null &&
+        IntentService.esAceptacionDeOferta(cleanText) &&
+        !BaqueanoIAService.esConsultaDeSeguridad(cleanText)) {
+      const resp = 'Dale, chamigo.';
+      setState(() {
+        _chatHistory.add({'text': cleanText, 'isUser': 'true'});
+        _chatHistory.add({'text': resp, 'isUser': 'false'});
+        _estadoGuia = CapitanState.exito;
+      });
+      if (!_isMuted) await VoiceService().speak(resp);
+      _ejecutarRuta(ofertaAceptada);
+      return;
+    }
+
     // Verbal mute/unmute triggers
     if (atajo?.tipo == TipoAtajo.silenciar) {
       const resp = 'Dale, me quedo mudo, chamigo';
@@ -850,11 +872,23 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
       responseText = respuesta.texto;
       nuevoEstado = _gifToState(respuesta.gifSugerido);
 
-      if (respuesta.rutaNavegacion != null &&
-          GuiaOverlayController.micActivo.value) {
+      // Paso 1.0: la ruta de la respuesta solo se abre si la persona lo PIDIÓ;
+      // si no, se ofrece al final ("si querés, te abro el mapa") y espera un "sí".
+      final destino = IntentService.resolverRuta(
+        cleanText,
+        respuesta.rutaNavegacion,
+        esSeguridad: BaqueanoIAService.esConsultaDeSeguridad(cleanText),
+      );
+      // Si la respuesta ya termina en una pregunta (ej. el dictado paso a paso), no se
+      // le suma otra oferta: el "sí" sería ambiguo.
+      if (destino.ofertaTexto != null && !responseText.trimRight().endsWith('?')) {
+        responseText = '$responseText ${destino.ofertaTexto}';
+        _ofertaRutaPendiente = destino.ofertaRuta;
+      }
+      if (destino.navegarA != null && GuiaOverlayController.micActivo.value) {
         Future.delayed(const Duration(milliseconds: 1000), () {
           if (mounted) {
-            _ejecutarRuta(respuesta.rutaNavegacion!);
+            _ejecutarRuta(destino.navegarA!);
           }
         });
       }
