@@ -13,6 +13,7 @@ import 'el_guia_app_engine.dart';
 import 'el_guia_humor_engine.dart';
 import 'guia_logger.dart';
 import 'guia_memoria_service.dart';
+import 'guia_condiciones_service.dart';
 import 'intent_service.dart';
 import 'guia_retrieval/guia_bm25.dart';
 import 'guia_retrieval/guia_corpus_builder.dart';
@@ -124,6 +125,7 @@ class ElGuiaEngine {
     semanticoHabilitado = prefs.getBool(prefSemantico) ?? (legado == true ? true : semanticoHabilitado);
     presentadorHabilitado = prefs.getBool(prefPresentador) ?? presentadorHabilitado;
     IntentService.aplicarFlags(prefs);
+    GuiaCondicionesService.aplicarFlags(prefs);
   }
   GuiaRetriever? _retriever;
   Future<void>? _retrieverEnConstruccion;

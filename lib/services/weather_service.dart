@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ExtendedForecastDay {
   final String diaSemana; // ej. "LUN", "MAR"
@@ -75,6 +76,80 @@ class MarineWeather {
     required this.pronosticoExtendido,
     required this.pronosticoHorario,
   }) : obtenidoEn = obtenidoEn ?? DateTime.now();
+
+  /// Copia completa para el caché (paso 1.0b): actual + horario + diario.
+  Map<String, dynamic> toCacheJson() => {
+        'datosDisponibles': datosDisponibles,
+        'olajeDisponible': olajeDisponible,
+        'obtenidoEn': obtenidoEn.toIso8601String(),
+        'fuente': fuente,
+        'temperatura': temperatura,
+        'velocidadViento': velocidadViento,
+        'direccionViento': direccionViento,
+        'alturaOlas': alturaOlas,
+        'humedad': humedad,
+        'presion': presion,
+        'descripcion': descripcion,
+        'diario': [
+          for (final d in pronosticoExtendido)
+            {'dia': d.diaSemana, 'max': d.temperaturaMax, 'codigo': d.weatherCode},
+        ],
+        'horario': [
+          for (final h in pronosticoHorario)
+            {
+              'hora': h.hora.toIso8601String(),
+              't': h.temperatura,
+              'h': h.humedad,
+              'v': h.vientoKmH,
+              'r': h.rafagasKmH,
+              'd': h.direccionViento,
+              'o': h.alturaOlas,
+            },
+        ],
+      };
+
+  /// Inversa de [toCacheJson]. Devuelve null si el JSON no es utilizable.
+  static MarineWeather? fromCacheJson(Map<String, dynamic> j) {
+    try {
+      if (j['datosDisponibles'] != true) return null;
+      return MarineWeather(
+        olajeDisponible: j['olajeDisponible'] == true,
+        obtenidoEn: DateTime.parse(j['obtenidoEn'] as String),
+        fuente: (j['fuente'] as String?) ?? '',
+        temperatura: (j['temperatura'] as num).toDouble(),
+        velocidadViento: (j['velocidadViento'] as num).toDouble(),
+        direccionViento: (j['direccionViento'] as num).toDouble(),
+        alturaOlas: (j['alturaOlas'] as num).toDouble(),
+        humedad: (j['humedad'] as num).toInt(),
+        presion: (j['presion'] as num).toDouble(),
+        descripcion: (j['descripcion'] as String?) ?? '',
+        pronosticoExtendido: [
+          for (final d in (j['diario'] as List? ?? const []))
+            ExtendedForecastDay(
+              diaSemana: d['dia'] as String,
+              temperaturaMax: (d['max'] as num).toDouble(),
+              weatherCode: (d['codigo'] as num).toInt(),
+            ),
+        ],
+        pronosticoHorario: [
+          for (final h in (j['horario'] as List? ?? const []))
+            HourlyForecast(
+              hora: DateTime.parse(h['hora'] as String),
+              temperatura: (h['t'] as num).toDouble(),
+              humedad: (h['h'] as num).toInt(),
+              vientoKmH: (h['v'] as num).toDouble(),
+              vientoNudos: (h['v'] as num).toDouble() * 0.539957,
+              rafagasKmH: (h['r'] as num).toDouble(),
+              rafagasNudos: (h['r'] as num).toDouble() * 0.539957,
+              direccionViento: (h['d'] as num).toDouble(),
+              alturaOlas: (h['o'] as num).toDouble(),
+            ),
+        ],
+      );
+    } catch (_) {
+      return null;
+    }
+  }
 
   factory MarineWeather.fromJson(Map<String, dynamic> jsonCurrent, Map<String, dynamic>? jsonMarine) {
     final current = jsonCurrent['current'];
@@ -211,6 +286,65 @@ class MarineWeather {
   }
 }
 
+/// Última respuesta COMPLETA del clima, guardada en el celular (paso 1.0b).
+/// La escribe `WeatherService.fetchMarineWeather` cada vez que baja datos, así que
+/// la pantalla de pronóstico, el mini widget del panel y el Guía comparten el mismo
+/// caché. Sin señal, el Guía responde con esto, diciendo de cuándo es.
+class ClimaGuardado {
+  final MarineWeather clima;
+  final DateTime descargadoEn;
+  final double lat;
+  final double lon;
+
+  const ClimaGuardado({
+    required this.clima,
+    required this.descargadoEn,
+    required this.lat,
+    required this.lon,
+  });
+
+  String get fuente => clima.fuente;
+}
+
+class ClimaCache {
+  static const String clave = 'clima_cache_v1';
+
+  static Future<void> guardar(MarineWeather clima, double lat, double lon, {DateTime? ahora}) async {
+    if (!clima.datosDisponibles) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        clave,
+        jsonEncode({
+          'descargadoEn': (ahora ?? DateTime.now()).toIso8601String(),
+          'lat': lat,
+          'lon': lon,
+          'clima': clima.toCacheJson(),
+        }),
+      );
+    } catch (_) {}
+  }
+
+  static Future<ClimaGuardado?> leer() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final crudo = prefs.getString(clave);
+      if (crudo == null) return null;
+      final j = jsonDecode(crudo) as Map<String, dynamic>;
+      final clima = MarineWeather.fromCacheJson(j['clima'] as Map<String, dynamic>);
+      if (clima == null) return null;
+      return ClimaGuardado(
+        clima: clima,
+        descargadoEn: DateTime.parse(j['descargadoEn'] as String),
+        lat: (j['lat'] as num).toDouble(),
+        lon: (j['lon'] as num).toDouble(),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+}
+
 class WeatherService {
   static MarineWeather datosNoDisponibles() => MarineWeather(
         datosDisponibles: false,
@@ -259,7 +393,9 @@ class WeatherService {
         } catch (_) {}
       }
 
-      return MarineWeather.fromJson(weatherJson, marineJson);
+      final clima = MarineWeather.fromJson(weatherJson, marineJson);
+      await ClimaCache.guardar(clima, lat, lon);
+      return clima;
     } catch (e) {
       print("⚠️ Error en WeatherService al obtener clima real: $e");
       return datosNoDisponibles();

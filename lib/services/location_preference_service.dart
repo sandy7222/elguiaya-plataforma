@@ -35,6 +35,17 @@ class LocationPreferenceService {
     await prefs.setString(_keyName, name);
   }
 
+  /// El lugar guardado, SIN buscar uno nuevo si no hay (no abre GPS ni red): lo usa
+  /// el lector de condiciones, que tiene que responder en milisegundos.
+  static Future<LocationDetails?> predefinidaSiExiste() async {
+    final prefs = await SharedPreferences.getInstance();
+    final double? lat = prefs.getDouble(_keyLat);
+    final double? lon = prefs.getDouble(_keyLon);
+    final String? name = prefs.getString(_keyName);
+    if (lat == null || lon == null || name == null) return null;
+    return LocationDetails(latitude: lat, longitude: lon, name: name);
+  }
+
   /// Retrieves the saved predefined location, or performs the location cascade if not set.
   static Future<LocationDetails> getPredefinedLocation() async {
     final prefs = await SharedPreferences.getInstance();

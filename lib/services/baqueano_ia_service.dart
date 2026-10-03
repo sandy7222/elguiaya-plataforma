@@ -1,3 +1,4 @@
+import 'guia_condiciones_service.dart';
 import 'dart:math';
 import 'dart:async' show unawaited;
 import 'package:flutter/foundation.dart';
@@ -189,6 +190,7 @@ class BaqueanoIAService {
     _cacheRespuestas.clear();
     _historialSesion.clear();
     _motorLocal.contexto.resetearContexto();
+    // ignore: invalid_use_of_visible_for_testing_member
     _motorLocal.reiniciarDictadoParaTest();
     groqParaTest = null;
     simularFalloDeReglasParaTest = false;
@@ -404,6 +406,15 @@ class BaqueanoIAService {
         accionPayload: copilotAction.payload,
         exito: true,
       );
+    }
+
+    // Hora, fecha, sol, luna y clima: los LEE el lector determinista (paso 1.0b),
+    // sin nube. Va después del portón de seguridad, así que nunca atiende una
+    // emergencia.
+    final condiciones = await GuiaCondicionesService.responder(pregunta);
+    if (condiciones != null) {
+      IARouterState.reportarEstado(IAEstado.accionDirecta);
+      return condiciones;
     }
 
     // Tienda: siempre local (datos del catálogo de Supabase)
