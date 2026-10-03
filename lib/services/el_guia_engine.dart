@@ -102,6 +102,11 @@ class ElGuiaEngine {
   /// respuesta. Apagado, se muestra la ficha cruda como antes.
   static bool presentadorHabilitado = true;
   static const String prefPresentador = 'guia_presentador';
+  /// Paso 1.3: "no tengo ese dato" honesto en vez de "no te entendí" (flag `guia_no_se_honesto`).
+  static const String prefNoSeHonesto = 'guia_no_se_honesto';
+  static bool noSeHonestoHabilitado = true;
+  int _ultimaNoSe = -1;
+  String _ultimoTextoConsultado = '';
   static bool semanticoHabilitado = false;
   static const String prefSemantico = 'guia_semantico';
 
@@ -125,6 +130,7 @@ class ElGuiaEngine {
     semanticoHabilitado = prefs.getBool(prefSemantico) ?? (legado == true ? true : semanticoHabilitado);
     presentadorHabilitado = prefs.getBool(prefPresentador) ?? presentadorHabilitado;
     IntentService.aplicarFlags(prefs);
+    noSeHonestoHabilitado = prefs.getBool(prefNoSeHonesto) ?? noSeHonestoHabilitado;
     GuiaCondicionesService.aplicarFlags(prefs);
   }
   GuiaRetriever? _retriever;
@@ -2237,6 +2243,7 @@ class ElGuiaEngine {
 
     _contexto.registrarActividad();
     final texto = _limpiarYNormalizarEntrada(entrada);
+    _ultimoTextoConsultado = texto;
 
     final intenciones = detectarIntenciones(texto);
     final intencionPrincipal = _obtenerMayorPrioridad(intenciones);
@@ -2318,7 +2325,8 @@ class ElGuiaEngine {
 
     // Manejar frustración
     if (intencionPrincipal == 'fallback') {
-      if (_contexto.ultimaIntencion == 'fallback') {
+      // Con "no tengo ese dato" honesto, dos fallbacks seguidos no son una app que falla.
+      if (_contexto.ultimaIntencion == 'fallback' && !noSeHonestoHabilitado) {
         _contexto.nivelFrustracion = (_contexto.nivelFrustracion + 1).clamp(
           0,
           5,
@@ -4454,6 +4462,20 @@ class ElGuiaEngine {
     return 'Para activarme: Perfil → Editar Perfil → switch "ACTIVA TU ASISTENTE" al final.';
   }
 
+  /// Una de las frases de "no tengo ese dato", al azar y sin repetir la anterior.
+  /// Si la pregunta roza seguridad, suma el 106 y el canal 16.
+  String _noSeHonesto(List<String> frases) {
+    var i = _random.nextInt(frases.length);
+    if (frases.length > 1 && i == _ultimaNoSe) i = (i + 1 + _random.nextInt(frases.length - 1)) % frases.length;
+    _ultimaNoSe = i;
+    final rozaSeguridad = RegExp(
+      r'\b(peligro|peligroso|peligrosa|riesgo|urgente|urgencia|ayuda|auxilio|socorro|emergencia|me siento mal|no me siento bien|mareo|mareado|mareada|me desmayo|desmayo)\b',
+    ).hasMatch(_normalizar(_ultimoTextoConsultado));
+    return rozaSeguridad
+        ? '${frases[i]} Si es una emergencia, llamá a Prefectura al 106 o por radio VHF en el canal 16.'
+        : frases[i];
+  }
+
   String _fallback() {
     // En una emergencia "no entendí, probemos de nuevo" no es una respuesta: se
     // contesta con las frases de emergencia ("Mantené la calma. Voy a
@@ -4464,6 +4486,12 @@ class ElGuiaEngine {
         return puentes[_random.nextInt(puentes.length)] as String;
       }
       return 'Mantené la calma. Voy a orientarte.';
+    }
+    if (noSeHonestoHabilitado) {
+      final frases = _personalidad['no_se_honesto'] is List
+          ? List<String>.from(_personalidad['no_se_honesto'] as List)
+          : const <String>[];
+      if (frases.isNotEmpty) return _noSeHonesto(frases);
     }
     final fallbacks = _personalidad['fallback'] != null
         ? List<String>.from(_personalidad['fallback'] as List)

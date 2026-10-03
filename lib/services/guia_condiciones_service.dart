@@ -70,6 +70,9 @@ class GuiaCondicionesService {
     final n = _n(pregunta);
     if (n.isEmpty) return null;
 
+    // "qué hora es en España" no es la hora de acá: eso no lo sabe el celular.
+    if (_r(n, r'\bque (hora|dia|fecha) es en\b')) return null;
+
     if (_r(n, r'\bque hora (es|son|tenes|tienes|marca)\b') ||
         _r(n, r'\b(decime|dime|me decis|me dices|me podes decir|dame|sabes)\b.*\bla hora\b')) {
       return TipoCondicion.hora;
