@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/el_guia_respuesta.dart';
 import '../config/groq_config.dart';
@@ -17,6 +18,65 @@ import 'ia_edge_function_client.dart';
 
 
 class GroqService {
+
+  // ── Paso 1.5: Groq más rápido (flag `guia_groq_rapido`) ───────────────────
+  // gpt-oss-120b razona antes de contestar: con `reasoning_effort: low` y un tope de
+  // tokens contesta antes. El razonamiento también gasta tokens del tope, así que si
+  // el tope corta la respuesta se reintenta con más margen y, de última, sin tope.
+  static const String prefRapido = 'guia_groq_rapido';
+  static bool rapido = true;
+  static const int topeRapido = 600;
+  static const int topeReintento = 1200;
+  static const String _esfuerzo = 'low';
+
+  static void aplicarFlags(SharedPreferences prefs) {
+    rapido = prefs.getBool(prefRapido) ?? rapido;
+  }
+
+  /// ¿La respuesta quedó cortada por el tope (o vacía porque el razonamiento se
+  /// comió todos los tokens)?
+  static bool _cortada(http.Response r) {
+    try {
+      final j = jsonDecode(utf8.decode(r.bodyBytes));
+      final eleccion = j['choices']?[0];
+      final texto = (eleccion?['message']?['content'] ?? '').toString().trim();
+      return eleccion?['finish_reason'] == 'length' || texto.isEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// El pedido de chat a Groq por la Edge Function, con la política de velocidad.
+  /// Con el flag apagado (o apagado por esta sesión) es el pedido de siempre.
+  static Future<http.Response> pedirChat({
+    required List<Map<String, String>> messages,
+    required double temperature,
+  }) async {
+    Future<http.Response> llamar({int? tope}) => AiEdgeFunctionClient.groqChat(
+          model: GroqConfig.modelo,
+          messages: messages,
+          temperature: temperature,
+          reasoningEffort: tope == null ? null : _esfuerzo,
+          maxCompletionTokens: tope,
+        );
+
+    if (!rapido) return llamar();
+
+    var r = await llamar(tope: topeRapido);
+    if (r.statusCode == 400) {
+      // Groq no aceptó los parámetros: se apagan por esta sesión y se pide normal.
+      debugPrint('[GroqService] Groq rechazó reasoning_effort/max_completion_tokens (400): modo rápido apagado.');
+      rapido = false;
+      return llamar();
+    }
+    if (r.statusCode != 200 || !_cortada(r)) return r;
+
+    r = await llamar(tope: topeReintento);
+    if (r.statusCode != 200 || !_cortada(r)) return r;
+
+    // Una respuesta cortada nunca llega al usuario: último intento, sin tope.
+    return llamar();
+  }
 
   // ID temporal para la corrección de aprendizaje
   static String? _ultimoRegistroId;
@@ -140,8 +200,7 @@ El campo "respuesta_limpia" máximo 120 caracteres, sin asteriscos ni markdown.
 
     for (int intento = 1; intento <= maxIntentos; intento++) {
       try {
-        tempResponse = await AiEdgeFunctionClient.groqChat(
-          model: GroqConfig.modelo,
+        tempResponse = await pedirChat(
           messages: apiMessages,
           temperature: 0.7,
         ).timeout(

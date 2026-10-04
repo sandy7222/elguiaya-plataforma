@@ -1,5 +1,7 @@
 // Proxy autenticado para proveedores de IA. No registra prompts ni secretos.
 
+import { sanitizarParamsGroq } from "./groq_params.ts";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -79,6 +81,8 @@ Deno.serve(async (req) => {
         model: modeloReal,
         messages: input.messages,
         temperature: typeof input.temperature === "number" ? input.temperature : 0.7,
+        // reasoning_effort y max_completion_tokens: solo valores de la lista blanca.
+        ...sanitizarParamsGroq(input, modeloReal),
       }),
     });
     console.log("[ia-proxy] groq_status:", response.status);

@@ -163,6 +163,7 @@ class BaqueanoIAService {
 
   static void aplicarFlags(SharedPreferences prefs) {
     retrasoArtificial = prefs.getBool(prefRetrasoArtificial) ?? retrasoArtificial;
+    GroqService.aplicarFlags(prefs);
   }
 
   // ── Costuras para tests (no se usan en producción) ───────────────────────
