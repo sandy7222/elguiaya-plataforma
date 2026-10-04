@@ -2,6 +2,7 @@ import 'guia_condiciones_service.dart';
 import 'dart:math';
 import 'dart:async' show unawaited;
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:capitanya_master/models/el_guia_respuesta.dart';
 import 'package:capitanya_master/models/producto.dart';
 import 'package:capitanya_master/services/supabase_service.dart';
@@ -155,6 +156,15 @@ class BaqueanoIAService {
       'Chamigo, si es una emergencia no esperes: llamá ya a Prefectura al 106 '
       'o por radio VHF en el canal 16.';
 
+  /// Paso 1.4: el retraso artificial de 400-1200 ms antes de contestar con el motor
+  /// local. Apagado por defecto (flag `guia_retraso_artificial`).
+  static const String prefRetrasoArtificial = 'guia_retraso_artificial';
+  static bool retrasoArtificial = false;
+
+  static void aplicarFlags(SharedPreferences prefs) {
+    retrasoArtificial = prefs.getBool(prefRetrasoArtificial) ?? retrasoArtificial;
+  }
+
   // ── Costuras para tests (no se usan en producción) ───────────────────────
 
   /// Reemplaza la llamada a Groq del Tier 2. Si no es null, el router la llama
@@ -202,6 +212,9 @@ class BaqueanoIAService {
       try {
         await _motorLocal.inicializar();
         await GroqConfig.cargar();
+        try {
+          aplicarFlags(await SharedPreferences.getInstance());
+        } catch (_) {}
         IARouterState.inicializar();
         unawaited(cargarCatalogo());
         _inicializado = true;
@@ -487,8 +500,10 @@ class BaqueanoIAService {
     debugPrint('[BaqueanoRouter] → MOTOR LOCAL (offline #$_consultasOffline)');
 
     try {
-      final ms = 400 + Random().nextInt(800);
-      await Future.delayed(Duration(milliseconds: ms));
+      if (retrasoArtificial) {
+        final ms = 400 + Random().nextInt(800);
+        await Future.delayed(Duration(milliseconds: ms));
+      }
 
       final respuestaLocal = await _motorLocal.responder(pregunta);
 

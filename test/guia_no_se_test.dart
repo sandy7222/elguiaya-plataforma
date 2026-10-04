@@ -8,11 +8,6 @@
 //
 // Este archivo nace en ROJO a propósito: prueba la falla del código de hoy.
 
-// El router espera entre 0,4 y 1,2 s por consulta (retraso artificial que saca el
-// paso 1.4): con ~50 consultas un test pasa de los 30 s por defecto.
-@Timeout(Duration(minutes: 5))
-library;
-
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
