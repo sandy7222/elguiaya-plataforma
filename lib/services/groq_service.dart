@@ -14,8 +14,20 @@ import 'connectivity_bridge.dart';
 import 'supabase_service.dart';
 import 'guia_memoria_service.dart';
 import 'guia_copilot_brain.dart';
+import 'ia_breaker.dart';
 import 'ia_edge_function_client.dart';
 
+
+/// Groq (o el proxy) contestó con un código que no es 200. Lleva el código para que
+/// el breaker distinga la falta de cuota (402/429) de una caída pasajera.
+class GroqEstadoException implements Exception {
+  final int status;
+  final String mensaje;
+  const GroqEstadoException(this.status, this.mensaje);
+
+  @override
+  String toString() => mensaje;
+}
 
 class GroqService {
 
@@ -204,13 +216,13 @@ El campo "respuesta_limpia" máximo 120 caracteres, sin asteriscos ni markdown.
           messages: apiMessages,
           temperature: 0.7,
         ).timeout(
-          const Duration(seconds: 12), // Ajustado a 12s para evitar cortes por congestión
+          IABreaker.timeoutNube, // 6 s (12 s con el flag guia_breaker apagado)
         );
         break; // Éxito, salimos del bucle
       } catch (e) {
         if (intento == maxIntentos) {
           if (e is TimeoutException) {
-            throw TimeoutException('Groq no respondió en 12 segundos.');
+            throw TimeoutException('Groq no respondió en ${IABreaker.timeoutNube.inSeconds} segundos.');
           }
           rethrow;
         }
@@ -323,14 +335,14 @@ El campo "respuesta_limpia" máximo 120 caracteres, sin asteriscos ni markdown.
 
     } else if (response.statusCode == 401) {
       // Clave inválida — el orquestador puede diferenciar este caso si hace falta
-      throw Exception('API Key de Groq inválida (401). Verificá la clave en el panel de administración.');
+      throw GroqEstadoException(401, 'API Key de Groq inválida (401). Verificá la clave en el panel de administración.');
 
     } else if (response.statusCode == 429) {
       // Rate limit — fallback silencioso
-      throw Exception('Límite de consultas de Groq alcanzado (429). Usando motor alternativo.');
+      throw GroqEstadoException(429, 'Límite de consultas de Groq alcanzado (429). Usando motor alternativo.');
 
     } else {
-      throw Exception('Error en API Groq (Status ${response.statusCode}): ${response.body}');
+      throw GroqEstadoException(response.statusCode, 'Error en API Groq (Status ${response.statusCode}): ${response.body}');
     }
   }
 

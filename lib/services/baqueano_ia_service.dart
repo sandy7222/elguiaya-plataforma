@@ -12,6 +12,7 @@ import 'el_guia_engine.dart';
 import 'el_guia_context.dart';
 import 'groq_service.dart';
 import 'capacitacion_service.dart';
+import 'ia_breaker.dart';
 import 'ia_router_state.dart';
 import 'gemini_learner.dart';
 import '../config/groq_config.dart';
@@ -164,6 +165,7 @@ class BaqueanoIAService {
   static void aplicarFlags(SharedPreferences prefs) {
     retrasoArtificial = prefs.getBool(prefRetrasoArtificial) ?? retrasoArtificial;
     GroqService.aplicarFlags(prefs);
+    IABreaker.aplicarFlags(prefs);
   }
 
   // ── Costuras para tests (no se usan en producción) ───────────────────────
@@ -205,6 +207,7 @@ class BaqueanoIAService {
     _motorLocal.reiniciarDictadoParaTest();
     groqParaTest = null;
     simularFalloDeReglasParaTest = false;
+    IABreaker.reiniciar();
   }
 
   static Future<void> inicializar() {
@@ -457,23 +460,27 @@ class BaqueanoIAService {
     if (!soloReglas &&
         IARouterState.modoOnline.value &&
         ConnectivityBridge.estaConectado &&
-        GroqConfig.tieneApiKey) {
+        GroqConfig.tieneApiKey &&
+        IABreaker.permite()) {
       try {
         debugPrint('[BaqueanoRouter] → GROQ ONLINE');
         final copiaHistorial = List<Map<String, String>>.from(_historialSesion);
         final ElGuiaRespuesta resp;
         if (groqParaTest != null) {
-          resp = await groqParaTest!(pregunta, copiaHistorial);
+          resp = await groqParaTest!(pregunta, copiaHistorial).timeout(IABreaker.timeoutNube);
         } else {
           final contextoExtra = await CapacitacionService.getContextoContextual(
             pregunta,
           );
-          resp = await GroqService().responder(
-            pregunta,
-            contextoExtra: contextoExtra,
-            historial: copiaHistorial,
-          );
+          resp = await GroqService()
+              .responder(
+                pregunta,
+                contextoExtra: contextoExtra,
+                historial: copiaHistorial,
+              )
+              .timeout(IABreaker.timeoutNube);
         }
+        IABreaker.registrarExito();
         IARouterState.reportarEstado(IAEstado.cloud);
         final finalResp = _agregarRuta(
           resp,
@@ -489,6 +496,7 @@ class BaqueanoIAService {
         _actualizarHistorial(pregunta, analizado.texto);
         return analizado;
       } catch (e) {
+        IABreaker.registrarFallo(null, status: IABreaker.estadoDe(e));
         debugPrint(
           '[BaqueanoRouter] → GROQ ONLINE falló: $e. Cayendo al motor offline...',
         );
