@@ -65,6 +65,14 @@
       ]
     }
   },
+  "salud_sin_emergencia": {
+    "revisar": "REVISAR: persona idónea (médico o farmacéutico) antes del lanzamiento. Es una derivación, no un protocolo: no nombra medicamentos ni dosis.",
+    "respuestas": [
+      "Eso es un tema de salud y no me corresponde decirte qué tomar ni nombrarte medicamentos. Consultá a un médico o a un farmacéutico. Si el dolor es fuerte, te apareció de golpe o viene con otros síntomas (fiebre, mareo, falta de aire, vómitos o desmayo), llamá ya al 107 o al 911.",
+      "De salud no puedo recomendarte qué tomar ni qué medicamento usar: lo mejor es que lo veas con un médico o un farmacéutico. Si es un dolor fuerte, repentino o con otros síntomas como fiebre, mareo, vómitos o falta de aire, llamá ya al 107 o al 911.",
+      "Para cuidarte bien, eso lo tiene que ver un médico o un farmacéutico: yo no te puedo indicar ningún medicamento. Si te duele fuerte, te empezó de golpe o tenés otros síntomas (fiebre, mareo, falta de aire, desmayo), no esperes: 107 o 911."
+    ]
+  },
   "preguntas_seguimiento": [
     "¿Te clavaste el anzuelo fiero, chamigo?",
     "¿Le echaste agua caliente al pinchazo, cheraí?",

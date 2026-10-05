@@ -330,7 +330,7 @@ void main() {
         test('[${grupo.key}] "$frase"', () async {
           _prepararCaso(conSenal: true);
           final resp = await BaqueanoIAService.responder(frase);
-          contactos(resp.texto, ambulancia: grupo.key == 'primeros auxilios');
+          contactos(resp.texto, ambulancia: grupo.key == 'primeros auxilios' || grupo.key == 'salud sin emergencia');
         });
       }
     }

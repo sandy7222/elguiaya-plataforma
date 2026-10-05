@@ -158,7 +158,7 @@ class ElGuiaEngine {
   /// Seguridad: las responde SIEMPRE el motor de reglas. Ni la nube, ni un
   /// filtro de humor, ni un retraso artificial (ver [clasificarIntencion]).
   static const Set<String> _intencionesSeguridad = {
-    'emergencia', 'prefectura_naval_argentina', 'perdido', 'primeros_auxilios', 'gps',
+    'emergencia', 'prefectura_naval_argentina', 'perdido', 'primeros_auxilios', 'gps', 'salud',
   };
 
   /// Transaccional / navegación de la app: puede seguir por acción directa o
@@ -397,6 +397,34 @@ class ElGuiaEngine {
     return RegExp(r'\banzuelos?\b').hasMatch(t) && _formaDeClavada.hasMatch(t);
   }
 
+  // ── Salud sin emergencia ("me duele la cabeza, qué tomo") ─────────────────
+  // REVISAR: persona idónea (médico o farmacéutico) antes del lanzamiento. El texto
+  // de la respuesta está en assets/elguia/librerias/primeros_auxilios.json
+  // ("salud_sin_emergencia", con el campo "revisar"). Es una DERIVACIÓN: nunca nombra
+  // un medicamento ni una dosis, manda al médico o al farmacéutico y da el 107/911.
+  // Cuenta como seguridad: la responde siempre el motor de reglas, porque una nube
+  // podría recetar.
+  static const String _partesDelCuerpo =
+      r'(?:cabeza|panza|estomago|barriga|tripa|abdomen|espalda|garganta|muela|muelas|diente|dientes|oido|oidos|'
+      r'pecho|brazo|brazos|pierna|piernas|rodilla|rodillas|cintura|cuello|hombro|hombros|mano|manos|pie|pies|ojo|ojos|'
+      r'cuerpo|cadera|tobillo|muneca|codo|corazon|rinon|rinones|higado)';
+  static const String _sintomas =
+      r'(?:fiebre|tos|gripe|resfrio|resfriado|diarrea|nauseas|vomitos|mareos|alergia|calambres?|dolor|dolores|'
+      r'escalofrios|picazon|indigestion|acidez|migrana|jaqueca)';
+  static final RegExp _consultaDeSalud = RegExp(
+    '\\bme duel(?:e|en)\\b.{0,12}\\b$_partesDelCuerpo\\b'
+    '|\\bdolor(?:es)? (?:de|en)\\b.{0,10}\\b$_partesDelCuerpo\\b'
+    '|\\btengo\\b.{0,12}\\b$_sintomas\\b'
+    r'|\bme siento\b.{0,8}\b(?:mal|enfermo|enferma|descompuest[oa]|raro|rara)\b'
+    r'|\bno me siento bien\b'
+    r'|\bestoy\b.{0,8}\b(?:enfermo|enferma|descompuest[oa]|engripad[oa]|resfriad[oa]|maread[oa]|con fiebre|con dolor|con nauseas|con diarrea|con tos)\b'
+    r'|\bme (?:mareo|maree)\b|\bvomit\w*|\bnauseas?\b'
+    r'|\b(?:que|cual)\b.{0,15}\b(?:remedio|medicamento|medicina|pastilla|analgesico|antibiotico|antiinflamatorio|antihistaminico|jarabe)\b.{0,25}\b(?:tomo|tomar|puedo|recomendas|uso|sirve|doy)\b'
+    r'|\bpuedo tomar\b|\bcuanto (?:paracetamol|ibuprofeno|aspirina)\b'
+    r'|\b(?:ibuprofeno|paracetamol|aspirina|dipirona|diclofenac|naproxeno|amoxicilina|omeprazol|loratadina|tafirol|ibupirac|buscapina|dramamine|ranitidina|clonazepam)\b',
+  );
+  bool _esConsultaDeSalud(String texto) => _consultaDeSalud.hasMatch(_normalizar(texto));
+
   /// Todo lo que es una emergencia en el agua. Ante la duda, gana seguridad.
   bool _esEmergenciaDeAgua(String texto) {
     final t = _normalizar(texto);
@@ -466,10 +494,11 @@ class ElGuiaEngine {
   ];
 
   // ── Tabla de Prioridades (nivel más bajo = mayor prioridad) ───────────────
-  static const Map<int, String> _prioridades = {
+  static final Map<num, String> _prioridades = {
     1: 'emergencia',
     2: 'prefectura_naval_argentina',
     3: 'perdido',
+    3.5: 'salud',
     4: 'agua',
     5: 'refugio',
     6: 'fuego',
@@ -2455,6 +2484,9 @@ class ElGuiaEngine {
     if (_esPerdido(textoNormalizado) && !intenciones.contains('perdido')) {
       intenciones.add('perdido');
     }
+    if (_esConsultaDeSalud(textoNormalizado) && !intenciones.contains('salud')) {
+      intenciones.add('salud');
+    }
 
     // Integrar GuiaLocalUpdater: buscar coincidencias en intenciones aprendidas consolidadas
     final intencionAprendida = GuiaLocalUpdater.detectarIntencion(
@@ -2572,7 +2604,7 @@ class ElGuiaEngine {
   String _obtenerMayorPrioridad(List<String> intenciones) {
     if (intenciones.isEmpty) return 'fallback';
 
-    int mejorNivel = 999;
+    num mejorNivel = 999;
     String mejorIntencion = 'fallback';
 
     for (final intencion in intenciones) {
@@ -2712,6 +2744,8 @@ class ElGuiaEngine {
           gifSugerido: 'piensaLeve',
           rutaNavegacion: ruta,
         );
+      case 'salud':
+        return ElGuiaRespuesta(texto: _responderSalud(), gifSugerido: 'duda');
       case 'primeros_auxilios':
         return ElGuiaRespuesta(
           texto: _responderPrimerosAuxilios(texto),
@@ -3664,6 +3698,17 @@ class ElGuiaEngine {
     }
 
     return respBase;
+  }
+
+  /// Salud sin emergencia: una derivación (REVISAR: persona idónea, ver el detector).
+  String _responderSalud() {
+    final lib = _librerias['primeros_auxilios']?['salud_sin_emergencia'];
+    final respuestas = lib is Map && lib['respuestas'] is List ? List<String>.from(lib['respuestas'] as List) : <String>[];
+    if (respuestas.isEmpty) {
+      return 'Eso es un tema de salud y no puedo recomendarte medicamentos: consultá a un médico o a un farmacéutico. '
+          'Si es un dolor fuerte, repentino o con otros síntomas, llamá ya al 107 o al 911.';
+    }
+    return respuestas[_random.nextInt(respuestas.length)];
   }
 
   String _responderPrimerosAuxilios(String texto) {
