@@ -143,6 +143,7 @@ flutter:
     # Motor El Guía — Librerías de conocimiento offline
     - assets/elguia/
     - assets/elguia/librerias/
+    - assets/elguia/voz/
     # Motor de Ayuda de la App — Módulos de navegación de Capitan-YA
     - assets/elguia/app/
     # El Guía Educador — JSONs de capacitación (system instruction para Gemini)

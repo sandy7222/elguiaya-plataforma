@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Prepara un texto para que el celular lo DIGA (paso 1.2b, flag `guia_voz_limpia`).
@@ -51,6 +53,78 @@ class GuiaTextoVoz {
   static const String _num = r'\d+(?:[.,]\d+)?';
 
   static String _plural(String numero, (String, String) palabras) => numero == '1' ? palabras.$1 : palabras.$2;
+
+  // ── Léxico de pronunciación (paso 1.2c, parte 2) ──────────────────────────
+  // assets/elguia/voz/pronunciacion.json, editable por el dueño: cómo se DICEN las
+  // siglas, las palabras en inglés del equipo de pesca y los nombres difíciles. Solo
+  // afecta a lo que se dice; en pantalla el texto no cambia.
+  static const String _rutaLexico = 'assets/elguia/voz/pronunciacion.json';
+  static final Map<String, String> _siglas = {};
+  static final Map<String, String> _palabras = {}; // claves en minúscula
+  static RegExp? _reSiglas;
+  static RegExp? _rePalabras;
+
+  static void limpiarLexico() {
+    _siglas.clear();
+    _palabras.clear();
+    _reSiglas = null;
+    _rePalabras = null;
+  }
+
+  /// Carga el léxico desde su JSON ({"siglas": {...}, "palabras": {...}}). Las entradas
+  /// mal formadas (clave vacía, "decir" vacío o que no es texto) se saltean; si todo el
+  /// archivo está mal, el texto sale como siempre.
+  static void cargarLexico(Map<String, dynamic> json) {
+    limpiarLexico();
+    void leerGrupo(Object? grupo, void Function(String, String) guardar) {
+      if (grupo is! Map) return;
+      grupo.forEach((k, v) {
+        if (k is String && k.trim().isNotEmpty && v is String && v.trim().isNotEmpty) guardar(k.trim(), v.trim());
+      });
+    }
+
+    leerGrupo(json['siglas'], (k, v) => _siglas[k] = v);
+    leerGrupo(json['palabras'], (k, v) => _palabras[k.toLowerCase()] = v);
+
+    String alternativas(Iterable<String> claves) {
+      final ordenadas = claves.toList()..sort((a, b) => b.length.compareTo(a.length));
+      return ordenadas.map(RegExp.escape).join('|');
+    }
+
+    const borde = r'(?<![\p{L}\p{N}])';
+    const bordeFin = r'(?![\p{L}\p{N}])';
+    if (_siglas.isNotEmpty) _reSiglas = RegExp('$borde(${alternativas(_siglas.keys)})$bordeFin', unicode: true);
+    if (_palabras.isNotEmpty) {
+      _rePalabras = RegExp('$borde(${alternativas(_palabras.keys)})$bordeFin', unicode: true, caseSensitive: false);
+    }
+  }
+
+  /// Carga el léxico que viene en la app. Si falta o está roto, no pasa nada.
+  static Future<void> cargarLexicoDeAssets() async {
+    try {
+      final texto = await rootBundle.loadString(_rutaLexico);
+      final j = jsonDecode(texto);
+      if (j is Map<String, dynamic>) cargarLexico(j);
+    } catch (_) {}
+  }
+
+  static String _aplicarLexico(String t) {
+    final siglas = _reSiglas;
+    if (siglas != null) t = t.replaceAllMapped(siglas, (m) => _siglas[m[1]] ?? m[0]!);
+    final palabras = _rePalabras;
+    if (palabras != null) {
+      t = t.replaceAllMapped(palabras, (m) {
+        final decir = _palabras[m[1]!.toLowerCase()];
+        if (decir == null) return m[0]!;
+        // "Spinning" al empezar una frase → "Espínin".
+        final inicial = m[1]![0];
+        final esMayuscula = inicial != inicial.toLowerCase();
+        final decirEnMinuscula = decir[0] == decir[0].toLowerCase();
+        return esMayuscula && decirEnMinuscula ? decir[0].toUpperCase() + decir.substring(1) : decir;
+      });
+    }
+    return t;
+  }
 
   static String preparar(String texto) {
     if (!habilitado || texto.isEmpty) return texto;
@@ -141,6 +215,6 @@ class GuiaTextoVoz {
     t = t.replaceAll(RegExp(r'\s+'), ' ');
     t = t.replaceAllMapped(RegExp(r'\s+([.,;:!?])'), (m) => m[1]!);
     t = t.replaceAll(RegExp(r',(\s*,)+'), ',');
-    return t.trim();
+    return _aplicarLexico(t.trim());
   }
 }

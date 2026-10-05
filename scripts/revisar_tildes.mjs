@@ -199,6 +199,8 @@ const ambiguosLista = [];
 for (const ruta of jsons(raiz)) {
   // Las tablas de sinónimos son de BÚSQUEDA (van sin tilde a propósito), no de respuesta.
   if (/sinonimos/i.test(ruta)) continue;
+  // El léxico de pronunciación (voz/) escribe las palabras COMO SUENAN, no como se escriben.
+  if (/[\\/]voz[\\/]/.test(ruta)) continue;
   const original = readFileSync(ruta, "utf8");
   const trozos = [];
   let ultimo = 0;

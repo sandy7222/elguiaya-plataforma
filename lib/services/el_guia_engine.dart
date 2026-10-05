@@ -1687,6 +1687,8 @@ class ElGuiaEngine {
       final personalidadStr = await rootBundle.loadString(
         'assets/elguia/personalidad.json',
       );
+      // Léxico de pronunciación (1.2c): cómo se DICEN las siglas y las palabras en inglés.
+      await GuiaTextoVoz.cargarLexicoDeAssets();
       _personalidad = json.decode(personalidadStr) as Map<String, dynamic>;
 
       const archivos = [

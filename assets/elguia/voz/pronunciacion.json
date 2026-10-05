@@ -1,0 +1,36 @@
+{
+  "ayuda": "Lexico de pronunciacion de El Guia. Lo que escribas en 'decir' es lo que el celular PRONUNCIA; en pantalla el texto no cambia. 'siglas': respeta mayusculas y minusculas (VHF no es vhf). 'palabras': no distingue mayusculas. Siempre palabra entera. Para sumar una palabra que suena mal, agregala en 'palabras' con la forma en que querés que suene, escrita como se lee en castellano (con tildes donde van). Este archivo se completa con la prueba de oido hecha en el celular.",
+  "siglas": {
+    "VHF": "ve hache efe",
+    "GPS": "ge pe ese",
+    "SMN": "ese eme ene",
+    "PNA": "pe ene a",
+    "DNI": "de ene i",
+    "CBU": "ce be u",
+    "UV": "u ve",
+    "AIS": "a i ese",
+    "DSC": "de ese ce",
+    "RCP": "erre ce pe",
+    "EPIRB": "e pe i erre be",
+    "IA": "i a",
+    "ABS": "a be ese"
+  },
+  "palabras": {
+    "spinning": "espínin",
+    "baitcasting": "béit cásting",
+    "baitcast": "béit cast",
+    "jigging": "yíguin",
+    "jig": "yig",
+    "leader": "lider",
+    "kayak": "cayac",
+    "tippet": "típet",
+    "sinking": "sínkin",
+    "fly cast": "flai cast",
+    "popper": "pópper",
+    "spinner": "espínner",
+    "reel": "ril",
+    "reeles": "riles",
+    "nylon": "náilon",
+    "Traful": "Trafúl"
+  }
+}
