@@ -1,3 +1,4 @@
+import 'guia_texto_voz.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
@@ -74,7 +75,7 @@ class VozService {
 
     // Limpieza preventiva: removemos emojis o caracteres raros por si las dudas
     // aunque El GuIA ya tiene prohibido meter adornos literarios.
-    await _tts.speak(texto);
+    await _tts.speak(GuiaTextoVoz.preparar(texto));
   }
 
   // 🛑 Frena el habla de inmediato (por si el usuario cierra el chat)

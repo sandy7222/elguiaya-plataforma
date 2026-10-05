@@ -1,3 +1,4 @@
+import 'guia_texto_voz.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
@@ -71,7 +72,7 @@ class AudioService {
     }
     if (text.isNotEmpty) {
       // FlutterTts.speak se ejecuta asíncronamente
-      await _flutterTts.speak(text);
+      await _flutterTts.speak(GuiaTextoVoz.preparar(text));
     }
   }
 }

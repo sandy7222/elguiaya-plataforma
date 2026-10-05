@@ -1,3 +1,4 @@
+import 'guia_texto_voz.dart';
 import 'dart:async';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
@@ -175,7 +176,8 @@ class VoiceService {
     if (!_isTtsInitialized) await _initTts();
 
     // Corregir la pronunciación del asistente "Gu-IA" para que suene como "el Guía"
-    String cleanText = text.replaceAll(
+    // Paso 1.2b: la preparación del texto para voz vive en un solo lugar.
+    String cleanText = GuiaTextoVoz.preparar(text).replaceAll(
       RegExp(r'Gu-IA', caseSensitive: false),
       'el Guía',
     );
