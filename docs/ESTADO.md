@@ -3,7 +3,7 @@
 > **Lo actualiza la IA que trabaja, al terminar cada paso** (ver `AGENTS.md`). Escribir corto, con fecha y commit.
 > Lo más reciente va arriba en cada sección. Nada de secretos acá.
 
-**Última actualización:** 2026-10-04 · Sonnet (pasos 1.4 a 1.2b) · rama `fase-0-contencion` · nada publicado (sin push).
+**Última actualización:** 2026-10-04 · Sonnet (salud, 1.3b, 1.2c partes 1 y 2, guía de APK) · rama `fase-0-contencion` · nada publicado (sin push).
 
 ## Dónde quedamos
 
@@ -13,28 +13,32 @@
   1.0 navegación solo con pedido explícito (`36f3e0e`) · 1.0b hora/luna/clima determinista (`713c0cd`) ·
   1.3 "no tengo ese dato" honesto (`dfd658b`) · 1.4 sin retraso artificial (`86661a6`) ·
   1.5 Groq más rápido + arreglo de la codificación UTF-8 del proxy (`82d7a7f`) ·
-  1.6 circuit breaker y timeout de 6 s (`72b9063`) · 1.2b texto para voz (`1df2654`).
+  1.6 circuit breaker y timeout de 6 s (`72b9063`) · 1.2b texto para voz (`1df2654`) ·
+  instrucciones comunes para IAs (`5cf8de2`) · salud sin emergencia: deriva, nunca receta (`7418675`) ·
+  1.3b dos arreglos baratos contra respuestas sin relación (`76807c5`) ·
+  1.2c parte 1: tildes en las respuestas, script `scripts/revisar_tildes.mjs` (`e988000`) ·
+  1.2c parte 2: léxico de pronunciación `assets/elguia/voz/pronunciacion.json` (`7554597`).
 - **Flags nuevos** (todos en `SharedPreferences`, todos prendidos salvo el retraso): `guia_nav_estricta`,
   `guia_condiciones`, `guia_no_se_honesto`, `guia_retraso_artificial` (apagado), `guia_groq_rapido`,
-  `guia_breaker`, `guia_voz_limpia`, `guia_presentador`, `guia_bm25` (ver 1.1).
-- **Tests:** 1260 pasan, 1 salteado (`flutter test`, ~20 s). Proxy: `node --test supabase/functions/ia-proxy/groq_params.test.ts`.
+  `guia_breaker`, `guia_voz_limpia`, `guia_presentador`, `guia_bm25` (ver 1.1), `guia_aclarar_estricto`,
+  `guia_ayuda_app_estricta`.
+- **Tests:** 1503 pasan, 1 salteado (`flutter test`, ~20 s). Proxy: `node --test supabase/functions/ia-proxy/groq_params.test.ts`.
 
 ## Qué sigue (en este orden)
 
-1. **1.2c** pronunciación (tildes faltantes en respuestas, léxico editable `assets/elguia/voz/pronunciacion.json`,
-   prueba de oído). `GuiaTextoVoz` ya deja las siglas (VHF, GPS…) en mayúsculas para que el léxico las pronuncie.
-2. **1.3b** achicar las 17 preguntas fuera de tema que todavía se responden con otra cosa
-   (el "¿te referís a…?" con fichas sin relación; el menú de la app ante "cómo funciona…").
-   Es calibración del buscador: va con la Fase 2.
-3. **Salud sin emergencia** ("me duele la cabeza, qué tomo"): nunca nombrar medicamentos; médico o farmacéutico;
-   107/911 si es fuerte o repentino.
-4. 1.7 (opcional). Después: Fase 2 (medir con un conjunto de evaluación), Fase 3, Fase 4 (voz y micrófono, palabra
-   de activación "Baqueano"), Fase 5 (opcional).
+1. **APK de prueba en el Moto G15 del dueño** (no para repartir): guía en `docs/GUIA_APK_PRUEBA.md`. Hace falta Java 17
+   en la PC (hoy solo hay Java 25 y `android/gradle.properties` apunta a una carpeta inexistente). Mide el mensaje
+   "Retriever listo… en N ms" (< 2000) y las tres pruebas rápidas.
+2. **1.2c parte 3, prueba de oído** (la hace el dueño con el celular): una pantalla oculta de admin que lee ~50
+   frases con la voz del teléfono; lo que suene mal se agrega a `assets/elguia/voz/pronunciacion.json`.
+3. **Fase 2** (medir con un conjunto de evaluación de ~400 casos, `test/eval/*.jsonl`; calibrar los umbrales del
+   buscador). Ahí entran las 11 fuera de tema que quedan y el mal ranking ("masa para boga", "horno").
+4. 1.7 (opcional). Después: Fase 3, Fase 4 (voz y micrófono, palabra de activación "Baqueano"), Fase 5 (opcional).
 
 ## Pendientes que dependen del dueño
 
-- **No repartir APK** hasta evaluar el mal ranking del buscador (ej. "masa para boga" devuelve las empanadas) y las
-  17 de 50 fuera de tema (Fase 2). La voz ya lee bien las unidades (1.2b).
+- **No repartir APK** (sí instalar en el propio celular, ver `docs/GUIA_APK_PRUEBA.md`) hasta evaluar el mal ranking del buscador (ej. "masa para boga" devuelve las empanadas) y las
+  11 de 50 fuera de tema (Fase 2). La voz ya lee bien las unidades (1.2b).
 - **Desplegar `ia-proxy`** (cambio del 1.5) y correr `scripts/probar_groq_rapido.mjs` con `SUPABASE_URL` y
   `SUPABASE_ANON_KEY` cargadas en su sesión (sin pegarlas en el chat): mide el p50 y las respuestas cortadas. Si no
   es más rápido, apagar `guia_groq_rapido`.
@@ -43,6 +47,7 @@
   respuesta offline p95 < 300 ms (1.4); hora/luna/clima en modo avión < 300 ms (1.0b).
 - Probar en el Moto G15 sus **preguntas reales** de seguridad, con señal y en modo avión.
 - **Persona idónea** (médico, guardavidas, Cruz Roja) revisa los textos marcados `// REVISAR: persona idónea`.
+  Incluye el texto nuevo de salud sin emergencia (`primeros_auxilios.json` → `salud_sin_emergencia`).
 - Confirmar con **Prefectura** que 106 y canal 16 valen para todas las zonas de uso.
 - Elegir la mejor **voz en español** instalada en el celular (paso 5.V.0).
 
@@ -83,14 +88,20 @@
 
 ## Problemas conocidos
 
-- 17 de 50 preguntas fuera de tema todavía reciben una respuesta de otra cosa (lista y causas en
-  `test/guia_no_se_test.dart`, constante `conocidas`; meta: 0).
+- Las respuestas de **primeros auxilios** recibieron solo correcciones de tildes (1.2c); siguen marcadas
+  `REVISAR: persona idónea`. Quedan 9 palabras ambiguas revisadas a mano y dejadas como están (ver el script).
+
+- 11 de 50 preguntas fuera de tema todavía reciben una respuesta de otra cosa (eran 17; lista y causas en
+  `test/guia_no_se_test.dart`, constante `conocidas`; meta: 0). Con el 1.3b se perdieron 0 de 21 aclaraciones
+  válidas del conjunto de validación, pero ese conjunto es de plantilla: puede subestimar la pérdida real.
 - El buscador (BM25) rankea mal algunas preguntas: "cómo se prepara la masa para boga" da la receta de empanadas
   (test salteado en `test/el_guia_engine_retrieval_test.dart`). Umbrales sin calibrar: Fase 2.
 - La pantalla de pronóstico y el mini widget del panel **escriben** el caché del clima pero todavía no lo **leen**
   cuando falla la red (1.0b).
 - Antes del 1.5, **toda respuesta de la nube con tilde fallaba** (el proxy codificaba en latin1) y caía al motor
   offline. Ya está arreglado, pero en la práctica la nube casi no se estuvo usando: medir con tráfico real.
+- **Java:** la PC no tiene Java 17 y `android/gradle.properties` (cambio local sin commitear) apunta a
+  `C:\Program Files\Eclipse Adoptium\jdk-17.0.20.101-hotspot`, que no existe: `flutter build apk` falla ahí.
 - `HEAD` no compila solo en una copia limpia: `cart_persistence_service.dart` importa `models/tipo_checkout.dart`, que
   no está commiteado (ajeno al ayudante).
 - "Estoy perdido, no sé qué caña comprar" se toma como emergencia: costo aceptado de "ante la duda, seguridad".
