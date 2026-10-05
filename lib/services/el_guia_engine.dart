@@ -106,6 +106,35 @@ class ElGuiaEngine {
   /// Paso 1.3: "no tengo ese dato" honesto en vez de "no te entendí" (flag `guia_no_se_honesto`).
   static const String prefNoSeHonesto = 'guia_no_se_honesto';
   static bool noSeHonestoHabilitado = true;
+  /// Paso 1.3b (ESQUELETO en rojo: todavía no filtra nada).
+  static const String prefAclararEstricto = 'guia_aclarar_estricto';
+  static const String prefAyudaAppEstricta = 'guia_ayuda_app_estricta';
+  static bool aclararEstricto = true;
+  static bool ayudaAppEstricta = true;
+
+  /// Palabras que no cuentan como "contenido" para el "¿te referís a...?": las de
+  /// pregunta ("cuánto", "cómo"), los verbos comodín ("hace", "puedo", "dame") y las
+  /// muletillas ("algún tip", "consejo"). Se stemmean igual que el buscador.
+  static final Set<String> _palabrasGenericas = GuiaTextoEs.tokenizar(
+    'cuánto cuántos cuántas cómo cuál cuáles dónde cuándo quién hace hacer hago puedo puede tiene tienen hay sabés '
+    'sabes decime contame explicame explicás recomendame recomendás dame mostrame quiero necesito tengo tenés algún '
+    'tip consejo cosa tema info información dato datos significa funciona tarda cuesta sale empieza',
+  ).toSet();
+
+  /// ¿La ficha comparte con la pregunta al menos una palabra con contenido? Sin
+  /// números ni palabras genéricas, contra el título, las preguntas y las
+  /// palabras clave de la ficha. Paso 1.3b: el "¿te referís a...?" solo ofrece
+  /// fichas que pasan esta prueba (se pierde alguna aclaración válida a cambio de
+  /// no ofrecer fichas sin relación).
+  @visibleForTesting
+  static bool comparteContenido(String consulta, GuiaFicha ficha) {
+    final deLaConsulta = GuiaTextoEs.tokenizar(consulta)
+        .where((t) => int.tryParse(t) == null && !_palabrasGenericas.contains(t))
+        .toSet();
+    if (deLaConsulta.isEmpty) return false;
+    final deLaFicha = GuiaTextoEs.tokenizar([ficha.titulo, ...ficha.preguntas, ...ficha.keywords].join(' '));
+    return deLaFicha.any(deLaConsulta.contains);
+  }
   int _ultimaNoSe = -1;
   String _ultimoTextoConsultado = '';
   static bool semanticoHabilitado = false;
@@ -132,6 +161,8 @@ class ElGuiaEngine {
     presentadorHabilitado = prefs.getBool(prefPresentador) ?? presentadorHabilitado;
     IntentService.aplicarFlags(prefs);
     noSeHonestoHabilitado = prefs.getBool(prefNoSeHonesto) ?? noSeHonestoHabilitado;
+    aclararEstricto = prefs.getBool(prefAclararEstricto) ?? aclararEstricto;
+    ayudaAppEstricta = prefs.getBool(prefAyudaAppEstricta) ?? ayudaAppEstricta;
     GuiaCondicionesService.aplicarFlags(prefs);
     GuiaTextoVoz.aplicarFlags(prefs);
   }
@@ -424,6 +455,20 @@ class ElGuiaEngine {
     r'|\b(?:ibuprofeno|paracetamol|aspirina|dipirona|diclofenac|naproxeno|amoxicilina|omeprazol|loratadina|tafirol|ibupirac|buscapina|dramamine|ranitidina|clonazepam)\b',
   );
   bool _esConsultaDeSalud(String texto) => _consultaDeSalud.hasMatch(_normalizar(texto));
+
+  /// Activadores de 'ayuda_app' tan amplios que atrapaban cualquier pregunta
+  /// ("cómo funciona la bolsa de valores", "cómo hago para dormir mejor").
+  static const Set<String> _ayudaAppGenericos = {
+    'como funciona', 'cómo funciona', 'como hago', 'cómo hago', 'para que sirve', 'para qué sirve',
+    'como uso', 'cómo uso', 'donde esta', 'dónde está', 'no encuentro',
+  };
+
+  /// De qué se puede estar hablando cuando se pide ayuda de la app.
+  static final RegExp _objetoDeLaApp = RegExp(
+    r'\b(?:la app|esta app|mi app|la aplicacion|esta aplicacion|esto|el guia|este guia|el asistente|el boton|la pantalla|'
+    r'la tienda|el mapa|el gps|la reserva|las reservas|mi reserva|mis reservas|mi viaje|mis viajes|el perfil|mi perfil|'
+    r'el carrito|las notificaciones|mi cuenta|mi pedido|mis pedidos|la subasta|el chat|la camara|la pantalla de pagos|el pago)\b',
+  );
 
   /// Todo lo que es una emergencia en el agua. Ante la duda, gana seguridad.
   bool _esEmergenciaDeAgua(String texto) {
@@ -2093,7 +2138,11 @@ class ElGuiaEngine {
           // carnadas, una intención del educador...), su handler responde
           // mejor que una lista de opciones.
           if (intencionPrincipal != 'fallback') return null;
-          final opciones = res.candidatos.take(3).map((c) => c.ficha).toList();
+          final opciones = res.candidatos
+              .map((c) => c.ficha)
+              .where((f) => !aclararEstricto || comparteContenido(textoNormalizado, f))
+              .take(3)
+              .toList();
           if (opciones.isEmpty) return null;
           _aclaracionPendiente = opciones;
           final textoAcl = _textoAclaracion(opciones);
@@ -2467,6 +2516,14 @@ class ElGuiaEngine {
     for (final entry in _activadores.entries) {
       for (final activador in entry.value) {
         if (textoExpandido.contains(activador)) {
+          // Paso 1.3b: "cómo funciona…", "cómo hago…", "para qué sirve…" y "dónde está…" son
+          // ayuda de la app solo si el objeto es la app.
+          if (ayudaAppEstricta &&
+              entry.key == 'ayuda_app' &&
+              _ayudaAppGenericos.contains(activador) &&
+              !_objetoDeLaApp.hasMatch(textoExpandido)) {
+            continue;
+          }
           if (!intenciones.contains(entry.key)) {
             intenciones.add(entry.key);
           }

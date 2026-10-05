@@ -167,29 +167,24 @@ void main() {
 
     /// Fuera de dominio que HOY se contestan con algo inventado o inventan una
     /// ayuda de la app que no corresponde. Meta: vaciar esta lista (Fase 2).
-    // 17 de 50 (34 %). Causas: (1) el buscador ofrece "¿te referís a...?" con
-    // fichas sin relación (umbrales sin calibrar: los puntajes de estas consultas
-    // se solapan con los de preguntas válidas, no se separan con un piso); (2) la
-    // detección de intenciones de la app contesta con un menú ("¿Qué querés
-    // usar?", "Mis Viajes"); (3) el buscador acierta "directa" con una ficha de
-    // cocina ("horno" → masa de empanadas). Todo eso es de la Fase 2.
+    // 11 de 50 (22 %); eran 17 antes del 1.3b. Causas que quedan: (1) el buscador
+    // ofrece "¿te referís a...?" con fichas que comparten una palabra suelta (umbrales
+    // sin calibrar: los puntajes de estas consultas se solapan con los de preguntas
+    // válidas); (2) la detección de intenciones de la app contesta con un menú
+    // ("Mis Viajes" ante "cuándo empieza el mundial"); (3) el buscador acierta
+    // "directa" con una ficha sin relación ("horno" → masa de empanadas, "peso" →
+    // presión barométrica). Todo eso es de la Fase 2.
     const conocidas = <String>{
       'cómo hago para bajar de peso rápido',
-      'cuánto es 45 por 12',
       'qué hora es en españa',
-      'cuánto cuesta un iphone',
       'explicame la teoría de la relatividad',
       'cómo se hace la salsa bolognesa',
       'cuál es el mejor celular gama media',
       'cómo aprendo a tocar la guitarra',
       'cuándo empieza el mundial',
-      'cómo funciona la bolsa de valores',
       'cómo se limpia el horno',
-      'cuántos habitantes tiene rosario',
       'cuánto tarda el vuelo a madrid',
       'qué es un agujero negro',
-      'cómo hago para dormir mejor',
-      'cómo pinto una pared',
       'cómo se juega al truco',
     };
 
