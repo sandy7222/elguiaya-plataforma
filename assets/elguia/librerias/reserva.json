@@ -19,7 +19,7 @@
     "pagado": {
       "descripcion": "El pago se procesó y el viaje está confirmado. El capitán ya sabe que vas.",
       "que_sigue": "El día del viaje, el capitán va a marcar el inicio y te llega una notificación.",
-      "consejo": "Revisá la campanita el día del viaje para saber cuando arrancó oficialmente."
+      "consejo": "Revisá la campanita el día del viaje para saber cuándo arrancó oficialmente."
     },
     "en_curso": {
       "descripcion": "El capitán inició la salida. El viaje está en curso.",

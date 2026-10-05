@@ -26,7 +26,7 @@
     "¿La app tiene acceso al GPS del teléfono? Si no, hay que habilitarlo en Configuración del celular."
   ],
   "problemas_comunes": {
-    "sin_permiso": "Andá a Configuración del teléfono → Aplicaciones → Capitan-YA → Permisos → Ubicación → Siempre o Cuando uso la app.",
+    "sin_permiso": "Andá a Configuración del teléfono → Aplicaciones → Capitán-YA → Permisos → Ubicación → Siempre o Cuando uso la app.",
     "sin_senal": "El GPS tarda unos segundos en arrancar. Salí a un lugar abierto y esperá que el punto de ubicación aparezca.",
     "mapa_en_blanco": "Si el mapa aparece en blanco, puede que no hayas cargado las cartas con internet antes. Conectate y volvé a abrir el mapa.",
     "no_sigue": "Si tu punto no se mueve, fijate que el GPS del teléfono esté activado desde el panel de notificaciones."

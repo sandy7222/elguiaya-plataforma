@@ -3,25 +3,25 @@
   "prioridad": 5,
   "respuestas_puente": [
     "Voy a ayudarte a hacer fuego de forma segura.",
-    "Primero necesito saber que materiales tenes cerca.",
+    "Primero necesito saber qué materiales tenés cerca.",
     "Revisando opciones para encender fuego."
   ],
-  "pregunta_automatica": "Tenes encendedor, fosforos, bateria, lentes o solo materiales naturales?",
+  "pregunta_automatica": "Tenés encendedor, fosforos, batería, lentes o solo materiales naturales?",
   "metodos": {
     "encendedor_o_fosforos": [
-      "Busca ramas secas finas, hojas secas y madera pequeña. Empieza con material facil de encender.",
+      "Busca ramas secas finas, hojas secas y madera pequeña. Empieza con material fácil de encender.",
       "Arma una estructura en forma de cuenco con ramitas finas y hojas secas. Enciende desde abajo."
     ],
     "bateria": [
-      "Con una bateria de 9V y algodon o pasto seco podes generar chispa. Toca los dos contactos con un material conductivo fino."
+      "Con una batería de 9V y algodon o pasto seco podés generar chispa. Toca los dos contactos con un material conductivo fino."
     ],
     "friccion": [
-      "Metodo de arco y husillo: necesitas un palo seco recto, una tabla de madera blanda y corteza para hacer el arco. Es el metodo mas dificil pero funciona.",
-      "Busca madera muy seca, blanda y sin resina. La madera humeda no prende por friccion."
+      "Método de arco y husillo: necesitas un palo seco recto, una tabla de madera blanda y corteza para hacer el arco. Es el método más difícil pero funciona.",
+      "Busca madera muy seca, blanda y sin resina. La madera humeda no prende por fricción."
     ],
     "lentes": [
-      "Con lentes o una botella de agua llena podes concentrar la luz solar en material seco para generar combustion. Solo funciona con sol directo."
+      "Con lentes o una botella de agua llena podés concentrar la luz solar en material seco para generar combustion. Solo funciona con sol directo."
     ]
   },
-  "consejo": "Siempre tene listo el material antes de intentar encender. Empieza con lo mas fino y seco disponible."
+  "consejo": "Siempre tené listo el material antes de intentar encender. Empieza con lo más fino y seco disponible."
 }

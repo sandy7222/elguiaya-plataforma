@@ -44,6 +44,6 @@
   "problemas_comunes": {
     "sin_stock": "Si un producto aparece sin stock, significa que se agotó por ahora. Podés agregarlo a favoritos y te avisamos cuando vuelve.",
     "pago_rechazado": "Si el pago fue rechazado, revisá que los datos de la tarjeta estén bien o intentá con otro método de pago.",
-    "no_llega_pedido": "Si tu pedido tarda más de lo esperado, entrá a Mis pedidos y fijate el estado. Si dice entregado y no lo recibiste, contactá al equipo de Capitan-YA."
+    "no_llega_pedido": "Si tu pedido tarda más de lo esperado, entrá a Mis pedidos y fijate el estado. Si dice entregado y no lo recibiste, contactá al equipo de Capitán-YA."
   }
 }

@@ -46,7 +46,7 @@
         "funcion de la aplicacion",
         "que hace la aplicacion"
       ],
-      "respuesta_limpia": "Conectar pescadores con guias de pesca",
+      "respuesta_limpia": "Conectar pescadores con guías de pesca",
       "gif": "hablaConMate"
     },
     {
@@ -265,7 +265,7 @@
         "preparacion equipo pesca",
         "organizacion lineas pesca"
       ],
-      "respuesta_limpia": "Llevar lineas armadas y organizadas en tablillas",
+      "respuesta_limpia": "Llevar líneas armadas y organizadas en tablillas",
       "gif": "hablaConMate"
     },
     {
@@ -496,7 +496,7 @@
         "extraccion de lombrices con electricidad",
         "lombrices con bateria"
       ],
-      "respuesta_limpia": "Se utiliza una bateria de 12v y dos electrodos para atraer lombrices.",
+      "respuesta_limpia": "Se utiliza una batería de 12v y dos electrodos para atraer lombrices.",
       "gif": "piensaLeve"
     },
     {

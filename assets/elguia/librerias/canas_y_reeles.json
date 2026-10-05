@@ -3,21 +3,21 @@
   "prioridad": 15,
   "respuestas_puente": [
     "Claro. Voy a consultar el equipo recomendado.",
-    "Revisando informacion de canas y reeles.",
-    "Buscando recomendaciones segun tu pesca."
+    "Revisando información de cañas y reeles.",
+    "Buscando recomendaciones según tu pesca."
   ],
   "canas": {
     "liviana": {
       "uso": "Pejerrey, boga, peces de escama pequeños",
-      "caracteristicas": "1.8m a 2.4m, accion media, carbon o fibra de vidrio liviana"
+      "caracteristicas": "1.8m a 2.4m, acción media, carbón o fibra de vidrio liviana"
     },
     "media": {
-      "uso": "Dorado, pati, bagre",
-      "caracteristicas": "2.1m a 2.7m, accion media-rapida, carbon compuesto"
+      "uso": "Dorado, patí, bagre",
+      "caracteristicas": "2.1m a 2.7m, acción media-rápida, carbón compuesto"
     },
     "pesada": {
-      "uso": "Surubi grande, armado, pesca de currican",
-      "caracteristicas": "2.4m a 3m, accion rapida, carbon de alta densidad"
+      "uso": "Surubí grande, armado, pesca de currican",
+      "caracteristicas": "2.4m a 3m, acción rápida, carbón de alta densidad"
     }
   },
   "reeles": {
@@ -33,7 +33,7 @@
     },
     "rotativo": {
       "descripcion": "Reel tipo baitcasting o de carrete rotativo",
-      "uso": "Pesca pesada y de precision",
+      "uso": "Pesca pesada y de precisión",
       "recomendado_para": [
         "surubi",
         "dorado",
@@ -41,8 +41,8 @@
       ]
     },
     "spinning": {
-      "descripcion": "Reel de spinning clasico",
-      "uso": "El mas versatil para todo tipo de pesca",
+      "descripcion": "Reel de spinning clásico",
+      "uso": "El más versátil para todo tipo de pesca",
       "recomendado_para": [
         "general"
       ]

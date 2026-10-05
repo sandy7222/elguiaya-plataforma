@@ -3,13 +3,13 @@
   "prioridad": 6,
   "respuestas_puente": [
     "Vamos a revisar opciones de alimento.",
-    "Primero dime que tenes alrededor.",
-    "Estas cerca de agua, arboles o zona abierta?"
+    "Primero dime qué tenés alrededor.",
+    "¿Estás cerca de agua, árboles o zona abierta?"
   ],
   "fuentes": {
     "pesca": {
       "descripcion": "Pescar para comer",
-      "consejo": "Si estas cerca del rio, la pesca es la fuente mas confiable. Un anzuelo improvisado con un pin o espina y una linea te puede dar resultado."
+      "consejo": "Si estás cerca del río, la pesca es la fuente más confiable. Un anzuelo improvisado con un pin o espina y una línea te puede dar resultado."
     },
     "plantas": {
       "descripcion": "Plantas comestibles del delta",
@@ -21,5 +21,5 @@
       "consejo": "Renacuajos, ranas y caracoles de agua dulce son comestibles si se cocinan bien. Evita los de colores brillantes."
     }
   },
-  "advertencia": "El cuerpo humano puede sobrevivir semanas sin comida pero solo dias sin agua. Prioriza el agua primero."
+  "advertencia": "El cuerpo humano puede sobrevivir semanas sin comida pero solo días sin agua. Prioriza el agua primero."
 }

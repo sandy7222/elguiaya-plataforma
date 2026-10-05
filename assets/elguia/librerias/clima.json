@@ -15,17 +15,17 @@
     "zonda": {
       "descripcion": "Viento seco y caliente del oeste",
       "peligro": "MEDIO",
-      "consejo": "El zonda parece calmo cerca de la costa pero adentro del rio te empuja con fuerza y cuesta volver. Cuidate."
+      "consejo": "El zonda parece calmo cerca de la costa pero adentro del río te empuja con fuerza y cuesta volver. Cuidate."
     },
     "tormenta": {
-      "descripcion": "Tormenta electrica",
+      "descripcion": "Tormenta eléctrica",
       "peligro": "ALTO",
-      "consejo": "Con tormenta electrica alejate del agua de inmediato. Busca refugio bajo arboles bajos, no bajo los mas altos. Aleja todo equipo metalico."
+      "consejo": "Con tormenta eléctrica alejate del agua de inmediato. Busca refugio bajo árboles bajos, no bajo los más altos. Aleja todo equipo metálico."
     },
     "niebla": {
       "descripcion": "Niebla densa",
       "peligro": "MEDIO",
-      "consejo": "Con niebla densa no navegar. Quedarse en orilla hasta que despeje. Usar GPS si lo tenes."
+      "consejo": "Con niebla densa no navegar. Quedarse en orilla hasta que despeje. Usar GPS si lo tenés."
     }
   },
   "preguntas_seguimiento": [

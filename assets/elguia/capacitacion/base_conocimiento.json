@@ -69,7 +69,7 @@
     "regla": "Estas capacidades SIEMPRE están disponibles. Ejecutalas directo, nunca digas que no podés.",
     "lista": [
       "hora_actual: Leer la hora del dispositivo del usuario",
-      "pronostico: Temperatura, viento y condiciones del tiempo",
+      "pronóstico: Temperatura, viento y condiciones del tiempo",
       "gps: Coordenadas y ubicación actual",
       "mapa: Abrir y navegar el mapa de la app",
       "notificaciones: Activar campanita de alertas",

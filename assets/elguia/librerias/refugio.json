@@ -8,13 +8,13 @@
   ],
   "reglas": [
     "Busca zonas elevadas para evitar inundaciones.",
-    "Evita zonas demasiado cercanas al agua, pueden llenarse rapido.",
+    "Evita zonas demasiado cercanas al agua, pueden llenarse rápido.",
     "El refugio debe protegerte del viento y la lluvia.",
     "Empieza a construirlo antes de que anochezca."
   ],
   "tipos": {
-    "natural": "Usa arboles caidos, ramas grandes y hojas para armar un techo inclinado. Apoya ramas contra un arbol o estructura firme.",
-    "delta": "En las islas del Parana hay totoras, juncos y plantas grandes que sirven como material de refugio. Las totoras son excelentes aislantes.",
-    "emergencia": "Si no tenes tiempo, busca el costado de un arbol grueso o una depresion del terreno protegida del viento como refugio provisorio."
+    "natural": "Usa árboles caidos, ramas grandes y hojas para armar un techo inclinado. Apoya ramas contra un arbol o estructura firme.",
+    "delta": "En las islas del Paraná hay totoras, juncos y plantas grandes que sirven como material de refugio. Las totoras son excelentes aislantes.",
+    "emergencia": "Si no tenés tiempo, busca el costado de un arbol grueso o una depresion del terreno protegida del viento como refugio provisorio."
   }
 }

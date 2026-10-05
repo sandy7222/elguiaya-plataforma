@@ -3,14 +3,14 @@
   "prioridad": 3,
   "respuestas_puente": [
     "Vamos a buscar agua segura.",
-    "Conseguir agua es prioridad. Primero necesito saber donde estas.",
+    "Conseguir agua es prioridad. Primero necesito saber dónde estás.",
     "Entendido. El agua es lo primero. Te guio."
   ],
   "fuentes": {
     "rio": {
-      "descripcion": "Agua del rio Parana",
-      "consejo": "El agua del rio puede contener bacterias y parasitos. Hervirla es el metodo mas seguro.",
-      "metodo_purificacion": "Hervir 5 minutos minimo. Si no tenes como hervir, usala solo en ultimo caso."
+      "descripcion": "Agua del río Paraná",
+      "consejo": "El agua del río puede contener bacterias y parasitos. Hervirla es el método más seguro.",
+      "metodo_purificacion": "Hervir 5 minutos mínimo. Si no tenés como hervir, usala solo en último caso."
     },
     "lluvia": {
       "descripcion": "Agua de lluvia",
@@ -18,11 +18,11 @@
     },
     "rocio": {
       "descripcion": "Rocio matutino",
-      "consejo": "Antes del amanecer, las hojas grandes acumulan rocio. Podes absorberlo con una tela y exprimirla."
+      "consejo": "Antes del amanecer, las hojas grandes acumulan rocio. Podés absorberlo con una tela y exprimirla."
     },
     "vegetacion": {
       "descripcion": "Agua de plantas",
-      "consejo": "Algunas plantas acumulan agua en su interior. Bambu, bromelias y ciertas canas del delta pueden tener agua."
+      "consejo": "Algunas plantas acumulan agua en su interior. Bambú, bromelias y ciertas cañas del delta pueden tener agua."
     }
   },
   "advertencia": "Evita beber agua sin evaluar si es segura. No bebas agua de charcos o zonas con mucho verdor oscuro."

@@ -16,7 +16,7 @@
   "id": "alimento/campo/advertencia",
   "libreria": "alimento",
   "titulo": "Advertencia (alimento)",
-  "texto": "El cuerpo humano puede sobrevivir semanas sin comida pero solo dias sin agua. Prioriza el agua primero.",
+  "texto": "El cuerpo humano puede sobrevivir semanas sin comida pero solo días sin agua. Prioriza el agua primero.",
   "preguntas": [
    "advertencia alimento",
    "alimento advertencia",
@@ -716,7 +716,7 @@
   "id": "canas_y_reeles/canas/liviana",
   "libreria": "canas_y_reeles",
   "titulo": "Liviana (canas y reeles)",
-  "texto": "Uso: Pejerrey, boga, peces de escama pequeños\nCaracteristicas: 1.8m a 2.4m, accion media, carbon o fibra de vidrio liviana",
+  "texto": "Uso: Pejerrey, boga, peces de escama pequeños\nCaracteristicas: 1.8m a 2.4m, acción media, carbón o fibra de vidrio liviana",
   "preguntas": [
    "liviana",
    "canas y reeles liviana",
@@ -729,7 +729,7 @@
   "id": "canas_y_reeles/canas/media",
   "libreria": "canas_y_reeles",
   "titulo": "Media (canas y reeles)",
-  "texto": "Uso: Dorado, pati, bagre\nCaracteristicas: 2.1m a 2.7m, accion media-rapida, carbon compuesto",
+  "texto": "Uso: Dorado, patí, bagre\nCaracteristicas: 2.1m a 2.7m, acción media-rápida, carbón compuesto",
   "preguntas": [
    "media",
    "canas y reeles media",
@@ -742,7 +742,7 @@
   "id": "canas_y_reeles/canas/pesada",
   "libreria": "canas_y_reeles",
   "titulo": "Pesada (canas y reeles)",
-  "texto": "Uso: Surubi grande, armado, pesca de currican\nCaracteristicas: 2.4m a 3m, accion rapida, carbon de alta densidad",
+  "texto": "Uso: Surubí grande, armado, pesca de currican\nCaracteristicas: 2.4m a 3m, acción rápida, carbón de alta densidad",
   "preguntas": [
    "pesada",
    "canas y reeles pesada",
@@ -768,7 +768,7 @@
   "id": "canas_y_reeles/reeles/rotativo",
   "libreria": "canas_y_reeles",
   "titulo": "Rotativo (canas y reeles)",
-  "texto": "Descripcion: Reel tipo baitcasting o de carrete rotativo\nUso: Pesca pesada y de precision\nRecomendado para: surubi, dorado, armado",
+  "texto": "Descripcion: Reel tipo baitcasting o de carrete rotativo\nUso: Pesca pesada y de precisión\nRecomendado para: surubi, dorado, armado",
   "preguntas": [
    "rotativo",
    "canas y reeles rotativo",
@@ -781,7 +781,7 @@
   "id": "canas_y_reeles/reeles/spinning",
   "libreria": "canas_y_reeles",
   "titulo": "Spinning (canas y reeles)",
-  "texto": "Descripcion: Reel de spinning clasico\nUso: El mas versatil para todo tipo de pesca\nRecomendado para: general",
+  "texto": "Descripcion: Reel de spinning clásico\nUso: El más versátil para todo tipo de pesca\nRecomendado para: general",
   "preguntas": [
    "spinning",
    "canas y reeles spinning",
@@ -1090,7 +1090,7 @@
   "id": "clima/fenomenos/zonda",
   "libreria": "clima",
   "titulo": "Zonda (clima)",
-  "texto": "Descripcion: Viento seco y caliente del oeste\nPeligro: MEDIO\nConsejo: El zonda parece calmo cerca de la costa pero adentro del rio te empuja con fuerza y cuesta volver. Cuidate.",
+  "texto": "Descripcion: Viento seco y caliente del oeste\nPeligro: MEDIO\nConsejo: El zonda parece calmo cerca de la costa pero adentro del río te empuja con fuerza y cuesta volver. Cuidate.",
   "preguntas": [
    "zonda",
    "clima zonda",
@@ -1103,7 +1103,7 @@
   "id": "clima/fenomenos/tormenta",
   "libreria": "clima",
   "titulo": "Tormenta (clima)",
-  "texto": "Descripcion: Tormenta electrica\nPeligro: ALTO\nConsejo: Con tormenta electrica alejate del agua de inmediato. Busca refugio bajo arboles bajos, no bajo los mas altos. Aleja todo equipo metalico.",
+  "texto": "Descripcion: Tormenta eléctrica\nPeligro: ALTO\nConsejo: Con tormenta eléctrica alejate del agua de inmediato. Busca refugio bajo árboles bajos, no bajo los más altos. Aleja todo equipo metálico.",
   "preguntas": [
    "tormenta",
    "clima tormenta",
@@ -1116,7 +1116,7 @@
   "id": "clima/fenomenos/niebla",
   "libreria": "clima",
   "titulo": "Niebla (clima)",
-  "texto": "Descripcion: Niebla densa\nPeligro: MEDIO\nConsejo: Con niebla densa no navegar. Quedarse en orilla hasta que despeje. Usar GPS si lo tenes.",
+  "texto": "Descripcion: Niebla densa\nPeligro: MEDIO\nConsejo: Con niebla densa no navegar. Quedarse en orilla hasta que despeje. Usar GPS si lo tenés.",
   "preguntas": [
    "niebla",
    "clima niebla",
@@ -2004,7 +2004,7 @@
   "id": "cuando_sirve_boya_luminosa_nocturna",
   "libreria": "cuando_sirve_boya_luminosa_nocturna",
   "titulo": "Cuándo usar boyas luminosas",
-  "texto": "🎣 CUÁNDO USAR BOYAS LUMINOSAS\n\nLas boyas luminosas son indispensables para la pesca nocturna, especialmente buscando el pejerrey de mar en muelles o el pati y surubí en los remansos del río.\n\nConsejo del Baqueano: La noche en el río o el mar te deja ciego. Si tirás una boya común, no vas a ver la picada y vas a errar todos los toques. La boya luminosa (LED o con alojamiento para luz química 'chemical light') te marca el rumbo exacto y te avisa al instante cuando el pez 'lleva' o la boya se acuesta.",
+  "texto": "🎣 CUÁNDO USAR BOYAS LUMINOSAS\n\nLas boyas luminosas son indispensables para la pesca nocturna, especialmente buscando el pejerrey de mar en muelles o el patí y surubí en los remansos del río.\n\nConsejo del Baqueano: La noche en el río o el mar te deja ciego. Si tirás una boya común, no vas a ver la picada y vas a errar todos los toques. La boya luminosa (LED o con alojamiento para luz química 'chemical light') te marca el rumbo exacto y te avisa al instante cuando el pez 'lleva' o la boya se acuesta.",
   "preguntas": [
    "¿Cuándo sirve boya luminosa nocturna?",
    "cuando sirve boya luminosa nocturna"
@@ -2406,7 +2406,7 @@
   "id": "fuego/metodos/encendedor_o_fosforos",
   "libreria": "fuego",
   "titulo": "Encendedor o fosforos (fuego)",
-  "texto": "- Busca ramas secas finas, hojas secas y madera pequeña. Empieza con material facil de encender.\n- Arma una estructura en forma de cuenco con ramitas finas y hojas secas. Enciende desde abajo.",
+  "texto": "- Busca ramas secas finas, hojas secas y madera pequeña. Empieza con material fácil de encender.\n- Arma una estructura en forma de cuenco con ramitas finas y hojas secas. Enciende desde abajo.",
   "preguntas": [
    "encendedor o fosforos",
    "fuego encendedor o fosforos",
@@ -2419,7 +2419,7 @@
   "id": "fuego/metodos/bateria",
   "libreria": "fuego",
   "titulo": "Bateria (fuego)",
-  "texto": "- Con una bateria de 9V y algodon o pasto seco podes generar chispa. Toca los dos contactos con un material conductivo fino.",
+  "texto": "- Con una batería de 9V y algodon o pasto seco podés generar chispa. Toca los dos contactos con un material conductivo fino.",
   "preguntas": [
    "bateria",
    "fuego bateria",
@@ -2432,7 +2432,7 @@
   "id": "fuego/metodos/friccion",
   "libreria": "fuego",
   "titulo": "Friccion (fuego)",
-  "texto": "- Metodo de arco y husillo: necesitas un palo seco recto, una tabla de madera blanda y corteza para hacer el arco. Es el metodo mas dificil pero funciona.\n- Busca madera muy seca, blanda y sin resina. La madera humeda no prende por friccion.",
+  "texto": "- Método de arco y husillo: necesitas un palo seco recto, una tabla de madera blanda y corteza para hacer el arco. Es el método más difícil pero funciona.\n- Busca madera muy seca, blanda y sin resina. La madera humeda no prende por fricción.",
   "preguntas": [
    "friccion",
    "fuego friccion",
@@ -2445,7 +2445,7 @@
   "id": "fuego/metodos/lentes",
   "libreria": "fuego",
   "titulo": "Lentes (fuego)",
-  "texto": "- Con lentes o una botella de agua llena podes concentrar la luz solar en material seco para generar combustion. Solo funciona con sol directo.",
+  "texto": "- Con lentes o una botella de agua llena podés concentrar la luz solar en material seco para generar combustion. Solo funciona con sol directo.",
   "preguntas": [
    "lentes",
    "fuego lentes",
@@ -2458,7 +2458,7 @@
   "id": "fuego/campo/consejo",
   "libreria": "fuego",
   "titulo": "Consejo (fuego)",
-  "texto": "Siempre tene listo el material antes de intentar encender. Empieza con lo mas fino y seco disponible.",
+  "texto": "Siempre tené listo el material antes de intentar encender. Empieza con lo más fino y seco disponible.",
   "preguntas": [
    "consejo fuego",
    "fuego consejo",
@@ -2522,7 +2522,7 @@
   "id": "general_tecnico/funcion_principal_aplicacion",
   "libreria": "general_tecnico",
   "titulo": "funcion principal aplicacion",
-  "texto": "Conectar pescadores con guias de pesca",
+  "texto": "Conectar pescadores con guías de pesca",
   "preguntas": [
    "funcion de la aplicacion",
    "que hace la aplicacion"
@@ -2807,7 +2807,7 @@
   "id": "general_tecnico/preparacion_equipo_pesca",
   "libreria": "general_tecnico",
   "titulo": "preparacion equipo pesca",
-  "texto": "Llevar lineas armadas y organizadas en tablillas",
+  "texto": "Llevar líneas armadas y organizadas en tablillas",
   "preguntas": [
    "preparacion equipo pesca",
    "organizacion lineas pesca"
@@ -3109,7 +3109,7 @@
   "id": "general_tecnico/extraccion_lombrices_electricidad",
   "libreria": "general_tecnico",
   "titulo": "extraccion lombrices electricidad",
-  "texto": "Se utiliza una bateria de 12v y dos electrodos para atraer lombrices.",
+  "texto": "Se utiliza una batería de 12v y dos electrodos para atraer lombrices.",
   "preguntas": [
    "electro-pesca",
    "extraccion de lombrices con electricidad",
@@ -3404,7 +3404,7 @@
   "id": "orientacion/metodos/sol",
   "libreria": "orientacion",
   "titulo": "Sol (orientacion)",
-  "texto": "El sol sale por el este y se pone por el oeste. Al mediodia esta en el norte en el hemisferio sur.",
+  "texto": "El sol sale por el este y se pone por el oeste. Al mediodía esta en el norte en el hemisferio sur.",
   "preguntas": [
    "sol",
    "orientacion sol",
@@ -3417,7 +3417,7 @@
   "id": "orientacion/metodos/estrellas",
   "libreria": "orientacion",
   "titulo": "Estrellas (orientacion)",
-  "texto": "La Cruz del Sur senala el sur. Es la constelacion mas util para orientarse en el hemisferio sur.",
+  "texto": "La Cruz del Sur senala el sur. Es la constelación más útil para orientarse en el hemisferio sur.",
   "preguntas": [
    "estrellas",
    "orientacion estrellas",
@@ -3430,7 +3430,7 @@
   "id": "orientacion/metodos/rio",
   "libreria": "orientacion",
   "titulo": "Rio (orientacion)",
-  "texto": "El Parana generalmente corre de norte a sur. Si encontras el rio, podes orientarte siguiendolo hacia zonas habitadas.",
+  "texto": "El Paraná generalmente corre de norte a sur. Si encontras el río, podés orientarte siguiendolo hacia zonas habitadas.",
   "preguntas": [
    "rio",
    "orientacion rio",
@@ -3443,7 +3443,7 @@
   "id": "orientacion/metodos/gps",
   "libreria": "orientacion",
   "titulo": "Gps (orientacion)",
-  "texto": "Si la app tiene GPS, activa la pantalla de mapa para ver tu posicion exacta incluso sin internet.",
+  "texto": "Si la app tiene GPS, activa la pantalla de mapa para ver tu posición exacta incluso sin internet.",
   "preguntas": [
    "gps",
    "orientacion gps",
@@ -3456,7 +3456,7 @@
   "id": "orientacion/campo/consejo",
   "libreria": "orientacion",
   "titulo": "Consejo (orientacion)",
-  "texto": "Si estas perdido en el delta, busca el curso de agua mas grande y siguelo hacia el sur. Siempre lleva a zonas mas pobladas.",
+  "texto": "Si estás perdido en el delta, busca el curso de agua más grande y siguelo hacia el sur. Siempre lleva a zonas más pobladas.",
   "preguntas": [
    "consejo orientacion",
    "orientacion consejo",
@@ -4613,7 +4613,7 @@
   "id": "refugio/tipos/natural",
   "libreria": "refugio",
   "titulo": "Natural (refugio)",
-  "texto": "Usa arboles caidos, ramas grandes y hojas para armar un techo inclinado. Apoya ramas contra un arbol o estructura firme.",
+  "texto": "Usa árboles caidos, ramas grandes y hojas para armar un techo inclinado. Apoya ramas contra un arbol o estructura firme.",
   "preguntas": [
    "natural",
    "refugio natural",
@@ -4626,7 +4626,7 @@
   "id": "refugio/tipos/delta",
   "libreria": "refugio",
   "titulo": "Delta (refugio)",
-  "texto": "En las islas del Parana hay totoras, juncos y plantas grandes que sirven como material de refugio. Las totoras son excelentes aislantes.",
+  "texto": "En las islas del Paraná hay totoras, juncos y plantas grandes que sirven como material de refugio. Las totoras son excelentes aislantes.",
   "preguntas": [
    "delta",
    "refugio delta",
@@ -4639,7 +4639,7 @@
   "id": "refugio/tipos/emergencia",
   "libreria": "refugio",
   "titulo": "Emergencia (refugio)",
-  "texto": "Si no tenes tiempo, busca el costado de un arbol grueso o una depresion del terreno protegida del viento como refugio provisorio.",
+  "texto": "Si no tenés tiempo, busca el costado de un arbol grueso o una depresion del terreno protegida del viento como refugio provisorio.",
   "preguntas": [
    "emergencia",
    "refugio emergencia",
