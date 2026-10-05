@@ -1,0 +1,97 @@
+# Estado del proyecto — bitácora
+
+> **Lo actualiza la IA que trabaja, al terminar cada paso** (ver `AGENTS.md`). Escribir corto, con fecha y commit.
+> Lo más reciente va arriba en cada sección. Nada de secretos acá.
+
+**Última actualización:** 2026-10-04 · Sonnet (pasos 1.4 a 1.2b) · rama `fase-0-contencion` · nada publicado (sin push).
+
+## Dónde quedamos
+
+### Ayudante "El Guía" (`docs/PLAN_AYUDANTE_IA.md`)
+- **Fase 0 (seguridad): CERRADA.** Pasos 0.1 a 0.6 + 0.3b/c/d y 0.4b. Último commit de la fase: `07c0c38`.
+- **Fase 1, hechos:** 1.1 BM25 prendido (`47195d1`) · 1.2 presentador de fichas (`4a9c7dc`) ·
+  1.0 navegación solo con pedido explícito (`36f3e0e`) · 1.0b hora/luna/clima determinista (`713c0cd`) ·
+  1.3 "no tengo ese dato" honesto (`dfd658b`) · 1.4 sin retraso artificial (`86661a6`) ·
+  1.5 Groq más rápido + arreglo de la codificación UTF-8 del proxy (`82d7a7f`) ·
+  1.6 circuit breaker y timeout de 6 s (`72b9063`) · 1.2b texto para voz (`1df2654`).
+- **Flags nuevos** (todos en `SharedPreferences`, todos prendidos salvo el retraso): `guia_nav_estricta`,
+  `guia_condiciones`, `guia_no_se_honesto`, `guia_retraso_artificial` (apagado), `guia_groq_rapido`,
+  `guia_breaker`, `guia_voz_limpia`, `guia_presentador`, `guia_bm25` (ver 1.1).
+- **Tests:** 1260 pasan, 1 salteado (`flutter test`, ~20 s). Proxy: `node --test supabase/functions/ia-proxy/groq_params.test.ts`.
+
+## Qué sigue (en este orden)
+
+1. **1.2c** pronunciación (tildes faltantes en respuestas, léxico editable `assets/elguia/voz/pronunciacion.json`,
+   prueba de oído). `GuiaTextoVoz` ya deja las siglas (VHF, GPS…) en mayúsculas para que el léxico las pronuncie.
+2. **1.3b** achicar las 17 preguntas fuera de tema que todavía se responden con otra cosa
+   (el "¿te referís a…?" con fichas sin relación; el menú de la app ante "cómo funciona…").
+   Es calibración del buscador: va con la Fase 2.
+3. **Salud sin emergencia** ("me duele la cabeza, qué tomo"): nunca nombrar medicamentos; médico o farmacéutico;
+   107/911 si es fuerte o repentino.
+4. 1.7 (opcional). Después: Fase 2 (medir con un conjunto de evaluación), Fase 3, Fase 4 (voz y micrófono, palabra
+   de activación "Baqueano"), Fase 5 (opcional).
+
+## Pendientes que dependen del dueño
+
+- **No repartir APK** hasta evaluar el mal ranking del buscador (ej. "masa para boga" devuelve las empanadas) y las
+  17 de 50 fuera de tema (Fase 2). La voz ya lee bien las unidades (1.2b).
+- **Desplegar `ia-proxy`** (cambio del 1.5) y correr `scripts/probar_groq_rapido.mjs` con `SUPABASE_URL` y
+  `SUPABASE_ANON_KEY` cargadas en su sesión (sin pegarlas en el chat): mide el p50 y las respuestas cortadas. Si no
+  es más rápido, apagar `guia_groq_rapido`.
+- **Push** de los commits locales: no se hizo ninguno; hace falta el OK del dueño.
+- Medir en el **Moto G15** (equipo de referencia; RAM sin confirmar): mensaje "Retriever listo… en N ms" (< 2000);
+  respuesta offline p95 < 300 ms (1.4); hora/luna/clima en modo avión < 300 ms (1.0b).
+- Probar en el Moto G15 sus **preguntas reales** de seguridad, con señal y en modo avión.
+- **Persona idónea** (médico, guardavidas, Cruz Roja) revisa los textos marcados `// REVISAR: persona idónea`.
+- Confirmar con **Prefectura** que 106 y canal 16 valen para todas las zonas de uso.
+- Elegir la mejor **voz en español** instalada en el celular (paso 5.V.0).
+
+## Otros frentes abiertos (fuera del ayudante)
+
+- **Pagos (Mercado Pago):** en **modo producción** (comprar cobra plata real). Hay migraciones y funciones
+  preparadas sin aplicar; el modelo de cobro de viajes (comisión con pago dividido) está **en pausa** hasta la
+  respuesta de Mercado Pago a una consulta del dueño. No avanzar sin su OK.
+- **Comisión de la plataforma (2026-10-03): el 10 % actual NO es definitivo.** En otra app el dueño calculó que
+  hace falta al menos ~17 % + IVA para ganar algo con Mercado Pago, pero ese cálculo suponía que todo el dinero
+  pasa por su cuenta. Con pago dividido, la comisión de Mercado Pago se le descuenta primero al capitán. Pendiente:
+  1. **Dueño + contador:** porcentaje mínimo para el modelo de pago dividido (monotributo: IVA de las comisiones
+     de Mercado Pago no recuperable, retenciones de ingresos brutos).
+  2. **Dueño decide quién paga la comisión:** encima del precio del capitán (el pescador), descontada del capitán,
+     o mixta. Afecta las ofertas en la subasta.
+  3. **Código, después de 1 y 2:** hoy el 10 % está escrito a mano en `lib/screens/resumen_reserva_screen.dart`
+     (líneas ~153 y ~275) y **se calcula en el celular**. Pasarlo a **un solo valor configurable** desde el panel
+     de admin y **calcularlo en el servidor** (Edge Function `crear-preferencia`), nunca confiando en el monto
+     que manda la app. También está fijo en `supabase_service.dart` (~línea 4779, cálculo de comisionistas).
+     **No existe hoy un regulador de comisión de viajes en el admin.** El único deslizador parecido es el
+     "Remarcador" de la tienda (`admin_remarcador_screen.dart`), que sube precios de productos, no comisiones.
+     **Diseño acordado:** regulador en el admin → valor en la configuración del sistema (solo admin escribe) → la
+     función del servidor lo lee en cada cobro y manda el monto a Mercado Pago como `marketplace_fee` /
+     `application_fee` (Mercado Pago no guarda el porcentaje: se envía en cada pago). **El porcentaje se congela en
+     cada viaje al aceptar el presupuesto**: cambiar el regulador no afecta viajes ya aceptados, ni sus
+     liquidaciones ni las comisiones de los referidos.
+- **Comisionistas (referidos) y Mercado Pago:** el reparto de `supabase_service.dart` (~línea 4790: 100 % de la
+  comisión si trajo a los dos, 70 % si trajo al capitán, 20 % si trajo al pescador, solo primer viaje y dentro de
+  30 días) necesita un **tercer receptor** en el pago. El pago dividido simple de Mercado Pago reparte entre dos
+  (capitán + plataforma); el reparto entre varios es solo por su equipo comercial. Opciones: preguntarlo a Mercado
+  Pago (sumarlo a la consulta pendiente), pagar en crédito o descuentos dentro de la app, o un premio fijo como gasto
+  del dueño. **No** pagar a mano por fuera (riesgo fiscal que el dueño quiere evitar). Revisar también los
+  porcentajes si la comisión sube.
+- **Seguridad de Supabase:** quedan lecturas directas de `profiles` (`docs/TAREA3_INVENTARIO_PERFILES.md`),
+  tablas con RLS sin políticas, funciones RPC que la app llama y no existen en producción.
+- **Antes del lanzamiento:** bucket de documentación privado con URL firmadas, limpiar usuarios, pedidos y
+  archivos de prueba (con respaldo), avisar sobre el registro anónimo de preguntas y dar opción de no participar.
+
+## Problemas conocidos
+
+- 17 de 50 preguntas fuera de tema todavía reciben una respuesta de otra cosa (lista y causas en
+  `test/guia_no_se_test.dart`, constante `conocidas`; meta: 0).
+- El buscador (BM25) rankea mal algunas preguntas: "cómo se prepara la masa para boga" da la receta de empanadas
+  (test salteado en `test/el_guia_engine_retrieval_test.dart`). Umbrales sin calibrar: Fase 2.
+- La pantalla de pronóstico y el mini widget del panel **escriben** el caché del clima pero todavía no lo **leen**
+  cuando falla la red (1.0b).
+- Antes del 1.5, **toda respuesta de la nube con tilde fallaba** (el proxy codificaba en latin1) y caía al motor
+  offline. Ya está arreglado, pero en la práctica la nube casi no se estuvo usando: medir con tráfico real.
+- `HEAD` no compila solo en una copia limpia: `cart_persistence_service.dart` importa `models/tipo_checkout.dart`, que
+  no está commiteado (ajeno al ayudante).
+- "Estoy perdido, no sé qué caña comprar" se toma como emergencia: costo aceptado de "ante la duda, seguridad".
+- `README.md` desactualizado en la parte de IA.
