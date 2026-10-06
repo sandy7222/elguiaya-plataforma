@@ -8,6 +8,7 @@ import 'admin_bitacora_alertas_screen.dart';
 import 'admin_creador_notificaciones_screen.dart';
 import 'admin_megafono_screen.dart';
 import 'admin_guia_educador_screen.dart';
+import 'admin_guia_registro_screen.dart';
 import 'admin_alertas_seguridad_screen.dart';
 
 class AdminSistemaTab extends StatelessWidget {
@@ -114,6 +115,14 @@ class AdminSistemaTab extends StatelessWidget {
           subtitle: 'Contenido educativo — modo copiloto offline',
           screen: const AdminGuiaEducadorScreen(),
           badge: 'IA GROQ',
+        ),
+        _buildNavCard(
+          context,
+          icon: Icons.ios_share_rounded,
+          color: const Color(0xFF38BDF8),
+          title: 'Registro de preguntas',
+          subtitle: 'Preguntas a El Guía (anónimas): ver y exportar CSV',
+          screen: const AdminGuiaRegistroScreen(),
         ),
       ],
     );

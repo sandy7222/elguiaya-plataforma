@@ -169,6 +169,30 @@ class GuiaLogger {
     }
   }
 
+  /// Los CSV del registro que existen, listos para exportar desde el panel de admin (Fase 2,
+  /// 2.2 sin tocar la base). Ya están anonimizados: se limpian al escribir.
+  static Future<List<File>> archivosParaExportar() async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final archivos = [File('${dir.path}/$_nombreArchivo'), File('${dir.path}/$_nombreArchivoRetrieval')];
+      return [for (final a in archivos) if (await a.exists()) a];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Borra los CSV del registro de este celular. Devuelve cuántos archivos borró.
+  static Future<int> borrarRegistros() async {
+    var n = 0;
+    for (final a in await archivosParaExportar()) {
+      try {
+        await a.delete();
+        n++;
+      } catch (_) {}
+    }
+    return n;
+  }
+
   /// Devuelve la ruta absoluta del archivo CSV.
   static Future<String> obtenerRutaArchivo() async {
     final archivo = await _obtenerArchivo();
