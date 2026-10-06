@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
+import 'guia_anonimizador.dart';
 
 /// GuiaLogger — Registra cada pregunta del usuario al Gu-IA en un CSV local.
 ///
@@ -22,6 +24,28 @@ class GuiaLogger {
   static const String _nombreArchivo = 'guia_preguntas.csv';
   static const int _maxEntradas = 5000; // Límite para no crecer infinito
 
+  /// La rotación del archivo se REVISA cada 100 registros (no en cada uno: leer todo el
+  /// archivo por cada pregunta era caro). Un contador por archivo.
+  static const int _cadaCuantosRevisar = 100;
+  static int _contadorPreguntas = 0;
+  static int _contadorRetrieval = 0;
+
+  @visibleForTesting
+  static int? maxEntradasParaTest;
+
+  @visibleForTesting
+  static void reiniciarParaTest() {
+    _contadorPreguntas = 0;
+    _contadorRetrieval = 0;
+    maxEntradasParaTest = null;
+  }
+
+  static int get _tope => maxEntradasParaTest ?? _maxEntradas;
+
+  /// Solo el DÍA, nunca la hora: con la hora y un texto se puede reconstruir quién preguntó.
+  static String _dia(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
   /// Registra una pregunta del usuario con la intención detectada.
   static Future<void> registrar({
     required String texto,
@@ -30,37 +54,39 @@ class GuiaLogger {
   }) async {
     try {
       final archivo = await _obtenerArchivo();
-      final timestamp = DateTime.now().toIso8601String();
+      final dia = _dia(DateTime.now());
 
       // Si el archivo no existe, crear con header
       final existe = await archivo.exists();
       if (!existe) {
         await archivo.writeAsString(
-          'timestamp,intencion,texto,fallback\n',
+          'dia,intencion,texto,fallback\n',
           mode: FileMode.write,
         );
       }
 
-      // Sanitizar el texto para CSV (eliminar comas y saltos de línea)
-      final textoSanitizado = texto
+      // Datos personales fuera ANTES de guardar; después, sanitizar para CSV.
+      final textoSanitizado = GuiaAnonimizador.limpiar(texto)
           .replaceAll('"', "'")
           .replaceAll(',', ';')
           .replaceAll('\n', ' ')
           .trim();
 
-      final linea = '$timestamp,$intencion,"$textoSanitizado",${esFallback ? "si" : "no"}\n';
+      final linea = '$dia,$intencion,"$textoSanitizado",${esFallback ? "si" : "no"}\n';
 
       // Agregar al archivo
       await archivo.writeAsString(linea, mode: FileMode.append);
 
-      // Control de tamaño: si supera el límite, rotar el archivo
-      final lineas = await archivo.readAsLines();
-      if (lineas.length > _maxEntradas) {
-        // Guardar solo las últimas N/2 entradas
-        final mitad = lineas.sublist(lineas.length - (_maxEntradas ~/ 2));
-        await archivo.writeAsString(
-          'timestamp,intencion,texto,fallback\n${mitad.skip(1).join('\n')}\n',
-        );
+      // Control de tamaño: se revisa cada 100 registros, no en cada uno.
+      if (++_contadorPreguntas % _cadaCuantosRevisar == 0) {
+        final lineas = await archivo.readAsLines();
+        if (lineas.length > _tope) {
+          // Guardar solo las últimas N/2 entradas
+          final mitad = lineas.sublist(lineas.length - (_tope ~/ 2).clamp(1, _tope));
+          await archivo.writeAsString(
+            'dia,intencion,texto,fallback\n${mitad.skip(mitad.first.startsWith('dia,') || mitad.first.startsWith('timestamp,') ? 1 : 0).join('\n')}\n',
+          );
+        }
       }
     } catch (e) {
       // El logger nunca debe romper la app — silencioso
@@ -157,7 +183,7 @@ class GuiaLogger {
   // ── Retrieval-first (Fase 5) ─────────────────────────────────────────────
   static const String _nombreArchivoRetrieval = 'guia_retrieval.csv';
   static const String _headerRetrieval =
-      'timestamp,decision,intencion_reglas,uso_semantico,s1,s2,ms,top3,texto\n';
+      'dia,decision,intencion_reglas,uso_semantico,s1,s2,ms,top3,texto\n';
 
   /// Registra cada búsqueda del retriever: pregunta, franja (directa /
   /// aclarar / ninguna), top-3 con puntajes y tiempos. Es la materia prima
@@ -180,16 +206,18 @@ class GuiaLogger {
         await archivo.writeAsString(_headerRetrieval, mode: FileMode.write);
       }
       String limpiar(String s) =>
-          s.replaceAll('"', "'").replaceAll(',', ';').replaceAll('\n', ' ').trim();
-      final linea = '${DateTime.now().toIso8601String()},$decision,$intencionReglas,'
+          GuiaAnonimizador.limpiar(s).replaceAll('"', "'").replaceAll(',', ';').replaceAll('\n', ' ').trim();
+      final linea = '${_dia(DateTime.now())},$decision,$intencionReglas,'
           '${usoSemantico ? 'si' : 'no'},${s1.toStringAsFixed(3)},${s2.toStringAsFixed(3)},'
           '$ms,"${limpiar(top3)}","${limpiar(texto)}"\n';
       await archivo.writeAsString(linea, mode: FileMode.append);
 
-      final lineas = await archivo.readAsLines();
-      if (lineas.length > _maxEntradas) {
-        final mitad = lineas.sublist(lineas.length - (_maxEntradas ~/ 2));
-        await archivo.writeAsString('$_headerRetrieval${mitad.skip(1).join('\n')}\n');
+      if (++_contadorRetrieval % _cadaCuantosRevisar == 0) {
+        final lineas = await archivo.readAsLines();
+        if (lineas.length > _tope) {
+          final mitad = lineas.sublist(lineas.length - (_tope ~/ 2).clamp(1, _tope));
+          await archivo.writeAsString('$_headerRetrieval${mitad.skip(mitad.first.startsWith('dia,') || mitad.first.startsWith('timestamp,') ? 1 : 0).join('\n')}\n');
+        }
       }
     } catch (e) {
       // ignore: avoid_print
@@ -248,9 +276,9 @@ class GuiaLogger {
       }
 
       final nuevoFallo = {
-        'pregunta': pregunta,
+        'pregunta': GuiaAnonimizador.limpiar(pregunta),
         'motivo': motivo,
-        'timestamp': DateTime.now().toIso8601String(),
+        'dia': _dia(DateTime.now()),
       };
 
       if (fallos.length >= 500) {
