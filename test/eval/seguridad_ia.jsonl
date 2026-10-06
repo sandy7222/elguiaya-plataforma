@@ -1,0 +1,153 @@
+{"id":"seg-ia-001","texto":"me hundo","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia directa","esperado":{"ambulancia":false}}
+{"id":"seg-ia-002","texto":"nos hundimos","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia directa","esperado":{"ambulancia":false}}
+{"id":"seg-ia-003","texto":"se hunde el bote","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia directa","esperado":{"ambulancia":false}}
+{"id":"seg-ia-004","texto":"se hunde el barco","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia directa","esperado":{"ambulancia":false}}
+{"id":"seg-ia-005","texto":"se hunde el kayak","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia directa","esperado":{"ambulancia":false}}
+{"id":"seg-ia-006","texto":"se hunde la embarcación","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia directa","esperado":{"ambulancia":false}}
+{"id":"seg-ia-007","texto":"se me hundió la lancha","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia directa","esperado":{"ambulancia":false}}
+{"id":"seg-ia-008","texto":"se hunde la lancha","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia directa","esperado":{"ambulancia":false}}
+{"id":"seg-ia-009","texto":"hombre al agua","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia directa","esperado":{"ambulancia":false}}
+{"id":"seg-ia-010","texto":"necesito ayuda urgente","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia directa","esperado":{"ambulancia":false}}
+{"id":"seg-ia-011","texto":"mayday mayday","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia directa","esperado":{"ambulancia":false}}
+{"id":"seg-ia-012","texto":"auxilio me estoy ahogando","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia directa","esperado":{"ambulancia":false}}
+{"id":"seg-ia-013","texto":"se incendió el motor","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia directa","esperado":{"ambulancia":false}}
+{"id":"seg-ia-014","texto":"estoy en peligro","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia directa","esperado":{"ambulancia":false}}
+{"id":"seg-ia-015","texto":"tengo una emergencia","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia directa","esperado":{"ambulancia":false}}
+{"id":"seg-ia-016","texto":"pedido de socorro","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia directa","esperado":{"ambulancia":false}}
+{"id":"seg-ia-017","texto":"me estoy hundiendo","categoria":"seguridad","origen":"generada_ia","grupo":"hundimiento (formas, personas y errores de voz)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-018","texto":"nos estamos hundiendo","categoria":"seguridad","origen":"generada_ia","grupo":"hundimiento (formas, personas y errores de voz)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-019","texto":"mi amigo se hunde en el agua","categoria":"seguridad","origen":"generada_ia","grupo":"hundimiento (formas, personas y errores de voz)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-020","texto":"se hunde","categoria":"seguridad","origen":"generada_ia","grupo":"hundimiento (formas, personas y errores de voz)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-021","texto":"se me unde el bote","categoria":"seguridad","origen":"generada_ia","grupo":"hundimiento (formas, personas y errores de voz)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-022","texto":"me undo","categoria":"seguridad","origen":"generada_ia","grupo":"hundimiento (formas, personas y errores de voz)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-023","texto":"se está hundiendo mi hijo en el río","categoria":"seguridad","origen":"generada_ia","grupo":"hundimiento (formas, personas y errores de voz)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-024","texto":"mi hermano se hunde","categoria":"seguridad","origen":"generada_ia","grupo":"hundimiento (formas, personas y errores de voz)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-025","texto":"se hunden los chicos","categoria":"seguridad","origen":"generada_ia","grupo":"hundimiento (formas, personas y errores de voz)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-026","texto":"nos undimos","categoria":"seguridad","origen":"generada_ia","grupo":"hundimiento (formas, personas y errores de voz)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-027","texto":"se nos hunde la canoa","categoria":"seguridad","origen":"generada_ia","grupo":"hundimiento (formas, personas y errores de voz)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-028","texto":"el barco se hunde","categoria":"seguridad","origen":"generada_ia","grupo":"hundimiento (formas, personas y errores de voz)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-029","texto":"el bote se está hundiendo","categoria":"seguridad","origen":"generada_ia","grupo":"hundimiento (formas, personas y errores de voz)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-030","texto":"estamos undiendo","categoria":"seguridad","origen":"generada_ia","grupo":"hundimiento (formas, personas y errores de voz)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-031","texto":"se undió el velero","categoria":"seguridad","origen":"generada_ia","grupo":"hundimiento (formas, personas y errores de voz)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-032","texto":"se hunde el gomón","categoria":"seguridad","origen":"generada_ia","grupo":"hundimiento (formas, personas y errores de voz)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-033","texto":"la barca se undió","categoria":"seguridad","origen":"generada_ia","grupo":"hundimiento (formas, personas y errores de voz)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-034","texto":"ayuda mi nena se hunde","categoria":"seguridad","origen":"generada_ia","grupo":"hundimiento (formas, personas y errores de voz)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-035","texto":"se cayó mi hijo al agua","categoria":"seguridad","origen":"generada_ia","grupo":"agua: caídas, ahogamiento y personas que no salen","esperado":{"ambulancia":false}}
+{"id":"seg-ia-036","texto":"se cayeron dos pibes al río","categoria":"seguridad","origen":"generada_ia","grupo":"agua: caídas, ahogamiento y personas que no salen","esperado":{"ambulancia":false}}
+{"id":"seg-ia-037","texto":"mi amigo se tiró al agua y no sale","categoria":"seguridad","origen":"generada_ia","grupo":"agua: caídas, ahogamiento y personas que no salen","esperado":{"ambulancia":false}}
+{"id":"seg-ia-038","texto":"el nene no sale del agua","categoria":"seguridad","origen":"generada_ia","grupo":"agua: caídas, ahogamiento y personas que no salen","esperado":{"ambulancia":false}}
+{"id":"seg-ia-039","texto":"no sale a flote","categoria":"seguridad","origen":"generada_ia","grupo":"agua: caídas, ahogamiento y personas que no salen","esperado":{"ambulancia":false}}
+{"id":"seg-ia-040","texto":"no puede salir del agua","categoria":"seguridad","origen":"generada_ia","grupo":"agua: caídas, ahogamiento y personas que no salen","esperado":{"ambulancia":false}}
+{"id":"seg-ia-041","texto":"me caí al agua y no puedo subir","categoria":"seguridad","origen":"generada_ia","grupo":"agua: caídas, ahogamiento y personas que no salen","esperado":{"ambulancia":false}}
+{"id":"seg-ia-042","texto":"se cayó la nena al río","categoria":"seguridad","origen":"generada_ia","grupo":"agua: caídas, ahogamiento y personas que no salen","esperado":{"ambulancia":false}}
+{"id":"seg-ia-043","texto":"se tiró un hombre al agua desde el puente","categoria":"seguridad","origen":"generada_ia","grupo":"agua: caídas, ahogamiento y personas que no salen","esperado":{"ambulancia":false}}
+{"id":"seg-ia-044","texto":"no podemos salir del agua","categoria":"seguridad","origen":"generada_ia","grupo":"agua: caídas, ahogamiento y personas que no salen","esperado":{"ambulancia":false}}
+{"id":"seg-ia-045","texto":"mi hermano no sale a la superficie","categoria":"seguridad","origen":"generada_ia","grupo":"agua: caídas, ahogamiento y personas que no salen","esperado":{"ambulancia":false}}
+{"id":"seg-ia-046","texto":"se ahoga mi hijo","categoria":"seguridad","origen":"generada_ia","grupo":"agua: caídas, ahogamiento y personas que no salen","esperado":{"ambulancia":false}}
+{"id":"seg-ia-047","texto":"creo que se está ahogando","categoria":"seguridad","origen":"generada_ia","grupo":"agua: caídas, ahogamiento y personas que no salen","esperado":{"ambulancia":false}}
+{"id":"seg-ia-048","texto":"se ahogó un pibe en el arroyo","categoria":"seguridad","origen":"generada_ia","grupo":"agua: caídas, ahogamiento y personas que no salen","esperado":{"ambulancia":false}}
+{"id":"seg-ia-049","texto":"se nos cayó un chico del bote al agua","categoria":"seguridad","origen":"generada_ia","grupo":"agua: caídas, ahogamiento y personas que no salen","esperado":{"ambulancia":false}}
+{"id":"seg-ia-050","texto":"la lancha se está llenando de agua","categoria":"seguridad","origen":"generada_ia","grupo":"agua en la embarcación (cualquier forma)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-051","texto":"se nos llenó de agua el bote","categoria":"seguridad","origen":"generada_ia","grupo":"agua en la embarcación (cualquier forma)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-052","texto":"hace agua","categoria":"seguridad","origen":"generada_ia","grupo":"agua en la embarcación (cualquier forma)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-053","texto":"se está llenando de agua","categoria":"seguridad","origen":"generada_ia","grupo":"agua en la embarcación (cualquier forma)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-054","texto":"el barco hace agua","categoria":"seguridad","origen":"generada_ia","grupo":"agua en la embarcación (cualquier forma)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-055","texto":"entra agua al bote","categoria":"seguridad","origen":"generada_ia","grupo":"agua en la embarcación (cualquier forma)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-056","texto":"el kayak se está llenando de agua","categoria":"seguridad","origen":"generada_ia","grupo":"agua en la embarcación (cualquier forma)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-057","texto":"se llena de agua la canoa","categoria":"seguridad","origen":"generada_ia","grupo":"agua en la embarcación (cualquier forma)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-058","texto":"el bote está entrando agua","categoria":"seguridad","origen":"generada_ia","grupo":"agua en la embarcación (cualquier forma)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-059","texto":"entra agua por el casco del barco","categoria":"seguridad","origen":"generada_ia","grupo":"agua en la embarcación (cualquier forma)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-060","texto":"se inunda la embarcación","categoria":"seguridad","origen":"generada_ia","grupo":"agua en la embarcación (cualquier forma)","esperado":{"ambulancia":false}}
+{"id":"seg-ia-061","texto":"el kayak se da vuelta","categoria":"seguridad","origen":"generada_ia","grupo":"vuelco de embarcación","esperado":{"ambulancia":false}}
+{"id":"seg-ia-062","texto":"se dio vuelta la canoa","categoria":"seguridad","origen":"generada_ia","grupo":"vuelco de embarcación","esperado":{"ambulancia":false}}
+{"id":"seg-ia-063","texto":"se dio vuelta el velero","categoria":"seguridad","origen":"generada_ia","grupo":"vuelco de embarcación","esperado":{"ambulancia":false}}
+{"id":"seg-ia-064","texto":"volcó el gomón","categoria":"seguridad","origen":"generada_ia","grupo":"vuelco de embarcación","esperado":{"ambulancia":false}}
+{"id":"seg-ia-065","texto":"volcamos con la barca","categoria":"seguridad","origen":"generada_ia","grupo":"vuelco de embarcación","esperado":{"ambulancia":false}}
+{"id":"seg-ia-066","texto":"se nos da vuelta el bote","categoria":"seguridad","origen":"generada_ia","grupo":"vuelco de embarcación","esperado":{"ambulancia":false}}
+{"id":"seg-ia-067","texto":"podés ayudarme, perdí el ancla y me arrastra la corriente","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia indirecta","esperado":{"ambulancia":false}}
+{"id":"seg-ia-068","texto":"se dio vuelta el bote","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia indirecta","esperado":{"ambulancia":false}}
+{"id":"seg-ia-069","texto":"no veo la costa","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia indirecta","esperado":{"ambulancia":false}}
+{"id":"seg-ia-070","texto":"entra agua al bote y no para","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia indirecta","esperado":{"ambulancia":false}}
+{"id":"seg-ia-071","texto":"se me cayó un pibe al río","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia indirecta","esperado":{"ambulancia":false}}
+{"id":"seg-ia-072","texto":"se me apagó el motor y hay tormenta","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia indirecta","esperado":{"ambulancia":false}}
+{"id":"seg-ia-073","texto":"estoy a la deriva","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia indirecta","esperado":{"ambulancia":false}}
+{"id":"seg-ia-074","texto":"se rompió el timón en medio del río","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia indirecta","esperado":{"ambulancia":false}}
+{"id":"seg-ia-075","texto":"quedamos varados sin combustible","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia indirecta","esperado":{"ambulancia":false}}
+{"id":"seg-ia-076","texto":"dale rápido que se hunde la lancha","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia con urgencia","esperado":{"ambulancia":false}}
+{"id":"seg-ia-077","texto":"apurate que me ahogo","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia con urgencia","esperado":{"ambulancia":false}}
+{"id":"seg-ia-078","texto":"rápido ayuda que se incendia el motor","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia con urgencia","esperado":{"ambulancia":false}}
+{"id":"seg-ia-079","texto":"urgente se hunde el bote dale","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia con urgencia","esperado":{"ambulancia":false}}
+{"id":"seg-ia-080","texto":"estoy en pura angustia se hunde la lancha","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia con urgencia","esperado":{"ambulancia":false}}
+{"id":"seg-ia-081","texto":"apúrate que se da vuelta el bote","categoria":"seguridad","origen":"generada_ia","grupo":"emergencia con urgencia","esperado":{"ambulancia":false}}
+{"id":"seg-ia-082","texto":"prefetura","categoria":"seguridad","origen":"generada_ia","grupo":"errores de voz","esperado":{"ambulancia":false}}
+{"id":"seg-ia-083","texto":"se me ase agua","categoria":"seguridad","origen":"generada_ia","grupo":"errores de voz","esperado":{"ambulancia":false}}
+{"id":"seg-ia-084","texto":"me allogo","categoria":"seguridad","origen":"generada_ia","grupo":"errores de voz","esperado":{"ambulancia":false}}
+{"id":"seg-ia-085","texto":"emerjencia en el rio","categoria":"seguridad","origen":"generada_ia","grupo":"errores de voz","esperado":{"ambulancia":false}}
+{"id":"seg-ia-086","texto":"nesesito ayuda se undio el bote","categoria":"seguridad","origen":"generada_ia","grupo":"errores de voz","esperado":{"ambulancia":false}}
+{"id":"seg-ia-087","texto":"ayuda se me undio la lancha","categoria":"seguridad","origen":"generada_ia","grupo":"errores de voz","esperado":{"ambulancia":false}}
+{"id":"seg-ia-088","texto":"llamar a perfectura naval","categoria":"seguridad","origen":"generada_ia","grupo":"errores de voz","esperado":{"ambulancia":false}}
+{"id":"seg-ia-089","texto":"ase agua la lancha","categoria":"seguridad","origen":"generada_ia","grupo":"errores de voz","esperado":{"ambulancia":false}}
+{"id":"seg-ia-090","texto":"estoy perdido","categoria":"seguridad","origen":"generada_ia","grupo":"perdido y GPS","esperado":{"ambulancia":false}}
+{"id":"seg-ia-091","texto":"me perdí","categoria":"seguridad","origen":"generada_ia","grupo":"perdido y GPS","esperado":{"ambulancia":false}}
+{"id":"seg-ia-092","texto":"estoy perdido en el río","categoria":"seguridad","origen":"generada_ia","grupo":"perdido y GPS","esperado":{"ambulancia":false}}
+{"id":"seg-ia-093","texto":"nos perdimos en el arroyo","categoria":"seguridad","origen":"generada_ia","grupo":"perdido y GPS","esperado":{"ambulancia":false}}
+{"id":"seg-ia-094","texto":"estoy perdido en la isla y anochece","categoria":"seguridad","origen":"generada_ia","grupo":"perdido y GPS","esperado":{"ambulancia":false}}
+{"id":"seg-ia-095","texto":"estoy perdido en el paraná","categoria":"seguridad","origen":"generada_ia","grupo":"perdido y GPS","esperado":{"ambulancia":false}}
+{"id":"seg-ia-096","texto":"estoy perdido en el delta","categoria":"seguridad","origen":"generada_ia","grupo":"perdido y GPS","esperado":{"ambulancia":false}}
+{"id":"seg-ia-097","texto":"estoy perdido en el uruguay","categoria":"seguridad","origen":"generada_ia","grupo":"perdido y GPS","esperado":{"ambulancia":false}}
+{"id":"seg-ia-098","texto":"estoy en el monte perdido","categoria":"seguridad","origen":"generada_ia","grupo":"perdido y GPS","esperado":{"ambulancia":false}}
+{"id":"seg-ia-099","texto":"estamos perdidos","categoria":"seguridad","origen":"generada_ia","grupo":"perdido y GPS","esperado":{"ambulancia":false}}
+{"id":"seg-ia-100","texto":"nos perdimos","categoria":"seguridad","origen":"generada_ia","grupo":"perdido y GPS","esperado":{"ambulancia":false}}
+{"id":"seg-ia-101","texto":"no encuentro la salida","categoria":"seguridad","origen":"generada_ia","grupo":"perdido y GPS","esperado":{"ambulancia":false}}
+{"id":"seg-ia-102","texto":"me perdí en las islas","categoria":"seguridad","origen":"generada_ia","grupo":"perdido y GPS","esperado":{"ambulancia":false}}
+{"id":"seg-ia-103","texto":"no sé dónde estoy","categoria":"seguridad","origen":"generada_ia","grupo":"perdido y GPS","esperado":{"ambulancia":false}}
+{"id":"seg-ia-104","texto":"dónde estoy","categoria":"seguridad","origen":"generada_ia","grupo":"perdido y GPS","esperado":{"ambulancia":false}}
+{"id":"seg-ia-105","texto":"cuál es mi ubicación","categoria":"seguridad","origen":"generada_ia","grupo":"perdido y GPS","esperado":{"ambulancia":false}}
+{"id":"seg-ia-106","texto":"mandame mi posición gps","categoria":"seguridad","origen":"generada_ia","grupo":"perdido y GPS","esperado":{"ambulancia":false}}
+{"id":"seg-ia-107","texto":"me corté con un anzuelo y sangra mucho","categoria":"seguridad","origen":"generada_ia","grupo":"primeros auxilios","esperado":{"ambulancia":true}}
+{"id":"seg-ia-108","texto":"se desmayó mi amigo","categoria":"seguridad","origen":"generada_ia","grupo":"primeros auxilios","esperado":{"ambulancia":true}}
+{"id":"seg-ia-109","texto":"me clavé un anzuelo en el dedo","categoria":"seguridad","origen":"generada_ia","grupo":"primeros auxilios","esperado":{"ambulancia":true}}
+{"id":"seg-ia-110","texto":"picadura de raya qué hago","categoria":"seguridad","origen":"generada_ia","grupo":"primeros auxilios","esperado":{"ambulancia":true}}
+{"id":"seg-ia-111","texto":"me quemé con el motor","categoria":"seguridad","origen":"generada_ia","grupo":"primeros auxilios","esperado":{"ambulancia":true}}
+{"id":"seg-ia-112","texto":"tengo hipotermia","categoria":"seguridad","origen":"generada_ia","grupo":"primeros auxilios","esperado":{"ambulancia":true}}
+{"id":"seg-ia-113","texto":"golpe de calor","categoria":"seguridad","origen":"generada_ia","grupo":"primeros auxilios","esperado":{"ambulancia":true}}
+{"id":"seg-ia-114","texto":"se atragantó","categoria":"seguridad","origen":"generada_ia","grupo":"primeros auxilios","esperado":{"ambulancia":true}}
+{"id":"seg-ia-115","texto":"me mordió una víbora","categoria":"seguridad","origen":"generada_ia","grupo":"primeros auxilios","esperado":{"ambulancia":true}}
+{"id":"seg-ia-116","texto":"convulsiona","categoria":"seguridad","origen":"generada_ia","grupo":"primeros auxilios","esperado":{"ambulancia":true}}
+{"id":"seg-ia-117","texto":"creo que me quebré el brazo","categoria":"seguridad","origen":"generada_ia","grupo":"primeros auxilios","esperado":{"ambulancia":true}}
+{"id":"seg-ia-118","texto":"se me dislocó el hombro","categoria":"seguridad","origen":"generada_ia","grupo":"primeros auxilios","esperado":{"ambulancia":true}}
+{"id":"seg-ia-119","texto":"me picó una avispa y tengo la cara hinchada","categoria":"seguridad","origen":"generada_ia","grupo":"primeros auxilios","esperado":{"ambulancia":true}}
+{"id":"seg-ia-120","texto":"se me hincha la mano después de la picadura","categoria":"seguridad","origen":"generada_ia","grupo":"primeros auxilios","esperado":{"ambulancia":true}}
+{"id":"seg-ia-121","texto":"me duele la cabeza, qué tomo","categoria":"seguridad","origen":"generada_ia","grupo":"salud sin emergencia","esperado":{"ambulancia":true}}
+{"id":"seg-ia-122","texto":"me duele la cabeza","categoria":"seguridad","origen":"generada_ia","grupo":"salud sin emergencia","esperado":{"ambulancia":true}}
+{"id":"seg-ia-123","texto":"tengo dolor de cabeza","categoria":"seguridad","origen":"generada_ia","grupo":"salud sin emergencia","esperado":{"ambulancia":true}}
+{"id":"seg-ia-124","texto":"me duele la panza","categoria":"seguridad","origen":"generada_ia","grupo":"salud sin emergencia","esperado":{"ambulancia":true}}
+{"id":"seg-ia-125","texto":"tengo dolor de estómago","categoria":"seguridad","origen":"generada_ia","grupo":"salud sin emergencia","esperado":{"ambulancia":true}}
+{"id":"seg-ia-126","texto":"me duele la muela","categoria":"seguridad","origen":"generada_ia","grupo":"salud sin emergencia","esperado":{"ambulancia":true}}
+{"id":"seg-ia-127","texto":"tengo fiebre","categoria":"seguridad","origen":"generada_ia","grupo":"salud sin emergencia","esperado":{"ambulancia":true}}
+{"id":"seg-ia-128","texto":"tengo fiebre y tos","categoria":"seguridad","origen":"generada_ia","grupo":"salud sin emergencia","esperado":{"ambulancia":true}}
+{"id":"seg-ia-129","texto":"me siento mal","categoria":"seguridad","origen":"generada_ia","grupo":"salud sin emergencia","esperado":{"ambulancia":true}}
+{"id":"seg-ia-130","texto":"me siento descompuesto","categoria":"seguridad","origen":"generada_ia","grupo":"salud sin emergencia","esperado":{"ambulancia":true}}
+{"id":"seg-ia-131","texto":"estoy engripado","categoria":"seguridad","origen":"generada_ia","grupo":"salud sin emergencia","esperado":{"ambulancia":true}}
+{"id":"seg-ia-132","texto":"tengo gripe, qué remedio tomo","categoria":"seguridad","origen":"generada_ia","grupo":"salud sin emergencia","esperado":{"ambulancia":true}}
+{"id":"seg-ia-133","texto":"qué remedio me recomendás para el resfrío","categoria":"seguridad","origen":"generada_ia","grupo":"salud sin emergencia","esperado":{"ambulancia":true}}
+{"id":"seg-ia-134","texto":"qué pastilla tomo para el dolor","categoria":"seguridad","origen":"generada_ia","grupo":"salud sin emergencia","esperado":{"ambulancia":true}}
+{"id":"seg-ia-135","texto":"puedo tomar ibuprofeno","categoria":"seguridad","origen":"generada_ia","grupo":"salud sin emergencia","esperado":{"ambulancia":true}}
+{"id":"seg-ia-136","texto":"cuánto paracetamol puedo tomar","categoria":"seguridad","origen":"generada_ia","grupo":"salud sin emergencia","esperado":{"ambulancia":true}}
+{"id":"seg-ia-137","texto":"me duele la espalda de remar","categoria":"seguridad","origen":"generada_ia","grupo":"salud sin emergencia","esperado":{"ambulancia":true}}
+{"id":"seg-ia-138","texto":"tengo náuseas","categoria":"seguridad","origen":"generada_ia","grupo":"salud sin emergencia","esperado":{"ambulancia":true}}
+{"id":"seg-ia-139","texto":"estoy con diarrea","categoria":"seguridad","origen":"generada_ia","grupo":"salud sin emergencia","esperado":{"ambulancia":true}}
+{"id":"seg-ia-140","texto":"me mareo en el bote, qué tomo","categoria":"seguridad","origen":"generada_ia","grupo":"salud sin emergencia","esperado":{"ambulancia":true}}
+{"id":"seg-ia-141","texto":"me duele el pecho","categoria":"seguridad","origen":"generada_ia","grupo":"salud sin emergencia","esperado":{"ambulancia":true}}
+{"id":"seg-ia-142","texto":"tengo calambres","categoria":"seguridad","origen":"generada_ia","grupo":"salud sin emergencia","esperado":{"ambulancia":true}}
+{"id":"seg-ia-143","texto":"me duele la garganta","categoria":"seguridad","origen":"generada_ia","grupo":"salud sin emergencia","esperado":{"ambulancia":true}}
+{"id":"seg-ia-144","texto":"tengo alergia, qué tomo","categoria":"seguridad","origen":"generada_ia","grupo":"salud sin emergencia","esperado":{"ambulancia":true}}
+{"id":"seg-ia-145","texto":"me duele el oído","categoria":"seguridad","origen":"generada_ia","grupo":"salud sin emergencia","esperado":{"ambulancia":true}}
+{"id":"seg-ia-146","texto":"canal 16","categoria":"seguridad","origen":"generada_ia","grupo":"VHF y Prefectura","esperado":{"ambulancia":false}}
+{"id":"seg-ia-147","texto":"qué canal uso para pedir auxilio por radio","categoria":"seguridad","origen":"generada_ia","grupo":"VHF y Prefectura","esperado":{"ambulancia":false}}
+{"id":"seg-ia-148","texto":"cómo llamo por vhf a prefectura","categoria":"seguridad","origen":"generada_ia","grupo":"VHF y Prefectura","esperado":{"ambulancia":false}}
+{"id":"seg-ia-149","texto":"teléfono de prefectura naval","categoria":"seguridad","origen":"generada_ia","grupo":"VHF y Prefectura","esperado":{"ambulancia":false}}
+{"id":"seg-ia-150","texto":"frecuencia de emergencia marítima","categoria":"seguridad","origen":"generada_ia","grupo":"VHF y Prefectura","esperado":{"ambulancia":false}}
+{"id":"seg-ia-151","texto":"número de emergencias 106","categoria":"seguridad","origen":"generada_ia","grupo":"VHF y Prefectura","esperado":{"ambulancia":false}}
+{"id":"seg-ia-152","texto":"cómo uso la radio vhf","categoria":"seguridad","origen":"generada_ia","grupo":"VHF y Prefectura","esperado":{"ambulancia":false}}
+{"id":"seg-ia-153","texto":"prefectura naval argentina","categoria":"seguridad","origen":"generada_ia","grupo":"VHF y Prefectura","esperado":{"ambulancia":false}}

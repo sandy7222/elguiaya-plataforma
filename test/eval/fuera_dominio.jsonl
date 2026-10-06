@@ -1,0 +1,50 @@
+{"id":"ood-001","texto":"cuánto sale el dólar hoy","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-002","texto":"cómo cambio una rueda del auto","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-003","texto":"quién ganó el partido de river","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-004","texto":"cuál es la capital de francia","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-005","texto":"cómo hago para bajar de peso rápido","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-006","texto":"recomendame una película de terror","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-007","texto":"cómo se instala windows en una notebook","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-008","texto":"cuánto es 45 por 12","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-009","texto":"qué hora es en españa","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-010","texto":"cómo se hace un asado de tira","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-011","texto":"dónde queda la torre eiffel","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-012","texto":"cómo se conjuga el verbo haber","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-013","texto":"me duele la cabeza qué tomo","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-014","texto":"cómo pago la factura de luz","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-015","texto":"cuánto cuesta un iphone","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-016","texto":"explicame la teoría de la relatividad","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-017","texto":"cómo planto tomates en el balcón","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-018","texto":"qué significa soñar con serpientes","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-019","texto":"recomendame un libro de historia argentina","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-020","texto":"cómo saco turno en el registro civil","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-021","texto":"cómo se hace la salsa bolognesa","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-022","texto":"cuál es el mejor celular gama media","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-023","texto":"cómo arreglo una canilla que gotea","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-024","texto":"qué vitaminas tiene la naranja","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-025","texto":"cómo aprendo a tocar la guitarra","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-026","texto":"cuándo empieza el mundial","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-027","texto":"cómo funciona la bolsa de valores","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-028","texto":"traducime buenos días al inglés","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-029","texto":"cómo me saco la licencia de conducir","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-030","texto":"qué es el bitcoin","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-031","texto":"cómo se limpia el horno","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-032","texto":"cuántos habitantes tiene rosario","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-033","texto":"cómo cuido un cactus","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-034","texto":"dame una receta de torta de chocolate","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-035","texto":"cómo se escribe una carta formal","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-036","texto":"qué es la inflación","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-037","texto":"cómo configuro el wifi del router","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-038","texto":"cuánto tarda el vuelo a madrid","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-039","texto":"qué día cae el feriado de mayo","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-040","texto":"cómo entreno para correr una maratón","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-041","texto":"cómo se calcula el iva","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-042","texto":"quién escribió el quijote","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-043","texto":"cómo saco una mancha de vino del mantel","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-044","texto":"qué es un agujero negro","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-045","texto":"cómo hago para dormir mejor","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-046","texto":"cuál es el sueldo mínimo","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-047","texto":"cómo pinto una pared","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-048","texto":"qué colectivo va al centro","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-049","texto":"cómo se juega al truco","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}
+{"id":"ood-050","texto":"qué tiempo va a hacer en córdoba mañana","categoria":"fuera_dominio","origen":"generada_ia","esperado":{"tipo":"ninguna"}}

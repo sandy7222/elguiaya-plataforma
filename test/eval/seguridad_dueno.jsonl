@@ -1,0 +1,13 @@
+{"id":"seg-dueno-001","texto":"estoy en la isla perdido, cómo consigo agua?","categoria":"seguridad","origen":"dueno_real","esperado":{"ambulancia":false}}
+{"id":"seg-dueno-002","texto":"me picó una raya en la pierna qué hago?","categoria":"seguridad","origen":"dueno_real","esperado":{"ambulancia":true}}
+{"id":"seg-dueno-003","texto":"me mordió una yarará o una víbora qué hago?","categoria":"seguridad","origen":"dueno_real","esperado":{"ambulancia":true}}
+{"id":"seg-dueno-004","texto":"estoy perdido cómo llamo a prefectura?","categoria":"seguridad","origen":"dueno_real","esperado":{"ambulancia":false}}
+{"id":"seg-dueno-005","texto":"me corté la piel, cómo paro el sangrado?","categoria":"seguridad","origen":"dueno_real","esperado":{"ambulancia":true}}
+{"id":"seg-dueno-006","texto":"tengo una fractura, qué hago?","categoria":"seguridad","origen":"dueno_real","esperado":{"ambulancia":true}}
+{"id":"seg-dueno-007","texto":"cómo llamo a prefectura?","categoria":"seguridad","origen":"dueno_real","esperado":{"ambulancia":false}}
+{"id":"seg-dueno-008","texto":"cómo pido auxilio?","categoria":"seguridad","origen":"dueno_real","esperado":{"ambulancia":false}}
+{"id":"seg-dueno-009","texto":"estoy perdido qué hago?","categoria":"seguridad","origen":"dueno_real","esperado":{"ambulancia":false}}
+{"id":"seg-dueno-010","texto":"se me clavó un anzuelo qué hago?","categoria":"seguridad","origen":"dueno_real","esperado":{"ambulancia":true}}
+{"id":"seg-dueno-011","texto":"se me clavo una anzuelo","categoria":"seguridad","origen":"dueno_real","esperado":{"ambulancia":true}}
+{"id":"seg-dueno-012","texto":"algo me picó porque se hincha","categoria":"seguridad","origen":"dueno_real","esperado":{"ambulancia":true}}
+{"id":"seg-dueno-013","texto":"estoy perdido en la isla, qué puedo hacer para comer?","categoria":"seguridad","origen":"dueno_real","esperado":{"ambulancia":false}}

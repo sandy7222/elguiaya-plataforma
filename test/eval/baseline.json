@@ -1,0 +1,30 @@
+{
+  "ayuda": "Foto de la última medición aceptada. Se regenera con EVAL_ACTUALIZAR_BASELINE=1 flutter test test/eval_guia_test.dart",
+  "fecha": "2026-10-06",
+  "valores": {
+    "pesca_top1/real": 0,
+    "pesca_directas_mal/real": 0,
+    "ood_falsos_positivos/real": 0,
+    "ood_inventa_extremo/real": 0,
+    "seguridad/real": 13,
+    "pesca_top1/generada": 63,
+    "pesca_directas_mal/generada": 0,
+    "ood_falsos_positivos/generada": 2,
+    "ood_inventa_extremo/generada": 11,
+    "seguridad/generada": 153,
+    "seguridad/real/dueno_real#n": 13,
+    "seguridad/real/dueno_real#ok": 13,
+    "seguridad/generada/generada_ia#n": 153,
+    "seguridad/generada/generada_ia#ok": 153,
+    "transaccional/generada/generada_ia#n": 9,
+    "transaccional/generada/generada_ia#ok": 9,
+    "transaccional/real/dueno_real#n": 1,
+    "transaccional/real/dueno_real#ok": 1,
+    "fuera_dominio/generada/generada_ia#n": 50,
+    "fuera_dominio/generada/generada_ia#ok": 39,
+    "pesca/real/dueno_real#n": 3,
+    "pesca/real/dueno_real#ok": 2,
+    "pesca/generada/generada_plantilla#n": 71,
+    "pesca/generada/generada_plantilla#ok": 63
+  }
+}

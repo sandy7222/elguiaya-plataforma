@@ -1,0 +1,10 @@
+{"id":"trans-001","texto":"cómo pago el viaje","categoria":"transaccional","origen":"generada_ia","esperado":{}}
+{"id":"trans-002","texto":"quiero pagar","categoria":"transaccional","origen":"generada_ia","esperado":{}}
+{"id":"trans-003","texto":"dónde veo mis cotizaciones","categoria":"transaccional","origen":"generada_ia","esperado":{}}
+{"id":"trans-004","texto":"cómo creo un viaje","categoria":"transaccional","origen":"generada_ia","esperado":{}}
+{"id":"trans-005","texto":"confirmar pago con mercado pago","categoria":"transaccional","origen":"generada_ia","esperado":{}}
+{"id":"trans-006","texto":"cómo cancelo mi reserva","categoria":"transaccional","origen":"dueno_real","esperado":{}}
+{"id":"trans-007","texto":"estado de mi viaje","categoria":"transaccional","origen":"generada_ia","esperado":{}}
+{"id":"trans-008","texto":"agregar al carrito","categoria":"transaccional","origen":"generada_ia","esperado":{}}
+{"id":"trans-009","texto":"pagar con tarjeta","categoria":"transaccional","origen":"generada_ia","esperado":{}}
+{"id":"trans-010","texto":"cómo califico al capitán","categoria":"transaccional","origen":"generada_ia","esperado":{}}

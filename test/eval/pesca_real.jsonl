@@ -1,0 +1,3 @@
+{"id":"pesca-dueno-000","texto":"cómo hago fuego?","categoria":"pesca","origen":"dueno_real","esperado":{"no_seguridad":true},"nota":"suelta NO es seguridad (plan 0.4); la contesta el motor de reglas (fuego)"}
+{"id":"pesca-dueno-001","texto":"cómo se arma una carpa?","categoria":"pesca","origen":"dueno_real","esperado":{"no_libreria":["peces"],"no_contiene":["dorado, surubí"]},"nota":"es la carpa de acampar; hoy la toma como el pez y lista especies (plan 2.3)"}
+{"id":"pesca-dueno-002","texto":"qué puedo hacer para comer?","categoria":"pesca","origen":"dueno_real","esperado":{"no_fallback":true},"nota":"hoy contesta \"No tengo esa información\" (plan 2.3)"}

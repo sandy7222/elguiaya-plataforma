@@ -2053,6 +2053,11 @@ class ElGuiaEngine {
   /// Fichas del corpus actual (para construir el índice semántico).
   List<GuiaFicha> get fichasRetrieval => _retriever?.fichas ?? const [];
 
+  /// El buscador de fichas, para que el runner de evaluación (Fase 2) lo consulte y pruebe
+  /// otros umbrales sin tocar los de la app.
+  @visibleForTesting
+  GuiaRetriever? get retrieverParaTest => _retriever;
+
   /// ¿El retriever ya está listo para responder?
   bool get retrievalListo => _retriever != null;
 

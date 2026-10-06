@@ -1,0 +1,32 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  TUS PREGUNTAS PARA MEDIR A EL GUÍA
+# ─────────────────────────────────────────────────────────────────────────────
+#
+#  Acá pegás las preguntas que le harías a El Guía, UNA POR LÍNEA, tal como te
+#  salen: con errores, sin tildes, con modismos, como si estuvieras en el río.
+#  No las corrijas ni las "mejores": las que están mal escritas son las más útiles.
+#
+#  Qué conviene pegar (mientras más reales, mejor):
+#    · lo que le preguntarías de pesca (especies, carnadas, nudos, equipo, lugares)
+#    · lo que le preguntarías de la app (viajes, pagos, la tienda)
+#    · lo que preguntaste de verdad y no te contestó bien
+#    · algunas que NO tienen nada que ver con pesca, para ver si inventa
+#    · preguntas de seguridad en la forma en que se te ocurren
+#
+#  Reglas:
+#    · Las líneas que empiezan con # (como esta) no cuentan.
+#    · Las líneas en blanco no cuentan.
+#    · Mínimo útil: 100. Ideal: 150 a 200.
+#    · NO pongas datos personales (nombres, teléfonos, direcciones).
+#
+#  Qué pasa después: yo (la IA) las corro contra el ayudante SIN etiquetarlas ni
+#  corregirlas, y te devuelvo un informe con lo que contestó a cada una
+#  (build/eval_guia/revision_dueno.md). Vos marcás cuáles estuvieron bien y cuáles
+#  mal, y recién ahí pasan a contar como "preguntas reales" en la medición.
+#
+#  Las preguntas que escriba una IA NO van acá: van en otro archivo y se reportan
+#  por separado (ver test/eval/README.md).
+#
+#  Para correr la medición:   flutter test test/eval_guia_test.dart
+# ─────────────────────────────────────────────────────────────────────────────
+
