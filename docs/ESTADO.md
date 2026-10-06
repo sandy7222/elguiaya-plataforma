@@ -3,7 +3,7 @@
 > **Lo actualiza la IA que trabaja, al terminar cada paso** (ver `AGENTS.md`). Escribir corto, con fecha y commit.
 > Lo más reciente va arriba en cada sección. Nada de secretos acá.
 
-**Última actualización:** 2026-10-04 · Sonnet (salud, 1.3b, 1.2c partes 1 y 2, guía de APK) · rama `fase-0-contencion` · nada publicado (sin push).
+**Última actualización:** 2026-10-06 · Sonnet (Fase 2: evaluación, registro anónimo, exportar CSV) · rama `fase-0-contencion` · nada publicado (sin push).
 
 ## Dónde quedamos
 
@@ -18,22 +18,30 @@
   1.3b dos arreglos baratos contra respuestas sin relación (`76807c5`) ·
   1.2c parte 1: tildes en las respuestas, script `scripts/revisar_tildes.mjs` (`e988000`) ·
   1.2c parte 2: léxico de pronunciación `assets/elguia/voz/pronunciacion.json` (`7554597`).
+- **Fase 2, hecha en parte:** 2.3/2.4 conjunto de evaluación y runner (`b289e47`, `test/eval/`, `test/eval_guia_test.dart`) ·
+  2.1 registro anónimo (`497214d`) · 2.2 alternativa sin tocar la base: exportar CSV desde Admin → Sistema → "Registro de
+  preguntas" (`721d702`) · 2.2 migración de la tabla **escrita y SIN APLICAR** (`d41ef65`).
+- **Primera medición (offline), real vs generada** — `flutter test test/eval_guia_test.dart` → `build/eval_guia/informe.md`:
+  seguridad 100 % (real 13/13, generada 153/153); pesca top-1 88,7 % y directas equivocadas 0 % (**solo de plantilla**: no
+  hay preguntas de pesca reales con etiqueta todavía); fuera de dominio: falso positivo del buscador 4 % pero 22 % inventado de
+  punta a punta (generada). Preguntas reales de pesca: "carpa" ✘ (lista peces), "comer" contesta con una ficha de carnadas.
 - **Flags nuevos** (todos en `SharedPreferences`, todos prendidos salvo el retraso): `guia_nav_estricta`,
   `guia_condiciones`, `guia_no_se_honesto`, `guia_retraso_artificial` (apagado), `guia_groq_rapido`,
   `guia_breaker`, `guia_voz_limpia`, `guia_presentador`, `guia_bm25` (ver 1.1), `guia_aclarar_estricto`,
   `guia_ayuda_app_estricta`.
-- **Tests:** 1503 pasan, 1 salteado (`flutter test`, ~20 s). Proxy: `node --test supabase/functions/ia-proxy/groq_params.test.ts`.
+- **Tests:** 1558 pasan, 1 salteado (`flutter test`, ~20 s). Proxy: `node --test supabase/functions/ia-proxy/groq_params.test.ts`.
 
 ## Qué sigue (en este orden)
 
-1. **APK de prueba en el Moto G15 del dueño** (no para repartir): guía en `docs/GUIA_APK_PRUEBA.md`. Hace falta Java 17
-   en la PC (hoy solo hay Java 25 y `android/gradle.properties` apunta a una carpeta inexistente). Mide el mensaje
-   "Retriever listo… en N ms" (< 2000) y las tres pruebas rápidas.
-2. **1.2c parte 3, prueba de oído** (la hace el dueño con el celular): una pantalla oculta de admin que lee ~50
-   frases con la voz del teléfono; lo que suene mal se agrega a `assets/elguia/voz/pronunciacion.json`.
-3. **Fase 2** (medir con un conjunto de evaluación de ~400 casos, `test/eval/*.jsonl`; calibrar los umbrales del
-   buscador). Ahí entran las 11 fuera de tema que quedan y el mal ranking ("masa para boga", "horno").
-4. 1.7 (opcional). Después: Fase 3, Fase 4 (voz y micrófono, palabra de activación "Baqueano"), Fase 5 (opcional).
+1. **El dueño pega sus preguntas** en `test/eval/preguntas_dueno.txt` (una por línea, tal cual le salen; ideal 150 a 200). Se corre
+   el runner, se le devuelve `build/eval_guia/revision_dueno.md` para marcar ✔/✘, y recién ahí hay preguntas de pesca reales con
+   etiqueta (2.3) y se puede **calibrar el buscador** de verdad (2.4). Con las de plantilla no hay nada que calibrar: el top-1
+   no depende de los umbrales (`EVAL_SWEEP=1`).
+2. **APK de prueba en el Moto G15** del dueño (`docs/GUIA_APK_PRUEBA.md`; falta Java 17) y **1.2c parte 3**, la prueba de oído.
+3. **OK del dueño** para aplicar `supabase/migrations/20261006100000_guia_registro_anonimo.sql` y escribir el subidor (flag
+   `guia_registro_anonimo`, aviso y opción de no participar antes del lanzamiento). Hasta entonces: exportar el CSV a mano.
+4. Fase 2.3 completa: 40 transaccionales, 40 multiturno, 30 dictadas en el celular, 20 de temas mezclados (hoy hay 10, 0, 0, 0).
+5. 1.7 (opcional). Después: Fase 3, Fase 4 (voz y micrófono, palabra de activación "Baqueano"), Fase 5 (opcional).
 
 ## Pendientes que dependen del dueño
 
@@ -88,9 +96,11 @@
 
 ## Problemas conocidos
 
+- Los archivos de registro que **ya existen en los celulares** (antes del 2.1) conservan el formato viejo: con hora y sin limpiar. Si
+  se exportan, hay que borrarlos primero ("Borrar el registro de este celular").
+- El anonimizador no detecta un nombre dicho sin "me llamo" o "soy" ("pasale el mensaje a Carlos").
 - Las respuestas de **primeros auxilios** recibieron solo correcciones de tildes (1.2c); siguen marcadas
   `REVISAR: persona idónea`. Quedan 9 palabras ambiguas revisadas a mano y dejadas como están (ver el script).
-
 - 11 de 50 preguntas fuera de tema todavía reciben una respuesta de otra cosa (eran 17; lista y causas en
   `test/guia_no_se_test.dart`, constante `conocidas`; meta: 0). Con el 1.3b se perdieron 0 de 21 aclaraciones
   válidas del conjunto de validación, pero ese conjunto es de plantilla: puede subestimar la pérdida real.
