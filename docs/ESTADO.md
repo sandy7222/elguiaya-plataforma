@@ -3,7 +3,7 @@
 > **Lo actualiza la IA que trabaja, al terminar cada paso** (ver `AGENTS.md`). Escribir corto, con fecha y commit.
 > Lo más reciente va arriba en cada sección. Nada de secretos acá.
 
-**Última actualización:** 2026-10-06 · Sonnet (Fase 2: evaluación, registro anónimo, exportar CSV) · rama `fase-0-contencion` · nada publicado (sin push).
+**Última actualización:** 2026-10-06 · Sonnet (Fase 2: evaluación, registro anónimo, exportar CSV) · rama `fase-0-contencion` · subida a GitHub (push del 2026-10-06, hasta `552d7d6`; el dueño dio el OK).
 
 ## Dónde quedamos
 
@@ -50,7 +50,7 @@
 - **Desplegar `ia-proxy`** (cambio del 1.5) y correr `scripts/probar_groq_rapido.mjs` con `SUPABASE_URL` y
   `SUPABASE_ANON_KEY` cargadas en su sesión (sin pegarlas en el chat): mide el p50 y las respuestas cortadas. Si no
   es más rápido, apagar `guia_groq_rapido`.
-- **Push** de los commits locales: no se hizo ninguno; hace falta el OK del dueño.
+- **Push:** hecho el 2026-10-06 (36 commits). Cada push nuevo necesita el OK del dueño. Ojo: `scripts/scan_secrets.ps1` falla en esta PC (error de `rg` con un patrón PCRE2), así que el workflow de GitHub podría no escanear bien; se revisó a mano el diff.
 - Medir en el **Moto G15** (equipo de referencia; RAM sin confirmar): mensaje "Retriever listo… en N ms" (< 2000);
   respuesta offline p95 < 300 ms (1.4); hora/luna/clima en modo avión < 300 ms (1.0b).
 - Probar en el Moto G15 sus **preguntas reales** de seguridad, con señal y en modo avión.
