@@ -8,6 +8,7 @@ import '../services/baqueano_ia_service.dart';
 import '../models/el_guia_respuesta.dart';
 import '../services/voice_service.dart';
 import '../services/guia_wake_word.dart';
+import '../services/guia_acciones_robot.dart';
 import '../services/connectivity_bridge.dart';
 import '../services/guia_atajos.dart';
 import '../services/intent_service.dart';
@@ -152,6 +153,7 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
     GuiaOverlayController.activo.addListener(_onActivoChanged);
     GuiaOverlayController.silenciado.addListener(_onSilenciadoChanged);
     GuiaOverlayController.micActivo.addListener(_onMicActivoChanged);
+    GuiaAccionesRobot.pedida.addListener(_onAccionRobot);
     VoiceService().isListeningNotifier.addListener(_onVoiceListeningChanged);
 
     _isMuted = GuiaOverlayController.silenciado.value;
@@ -259,6 +261,7 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
     GuiaOverlayController.activo.removeListener(_onActivoChanged);
     GuiaOverlayController.silenciado.removeListener(_onSilenciadoChanged);
     GuiaOverlayController.micActivo.removeListener(_onMicActivoChanged);
+    GuiaAccionesRobot.pedida.removeListener(_onAccionRobot);
     VoiceService().isListeningNotifier.removeListener(_onVoiceListeningChanged);
     _authSub?.cancel();
     _chatController.dispose();
@@ -375,6 +378,27 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
     });
     if (_isMuted) {
       VoiceService().stop();
+    }
+  }
+
+  /// Orden del robot ("tomá mate", "reíte"...) detectada por el router, venga de donde venga (chat de la pestaña o micrófono del avatar).
+  void _onAccionRobot() {
+    final pedido = GuiaAccionesRobot.pedida.value;
+    if (!mounted || pedido == null || !_mostrarGuia || !_permiteInteractuar) return;
+    final estado = _gifToState(pedido.estado);
+    setState(() {
+      _estadoGuia = estado;
+      if (estado == CapitanState.durmiendo) _modoConversacionVoz = false;
+    });
+    _reiniciarTemporizadorInactividad();
+    // Si nada lo hace volver (por ejemplo, está silenciado y no habla), vuelve solo a reposo.
+    _avatarTimer?.cancel();
+    if (estado != CapitanState.durmiendo) {
+      _avatarTimer = Timer(const Duration(seconds: 8), () {
+        if (mounted && _mostrarGuia && _estadoGuia == estado && !VoiceService().isSpeaking && !_isListening) {
+          setState(() => _estadoGuia = CapitanState.tomaMate);
+        }
+      });
     }
   }
 

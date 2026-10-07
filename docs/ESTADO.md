@@ -140,6 +140,10 @@
       el router lo consulta DESPUÉS del portón de seguridad y del modo emergencia. Tests `guia_acciones_robot_test.dart`. Pendiente: probar con
       la voz en el celular (STT puede entender mal), y decidir si "sentate y escuchá" debe además dejar el micrófono abierto en modo solo-escucha.
       Nota: "desaparecé/hacé un rayo" NO es una acción (es la animación de apagarse).
+      **Hallazgo de la 1.ª prueba (18:44):** las órdenes escritas o dichas en el chat de la pestaña "El Guía" contestaban pero el robot flotante
+      no cambiaba: `chat_unificado_screen.dart` llama al router y descarta `gifSugerido`. Arreglo: el router publica el pedido en
+      `GuiaAccionesRobot.pedida` y el overlay lo escucha (`_onAccionRobot`), venga de donde venga la orden. Los otros chats
+      (`chat_asistido_screen.dart`) también pasan por el router, así que quedan cubiertos.
     - El avatar viene **apagado** tras instalar (interruptor en Mi Identidad Pescador): confirmar si es lo deseado.
 
 0. **Fase R, R.1 hecho (informe en `docs/INFORME_MEMORIA_R1.md`):** la app llega a 700–1160 MB y Android la cierra en primer plano; el

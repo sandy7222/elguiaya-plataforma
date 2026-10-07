@@ -13,6 +13,12 @@ class AccionRobot {
   const AccionRobot(this.id, this.estado, this.respuesta);
 }
 
+/// Un pedido de acción para el robot flotante. Cada pedido es un objeto nuevo: dos "tomá mate" seguidos avisan dos veces.
+class PedidoAccionRobot {
+  final String estado;
+  PedidoAccionRobot(this.estado);
+}
+
 /// Acciones del robot ("tomá mate", "sentate y escuchá", "reíte", "ponete furioso"...): el robot actúa con los GIFs que ya tiene.
 ///
 /// Pedido del dueño. La tabla es `assets/elguia/acciones_robot.json` (editable). Se resuelve sin nube ni IA, y **solo si la frase
@@ -23,6 +29,10 @@ class GuiaAccionesRobot {
   static const String prefAcciones = 'guia_acciones_robot';
   static const String _asset = 'assets/elguia/acciones_robot.json';
   static bool habilitado = true;
+
+  /// El router publica acá la orden que acaba de detectar; el robot flotante (overlay) la escucha. Así el robot actúa venga la orden
+  /// del chat de la pestaña "El Guía", del micrófono del avatar o de donde sea (el chat solo recibía el texto y descartaba la animación).
+  static final ValueNotifier<PedidoAccionRobot?> pedida = ValueNotifier<PedidoAccionRobot?>(null);
 
   static final Random _random = Random();
   static bool _cargado = false;

@@ -36,7 +36,10 @@ void main() {
     await BaqueanoIAService.inicializarParaTest();
     await GuiaAccionesRobot.cargar();
   });
-  setUp(() => GuiaAccionesRobot.habilitado = true);
+  setUp(() {
+    GuiaAccionesRobot.habilitado = true;
+    GuiaAccionesRobot.pedida.value = null;
+  });
   tearDown(() {
     BaqueanoIAService.reiniciarEstadoParaTest();
     IARouterState.modoOnline.value = true;
@@ -213,6 +216,48 @@ void main() {
     final sticky = c.indexOf('_turnosEmergenciaRestantes > 0');
     expect(accion, greaterThan(puerta));
     expect(accion, greaterThan(sticky));
+  });
+
+  // Hallazgo de la prueba del dueño: el chat de la pestaña "El Guía" llamaba al router y descartaba la animación, y el robot flotante
+  // no se enteraba. Ahora el router publica el pedido y el overlay lo escucha, venga de donde venga la orden.
+  group('el robot flotante se entera de la orden (aunque venga del chat)', () {
+    test('el router publica el pedido con el estado', () async {
+      _preparar();
+      await BaqueanoIAService.responder('tomá mate');
+      expect(GuiaAccionesRobot.pedida.value, isNotNull);
+      expect(GuiaAccionesRobot.pedida.value!.estado, 'tomaMate');
+    });
+    test('la misma orden dos veces vuelve a disparar el aviso', () async {
+      _preparar();
+      var avisos = 0;
+      void oyente() => avisos++;
+      GuiaAccionesRobot.pedida.addListener(oyente);
+      addTearDown(() => GuiaAccionesRobot.pedida.removeListener(oyente));
+      await BaqueanoIAService.responder('tomá mate');
+      await BaqueanoIAService.responder('tomá mate');
+      expect(avisos, 2);
+    });
+    test('una pregunta no publica nada', () async {
+      _preparar();
+      await BaqueanoIAService.responder('qué carnada uso para el surubí');
+      expect(GuiaAccionesRobot.pedida.value, isNull);
+    });
+    test('una emergencia no publica nada', () async {
+      _preparar();
+      await BaqueanoIAService.responder('se hunde la lancha');
+      expect(GuiaAccionesRobot.pedida.value, isNull);
+    });
+    test('el overlay escucha el aviso y lo suelta al cerrarse', () {
+      final c = File('lib/widgets/guia_overlay.dart').readAsStringSync();
+      expect(c, contains('GuiaAccionesRobot.pedida.addListener(_onAccionRobot)'));
+      expect(c, contains('GuiaAccionesRobot.pedida.removeListener(_onAccionRobot)'));
+    });
+    test('si el overlay está dormido o apagado no hace nada raro: solo reacciona si el Guía está a la vista', () {
+      final c = File('lib/widgets/guia_overlay.dart').readAsStringSync();
+      final i = c.indexOf('void _onAccionRobot()');
+      expect(i, greaterThan(0));
+      expect(c.substring(i, i + 400), contains('_mostrarGuia'));
+    });
   });
 
   test('al dormirse, el overlay apaga el modo conversación (si no, reabre el micrófono y se despierta)', () {

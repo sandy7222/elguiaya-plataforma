@@ -344,6 +344,7 @@ class BaqueanoIAService {
     final accionRobot = GuiaAccionesRobot.detectar(pregunta);
     if (accionRobot != null) {
       debugPrint('[BaqueanoRouter] acción del robot: ${accionRobot.id}');
+      GuiaAccionesRobot.pedida.value = PedidoAccionRobot(accionRobot.estado);
       return ElGuiaRespuesta(texto: accionRobot.respuesta, gifSugerido: accionRobot.estado);
     }
 
