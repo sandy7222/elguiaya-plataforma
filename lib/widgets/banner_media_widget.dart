@@ -1,3 +1,4 @@
+import '../services/diag_memoria.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
@@ -36,6 +37,7 @@ class _VideoLoopPlayerState extends State<VideoLoopPlayer>
   @override
   void initState() {
     super.initState();
+    if (DiagMemoria.sinVideo) return; // diagnóstico R.3 (--dart-define=DIAG_SIN_VIDEO=true): no se reproduce nada
     _attach(widget.url);
   }
 

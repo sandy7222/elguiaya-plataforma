@@ -43,8 +43,12 @@
     - el **micrófono** que manda ruido a la nube: mitigación rápida = ignorar resultados del reconocedor de baja confianza o de
       menos de 2 palabras (el resto queda en la Fase 4.M);
     - el bloque de aprendizaje `|||APRENDO|||` de la nube no pasa por el verificador (puede guardar datos inventados).
-    **R.3 a) medido hasta ahora:** la pantalla de bienvenida (sin sesión) usa 210 MB y queda plana (Graphics 57 MB); falta la
-    medición con la sesión iniciada (el dueño tiene que iniciar sesión: no se escriben contraseñas).
+    **R.3 medido (detalle en `docs/INFORME_MEMORIA_R1.md`, sección 8):** a) los GIFs NO son la causa; b) **las pestañas construidas
+    todas a la vez sí** (Panel solo: 271 MB plano; antes 750–950); y **los banners con video** son lo que crece sin parar (sin video:
+    plano en ~294 MB de gráficos). Hecho: pestañas perezosas permanentes + tope de 800 px a toda decodificación de imágenes
+    (`AppBinding`; caché de imágenes 93 → 12 MB). Recorrido completo: 1164 → **551 MB** (sin video). **Falta** (meta < 400 MB):
+    arreglar el video de verdad (solo el banner visible, pausar/liberar al ocultarse), entender los ~190 MB de la Tienda que quedan,
+    y volver a medir.
 
 0. **Fase R, R.1 hecho (informe en `docs/INFORME_MEMORIA_R1.md`):** la app llega a 700–1160 MB y Android la cierra en primer plano; el
    65–70 % es **memoria gráfica** que crece ~5 MB/s en reposo. Descartados con datos: motor gráfico (Skia = Impeller), heap de Dart

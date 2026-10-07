@@ -14,6 +14,9 @@ class DiagMemoria {
 
   /// Diagnóstico R.3 (`--dart-define=DIAG_SIN_GIF=true`): el avatar usa una imagen fija en vez de los 22 GIFs.
   static const bool sinGif = bool.fromEnvironment('DIAG_SIN_GIF');
+
+  /// Diagnóstico R.3 (`--dart-define=DIAG_SIN_VIDEO=true`): los banners con video no reproducen nada.
+  static const bool sinVideo = bool.fromEnvironment('DIAG_SIN_VIDEO');
   static Timer? _timer;
 
   static void iniciar() {

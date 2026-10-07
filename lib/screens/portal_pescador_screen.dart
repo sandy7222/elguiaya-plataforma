@@ -215,27 +215,40 @@ class _PortalPescadorScreenState extends State<PortalPescadorScreen> {
     setState(() => _selectedIndex = 0);
   }
 
+  /// Pestañas que ya se abrieron. Una pestaña que nunca se abrió NO se construye (Fase R, R.3): antes el
+  /// `IndexedStack` construía las cuatro al arrancar y la Tienda sola sumaba ~370 MB de memoria gráfica.
+  final Set<int> _tabsVisitadas = {0};
+
+  Widget _tab(int i, Widget Function() construir) {
+    if (_tabsVisitadas.contains(i)) return construir();
+    return const SizedBox.shrink();
+  }
+
   Widget _buildBody() {
+    _tabsVisitadas.add(_selectedIndex);
     return IndexedStack(
       index: _selectedIndex,
       children: [
         // Pestaña 0: Panel principal del Pescador (entrada de sesión)
-        PescadorDashboardScreen(initialQuoteData: _initialQuoteData),
-        _MapSection(
-          onRequestQuote: (partida, destino, trackLog, distancia) {
-            setState(() {
-              _initialQuoteData = {
-                'partida': partida,
-                'destino': destino,
-                'trackLog': trackLog,
-                'distancia': distancia,
-              };
-              _selectedIndex = 0;
-            });
-          },
+        _tab(0, () => PescadorDashboardScreen(initialQuoteData: _initialQuoteData)),
+        _tab(
+          1,
+          () => _MapSection(
+            onRequestQuote: (partida, destino, trackLog, distancia) {
+              setState(() {
+                _initialQuoteData = {
+                  'partida': partida,
+                  'destino': destino,
+                  'trackLog': trackLog,
+                  'distancia': distancia,
+                };
+                _selectedIndex = 0;
+              });
+            },
+          ),
         ),
-        const CategoriesGridScreen(),
-        const ChatUnificadoScreen(),
+        _tab(2, () => const CategoriesGridScreen()),
+        _tab(3, () => const ChatUnificadoScreen()),
       ],
     );
   }

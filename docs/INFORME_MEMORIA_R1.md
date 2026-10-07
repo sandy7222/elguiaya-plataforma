@@ -112,3 +112,29 @@ adb logcat -d -s flutter | findstr DIAG_MEM
 ```
 
 Los números salen de `adb shell dumpsys meminfo com.example.capitanya_master` (PSS en KB; "Graphics" = GL mtrack + EGL mtrack + otros).
+
+## 8. Resultado del experimento (R.3, mismo día, mismo celular)
+
+Se probó **de a una cosa por vez**, midiendo con `scripts/medir_memoria.mjs` y el log `DIAG_MEM`:
+
+| Variante | Qué cambia | Panel (reposo) | Abrir Tienda | Abrir Mapa | Abrir El Guía | Veredicto |
+|---|---|---|---|---|---|---|
+| Original | — | 750–950 MB, sube ~5 MB/s | — | — | — | muerto por `lmkd` en 20–60 s |
+| a) sin GIFs | avatar con imagen fija | 775 MB, Graphics 494 | — | — | — | **NO son la causa** |
+| b) pestañas perezosas | Mapa/Tienda/Chat se construyen al abrirlas | **271 MB, plano 85 s** (Graphics 126) | 688 → 776 MB | 833 → 973 MB | 1108 MB (se cierra) | **Sí: era una causa principal** |
+| b + tope de imagen | decodificación ≤ 800 px (`AppBinding`) | 261 MB | 514 → 541 MB (caché de imágenes 93 → **12 MB**) | 614 → 733 MB | 844 → 945 MB | mejora la Tienda ~170 MB; sigue creciendo |
+| b + tope + **sin video** | los banners con video no reproducen | 257 MB | 478 → 503 MB | 510 → 529 MB | **550 MB, plano** | **Los videos de los banners son lo que crecía** |
+
+**Conclusiones medidas:**
+1. **Las pestañas construidas todas a la vez** eran la mayor parte: el Panel solo usa ~260 MB; las otras tres pestañas, ocultas, sumaban ~500 MB.
+2. **Los banners con video** (`VideoLoopPlayer`, `wantKeepAlive = true`, autoplay en bucle) son lo que **crece sin parar**: con video apagado, la memoria gráfica queda plana en ~294 MB en las cuatro pestañas (con video subía a 662 y 792 MB). Siguen decodificando aunque la pestaña esté oculta.
+3. **Las fotos sin límite** pesaban 93 MB en el caché de Flutter (8 imágenes de ≈11,6 MB); con el tope de 800 px: 12 MB.
+4. Recorrido completo (Panel → Tienda → Mapa → Guía): **1164 → 551 MB** sin video. Todavía arriba de la meta (< 400 MB): quedan ~190 MB de gráficos al abrir la Tienda que no explican las imágenes.
+
+**Hecho (commits de R.3):** pestañas perezosas permanentes; `AppBinding` (tope de 800 px a toda decodificación; los GIFs del avatar no se tocan);
+interruptores de diagnóstico `DIAG_SIN_GIF` / `DIAG_SIN_VIDEO` (apagados por defecto).
+
+**Falta (en este orden):** (1) arreglar el video de verdad, no apagarlo: reproducir **solo el banner visible**, pausar y liberar el
+controlador al ocultarse la pestaña o irse la app a segundo plano, y revisar la resolución de los videos subidos; (2) entender los ~190 MB
+de la Tienda que quedan (candidatos: desenfoques, sombras, listas); (3) las 110 `Image.network` sin `cacheWidth` ya quedan cubiertas por el
+tope global, pero conviene ponerles el tamaño real; (4) medir de nuevo el recorrido completo y confirmar **< 400 MB sin cierres**.

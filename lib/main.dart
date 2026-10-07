@@ -1,3 +1,4 @@
+import 'utils/app_binding.dart';
 import 'services/diag_memoria.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -72,7 +73,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 Future<void> main() async {
   usePathUrlStrategy();
-  WidgetsFlutterBinding.ensureInitialized();
+  AppBinding.ensureInitialized(); // tope al tamaño de decodificación de las imágenes (Fase R, R.3)
   DiagMemoria.iniciar(); // solo con --dart-define=DIAG_MEM=true (Fase R, R.1)
 
   // FCM background handler lo antes posible (Android)
