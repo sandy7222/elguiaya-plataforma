@@ -129,6 +129,10 @@
       de aprendizaje; 0 errores del micrófono; memoria 365 MB. Nuevo en el registro (no es de la IA): `Error en el traspaso a tablas legadas:
       PostgrestException … Could not find the 'referido' column of 'pescadores' (PGRST204)`: el código escribe una columna que no existe en
       Supabase; revisar con el esquema de `pescadores`.
+    - **Push hecho el 2026-10-07 (OK del dueño):** 15 commits, de `c564a36` (R.1) a `2f316e2`, a `origin/fase-0-contencion`, sin `--force`.
+      Lo que quedó sin commitear es el trabajo ajeno de antes (cientos de archivos) y no se subió.
+    - El asistente se **apaga solo** después de estar dormido un rato (queda en "desactivado" y hay que volver a prenderlo desde Mi
+      Identidad Pescador); también al reinstalar. Decidir si debe quedar prendido.
     - El avatar viene **apagado** tras instalar (interruptor en Mi Identidad Pescador): confirmar si es lo deseado.
 
 0. **Fase R, R.1 hecho (informe en `docs/INFORME_MEMORIA_R1.md`):** la app llega a 700–1160 MB y Android la cierra en primer plano; el
