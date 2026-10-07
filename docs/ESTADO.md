@@ -63,6 +63,19 @@
     (< 400 MB) cumplida en el recorrido sin preguntas al Guía. Los "~190 MB de la Tienda" desaparecieron con este cambio (eran el video
     de los banners), así que **ya no hace falta investigar desenfoques/sombras/listas**. **Falta:** repetir con 5 preguntas al Guía con
     voz (TTS) para confirmar que no hay cierres, y un equipo de más de 4 GB para ver el video real.
+    **Prueba con voz en el Moto G15 (2026-10-07, avatar activo, el dueño hablando, 4 min):** PSS 347–376 MB, sin cierre de la app
+    (Android sí mató a otras apps). Micrófono: la app lo pide a los 0,25 s y Google lo abre a los 0,4 s; "Te escucho…" a ~1 s; la luz verde
+    de Android a ~2,5 s (la dibuja el sistema). Hallazgos NUEVOS, a priorizar (todos de voz/IA, no de memoria):
+    - **El Guía inventa en una pregunta de pesca ("pesca de mojarra"):** el router la clasificó `saludo_pescador`, la mandó a la nube
+      ("Charla detectada — skip contexto") y el verificador solo reemplazó 1 afirmación; el resto es texto libre del modelo. Falta que las
+      preguntas de técnica/carnada/especie pasen por las fichas (retrieval) y, sin ficha, digan "no tengo ese dato".
+    - **El aprendizaje automático guarda esas respuestas inventadas:** `gemini_learner.dart` las escribe como conocimiento "pendiente", las
+      consolida a la 3.ª vez y las sube a Supabase (el registro mostró "Conocimiento auto-guardado en Supabase … como_pescar_mojarra").
+      Después el motor offline las sirve como verdad. Propuesta: apagarlo por flag hasta que haya verificación (decide el dueño).
+    - **Micrófono en bucle:** cada ~6 s se abre y falla con `error_language_not_supported` (idioma `es-ES` sin paquete sin conexión, STT por
+      red); gasta batería y es la fuente del "ruido ambiente". Hay que cortarlo tras el error y no reabrir solo.
+    - **Hay que apretar el botón cada vez que se quiere hablar** (no hay modo conversación); mejora de la Fase de voz.
+    - El avatar viene **apagado** tras instalar (interruptor en Mi Identidad Pescador): confirmar si es lo deseado.
 
 0. **Fase R, R.1 hecho (informe en `docs/INFORME_MEMORIA_R1.md`):** la app llega a 700–1160 MB y Android la cierra en primer plano; el
    65–70 % es **memoria gráfica** que crece ~5 MB/s en reposo. Descartados con datos: motor gráfico (Skia = Impeller), heap de Dart
