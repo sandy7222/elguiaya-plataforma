@@ -16,6 +16,7 @@ import 'guia_memoria_service.dart';
 import 'guia_condiciones_service.dart';
 import 'guia_texto_voz.dart';
 import 'gemini_learner.dart';
+import 'guia_acciones_robot.dart';
 import 'guia_ruta_conocimiento.dart';
 import 'guia_wake_word.dart';
 import 'intent_service.dart';
@@ -171,6 +172,7 @@ class ElGuiaEngine {
     GuiaWakeWord.aplicarFlags(prefs);
     GeminiLearner.aplicarFlags(prefs);
     GuiaRutaConocimiento.aplicarFlags(prefs);
+    GuiaAccionesRobot.aplicarFlags(prefs);
   }
   GuiaRetriever? _retriever;
   Future<void>? _retrieverEnConstruccion;

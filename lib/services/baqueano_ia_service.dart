@@ -1,3 +1,4 @@
+import 'guia_acciones_robot.dart';
 import 'guia_ruta_conocimiento.dart';
 import 'guia_condiciones_service.dart';
 import 'dart:math';
@@ -336,6 +337,15 @@ class BaqueanoIAService {
     final soloReglas = clase == ClaseIntencion.transaccional || _motorLocal.esContinuacionDeDictado(pregunta);
     // Lo que el aprendizaje automático nunca toca (ver GeminiLearner.motivoDeBloqueo).
     final temaReservado = clase == ClaseIntencion.seguridad || clase == ClaseIntencion.transaccional;
+
+    // Acciones del robot ("tomá mate", "sentate y escuchá", "reíte", "ponete furioso"): el robot actúa con sus GIFs, sin nube ni IA.
+    // Va DESPUÉS del portón de seguridad y del modo emergencia: una emergencia nunca dispara una gracia. Solo si la frase es TODA la orden.
+    await GuiaAccionesRobot.cargar();
+    final accionRobot = GuiaAccionesRobot.detectar(pregunta);
+    if (accionRobot != null) {
+      debugPrint('[BaqueanoRouter] acción del robot: ${accionRobot.id}');
+      return ElGuiaRespuesta(texto: accionRobot.respuesta, gifSugerido: accionRobot.estado);
+    }
 
     // Diagnóstico verbal: el robot reporta su estado de conexión
     if (_esConsultaEstado(pq)) return await _respuestaEstado();

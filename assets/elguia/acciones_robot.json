@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "descripcion": "Órdenes que el robot cumple actuando con sus GIFs (sin nube, sin IA). Editable por el dueño. La frase tiene que ser TODA la orden (se ignoran muletillas al principio y al final: 'che', 'dale', 'por favor'...). Las frases van sin tildes ni signos. 'estado' es el nombre del estado del robot (la lista de estados está en el widget del asistente). 'gif' es solo informativo: el GIF lo elige el estado.",
+  "relleno_inicio": ["che", "guia", "el", "dale", "bueno", "ahora", "y", "ya", "porfa", "por", "favor", "oye", "mira", "chamigo", "amigo", "loco", "viejo"],
+  "relleno_fin": ["che", "guia", "dale", "porfa", "por", "favor", "ya", "ahora", "chamigo", "amigo", "loco", "viejo", "un", "rato", "poco", "momento"],
+  "acciones": [
+    {
+      "id": "tomar_mate",
+      "estado": "tomaMate",
+      "gif": "ceba_mate_y_toma.gif",
+      "frases": ["toma mate", "toma un mate", "toma unos mates", "tomate un mate", "tomate unos mates", "tomemos mate", "tomamos mate", "tomamos unos mates", "tomemos unos mates", "tomar mate", "ceba mate", "ceba un mate", "ceba unos mates", "cebate un mate", "saca el mate", "saca tu mate", "sacame el mate"],
+      "respuestas": ["¡Dale, chamigo! Ahí va el mate.", "¡Mate al agua! Tomemos unos amargos.", "Sacá la bombilla, que ceba el Guía."]
+    },
+    {
+      "id": "sentarse_y_escuchar",
+      "estado": "soloEscucha",
+      "gif": "solo_escucha.gif",
+      "frases": ["sentate y escucha", "sentate", "sentate y escuchame", "sentate a escuchar", "solo escucha", "escucha en silencio", "quedate escuchando"],
+      "respuestas": ["Listo, acá me siento. Te escucho.", "Me siento y escucho, chamigo."]
+    },
+    {
+      "id": "reirse",
+      "estado": "rieGana",
+      "gif": "se_rie_fuerte.gif",
+      "frases": ["reite", "reite fuerte", "reite a carcajadas", "ponete a reir", "tirate una carcajada", "a reir", "reirse", "rie"],
+      "respuestas": ["¡Ja, ja, ja, ja! ¡Qué bueno, chamigo!", "¡Jua, ja, ja! No puedo parar."]
+    },
+    {
+      "id": "enojarse",
+      "estado": "enojado",
+      "gif": "furioso.gif",
+      "frases": ["ponete furioso", "ponete enojado", "ponete bravo", "enojate", "enojate mucho", "ponete loco de furia", "hace una furia"],
+      "respuestas": ["¡Grrr! ¡Estoy furioso!", "¡Me puse como loco, che!"]
+    },
+    {
+      "id": "ponerse_triste",
+      "estado": "triste",
+      "gif": "triste.gif",
+      "frases": ["ponete triste", "ponete triston", "entristecete", "ponete mal"],
+      "respuestas": ["Ay, chamigo... qué tristeza.", "Me puse triste. Pero se me pasa."]
+    },
+    {
+      "id": "saludar",
+      "estado": "saludo",
+      "gif": "se_rie_y_saluda_al_frente.gif",
+      "frases": ["saluda", "saludame", "saluda a la gente", "saluda a todos", "hace un saludo", "decile hola", "decime hola"],
+      "respuestas": ["¡Hola, chamigo! ¿Cómo andás?", "¡Buenas, buenas! Un saludo grande."]
+    },
+    {
+      "id": "dormirse",
+      "estado": "durmiendo",
+      "gif": "bosteza_y_se_duerme.gif",
+      "frases": ["dormite", "a dormir", "anda a dormir", "ponete a dormir", "hace una siesta", "dormi", "echate una siesta"],
+      "respuestas": ["Me echo una siestita. Cuando me necesites, me despertás.", "A dormir se ha dicho. Chau, chamigo."]
+    },
+    {
+      "id": "despertarse",
+      "estado": "despierta",
+      "gif": "se_despierte_y_queda_de_pie.gif",
+      "frases": ["despertate", "despierta", "arriba", "levantate", "levanta"],
+      "respuestas": ["¡Acá estoy, chamigo!", "¡Arriba! Ya estoy de pie."]
+    },
+    {
+      "id": "pensar",
+      "estado": "piensaLeve",
+      "gif": "piensa_y_mira_arriba.gif",
+      "frases": ["pensa", "ponete a pensar", "pensa un poco", "pensa un momento", "pensalo"],
+      "respuestas": ["Mmm... a ver, dejame pensar."]
+    },
+    {
+      "id": "jugar_cartas",
+      "estado": "juegaCartas",
+      "gif": "habla_y_juega_cartas.gif",
+      "frases": ["jugamos a las cartas", "juguemos a las cartas", "juga a las cartas", "vamos a jugar a las cartas", "jugamos a la baraja", "saca las cartas", "saca el mazo"],
+      "respuestas": ["¡Dale, que reparto yo!", "Saco el mazo. ¿Truco o escoba?"]
+    },
+    {
+      "id": "hacer_ok",
+      "estado": "exito",
+      "gif": "habla_y_hace_ok.gif",
+      "frases": ["hace el ok", "hace ok", "hace un ok", "ponete el ok", "dame el ok"],
+      "respuestas": ["¡Todo en orden, chamigo! OK.", "¡Joya! Va el OK."]
+    }
+  ]
+}

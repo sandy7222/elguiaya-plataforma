@@ -133,6 +133,13 @@
       Lo que quedó sin commitear es el trabajo ajeno de antes (cientos de archivos) y no se subió.
     - El asistente se **apaga solo** después de estar dormido un rato (queda en "desactivado" y hay que volver a prenderlo desde Mi
       Identidad Pescador); también al reinstalar. Decidir si debe quedar prendido.
+    - **HECHO (acciones del robot, pedido del dueño):** el robot cumple órdenes con sus GIFs, sin nube ni IA ("tomá mate", "sentate y escuchá",
+      "reíte", "ponete furioso/triste", "saludá", "dormite", "despertate", "pensá", "jugamos a las cartas", "hacé el OK"). Tabla editable:
+      `assets/elguia/acciones_robot.json` (frases, estado y lo que dice); detector `lib/services/guia_acciones_robot.dart`; flag
+      `guia_acciones_robot`. Solo si la frase es TODA la orden (así "cómo se toma mate" o "pensá en una carnada…" siguen siendo preguntas);
+      el router lo consulta DESPUÉS del portón de seguridad y del modo emergencia. Tests `guia_acciones_robot_test.dart`. Pendiente: probar con
+      la voz en el celular (STT puede entender mal), y decidir si "sentate y escuchá" debe además dejar el micrófono abierto en modo solo-escucha.
+      Nota: "desaparecé/hacé un rayo" NO es una acción (es la animación de apagarse).
     - El avatar viene **apagado** tras instalar (interruptor en Mi Identidad Pescador): confirmar si es lo deseado.
 
 0. **Fase R, R.1 hecho (informe en `docs/INFORME_MEMORIA_R1.md`):** la app llega a 700–1160 MB y Android la cierra en primer plano; el

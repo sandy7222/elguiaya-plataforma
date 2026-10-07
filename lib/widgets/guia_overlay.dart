@@ -906,6 +906,8 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
         _chatHistory.add({'text': responseText, 'isUser': 'false'});
         _isTyping = false;
         _estadoGuia = nuevoEstado;
+        // "Dormite": si el modo conversación siguiera activo, al terminar de hablar reabriría el micrófono y lo despertaría.
+        if (nuevoEstado == CapitanState.durmiendo) _modoConversacionVoz = false;
       });
       if (!_isMuted) {
         VoiceService().speak(responseText);
@@ -963,6 +965,12 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
         return CapitanState.enojado;
       case 'triste':
         return CapitanState.triste;
+      case 'durmiendo':
+        return CapitanState.durmiendo;
+      case 'despierta':
+        return CapitanState.despierta;
+      case 'juegaCartas':
+        return CapitanState.juegaCartas;
       default:
         return CapitanState.hablaConMate;
     }
