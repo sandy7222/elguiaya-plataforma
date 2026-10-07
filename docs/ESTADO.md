@@ -94,6 +94,12 @@
       palabras para la voz: el TTS lee todo, minutos. Propuesta: prompt corto, sin rol de ventas, respuesta de voz ≤ 3 oraciones, y que
       ante "no tengo ese dato" corte ahí.
     - **Hay que apretar el botón cada vez que se quiere hablar** (no hay modo conversación); mejora de la Fase de voz.
+    - **HECHO (paso 3):** prompt de la nube nuevo (`lib/services/guia_prompt_nube.dart`, ~1200 caracteres): 3 oraciones para voz, sin rol de
+      ventas, sin conocimiento de pesca escrito a mano, sin contacto salvo que lo pidan, sin `|||APRENDO|||` (solo con el flag de
+      aprendizaje encendido). Más `GuiaVerificadorDatos.cortarTrasSinDato`: si la 1.ª oración de la nube es un "no tengo ese dato", se
+      descarta lo que sigue. Tests `guia_prompt_nube_test.dart` y `guia_sin_dato_test.dart`. **Efecto esperado:** la nube ya no contesta
+      pesca "de memoria"; el conocimiento tiene que venir de las fichas (paso 4). El chat ya no promete que un reclamo "queda guardado"
+      (no lo guardaba). Falta probarlo en el celular con un APK nuevo.
     - El avatar viene **apagado** tras instalar (interruptor en Mi Identidad Pescador): confirmar si es lo deseado.
 
 0. **Fase R, R.1 hecho (informe en `docs/INFORME_MEMORIA_R1.md`):** la app llega a 700–1160 MB y Android la cierra en primer plano; el

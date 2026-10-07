@@ -97,6 +97,24 @@ REGLAS DE DATOS (no negociables):
   static List<String> _partir(String t) =>
       t.split(RegExp(r'(?<=[.!?])\s+(?=[A-ZÁÉÍÓÚÑ¿¡0-9])')).where((p) => p.trim().isNotEmpty).toList();
 
+  /// Primera oración que dice que no hay dato ("No tengo ese dato.", "Ese dato no lo tengo.", "Chamigo, no tengo esa información.").
+  static final RegExp _primeraSinDato = RegExp(
+    r'^(?:[a-z]+,\s*)?(?:no tengo (?:ese|este|ningun|el) dato|ese dato no lo tengo|no tengo (?:esa|esta) informacion|'
+    r'no cuento con (?:ese|este|esa|esta) (?:dato|informacion)|no dispongo de (?:ese|este|esa|esta) (?:dato|informacion)|'
+    r'no tengo datos? (?:sobre|de|acerca))',
+  );
+
+  /// Paso 3: si la PRIMERA oración de lo que contestó la nube dice que no hay dato ("No tengo ese dato."), la respuesta termina ahí:
+  /// lo que sigue era relleno inventado. Se llama UNA vez sobre la respuesta cruda, antes de [verificar] (no dentro: la frase de
+  /// [reemplazo] que pone el verificador también empieza así, y volver a pasarlo no tiene que recortar lo que sigue).
+  static VerificacionDatos cortarTrasSinDato(String respuesta) {
+    final oraciones = _partir(respuesta);
+    if (oraciones.length > 1 && _primeraSinDato.hasMatch(_n(oraciones.first).trim())) {
+      return VerificacionDatos(oraciones.first.trim(), [oraciones.skip(1).join(' ').trim()]);
+    }
+    return VerificacionDatos(respuesta, const []);
+  }
+
   static String _mayuscula(String t) => t.isEmpty ? t : t[0].toUpperCase() + t.substring(1);
 
   /// Verifica [respuesta] contra [contexto] (lo que se le mandó a la nube: los bloques de condiciones, la pregunta

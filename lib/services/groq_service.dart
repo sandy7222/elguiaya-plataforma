@@ -15,6 +15,7 @@ import 'supabase_service.dart';
 import 'guia_memoria_service.dart';
 import 'guia_copilot_brain.dart';
 import 'guia_verificador_datos.dart';
+import 'guia_prompt_nube.dart';
 import 'ia_breaker.dart';
 import 'ia_edge_function_client.dart';
 
@@ -147,44 +148,8 @@ Nunca inventés datos técnicos. Si no sabés algo, decilo honestamente en tono 
 """;
     } else {
       final zona = GuiaRolService.detectarZona(pregunta);
-      rolePrompt = CapacitacionService.obtenerPromptGuiaNacional(zona);
-      systemPrompt = """
-$rolePrompt
-
-REGLA 1 — IDENTIDAD:
-Respondé con respeto y colaboración a todos los usuarios.
-Nunca inventés datos técnicos. Si no sabés algo, decilo honestamente en tono rústico.
-
-REGLA 2 — PROTOCOLO DE APRENDIZAJE AUTOMÁTICO:
-⚠️ IMPORTANTE: Vos NO te conectás a ninguna base de datos ni a Supabase. Eso ya está resuelto por el sistema.
-Tu única responsabilidad es: cuando identifiques conocimiento técnico valioso en la conversación
-(técnicas de pesca, carnadas, nudos, especies, condiciones del río, campamentismo, cocina ribereña),
-debés AGREGAR AL FINAL de tu respuesta la etiqueta |||APRENDO||| seguida del JSON.
-El sistema intercepta esa etiqueta automáticamente y guarda el conocimiento en la base de datos. Vos no hacés nada más que emitir el token y el JSON.
-
-REGLA 3 — CUÁNDO emitir |||APRENDO|||:
-- Solo cuando la respuesta contiene conocimiento técnico concreto y reutilizable.
-- NO en charlas de saludo, bromas, preguntas emocionales ni respuestas donde decís "no sé".
-- Si emitís |||APRENDO|||, el JSON DEBE ser válido y completo.
-
-REGLA 4 — FORMATO EXACTO del bloque de aprendizaje:
-Primero va tu respuesta normal al usuario. Luego, sin línea en blanco, el token y el JSON:
-
-|||APRENDO|||
-{
-  "intencion": "como_hacer_nudo_palomar",
-  "activadores": ["cómo hago el nudo palomar", "nudo para anzuelo", "atar el anzuelo"],
-  "respuesta_limpia": "El nudo palomar: doble el hilo, pasalo por el ojo, hacé un nudo simple, pasá el anzuelo por el lazo y apretá.",
-  "gif": "hablaConMate",
-  "puntaje": 9,
-  "fuente": "groq_sesion"
-}
-
-Valores válidos para "gif": hablaConMate | exito | piensaLeve | piensaProfundo | saludo | duda | enojado | triste
-El campo "puntaje" va de 1 a 10 según cuán valioso es el conocimiento para un pescador argentino.
-El campo "intencion" siempre en snake_case: como_pescar_dorado | que_carnada_usar | nudo_palomar.
-El campo "respuesta_limpia" máximo 120 caracteres, sin asteriscos ni markdown.
-""";
+      rolePrompt = '';
+      systemPrompt = GuiaPromptNube.sistema(zona: zona, conAprendizaje: GeminiLearner.aprendizajeAutomatico);
     }
 
 
@@ -295,6 +260,12 @@ El campo "respuesta_limpia" máximo 120 caracteres, sin asteriscos ni markdown.
 
       // Paso 1.8: nada de datos inventados ni fuentes que la app no le dio. Se verifica contra todo lo que se le
       // mandó (los bloques de condiciones, la pregunta y la charla reciente).
+      // Paso 3: si arranca con "no tengo ese dato", la respuesta termina ahí.
+      final recortada = GuiaVerificadorDatos.cortarTrasSinDato(textoVisible);
+      if (recortada.corrigio) {
+        debugPrint('[GroqService] Sin dato: se descartó lo que seguía a "no tengo ese dato".');
+        textoVisible = recortada.texto;
+      }
       final verificada = GuiaVerificadorDatos.verificar(
         textoVisible,
         contexto: '${contextoExtra ?? ''}\n$pregunta\n${(historial ?? const <Map<String, String>>[]).map((m) => m['content'] ?? '').join('\n')}',
