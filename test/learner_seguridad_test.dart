@@ -47,6 +47,8 @@ void main() {
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
+    // El aprendizaje automático está apagado por defecto; acá se enciende para probar el filtro de seguridad.
+    GeminiLearner.aprendizajeAutomatico = true;
   });
 
   // ── Preguntas reservadas: no se aprende, aunque el título sea inocente ─────

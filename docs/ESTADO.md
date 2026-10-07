@@ -72,6 +72,13 @@
     - **El aprendizaje automático guarda esas respuestas inventadas:** `gemini_learner.dart` las escribe como conocimiento "pendiente", las
       consolida a la 3.ª vez y las sube a Supabase (el registro mostró "Conocimiento auto-guardado en Supabase … como_pescar_mojarra").
       Después el motor offline las sirve como verdad. Propuesta: apagarlo por flag hasta que haya verificación (decide el dueño).
+      **HECHO (paso 2):** flag `guia_aprendizaje_auto`, por defecto apagado (`GeminiLearner.aprendizajeAutomatico`; corta en `procesar` y
+      `evaluarYGuardar`, o sea también el bloque `|||APRENDO|||` de la nube). Test `test/gemini_learner_apagado_test.dart`; los tests de
+      seguridad del aprendizaje (`learner_seguridad_test.dart`) siguen igual de estrictos, solo encienden el flag en su `setUp`.
+      **Pendiente con OK del dueño:** lo ya guardado sigue ahí: en el celular de prueba (`guia_aprendido_pendiente/como_pescar_mojarra.json`)
+      y en la tabla `guia_conocimiento_distribuido` de Supabase (la intención `como_pescar_mojarra`, id `609ad12b-…`). Revisar y borrar
+      lo inventado (borrar datos = necesita OK explícito). El prompt de la nube todavía le pide escribir `|||APRENDO|||` (gasta palabras
+      sin servir): se saca cuando se reescriba el prompt (paso 3).
     - **Micrófono en bucle:** cada ~6 s se abre y falla con `error_language_not_supported` (idioma `es-ES` sin paquete sin conexión, STT por
       red); gasta batería y es la fuente del "ruido ambiente". Hay que cortarlo tras el error y no reabrir solo.
       **Causa hallada:** es el *wake word* (`voice_service.dart` `_runWakeWordBurst`, llamado desde `guia_overlay.dart:644` cuando el Guía

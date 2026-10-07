@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/gemini_config.dart';
 import 'el_guia_engine.dart';
@@ -19,6 +20,16 @@ class GeminiLearner {
   static const String _carpetaConsolidada = 'guia_aprendido';
   static const String _carpetaPendiente    = 'guia_aprendido_pendiente';
   static const String _carpetaDescartada   = 'guia_descartado';
+
+  /// Flag `guia_aprendizaje_auto` (**apagado por defecto**). El Guía no aprende solo de lo que dice la nube: en el Moto G15 guardó
+  /// como "conocimiento" una respuesta inventada sobre la mojarra y la iba a consolidar y subir a Supabase. Se vuelve a encender
+  /// solo cuando lo aprendido pase por una verificación (docs/ESTADO.md).
+  static const String prefAprendizajeAuto = 'guia_aprendizaje_auto';
+  static bool aprendizajeAutomatico = false;
+
+  static void aplicarFlags(SharedPreferences prefs) {
+    aprendizajeAutomatico = prefs.getBool(prefAprendizajeAuto) ?? aprendizajeAutomatico;
+  }
 
   static const Set<String> _intencionesProtegidas = {
     'crear_viaje',
@@ -71,6 +82,10 @@ class GeminiLearner {
     bool exito = true,
     bool temaReservado = false,
   }) async {
+    if (!aprendizajeAutomatico) {
+      observadorParaTest?.call('apagado');
+      return;
+    }
     if (!exito || temaReservado) return;
     try {
       debugPrint('Iniciando evaluación de aprendizaje...');
@@ -91,6 +106,10 @@ class GeminiLearner {
   /// Procesa el bloque de aprendizaje extraído de la respuesta de Gemini.
   /// Llamar en background (no await desde el widget).
   static Future<void> procesar(Map<String, dynamic> datos, String preguntaOriginal) async {
+    if (!aprendizajeAutomatico) {
+      observadorParaTest?.call('apagado');
+      return;
+    }
     // Normalizar formato si viene del nuevo Prompt Maestro
     if (datos.containsKey('titulo') && !datos.containsKey('intencion')) {
       final String titulo = datos['titulo']?.toString() ?? '';
