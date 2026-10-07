@@ -125,6 +125,10 @@
       filas. Falta revisarlas y borrar las inventadas (con OK del dueño). Dónde se enseña: Admin → Sistema → Formación → "El Guía Educador"
       (aprobar pendientes y "Enseñarle esto al Guía" sobre las carencias, que escribe `fuente = admin_manual`). **Falta** un modo de enseñar
       cómodo desde el chat del Guía para el dueño (hoy "aprendo" en el chat no guarda nada).
+    - **Prueba del dueño con el APK final de la sesión (18:12–18:16, APK `b6d6b97`):** 4 preguntas de pesca → motor local, 1 de charla → nube; 0 líneas
+      de aprendizaje; 0 errores del micrófono; memoria 365 MB. Nuevo en el registro (no es de la IA): `Error en el traspaso a tablas legadas:
+      PostgrestException … Could not find the 'referido' column of 'pescadores' (PGRST204)`: el código escribe una columna que no existe en
+      Supabase; revisar con el esquema de `pescadores`.
     - El avatar viene **apagado** tras instalar (interruptor en Mi Identidad Pescador): confirmar si es lo deseado.
 
 0. **Fase R, R.1 hecho (informe en `docs/INFORME_MEMORIA_R1.md`):** la app llega a 700–1160 MB y Android la cierra en primer plano; el
@@ -156,10 +160,22 @@
 
 ## Pendientes que dependen del dueño
 
-- **(2026-10-07) Supabase muestra "EXCEEDING USAGE LIMITS"** en el proyecto CapitanYA-MASTER. Medido por SQL ese día:
-  almacenamiento ~477 MB (de 1 GB) y base ~37 MB (de 500 MB), así que **no son esos dos**. Lo más probable es la
-  **salida de datos** (5 GB): los banners con video en bucle descargándose durante las pruebas de la Fase R. El dueño
-  tiene que mirar **Settings → Usage** para ver cuál es. Si se pasa, Supabase responde 402 y la app deja de andar.
+- **(2026-10-07) Supabase "EXCEEDING USAGE LIMITS": CONFIRMADO, es "Cached Egress": 16,3 GB de 5 GB (327 %).** Todo
+  lo demás está bien (egress 0,24/5 GB, storage 0,5/1 GB, base 0,05/0,5 GB, funciones 11/500.000). Casi todo es del
+  **7 de octubre**: los 3 videos de banners se pidieron **15.843 veces** ese día porque el reproductor los vuelve a
+  descargar en cada vuelta del bucle (ver R.3b). Ciclo 14-sep → 14-oct: hasta el 14 de octubre la organización
+  sigue excedida y Supabase **puede restringir el proyecto (402)**. Mitigación inmediata propuesta: desactivar los 3
+  banners de video (`banners_promo.activo = false`, reversible) hasta que R.3b descargue cada video una sola vez.
+  **HECHO 2026-10-07 con OK del dueño (Opus):** desactivados los banners id 30 y 27 (hero) y 25 (bottom), los únicos
+  `.mp4`. Los archivos siguen en Storage; se reactivan desde el panel de banners **después** de R.3b. El contador de
+  Cached Egress no se puede bajar: vuelve a cero el 14-oct. Verificado en `edge_logs`: las 15.843 descargas
+  ocurrieron todas entre las 16:32 y las 18:57 UTC del 7-oct (las pruebas de la Fase R con el APK con video); desde
+  ahí no hubo ninguna más.
+  **Cómo seguir con los videos (decidido con el dueño):** ahora, R.3b (cada celular descarga cada video **una vez**
+  y lo reproduce desde disco) + videos más livianos (720p, sin audio, 5–8 s, ~300–500 KB). Con eso, 5 GB/mes
+  alcanzan para ~1.500 usuarios aunque los banners cambien todos los meses. **Más adelante, con usuarios reales:**
+  mover videos e imágenes de la tienda a un almacenamiento sin costo de descarga (p. ej. Cloudflare R2; confirmar
+  condiciones vigentes), subiendo los archivos a través del servidor, nunca con claves en la app.
 - **No aprobar en bloque** las 36 propuestas de `guia_conocimiento_distribuido`: hay basura, duplicados y datos
   sensibles (ver Fase 3.5 del plan).
 
