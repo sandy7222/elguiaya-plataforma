@@ -58,6 +58,11 @@
     (Tienda cerrada / app en segundo plano / cierre → 0 reproductores). Como el Moto G15 es de 4 GB, **ahí no va a haber video**: la
     medición esperada es la del caso "sin video" (~551 MB). **Después:** los ~190 MB gráficos de la Tienda (desenfoques, sombras,
     listas), de a una variante por vez; luego **R.5** (sacar el admin del APK, agregado por el dueño) y R.4 (tamaño del APK).
+    **R.3b MEDIDO en el Moto G15 (2026-10-07, APK de perfil `e7286cd`):** Panel 265 MB → Tienda 316 → Mapa 297 → El Guía 297 → vuelta a
+    la Tienda 297 MB, **plano, sin crecer** (gráficos 102 MB; antes 294). Recorrido completo: 1164 → 945 → 551 → **~300 MB**: meta
+    (< 400 MB) cumplida en el recorrido sin preguntas al Guía. Los "~190 MB de la Tienda" desaparecieron con este cambio (eran el video
+    de los banners), así que **ya no hace falta investigar desenfoques/sombras/listas**. **Falta:** repetir con 5 preguntas al Guía con
+    voz (TTS) para confirmar que no hay cierres, y un equipo de más de 4 GB para ver el video real.
 
 0. **Fase R, R.1 hecho (informe en `docs/INFORME_MEMORIA_R1.md`):** la app llega a 700–1160 MB y Android la cierra en primer plano; el
    65–70 % es **memoria gráfica** que crece ~5 MB/s en reposo. Descartados con datos: motor gráfico (Skia = Impeller), heap de Dart

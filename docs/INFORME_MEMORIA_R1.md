@@ -1,3 +1,16 @@
+
+## 9. R.3b: video solo en la Tienda y liberado al salir (Moto G15, 2026-10-07)
+
+| Paso | PSS (MB) | Gráficos (MB) |
+|---|---|---|
+| Panel | 265 | 74 |
+| Tienda +4 s | 316 | 97 |
+| Mapa | 297 | 102 |
+| El Guía | 297 | 102 |
+| Vuelta a la Tienda | 297 | 102 |
+
+Antes (sección 8): 945 MB con video, 551 MB con video apagado (gráficos 294). Ahora ~300 MB y plano. El Moto G15 (4 GB) usa imagen
+fija en los banners; el video real solo en equipos de más de 4 GB (sin medir). Pendiente: probar preguntas al Guía con voz.
 # Informe R.1 — Memoria de la app en el Moto G15 (2026-10-07)
 
 > Paso R.1 de la Fase R (`docs/PLAN_AYUDANTE_IA.md`): **medir antes de tocar**. No se arregló nada. Este informe dice qué se midió,
