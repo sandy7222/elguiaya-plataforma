@@ -220,7 +220,8 @@ class _PortalPescadorScreenState extends State<PortalPescadorScreen> {
   final Set<int> _tabsVisitadas = {0};
 
   Widget _tab(int i, Widget Function() construir) {
-    if (_tabsVisitadas.contains(i)) return construir();
+    // R.3b: la pestaña oculta queda con TickerMode apagado; los videos de banners lo leen para soltar el reproductor.
+    if (_tabsVisitadas.contains(i)) return TickerMode(enabled: _selectedIndex == i, child: construir());
     return const SizedBox.shrink();
   }
 

@@ -49,6 +49,15 @@
     (`AppBinding`; caché de imágenes 93 → 12 MB). Recorrido completo: 1164 → **551 MB** (sin video). **Falta** (meta < 400 MB):
     arreglar el video de verdad (solo el banner visible, pausar/liberar al ocultarse), entender los ~190 MB de la Tienda que quedan,
     y volver a medir.
+    **R.3b hecho en código (falta medir en el Moto G15: el celular quedó "unauthorized" en adb, hay que aceptar el aviso de depuración USB):**
+    regla del dueño: los videos se reproducen solo con la Tienda abierta y a la vista; al salir de la Tienda o pasar la app a segundo
+    plano el reproductor se **libera** (dispose), no se pausa; fuera de la Tienda hay **0** reproductores y dentro **uno solo** (el del
+    banner visible, tope `BannerVideoCache.maxReproductores = 1`). Equipos de 4 GB o menos (RAM por canal nativo `capitanya/dispositivo`):
+    imagen fija en vez de video (ahora es un fondo con ícono de play: los banners no tienen imagen de portada aparte). Se sacó el
+    "calentado" del caché (`preloadAll` ya no hace nada). Tests: `banner_video_politica_test.dart`, `banner_video_tienda_test.dart`
+    (Tienda cerrada / app en segundo plano / cierre → 0 reproductores). Como el Moto G15 es de 4 GB, **ahí no va a haber video**: la
+    medición esperada es la del caso "sin video" (~551 MB). **Después:** los ~190 MB gráficos de la Tienda (desenfoques, sombras,
+    listas), de a una variante por vez; luego **R.5** (sacar el admin del APK, agregado por el dueño) y R.4 (tamaño del APK).
 
 0. **Fase R, R.1 hecho (informe en `docs/INFORME_MEMORIA_R1.md`):** la app llega a 700–1160 MB y Android la cierra en primer plano; el
    65–70 % es **memoria gráfica** que crece ~5 MB/s en reposo. Descartados con datos: motor gráfico (Skia = Impeller), heap de Dart

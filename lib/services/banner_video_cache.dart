@@ -15,6 +15,22 @@ class BannerVideoCache {
 
   final Map<String, List<_CacheEntry>> _pool = {};
 
+  /// R.3b: máximo de reproductores vivos a la vez (el del banner visible). Fuera de la Tienda tiene que ser 0.
+  static const int maxReproductores = 1;
+
+  /// Reproductores vivos o en arranque. Cambia al reservar o devolver un cupo.
+  final ValueNotifier<int> activos = ValueNotifier<int>(0);
+
+  bool reservarCupo() {
+    if (activos.value >= maxReproductores) return false;
+    activos.value++;
+    return true;
+  }
+
+  void devolverCupo() {
+    if (activos.value > 0) activos.value--;
+  }
+
   static bool isVideoUrl(String? url) {
     if (url == null || url.trim().isEmpty) return false;
     final lower = url.toLowerCase();
@@ -43,7 +59,18 @@ class BannerVideoCache {
     }
   }
 
-  Future<VideoPlayerController> acquire(String url) async {
+  /// Devuelve null si ya hay otro reproductor vivo (solo se permite el del banner visible).
+  Future<VideoPlayerController?> acquire(String url) async {
+    if (!reservarCupo()) return null;
+    try {
+      return await _crear(url);
+    } catch (_) {
+      devolverCupo();
+      rethrow;
+    }
+  }
+
+  Future<VideoPlayerController> _crear(String url) async {
     final key = url.trim();
     final list = _pool.putIfAbsent(key, () => []);
 
@@ -85,38 +112,19 @@ class BannerVideoCache {
     for (final entry in list) {
       if (identical(entry.controller, controller)) {
         entry.refs = (entry.refs - 1).clamp(0, 999);
-        // Se deja warm (inicializado) para que al volver no haya spinner.
+        // R.3b: al soltarlo se libera el decodificador (antes quedaba "warm" y los videos crecían sin parar).
+        if (entry.refs <= 0) {
+          list.remove(entry);
+          entry.controller.dispose();
+          devolverCupo();
+        }
         break;
       }
     }
 
-    _trim(key);
+    if (list.isEmpty) _pool.remove(key);
   }
 
-  void _trim(String key) {
-    final list = _pool[key];
-    if (list == null || list.length <= 2) return;
-
-    final extras = list.where((e) => e.refs <= 0).skip(1).toList();
-    for (final entry in extras) {
-      list.remove(entry);
-      entry.controller.dispose();
-    }
-  }
-
-  /// Precalienta videos de banners activos (en paralelo, sin bloquear UI).
-  Future<void> preloadAll(Iterable<String> urls) async {
-    final unique = urls
-        .map((u) => u.trim())
-        .where((u) => u.isNotEmpty && isVideoUrl(u))
-        .toSet();
-    await Future.wait(unique.map((url) async {
-      try {
-        final c = await acquire(url);
-        release(url, c);
-      } catch (e) {
-        debugPrint('BannerVideoCache preload failed ($url): $e');
-      }
-    }));
-  }
+  /// R.3b: ya no se precalienta nada (retener controladores inicializados costaba cientos de MB).
+  Future<void> preloadAll(Iterable<String> urls) async {}
 }

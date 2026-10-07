@@ -1,5 +1,6 @@
+import '../services/banner_video_politica.dart';
 import '../services/diag_memoria.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:video_player/video_player.dart';
@@ -22,23 +23,76 @@ class VideoLoopPlayer extends StatefulWidget {
   State<VideoLoopPlayer> createState() => _VideoLoopPlayerState();
 }
 
-class _VideoLoopPlayerState extends State<VideoLoopPlayer>
-    with AutomaticKeepAliveClientMixin {
+class _VideoLoopPlayerState extends State<VideoLoopPlayer> with WidgetsBindingObserver {
   VideoPlayerController? _controller;
   bool _initialized = false;
   bool _hasError = false;
+  bool _attaching = false;
   String? _attachedUrl;
   bool _playRetryScheduled = false;
   Size _lastKnownSize = Size.zero;
 
-  @override
-  bool get wantKeepAlive => true;
+  // R.3b: solo se reproduce lo que se ve. Sin AutomaticKeepAlive: al salir de pantalla se libera el decodificador.
+  bool _appActiva = true;
+  int? _ramMb;
+  bool _ramMedida = false;
+  ValueListenable<bool>? _tickerNotifier;
+
+  bool get _visible => _tickerNotifier?.value ?? true;
+  bool get _debeReproducir =>
+      !DiagMemoria.sinVideo &&
+      _ramMedida &&
+      BannerVideoPolitica.debeReproducir(visible: _visible, appActiva: _appActiva, ramMb: _ramMb);
+  bool get _modoImagenFija => _ramMedida && BannerVideoPolitica.esEquipoLiviano(_ramMb);
 
   @override
   void initState() {
     super.initState();
-    if (DiagMemoria.sinVideo) return; // diagnóstico R.3 (--dart-define=DIAG_SIN_VIDEO=true): no se reproduce nada
-    _attach(widget.url);
+    WidgetsBinding.instance.addObserver(this);
+    BannerVideoCache.instance.activos.addListener(_sincronizarDiferido);
+    final estado = WidgetsBinding.instance.lifecycleState;
+    _appActiva = estado == null || estado == AppLifecycleState.resumed;
+    BannerVideoPolitica.ramTotalMb().then((mb) {
+      if (!mounted) return;
+      _ramMb = mb;
+      _ramMedida = true;
+      _sincronizar();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final nuevo = TickerMode.getNotifier(context);
+    if (!identical(nuevo, _tickerNotifier)) {
+      _tickerNotifier?.removeListener(_sincronizarDiferido);
+      _tickerNotifier = nuevo..addListener(_sincronizarDiferido);
+    }
+    _sincronizarDiferido();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _appActiva = state == AppLifecycleState.resumed;
+    _sincronizarDiferido();
+  }
+
+  /// Los cambios de TickerMode llegan durante el armado del árbol: setState recién después del cuadro.
+  void _sincronizarDiferido() {
+    WidgetsBinding.instance.addPostFrameCallback((_) => _sincronizar());
+  }
+
+  /// Conecta el video si hay que reproducirlo y no está conectado; lo suelta (libera el decodificador) si no.
+  void _sincronizar() {
+    if (!mounted) return;
+    if (_debeReproducir) {
+      if (_attachedUrl == null && _controller == null && !_attaching) _attach(widget.url);
+    } else if (_attachedUrl != null || _controller != null) {
+      _detach();
+      setState(() {});
+    } else if (_modoImagenFija) {
+      setState(() {});
+    }
   }
 
   @override
@@ -46,7 +100,7 @@ class _VideoLoopPlayerState extends State<VideoLoopPlayer>
     super.didUpdateWidget(oldWidget);
     if (oldWidget.url != widget.url) {
       _detach();
-      _attach(widget.url);
+      _sincronizar();
     }
   }
 
@@ -81,6 +135,7 @@ class _VideoLoopPlayerState extends State<VideoLoopPlayer>
   Future<void> _attach(String url) async {
     final trimmed = url.trim();
     _playRetryScheduled = false;
+    _attaching = true;
     if (trimmed.isEmpty) {
       if (mounted) {
         setState(() {
@@ -101,7 +156,9 @@ class _VideoLoopPlayerState extends State<VideoLoopPlayer>
 
     try {
       final controller = await BannerVideoCache.instance.acquire(trimmed);
-      if (!mounted || widget.url.trim() != trimmed) {
+      _attaching = false;
+      if (controller == null) return; // hay otro reproductor vivo: se reintenta cuando se libere
+      if (!mounted || widget.url.trim() != trimmed || !_debeReproducir) {
         BannerVideoCache.instance.release(trimmed, controller);
         return;
       }
@@ -116,6 +173,7 @@ class _VideoLoopPlayerState extends State<VideoLoopPlayer>
       // Asegurar mute+play otra vez al montar el widget (web).
       await BannerVideoCache.ensureMutedAutoplay(controller);
     } catch (e) {
+      _attaching = false;
       debugPrint('Error initializing video ($e) for URL: $trimmed');
       if (mounted && widget.url.trim() == trimmed) {
         setState(() {
@@ -145,20 +203,29 @@ class _VideoLoopPlayerState extends State<VideoLoopPlayer>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _tickerNotifier?.removeListener(_sincronizarDiferido);
+    BannerVideoCache.instance.activos.removeListener(_sincronizarDiferido);
     _detach();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
-
     if (_hasError) {
       return Container(
         color: const Color(0xFF0D47A1),
         child: const Center(
           child: Icon(Icons.movie_creation_outlined, color: Colors.white38, size: 40),
         ),
+      );
+    }
+
+    // Equipos de 4 GB o menos: imagen fija, sin decodificador de video.
+    if (_modoImagenFija) {
+      return const ColoredBox(
+        color: Color(0xFF001F3F),
+        child: Center(child: Icon(Icons.play_circle_outline, color: Colors.white24, size: 48)),
       );
     }
 
