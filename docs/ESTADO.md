@@ -74,6 +74,15 @@
       Después el motor offline las sirve como verdad. Propuesta: apagarlo por flag hasta que haya verificación (decide el dueño).
     - **Micrófono en bucle:** cada ~6 s se abre y falla con `error_language_not_supported` (idioma `es-ES` sin paquete sin conexión, STT por
       red); gasta batería y es la fuente del "ruido ambiente". Hay que cortarlo tras el error y no reabrir solo.
+      **Causa hallada:** es el *wake word* (`voice_service.dart` `_runWakeWordBurst`, llamado desde `guia_overlay.dart:644` cuando el Guía
+      duerme): abre el micrófono cada 6 s con `onDevice: true` y `es_AR`, y el celular no tiene ese paquete → falla al instante. Es la luz
+      verde y el "ruido" que ve el dueño. No sirve de nada hoy (nunca reconoce) y hay que apagarlo hasta tener el paquete sin conexión.
+    - **Respuestas largas que venden y dan contacto:** el prompt de la nube (`capacitacion_service.dart` ~líneas 100–115) le ordena ser
+      "ASESOR DE VENTAS… impulsar la venta", "usá tienda/catálogo sin dudar ni avisar que no podés", "NUNCA digas que no tenés el URL" y
+      "respondé siempre con estos datos" de contacto (email/teléfono). Por eso, tras decir que no tiene el dato, sigue con un recorrido de la
+      tienda y la dirección/correo. Además lleva conocimiento de pesca por zona escrito en el prompt (fuente de invención). Sin tope de
+      palabras para la voz: el TTS lee todo, minutos. Propuesta: prompt corto, sin rol de ventas, respuesta de voz ≤ 3 oraciones, y que
+      ante "no tengo ese dato" corte ahí.
     - **Hay que apretar el botón cada vez que se quiere hablar** (no hay modo conversación); mejora de la Fase de voz.
     - El avatar viene **apagado** tras instalar (interruptor en Mi Identidad Pescador): confirmar si es lo deseado.
 
