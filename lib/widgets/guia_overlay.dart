@@ -7,6 +7,7 @@ import 'capitan_asistente.dart';
 import '../services/baqueano_ia_service.dart';
 import '../models/el_guia_respuesta.dart';
 import '../services/voice_service.dart';
+import '../services/guia_wake_word.dart';
 import '../services/connectivity_bridge.dart';
 import '../services/guia_atajos.dart';
 import '../services/intent_service.dart';
@@ -570,13 +571,14 @@ class _GuiaOverlayState extends State<GuiaOverlay> {
   /// Debe llamarse cada vez que el estado del GuIA o el mic cambian.
   void _verificarWakeWord() {
     if (!mounted) return;
-    final debeEscuchar =
-        _mostrarGuia &&
-        _permiteInteractuar &&
-        _estadoGuia == CapitanState.durmiendo &&
-        !_isListening &&
-        !_isMuted &&
-        GuiaOverlayController.micActivo.value;
+    final debeEscuchar = GuiaWakeWord.debeEscuchar(
+      mostrarGuia: _mostrarGuia,
+      permiteInteractuar: _permiteInteractuar,
+      durmiendo: _estadoGuia == CapitanState.durmiendo,
+      escuchando: _isListening,
+      silenciado: _isMuted,
+      micActivo: GuiaOverlayController.micActivo.value,
+    );
     if (debeEscuchar) {
       VoiceService().startWakeWordListener(() {
         if (mounted && _mostrarGuia) _despertarGuia();

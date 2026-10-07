@@ -15,6 +15,7 @@ import 'guia_logger.dart';
 import 'guia_memoria_service.dart';
 import 'guia_condiciones_service.dart';
 import 'guia_texto_voz.dart';
+import 'guia_wake_word.dart';
 import 'intent_service.dart';
 import 'guia_retrieval/guia_bm25.dart';
 import 'guia_retrieval/guia_corpus_builder.dart';
@@ -165,6 +166,7 @@ class ElGuiaEngine {
     ayudaAppEstricta = prefs.getBool(prefAyudaAppEstricta) ?? ayudaAppEstricta;
     GuiaCondicionesService.aplicarFlags(prefs);
     GuiaTextoVoz.aplicarFlags(prefs);
+    GuiaWakeWord.aplicarFlags(prefs);
   }
   GuiaRetriever? _retriever;
   Future<void>? _retrieverEnConstruccion;

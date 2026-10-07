@@ -77,6 +77,9 @@
       **Causa hallada:** es el *wake word* (`voice_service.dart` `_runWakeWordBurst`, llamado desde `guia_overlay.dart:644` cuando el Guía
       duerme): abre el micrófono cada 6 s con `onDevice: true` y `es_AR`, y el celular no tiene ese paquete → falla al instante. Es la luz
       verde y el "ruido" que ve el dueño. No sirve de nada hoy (nunca reconoce) y hay que apagarlo hasta tener el paquete sin conexión.
+      **HECHO (paso "wake word apagado"):** flag `guia_wake_word`, por defecto apagado (`lib/services/guia_wake_word.dart`; lo respetan el overlay
+      y `VoiceService`). Test `test/guia_wake_word_test.dart`. Para encenderlo de nuevo: `SharedPreferences` `guia_wake_word` = true. **Falta
+      verificarlo en el celular** (instalar APK nuevo: la luz verde no debería aparecer con el Guía acostado).
     - **Respuestas largas que venden y dan contacto:** el prompt de la nube (`capacitacion_service.dart` ~líneas 100–115) le ordena ser
       "ASESOR DE VENTAS… impulsar la venta", "usá tienda/catálogo sin dudar ni avisar que no podés", "NUNCA digas que no tenés el URL" y
       "respondé siempre con estos datos" de contacto (email/teléfono). Por eso, tras decir que no tiene el dato, sigue con un recorrido de la

@@ -1,3 +1,4 @@
+import 'guia_wake_word.dart';
 import 'guia_texto_voz.dart';
 import 'dart:async';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -568,6 +569,7 @@ class VoiceService {
 
   /// Inicia el listener de wake word. Llama [onWake] al detectar la frase.
   Future<void> startWakeWordListener(Function() onWake) async {
+    if (!GuiaWakeWord.habilitado) return; // apagado por flag: abría el micrófono cada 6 s y fallaba
     if (_isWakeWordListening) return;
     // Detener otros reconocedores para liberar el recurso nativo de audio
     await stopListening();
