@@ -54,6 +54,13 @@ void main() {
       'cómo armo un aparejo para boga',
       'qué plomada uso en el río',
       'cuándo hay pique de sábalo',
+      // Huecos que mostró la prueba del dueño en el celular (iban a la nube):
+      'qué peces hay en el Paraná',
+      'cuál es el hábitat del dorado',
+      'qué especies se pescan en la laguna',
+      'cuándo es la veda del surubí',
+      'qué cupo hay para el pejerrey',
+      'puedo usar lombriz de cebo',
     ];
     for (final p in si) {
       test('sí: "$p"', () => expect(GuiaRutaConocimiento.esConocimientoDePesca(p), isTrue));
@@ -75,6 +82,34 @@ void main() {
     test('compara palabras enteras ("pescado" de la pescadería no dispara por "pesca")', () {
       expect(GuiaRutaConocimiento.esConocimientoDePesca('comí pescadería rica'), isFalse);
       expect(GuiaRutaConocimiento.esConocimientoDePesca('el cañonazo se oyó lejos'), isFalse);
+    });
+  });
+
+  group('por intención del motor (aunque la frase no traiga una palabra del vocabulario)', () {
+    const conocimiento = [
+      'conocer_peces_argentinos', 'habitat', 'peces', 'carnadas', 'canas_y_reeles', 'nudos', 'plomadas', 'boyas',
+      'como_pescar_bagre_de_mar_rio', 'como_hago_nudo_rotor_mar', 'cuando_sirve_boya_chica_pejerrey',
+      'donde_se_hace_temporada_dorado_rio', 'que_sirve_anzuelo_dorado', 'que_se_hace_luna_nueva_pique',
+    ];
+    for (final i in conocimiento) {
+      test('conocimiento: $i', () {
+        expect(GuiaRutaConocimiento.esIntencionDeConocimiento(i), isTrue);
+        expect(GuiaRutaConocimiento.debeResponderLocal('lo que sea', intencion: i), isTrue);
+      });
+    }
+    const otras = [
+      'fallback', 'saludo', 'saludo_pescador', 'despedida', 'agradecimiento', 'mate', 'chiste', 'charla_cotidiana', 'hora',
+      'ayuda_general', 'preguntas_humanas', 'emergencia', 'tienda', 'crear_viaje', 'gps', 'primeros_auxilios', '',
+    ];
+    for (final i in otras) {
+      test('no es conocimiento: "$i"', () {
+        expect(GuiaRutaConocimiento.esIntencionDeConocimiento(i), isFalse);
+        expect(GuiaRutaConocimiento.debeResponderLocal('lo que sea', intencion: i), isFalse);
+      });
+    }
+    test('con el flag apagado tampoco desvía por intención', () {
+      GuiaRutaConocimiento.habilitado = false;
+      expect(GuiaRutaConocimiento.debeResponderLocal('x', intencion: 'habitat'), isFalse);
     });
   });
 
@@ -130,11 +165,22 @@ void main() {
       expect(_llamadas, 1);
     });
 
+    test('"qué peces hay en el Paraná" (conocer_peces_argentinos) no va a la nube', () async {
+      _preparar();
+      await BaqueanoIAService.responder('qué peces hay en el Paraná');
+      expect(_llamadas, 0);
+    });
+
     test('la charla sigue yendo a la nube', () async {
       _preparar();
       await BaqueanoIAService.responder('qué opinás del fútbol');
       expect(_llamadas, 1);
     });
+  });
+
+  test('el router le pasa la intención principal a GuiaRutaConocimiento', () {
+    final c = File('lib/services/baqueano_ia_service.dart').readAsStringSync();
+    expect(c, contains('GuiaRutaConocimiento.debeResponderLocal(pregunta, intencion: intencionPrincipal)'));
   });
 
   test('el router usa GuiaRutaConocimiento antes de la nube', () {

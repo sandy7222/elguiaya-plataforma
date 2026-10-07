@@ -110,6 +110,21 @@
       usa una frase de charla). Los tests de seguridad propiamente dichos no se tocaron.
       **Pedido del dueño (2026-10-07):** el Guía no habla de la tienda salvo que el cliente pregunte o esté en la pantalla de la Tienda
       (commit `74a4329`, prompt). Falta revisar si las respuestas locales/fichas ofrecen la tienda por su cuenta.
+    - **Prueba del dueño en el celular (APK con pasos 1–4, 17:49–17:51):** el registro mostró que `conocer_peces_argentinos` y `habitat` seguían
+      yendo a la nube (la detección por palabras no alcanzaba). **Cerrado:** el router ahora también desvía por la intención del motor
+      (peces, carnadas, cañas y reeles, nudos, plomadas, boyas, río y las fichas `como_/cuando_/donde_/que_sirve_/que_se_/conocer_`) y se
+      sumaron palabras (pez/peces, especie, hábitat, veda, cupo, cebo, lombriz). Con eso apareció un **bug del motor local**: un ítem de las
+      intenciones dinámicas sin texto rompía con "Null is not a String" ("me trabé un segundo", p. ej. "cuándo es la veda del surubí" si el
+      buscador de fichas todavía no estaba listo). Arreglado en las dos copias de ese código (test `el_guia_engine_item_sin_respuesta_test.dart`).
+      **Pendiente:** vedas, cupos y medidas mínimas (datos que cambian por provincia y año) hoy reciben una respuesta genérica ("Dejame ver qué
+      tengo sobre conservacion… revisá los equipos o manuales"); lo correcto es un "no tengo ese dato" fijo que mande a la autoridad de pesca
+      de la provincia. Hay que decidir el texto con el dueño.
+    - **Supabase `guia_conocimiento_distribuido` (captura del dueño, 36 filas, todas `aprobado = FALSE`):** el aprendizaje automático sí había
+      guardado cosas hoy (como_pescar_mojarra con datos de jigs y líneas, condiciones_pesca con "el nivel del río…", como_armar_mojarrero,
+      etc.), pero **ninguna está aprobada**, así que no llegan a los celulares ni al contexto de la nube. Con el flag nuevo ya no se agregan
+      filas. Falta revisarlas y borrar las inventadas (con OK del dueño). Dónde se enseña: Admin → Sistema → Formación → "El Guía Educador"
+      (aprobar pendientes y "Enseñarle esto al Guía" sobre las carencias, que escribe `fuente = admin_manual`). **Falta** un modo de enseñar
+      cómodo desde el chat del Guía para el dueño (hoy "aprendo" en el chat no guarda nada).
     - El avatar viene **apagado** tras instalar (interruptor en Mi Identidad Pescador): confirmar si es lo deseado.
 
 0. **Fase R, R.1 hecho (informe en `docs/INFORME_MEMORIA_R1.md`):** la app llega a 700–1160 MB y Android la cierra en primer plano; el
@@ -140,6 +155,13 @@
 5. 1.7 (opcional). Después: Fase 3, Fase 4 (voz y micrófono, palabra de activación "Baqueano"), Fase 5 (opcional).
 
 ## Pendientes que dependen del dueño
+
+- **(2026-10-07) Supabase muestra "EXCEEDING USAGE LIMITS"** en el proyecto CapitanYA-MASTER. Medido por SQL ese día:
+  almacenamiento ~477 MB (de 1 GB) y base ~37 MB (de 500 MB), así que **no son esos dos**. Lo más probable es la
+  **salida de datos** (5 GB): los banners con video en bucle descargándose durante las pruebas de la Fase R. El dueño
+  tiene que mirar **Settings → Usage** para ver cuál es. Si se pasa, Supabase responde 402 y la app deja de andar.
+- **No aprobar en bloque** las 36 propuestas de `guia_conocimiento_distribuido`: hay basura, duplicados y datos
+  sensibles (ver Fase 3.5 del plan).
 
 - **No repartir APK** (sí instalar en el propio celular, ver `docs/GUIA_APK_PRUEBA.md`) hasta evaluar el mal ranking del buscador (ej. "masa para boga" devuelve las empanadas) y las
   11 de 50 fuera de tema (Fase 2). La voz ya lee bien las unidades (1.2b).

@@ -26,7 +26,20 @@ class GuiaRutaConocimiento {
     'tararira', 'tarariras', 'bagre', 'bagres', 'pati', 'patis', 'armado', 'armados', 'carpa', 'carpas', 'corvina', 'corvinas',
     'pacu', 'mimoso', 'moncholo', 'lenguado', 'pescadilla', 'brotola', 'trucha', 'truchas', 'salmon', 'perca', 'percas',
     'dientudo', 'vieja', 'anchoa', 'tiburon', 'palometa', 'manduva',
+    // peces en general, hábitat, vedas y cupos (datos que nunca se inventan: si no hay ficha, se dice), cebos
+    'pez', 'peces', 'especie', 'especies', 'habitat', 'habitats', 'veda', 'vedas', 'cupo', 'cupos', 'cebo', 'cebos', 'lombriz',
+    'lombrices', 'cardumen', 'cardumenes',
   };
+
+  /// Intenciones del motor que son conocimiento de pesca (las bibliotecas peces, carnadas, cañas y reeles, nudos, plomadas, boyas
+  /// y las fichas "como_/cuando_/donde_/que_sirve_/que_se_/conocer_..."). Las sociales, transaccionales y de seguridad NO entran.
+  static const Set<String> _intencionesDeConocimiento = {
+    'peces', 'conocer_peces_argentinos', 'habitat', 'carnadas', 'canas_y_reeles', 'nudos', 'plomadas', 'boyas', 'rio',
+  };
+  static const List<String> _prefijos = ['como_', 'cuando_', 'donde_', 'que_sirve_', 'que_se_', 'conocer_'];
+
+  static bool esIntencionDeConocimiento(String intencion) =>
+      _intencionesDeConocimiento.contains(intencion) || _prefijos.any(intencion.startsWith);
 
   /// ¿La frase pregunta por conocimiento de pesca (alguna palabra entera del vocabulario de pesca)?
   static bool esConocimientoDePesca(String pregunta) {
@@ -35,5 +48,6 @@ class GuiaRutaConocimiento {
   }
 
   /// ¿Esta pregunta tiene que contestarla el motor local aunque haya señal?
-  static bool debeResponderLocal(String pregunta) => habilitado && esConocimientoDePesca(pregunta);
+  static bool debeResponderLocal(String pregunta, {String intencion = ''}) =>
+      habilitado && (esConocimientoDePesca(pregunta) || esIntencionDeConocimiento(intencion));
 }

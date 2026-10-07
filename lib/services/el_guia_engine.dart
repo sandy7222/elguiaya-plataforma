@@ -2722,7 +2722,11 @@ class ElGuiaEngine {
         if (intencionesList is List) {
           for (final item in intencionesList) {
             if (item is Map<String, dynamic> && item['intencion'] == intencion) {
-              final respuestas = List<String>.from(item['respuestas'] ?? [item['respuesta_limpia']]);
+              // Un ítem sin ningún texto (ni "respuestas" ni "respuesta_limpia", o con nulos) se saltea: antes reventaba
+              // con "Null is not a String" y el usuario veía "me trabé un segundo".
+              final crudas = item['respuestas'] is List ? item['respuestas'] as List : [item['respuesta_limpia']];
+              final respuestas = crudas.whereType<String>().where((t) => t.trim().isNotEmpty).toList();
+              if (respuestas.isEmpty) continue;
               final gif = item['gif']?.toString() ?? 'hablaConMate';
               final String respuestaTexto = respuestas[_random.nextInt(respuestas.length)];
               return ElGuiaRespuesta(
@@ -5143,7 +5147,10 @@ class ElGuiaEngine {
         if (intencionesList is List) {
           for (final item in intencionesList) {
             if (item is Map<String, dynamic> && item['intencion'] == intencion) {
-              final respuestas = List<String>.from(item['respuestas'] ?? [item['respuesta_limpia']]);
+              // Ítem sin ningún texto: se saltea (antes reventaba con "Null is not a String").
+              final crudas = item['respuestas'] is List ? item['respuestas'] as List : [item['respuesta_limpia']];
+              final respuestas = crudas.whereType<String>().where((t) => t.trim().isNotEmpty).toList();
+              if (respuestas.isEmpty) continue;
               final gif = item['gif']?.toString() ?? 'hablaConMate';
               final String respuestaTexto = respuestas[_random.nextInt(respuestas.length)];
               return ElGuiaRespuesta(

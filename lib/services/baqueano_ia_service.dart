@@ -458,7 +458,7 @@ class BaqueanoIAService {
     );
 
     // Paso 4: el conocimiento de pesca sale de las fichas (motor local), no de la nube: la nube inventaba.
-    final pescaLocal = GuiaRutaConocimiento.debeResponderLocal(pregunta);
+    final pescaLocal = GuiaRutaConocimiento.debeResponderLocal(pregunta, intencion: intencionPrincipal);
     if (pescaLocal) debugPrint('[BaqueanoRouter] conocimiento de pesca → motor local (fichas), sin nube');
 
     // ── TIER 2: Groq Cloud ───────────────────────────────────
