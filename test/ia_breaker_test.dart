@@ -8,6 +8,8 @@
 //
 // Este archivo nace en ROJO a propósito: prueba la falla del código de hoy.
 
+// Paso 4: el conocimiento de pesca ya no va a la nube (lo contesta el motor local), así que estos casos usan charla
+// ('fútbol', 'cuento') como pregunta que SÍ llega a la nube. Lo que prueban (el breaker) no cambia.
 import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -136,10 +138,10 @@ void main() {
         llamadasANube++;
         throw Exception('proxy caído');
       };
-      await BaqueanoIAService.responder('contame del surubí');
+      await BaqueanoIAService.responder('contame del fútbol');
       expect(llamadasANube, 1);
       for (var i = 0; i < 4; i++) {
-        final ms = await milisegundos('qué carnada uso para el dorado número $i');
+        final ms = await milisegundos('qué opinás del fútbol número $i');
         expect(ms, lessThan(300));
       }
       expect(llamadasANube, 1, reason: 'con el breaker abierto no se vuelve a llamar a la nube');
@@ -151,10 +153,10 @@ void main() {
         llamadasANube++;
         return Completer<ElGuiaRespuesta>().future; // nunca responde
       };
-      final primera = await milisegundos('contame del surubí');
+      final primera = await milisegundos('contame del fútbol');
       expect(primera, lessThan(1500), reason: 'esperó el timeout (400 ms) y contestó con el motor local');
       expect(primera, greaterThanOrEqualTo(380));
-      final segunda = await milisegundos('qué carnada uso para el dorado');
+      final segunda = await milisegundos('qué opinás del fútbol');
       expect(segunda, lessThan(300));
       expect(llamadasANube, 1);
     });
@@ -164,12 +166,12 @@ void main() {
         llamadasANube++;
         throw const GroqEstadoException(429, 'Límite de consultas alcanzado');
       };
-      await BaqueanoIAService.responder('contame del surubí');
-      await BaqueanoIAService.responder('qué carnada uso para el dorado');
+      await BaqueanoIAService.responder('contame del fútbol');
+      await BaqueanoIAService.responder('qué opinás del fútbol');
       expect(llamadasANube, 1);
       IABreaker.relojParaTest = () => DateTime.now().add(const Duration(minutes: 6));
       addTearDown(() => IABreaker.relojParaTest = null);
-      await BaqueanoIAService.responder('cómo se hace el nudo palomar');
+      await BaqueanoIAService.responder('contame un cuento corto');
       expect(llamadasANube, 2, reason: 'pasados los 5 min el breaker deja pasar una prueba');
     });
 
@@ -179,7 +181,7 @@ void main() {
         return const ElGuiaRespuesta(texto: 'Respuesta de la nube.');
       };
       for (var i = 0; i < 3; i++) {
-        final r = await BaqueanoIAService.responder('contame del surubí número $i');
+        final r = await BaqueanoIAService.responder('contame del fútbol número $i');
         expect(r.texto, contains('nube'));
       }
       expect(llamadasANube, 3);
@@ -192,7 +194,7 @@ void main() {
         throw Exception('proxy caído');
       };
       for (var i = 0; i < 3; i++) {
-        await BaqueanoIAService.responder('contame del surubí número $i');
+        await BaqueanoIAService.responder('contame del fútbol número $i');
       }
       expect(llamadasANube, 3);
     });

@@ -1,3 +1,4 @@
+import 'guia_ruta_conocimiento.dart';
 import 'guia_condiciones_service.dart';
 import 'dart:math';
 import 'dart:async' show unawaited;
@@ -456,8 +457,13 @@ class BaqueanoIAService {
       '[BaqueanoRouter] intent=$intencionPrincipal | offline_count=$_consultasOffline',
     );
 
+    // Paso 4: el conocimiento de pesca sale de las fichas (motor local), no de la nube: la nube inventaba.
+    final pescaLocal = GuiaRutaConocimiento.debeResponderLocal(pregunta);
+    if (pescaLocal) debugPrint('[BaqueanoRouter] conocimiento de pesca → motor local (fichas), sin nube');
+
     // ── TIER 2: Groq Cloud ───────────────────────────────────
     if (!soloReglas &&
+        !pescaLocal &&
         IARouterState.modoOnline.value &&
         ConnectivityBridge.estaConectado &&
         GroqConfig.tieneApiKey &&
@@ -517,6 +523,7 @@ class BaqueanoIAService {
       final respuestaLocal = await _motorLocal.responder(pregunta);
 
       if (respuestaLocal.gifSugerido == 'duda' &&
+          !pescaLocal &&
           _cacheRespuestas.containsKey(intencionPrincipal)) {
         debugPrint(
           '[BaqueanoRouter] → Usando caché de respuesta online para $intencionPrincipal',

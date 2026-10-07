@@ -134,14 +134,29 @@ void main() {
   // ("pura suerte", "dale, contame…") y en urgencias reales. Quedan solo las
   // frases largas de impaciencia ("hace rato espero", "apurate").
   group('filtro de impaciencia', () {
+    // Paso 4: las frases de pesca ahora las atiende el motor local (fichas), no la nube. Lo que se prueba es lo mismo: que una
+    // palabra común ("dale", "rápido", "pura") no corte la consulta con la respuesta de impaciencia (gif 'enojado').
     const noEsImpaciencia = [
+      'dale che qué hago con este pescado',
+      'dale che contame algo del fútbol',
+    ];
+    const noEsImpacienciaDePesca = [
       'dale contame cómo se arma una línea con boyas',
       'respondeme rápido qué carnada se usa para el dorado',
       'es pura suerte pescar un surubí grande',
       'el dorado es pura fuerza en la pelea',
-      'dale che qué hago con este pescado',
       'cuál es la carnada más rápida de conseguir para pejerrey',
     ];
+    for (final frase in noEsImpacienciaDePesca) {
+      test('"$frase" lo atiende el motor local, no recibe el chiste de impaciencia', () async {
+        _prepararCaso(conSenal: true);
+        final resp = await BaqueanoIAService.responder(frase);
+        expect(_llamadasANube, 0, reason: 'el conocimiento de pesca sale de las fichas, no de la nube');
+        expect(resp.texto, isNot(contains(_marcaNube)));
+        expect(resp.gifSugerido, isNot('enojado'),
+            reason: 'una palabra común ("dale", "rápido", "pura") no debe cortar la consulta con un chiste');
+      });
+    }
     for (final frase in noEsImpaciencia) {
       test('"$frase" llega a la nube, no recibe el chiste', () async {
         _prepararCaso(conSenal: true);
@@ -579,8 +594,8 @@ void main() {
       for (final frase in seguimientos) {
         await BaqueanoIAService.responder(frase);
       }
-      await BaqueanoIAService.responder('qué carnada uso para el dorado en el río');
-      expect(_llamadasANube, 1, reason: 'pasados los 3 turnos, la nube vuelve a poder responder');
+      await BaqueanoIAService.responder('qué opinás del fútbol');
+      expect(_llamadasANube, 1, reason: 'pasados los 3 turnos, la nube vuelve a poder responder (la charla, no la pesca: paso 4)');
     });
   });
 }

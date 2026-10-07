@@ -100,6 +100,16 @@
       descarta lo que sigue. Tests `guia_prompt_nube_test.dart` y `guia_sin_dato_test.dart`. **Efecto esperado:** la nube ya no contesta
       pesca "de memoria"; el conocimiento tiene que venir de las fichas (paso 4). El chat ya no promete que un reclamo "queda guardado"
       (no lo guardaba). Falta probarlo en el celular con un APK nuevo.
+    - **HECHO (paso 4):** el conocimiento de pesca (técnica, carnada, especie, equipo) lo contesta el motor local con fichas, con o sin señal
+      (`lib/services/guia_ruta_conocimiento.dart`, flag `guia_pesca_local`, encendido; el router lo consulta antes de la nube). Compara
+      palabras enteras. Probado contra el motor real: surubí, dorado, pejerrey y nudo palomar salen de fichas; "pesca de mojarra" →
+      "Eso no lo tengo, chamigo…" (no hay ficha de mojarra: **falta cargarla**, con revisión de una persona idónea). La nube queda para la
+      charla. Tests `guia_ruta_conocimiento_test.dart`. **Tests ajustados (no debilitados):** `ia_breaker_test.dart` (usaba frases de
+      pesca como "pregunta que llega a la nube": ahora usa charla; lo que prueba, el breaker, no cambia), `router_seguridad_test.dart`
+      (impaciencia: las frases de pesca ahora verifican "no recibe el chiste" y que no va a la nube; la de "el modo emergencia vence"
+      usa una frase de charla). Los tests de seguridad propiamente dichos no se tocaron.
+      **Pedido del dueño (2026-10-07):** el Guía no habla de la tienda salvo que el cliente pregunte o esté en la pantalla de la Tienda
+      (commit `74a4329`, prompt). Falta revisar si las respuestas locales/fichas ofrecen la tienda por su cuenta.
     - El avatar viene **apagado** tras instalar (interruptor en Mi Identidad Pescador): confirmar si es lo deseado.
 
 0. **Fase R, R.1 hecho (informe en `docs/INFORME_MEMORIA_R1.md`):** la app llega a 700–1160 MB y Android la cierra en primer plano; el
