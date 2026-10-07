@@ -1,3 +1,4 @@
+import 'services/diag_memoria.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
@@ -72,6 +73,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 Future<void> main() async {
   usePathUrlStrategy();
   WidgetsFlutterBinding.ensureInitialized();
+  DiagMemoria.iniciar(); // solo con --dart-define=DIAG_MEM=true (Fase R, R.1)
 
   // FCM background handler lo antes posible (Android)
   if (!kIsWeb) {

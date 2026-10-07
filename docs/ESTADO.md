@@ -33,6 +33,23 @@
 
 ## Qué sigue (en este orden)
 
+0. **Fase R, R.1 hecho (informe en `docs/INFORME_MEMORIA_R1.md`):** la app llega a 700–1160 MB y Android la cierra en primer plano; el
+   65–70 % es **memoria gráfica** que crece ~5 MB/s en reposo. Descartados con datos: motor gráfico (Skia = Impeller), heap de Dart
+   (41 MB), caché de imágenes de Flutter (73 MB, quieto), avatar visible y arranque del Guía. **Sin atribuir**: GIFs del avatar
+   (~1,1 GB decodificados), `IndexedStack` que construye las 4 pestañas a la vez + 112 `Image.network` sin `cacheWidth`, y
+   `BackdropFilter`. **Siguiente: R.3 empieza con 3 versiones de diagnóstico** (sin GIFs / pestañas perezosas / sin desenfoque).
+   Hallazgos aparte (de la misma prueba): la voz se corta porque Android mata el servicio de voz de Google; el cartel dice "Offline"
+   con el chat "IA Cloud · ONLINE"; la nube inventó "Según el parte oficial… el nivel del río está medio" (rompe la regla 2).
+
+0. **PRIORIDAD: Fase R (rendimiento en gama baja), en `docs/PLAN_AYUDANTE_IA.md`.** Prueba real en el Moto G15
+   (2026-10-07, APK release instalado por cable): el Guía tarda ~12 s en arrancar y congela la app; la app usa
+   ~820 MB y Android termina cerrándola por falta de memoria. Va **antes** de la Fase 2.
+   Otros errores vistos en el registro del celular (fuera del Guía): permisos denegados en `profiles`,
+   `config_sistema` y `vista_configuracion_branding` (la app no está adaptada a la seguridad nueva de la base);
+   falta la función `get_mp_public_config` y la columna `pescadores.referido`; cierre por *null check* en
+   `bienvenida_definitiva_screen.dart:392` al iniciar sesión; y **el login fallido escribe en el registro el correo
+   y el largo de la contraseña** (sacarlo).
+
 1. **El dueño pega sus preguntas** en `test/eval/preguntas_dueno.txt` (una por línea, tal cual le salen; ideal 150 a 200). Se corre
    el runner, se le devuelve `build/eval_guia/revision_dueno.md` para marcar ✔/✘, y recién ahí hay preguntas de pesca reales con
    etiqueta (2.3) y se puede **calibrar el buscador** de verdad (2.4). Con las de plantilla no hay nada que calibrar: el top-1
@@ -51,7 +68,8 @@
   `SUPABASE_ANON_KEY` cargadas en su sesión (sin pegarlas en el chat): mide el p50 y las respuestas cortadas. Si no
   es más rápido, apagar `guia_groq_rapido`.
 - **Push:** hecho el 2026-10-06 (36 commits). Cada push nuevo necesita el OK del dueño. Ojo: `scripts/scan_secrets.ps1` falla en esta PC (error de `rg` con un patrón PCRE2), así que el workflow de GitHub podría no escanear bien; se revisó a mano el diff.
-- Medir en el **Moto G15** (equipo de referencia; RAM sin confirmar): mensaje "Retriever listo… en N ms" (< 2000);
+- Medir en el **Moto G15** (equipo de referencia: **4 GB de RAM** (3,6 GB visibles), **Android 15**, verificado
+  por `adb` el 2026-10-07; depuración USB ya autorizada en la PC del dueño): mensaje "Retriever listo… en N ms" (< 2000);
   respuesta offline p95 < 300 ms (1.4); hora/luna/clima en modo avión < 300 ms (1.0b).
 - Probar en el Moto G15 sus **preguntas reales** de seguridad, con señal y en modo avión.
 - **Persona idónea** (médico, guardavidas, Cruz Roja) revisa los textos marcados `// REVISAR: persona idónea`.
