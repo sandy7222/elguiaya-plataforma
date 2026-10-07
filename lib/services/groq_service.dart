@@ -14,6 +14,7 @@ import 'connectivity_bridge.dart';
 import 'supabase_service.dart';
 import 'guia_memoria_service.dart';
 import 'guia_copilot_brain.dart';
+import 'guia_verificador_datos.dart';
 import 'ia_breaker.dart';
 import 'ia_edge_function_client.dart';
 
@@ -195,9 +196,11 @@ El campo "respuesta_limpia" máximo 120 caracteres, sin asteriscos ni markdown.
     final miniContext = await GuiaMemoriaService.cargarContextoRehidratado();
 
     // Fusionar con el prompt base en UN SOLO system
-    final systemFinal = miniContext != null && miniContext.isNotEmpty
+    final systemBase = miniContext != null && miniContext.isNotEmpty
         ? '$finalSystemPrompt\n\nCONTEXTO DEL USUARIO:\n$miniContext'
         : finalSystemPrompt;
+    // Paso 1.8: lo que la app SÍ le da y lo que tiene prohibido inventar.
+    final systemFinal = '$systemBase\n\n${GuiaVerificadorDatos.reglasDeDatos}';
 
     // Reconstruir lista de mensajes incluyendo el historial
     final List<Map<String, String>> apiMessages = [];
@@ -289,6 +292,17 @@ El campo "respuesta_limpia" máximo 120 caracteres, sin asteriscos ni markdown.
           .replaceAll(RegExp(r'```json\s*', multiLine: true), '')
           .replaceAll(RegExp(r'```\s*', multiLine: true), '')
           .trim();
+
+      // Paso 1.8: nada de datos inventados ni fuentes que la app no le dio. Se verifica contra todo lo que se le
+      // mandó (los bloques de condiciones, la pregunta y la charla reciente).
+      final verificada = GuiaVerificadorDatos.verificar(
+        textoVisible,
+        contexto: '${contextoExtra ?? ''}\n$pregunta\n${(historial ?? const <Map<String, String>>[]).map((m) => m['content'] ?? '').join('\n')}',
+      );
+      if (verificada.corrigio) {
+        debugPrint('[GroqService] Verificador de datos: ${verificada.reemplazos.length} afirmaciones sin respaldo reemplazadas.');
+        textoVisible = verificada.texto;
+      }
 
       String gif = 'hablaConMate';
       if (jsonAprendido != null) {

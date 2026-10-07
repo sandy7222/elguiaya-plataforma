@@ -8,7 +8,7 @@ import 'solunar_service.dart';
 import 'weather_service.dart';
 
 /// Qué dato actual pide la pregunta.
-enum TipoCondicion { hora, fecha, sol, luna, solunar, clima }
+enum TipoCondicion { hora, fecha, sol, luna, solunar, clima, pesca }
 
 /// Lector de condiciones determinista (paso 1.0b): hora, fecha, sol, luna, períodos
 /// solunares y clima.
@@ -98,7 +98,21 @@ class GuiaCondicionesService {
       return TipoCondicion.solunar;
     }
 
+    // "Cómo está la pesca hoy": datos reales primero; la nube no inventa sobre esto (paso 1.8).
+    if (_esPescaHoy(n)) return TipoCondicion.pesca;
+
     return _esClima(n) ? TipoCondicion.clima : null;
+  }
+
+  static bool _esPescaHoy(String n) {
+    if (_r(n, _didactico)) return false;
+    final pregunta = _r(n, r'\b(?:como (?:esta|viene|anda|va|andan)|que tal)\b.{0,20}\b(?:pesca|pescar|pique|dia para pescar)\b') ||
+        _r(n, r'\bhay (?:pique|pica)\b') ||
+        _r(n, r'\b(?:esta bueno|estara bueno|conviene|se puede) .{0,12}pescar\b') ||
+        _r(n, r'\b(?:buen|mal) dia para pescar\b');
+    if (!pregunta) return false;
+    return _r(n, r'\b(?:hoy|ahora|esta tarde|esta noche|esta manana|manana|dia de hoy|en estos dias|este fin de semana|este finde)\b') ||
+        _r(n, r'\bdia para pescar\b');
   }
 
   static bool _esClima(String n) {
@@ -155,6 +169,20 @@ class GuiaCondicionesService {
         final donde = lugar ?? await _lugarRapido();
         final guardado = await _obtenerClima(reloj, donde, leerCache, descargar);
         return _ok(_textoClima(n, reloj, donde, guardado), 'piensaProfundo');
+      case TipoCondicion.pesca:
+        // Los datos reales que hay (clima, luna) y, aparte, que del pique no hay ningún dato medido.
+        final donde = lugar ?? await _lugarRapido();
+        final guardado = await _obtenerClima(reloj, donde, leerCache, descargar);
+        final clima = _textoClima('clima hoy salir', reloj, donde, guardado);
+        var luna = '';
+        try {
+          final info = await (solunar ?? SolunarService.calculateSolunar)(reloj, donde.latitude, donde.longitude);
+          luna = ' ${_textoLuna(info, 'fase de la luna')}';
+        } catch (_) {}
+        return _ok(
+          '$clima$luna Del pique en sí no tengo ningún dato medido: depende del lugar y del momento.',
+          'piensaProfundo',
+        );
     }
   }
 
