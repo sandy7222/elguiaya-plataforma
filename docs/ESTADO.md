@@ -153,6 +153,15 @@
       está en `lib/utils/seleccion_catalogo.dart` (con test, commiteada). El cambio de la pantalla está en `lib/screens/admin_importacion_screen.dart`,
       que **sigue sin commitear entera** (es un archivo nuevo del trabajo anterior; HEAD ya lo importa desde `main.dart`): hay que revisarlo y
       commitearlo. Para verlo en app.elguiaya.com falta recompilar el bundle web (`public/`) y publicarlo: necesita OK del dueño.
+    - **Excel para Meta / catálogo de WhatsApp Business (pedido del dueño, 2026-10-07):** `lib/services/exportacion_meta.dart` (con
+      `test/exportacion_meta_test.dart`, 29 tests) arma el Excel con las columnas del feed de Meta (id, title, description, availability,
+      condition, price "55000.00 ARS", link, image_link, additional_image_link, brand, product_type); las imágenes van como enlaces. Valores por
+      defecto a confirmar con el dueño: marca "El Guía YA" y enlace `https://app.elguiaya.com/#/producto/<id>`. Botón "Excel Meta / WhatsApp
+      Business" en la pantalla (archivo `admin_importacion_screen.dart`, sin commitear entero). Archivo de prueba generado con los 78 productos
+      reales: `build/exportacion_meta/catalogo_meta_whatsapp.xlsx` (no se commitea). Revisar: producto "Reel Frontal Kushiro Limay-3000" a $1;
+      9 productos sin stock (salen como "out of stock"). Las columnas salen de guías de terceros: confirmar con la plantilla de Commerce Manager.
+    - **Seguridad, a revisar:** las imágenes de los productos viven en el bucket de Supabase Storage `documentacion_privada` y se abren sin
+      sesión (URL pública). Con ese nombre, verificar que NO haya documentos privados de usuarios en un bucket público.
     - El avatar viene **apagado** tras instalar (interruptor en Mi Identidad Pescador): confirmar si es lo deseado.
 
 0. **Fase R, R.1 hecho (informe en `docs/INFORME_MEMORIA_R1.md`):** la app llega a 700–1160 MB y Android la cierra en primer plano; el
