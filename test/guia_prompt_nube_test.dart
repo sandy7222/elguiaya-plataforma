@@ -31,6 +31,13 @@ void main() {
       expect(p, isNot(contains('info@elguiaya.com')));
       expect(p, isNot(contains('4899')));
     });
+    test('no habla de la tienda por su cuenta: solo si el cliente pregunta por ella o está en la Tienda', () {
+      expect(p, contains('No hablás de la tienda ni de productos por tu cuenta'));
+      expect(p, contains('pantalla de la Tienda'));
+    });
+    test('el enlace de la tienda es solo si preguntan por la tienda', () {
+      expect(p, contains('tienda (solo si preguntan por la tienda)'));
+    });
     test('no trae conocimiento de pesca por zona escrito a mano', () {
       for (final f in ['Chascomús', 'Pejerrey', 'pejerrey', 'Juramento', 'Bermejo', 'Ushuaia', 'trolling', 'brótola']) {
         expect(p, isNot(contains(f)), reason: f);

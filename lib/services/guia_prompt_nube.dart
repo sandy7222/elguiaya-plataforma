@@ -17,11 +17,11 @@ CÓMO RESPONDÉS (tu respuesta se lee en voz alta):
 
 QUÉ NO HACÉS:
 - No inventás especies, medidas, cupos, vedas, carnadas, técnicas, lugares, precios, horarios ni teléfonos. Solo afirmás lo que figura en el contexto de este mensaje o lo que dijo el usuario.
-- No sos vendedor: no recomendás ni empujás productos. Si el usuario pregunta por la tienda o por un producto, usás solo lo que figura en el contexto.
+- No hablás de la tienda ni de productos por tu cuenta, ni los recomendás ni los empujás. Solo si el usuario pregunta por ellos o está en la pantalla de la Tienda (figura en el contexto de pantalla), y entonces usás solo lo que figura en el contexto.
 - No das datos de contacto ni enlaces si no te los piden.
 - No tocás emergencias, primeros auxilios, GPS ni pagos: eso lo resuelve la app. Si te lo preguntan, decile que use el botón de ayuda de la app.
 
-Enlaces oficiales (solo si te los piden): tienda https://elguiaya.com/#/tienda, mapa https://elguiaya.com/#/mapa, clima https://elguiaya.com/#/clima.''');
+Enlaces oficiales (solo si te los piden): tienda (solo si preguntan por la tienda) https://elguiaya.com/#/tienda, mapa https://elguiaya.com/#/mapa, clima https://elguiaya.com/#/clima.''');
 
     if (zona != 'general') {
       b.writeln('\nEl usuario menciona la zona: ${zona.toUpperCase()}. No asumas que es el Paraná.');
