@@ -40,6 +40,20 @@ class GuiaAccionesRobot {
   static Set<String> _rellenoFin = {};
   static final Map<String, _Accion> _porFrase = {};
 
+  // Pedidos metidos en una frase más larga ("hola guía, me gustaría saber si podés tomar mate").
+  static List<List<String>> _marcadores = [];
+  static final List<_Pedido> _pedidos = [];
+
+  /// Palabras que, entre el pedido y la acción, indican que es una pregunta ("quiero que me expliques cómo tomar mate").
+  static const Set<String> _esPregunta = {
+    'explicar', 'expliques', 'explicame', 'explicas', 'decirme', 'decime', 'contarme', 'contame', 'ensenar', 'ensenarme', 'ensename',
+    'ensenes', 'decir', 'saber', 'sabes',
+  };
+  // Si la palabra justo antes de la acción es una de estas, es una pregunta sobre la acción, no la orden.
+  static const Set<String> _antesEsPregunta = {'como', 'cuando', 'donde', 'cual', 'cuanto', 'porque', 'para', 'con', 'sin', 'de', 'del'};
+  static const Set<String> _negaciones = {'no', 'nunca', 'jamas', 'ni'};
+  static const int _colaMaxima = 4;
+
   static void aplicarFlags(SharedPreferences prefs) {
     habilitado = prefs.getBool(prefAcciones) ?? habilitado;
   }
@@ -61,6 +75,8 @@ class GuiaAccionesRobot {
     _rellenoInicio = (datos['relleno_inicio'] as List? ?? const []).map(n).toSet();
     _rellenoFin = (datos['relleno_fin'] as List? ?? const []).map(n).toSet();
     _porFrase.clear();
+    _pedidos.clear();
+    _marcadores = (datos['marcadores_pedido'] as List? ?? const []).map((m) => n(m).split(' ')).toList();
     for (final a in (datos['acciones'] as List? ?? const []).cast<Map<String, dynamic>>()) {
       final accion = _Accion(
         a['id'].toString(),
@@ -71,6 +87,10 @@ class GuiaAccionesRobot {
       for (final f in (a['frases'] as List? ?? const [])) {
         _porFrase[n(f)] = accion;
       }
+      for (final f in (a['pedidos'] as List? ?? const [])) {
+        _pedidos.add(_Pedido(n(f).split(' '), accion));
+      }
+      _pedidos.sort((x, y) => y.tokens.length.compareTo(x.tokens.length));
     }
     _cargado = true;
   }
@@ -88,10 +108,56 @@ class GuiaAccionesRobot {
       fin--;
     }
     if (ini >= fin) return null;
-    final accion = _porFrase[tokens.sublist(ini, fin).join(' ')];
+    var accion = _porFrase[tokens.sublist(ini, fin).join(' ')];
+    accion ??= _pedidoDentroDeUnaFrase(tokens);
     if (accion == null) return null;
     return AccionRobot(accion.id, accion.estado, accion.respuestas[_random.nextInt(accion.respuestas.length)]);
   }
+
+  static int _buscar(List<String> tokens, List<String> frase, [int desde = 0]) {
+    for (var i = desde; i + frase.length <= tokens.length; i++) {
+      var ok = true;
+      for (var j = 0; j < frase.length; j++) {
+        if (tokens[i + j] != frase[j]) {
+          ok = false;
+          break;
+        }
+      }
+      if (ok) return i;
+    }
+    return -1;
+  }
+
+  /// La acción pedida DENTRO de una frase más larga: hace falta un pedido explícito ("podés", "quiero que"...) ANTES de la acción, sin
+  /// negaciones, sin palabras de pregunta entre el pedido y la acción, y casi nada después. Si no, sigue siendo una pregunta o charla.
+  static _Accion? _pedidoDentroDeUnaFrase(List<String> tokens) {
+    if (_pedidos.isEmpty || _marcadores.isEmpty) return null;
+    if (tokens.any(_negaciones.contains)) return null;
+    for (final p in _pedidos) {
+      final i = _buscar(tokens, p.tokens);
+      if (i < 0) continue;
+      if (tokens.length - (i + p.tokens.length) > _colaMaxima) continue;
+      if (i > 0 && _antesEsPregunta.contains(tokens[i - 1])) continue;
+      // Un pedido explícito antes de la acción, y sin palabras de pregunta entre los dos.
+      for (final m in _marcadores) {
+        var desde = 0;
+        while (true) {
+          final k = _buscar(tokens, m, desde);
+          if (k < 0 || k + m.length > i) break;
+          final entre = tokens.sublist(k + m.length, i);
+          if (!entre.any(_esPregunta.contains)) return p.accion;
+          desde = k + 1;
+        }
+      }
+    }
+    return null;
+  }
+}
+
+class _Pedido {
+  final List<String> tokens;
+  final _Accion accion;
+  _Pedido(this.tokens, this.accion);
 }
 
 class _Accion {

@@ -84,6 +84,67 @@ void main() {
     });
   });
 
+  // Así habla el dueño (prueba en el celular, 18:57): "Hola guía, cómo estás, me gustaría saber si podés tomar mate". La orden viene
+  // metida en una frase más larga, como pedido ("podés...", "quiero que...", "me gustaría que..."). Se entiende si hay un pedido
+  // explícito + la acción, sin negación, y casi nada después de la acción.
+  group('pedidos dentro de una frase más larga', () {
+    const pedidos = <String, String>{
+      'Hola guía cómo estás me gustaría saber si podés tomar mate': 'tomaMate',
+      'hola guía, ¿podés tomar mate?': 'tomaMate',
+      'quiero que tomes unos mates conmigo': 'tomaMate',
+      'me gustaría que tomes mate': 'tomaMate',
+      'che guía, ¿podés tomar un mate?': 'tomaMate',
+      'te pido que te sientes y escuches': 'soloEscucha',
+      'quiero que te rías': 'rieGana',
+      '¿podés reírte un poco?': 'rieGana',
+      'me gustaría que te pongas furioso': 'enojado',
+      'hola, ¿podés ponerte furioso?': 'enojado',
+      '¿podés ponerte triste?': 'triste',
+      'quiero que saludes a todos': 'saludo',
+      '¿podés saludar a la gente?': 'saludo',
+      'quiero que te vayas a dormir': 'durmiendo',
+      '¿podés dormirte un rato?': 'durmiendo',
+      'necesito que te despiertes': 'despierta',
+      'me gustaría que juguemos a las cartas': 'juegaCartas',
+      '¿podés hacer el ok?': 'exito',
+    };
+    pedidos.forEach((frase, estado) {
+      test('"$frase" → $estado', () {
+        final a = GuiaAccionesRobot.detectar(frase);
+        expect(a, isNotNull);
+        expect(a!.estado, estado);
+      });
+    });
+
+    const siguenSiendoPreguntas = [
+      'cómo puedo tomar mate con poca yerba',
+      'podés decirme qué carnada uso para el dorado',
+      'podés pensar en una carnada para el dorado',
+      'me gustaría saber cómo se toma mate',
+      'quiero que me expliques cómo tomar mate sin lavado',
+      'podés tomar mate con yerba del Paraná es lo mejor que hay en el mundo entero',
+      'no quiero que tomes mate',
+      'no podés tomar mate ahora',
+      'quiero que no te rías',
+      'podés decirme si hay veda del surubí',
+      'hola guía cómo estás',
+      'me gustaría saber qué peces hay en el Paraná',
+      'podés ayudarme con un nudo',
+      'quiero que me cuentes un chiste',
+    ];
+    for (final f in siguenSiendoPreguntas) {
+      test('sigue siendo pregunta: "$f"', () => expect(GuiaAccionesRobot.detectar(f), isNull));
+    }
+
+    test('el router lo cumple sin nube y avisa al robot flotante', () async {
+      _preparar();
+      final r = await BaqueanoIAService.responder('Hola guía cómo estás me gustaría saber si podés tomar mate');
+      expect(_llamadas, 0);
+      expect(r.gifSugerido, 'tomaMate');
+      expect(GuiaAccionesRobot.pedida.value?.estado, 'tomaMate');
+    });
+  });
+
   group('NO es una orden (sigue siendo una pregunta o charla)', () {
     const noSon = [
       'cómo se toma mate',
@@ -183,6 +244,21 @@ void main() {
         for (final f in (a['frases'] as List).cast<String>()) {
           expect(f, matches(RegExp(r'^[a-z0-9 ]+$')), reason: '"$f" en ${a['id']}');
         }
+      }
+    });
+    test('los pedidos van normalizados, no se repiten y cada acción tiene los suyos (menos pensar)', () {
+      final vistos = <String, String>{};
+      for (final a in acciones) {
+        final ps = (a['pedidos'] as List? ?? const []).cast<String>();
+        if (a['id'] != 'pensar') expect(ps, isNotEmpty, reason: a['id'].toString());
+        for (final p in ps) {
+          expect(p, matches(RegExp(r'^[a-z0-9 ]+$')), reason: '"$p" en ${a['id']}');
+          expect(vistos.containsKey(p), isFalse, reason: '"$p" está en ${vistos[p]} y en ${a['id']}');
+          vistos[p] = a['id'].toString();
+        }
+      }
+      for (final m in (datos['marcadores_pedido'] as List).cast<String>()) {
+        expect(m, matches(RegExp(r'^[a-z0-9 ]+$')), reason: m);
       }
     });
     test('ninguna frase se repite entre acciones', () {

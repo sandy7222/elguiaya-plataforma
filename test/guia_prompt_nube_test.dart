@@ -31,6 +31,11 @@ void main() {
       expect(p, isNot(contains('info@elguiaya.com')));
       expect(p, isNot(contains('4899')));
     });
+    test('si le piden una gracia de robot (tomar mate, reírte...) no se niega', () {
+      final t = p.toLowerCase();
+      expect(t, contains('gracia de robot'));
+      expect(t, contains('no digas que no podés'));
+    });
     test('no habla de la tienda por su cuenta: solo si el cliente pregunta por ella o está en la Tienda', () {
       expect(p, contains('No hablás de la tienda ni de productos por tu cuenta'));
       expect(p, contains('pantalla de la Tienda'));

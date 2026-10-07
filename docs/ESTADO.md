@@ -144,6 +144,11 @@
       no cambiaba: `chat_unificado_screen.dart` llama al router y descarta `gifSugerido`. Arreglo: el router publica el pedido en
       `GuiaAccionesRobot.pedida` y el overlay lo escucha (`_onAccionRobot`), venga de donde venga la orden. Los otros chats
       (`chat_asistido_screen.dart`) también pasan por el router, así que quedan cubiertos.
+      **2.ª prueba (18:57–19:02):** el dueño habla NATURAL ("hola guía, cómo estás, me gustaría saber si podés tomar mate"), no con órdenes
+      secas; algunas órdenes se cumplían y otras no, y en algunas la nube "se negaba". Arreglo: pedidos dentro de una frase más larga
+      (`pedidos` + `marcadores_pedido` en la tabla: "podés…", "quiero que…", "me gustaría que…", sin negación y con casi nada después; "cómo
+      tomar mate" o "pensá en una carnada…" siguen siendo preguntas), y el prompt de la nube ya no se niega ante una gracia de robot.
+      Registro `[DIAG_PREGUNTA]` (solo APK de prueba) para ver la frase exacta. Tip: `adb logcat -G 16M` (el buffer de 256 KB se pisa rápido).
     - El avatar viene **apagado** tras instalar (interruptor en Mi Identidad Pescador): confirmar si es lo deseado.
 
 0. **Fase R, R.1 hecho (informe en `docs/INFORME_MEMORIA_R1.md`):** la app llega a 700–1160 MB y Android la cierra en primer plano; el

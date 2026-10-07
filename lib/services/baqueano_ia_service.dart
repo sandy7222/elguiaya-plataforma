@@ -1,3 +1,4 @@
+import 'diag_memoria.dart';
 import 'guia_acciones_robot.dart';
 import 'guia_ruta_conocimiento.dart';
 import 'guia_condiciones_service.dart';
@@ -312,6 +313,8 @@ class BaqueanoIAService {
   static Future<ElGuiaRespuesta> responder(String pregunta) async {
     await _asegurarInicializado();
     final pq = pregunta.toLowerCase().trim();
+    // Diagnóstico (solo APK de prueba con --dart-define=DIAG_MEM=true): qué frase llegó, para ajustar las órdenes del robot.
+    if (DiagMemoria.activo) debugPrint('[DIAG_PREGUNTA] $pregunta');
 
     // (La rehidratación del contexto del usuario ahora se maneja directamente dentro de GroqService de forma unificada)
 
