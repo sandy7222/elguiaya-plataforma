@@ -4,6 +4,8 @@
 // imágenes como ENLACES (columna image_link) y la planilla puede ser Excel. Las columnas salen de guías del feed de Meta (id, title, description,
 // availability, condition, price con moneda, link, image_link, additional_image_link, brand); hay que confirmarlas con la plantilla de Commerce Manager.
 
+import 'dart:convert';
+import 'dart:io';
 import 'package:excel/excel.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:capitanya_master/models/producto.dart';
@@ -49,6 +51,19 @@ Map<String, String> _fila(List<List<String>> filas, int i) => {
     };
 
 void main() {
+  // Casos compartidos con la función feed-meta (supabase/functions/feed-meta): las dos tienen que dar exactamente lo mismo.
+  group('paridad con la función feed-meta (test/fixtures/feed_meta_casos.json)', () {
+    final casos = (jsonDecode(File('test/fixtures/feed_meta_casos.json').readAsStringSync())['casos'] as List).cast<Map<String, dynamic>>();
+    for (final c in casos) {
+      test(c['nombre_caso'] as String, () {
+        final p = Producto.fromSupabase(Map<String, dynamic>.from(c['row'] as Map));
+        final fila = ExportacionMeta.fila(p);
+        final esperado = (c['esperado'] as Map).map((k, v) => MapEntry(k as String, v as String));
+        expect(fila, esperado);
+      });
+    }
+  });
+
   group('columnas', () {
     test('el encabezado trae las columnas del feed de Meta', () {
       final r = ExportacionMeta.generarExcel([_p()]);

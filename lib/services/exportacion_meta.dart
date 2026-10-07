@@ -37,58 +37,69 @@ class ExportacionMeta {
 
     for (final p in productos) {
       final nombre = p.nombre.trim();
-      var titulo = nombre;
-      if (titulo.length > _maxTitulo) {
-        titulo = titulo.substring(0, _maxTitulo);
+      if (nombre.length > _maxTitulo) {
         avisos.add('«${_corto(nombre)}»: el título se recortó a $_maxTitulo caracteres (límite de Meta).');
       }
-
-      // Imágenes: la principal, o la primera de la galería si falta; las adicionales sin repetir la principal.
-      final todas = <String>[
-        if (p.imagenUrl.trim().isNotEmpty) p.imagenUrl.trim(),
-        ...p.galeriaUrls.map((u) => u.trim()).where((u) => u.isNotEmpty),
-      ];
-      final unicas = <String>[];
-      for (final u in todas) {
-        if (!unicas.contains(u)) unicas.add(u);
-      }
-      final principal = unicas.isEmpty ? '' : unicas.first;
-      final adicionales = unicas.skip(1).take(_maxAdicionales).toList();
-      if (principal.isEmpty) {
+      final f = fila(p, marca: marca, urlProducto: urlProducto, moneda: moneda);
+      if (f['image_link']!.isEmpty) {
         avisos.add('«${_corto(nombre)}»: sin imagen (Meta pide una imagen por producto).');
       }
-      if (unicas.any((u) => !u.toLowerCase().startsWith('https://'))) {
+      if (_imagenes(p).any((u) => !u.toLowerCase().startsWith('https://'))) {
         avisos.add('«${_corto(nombre)}»: una imagen no es https; Meta no la va a poder abrir.');
       }
-
       if (p.precio <= 1) {
         avisos.add('«${_corto(nombre)}»: el precio es \$${p.precio.toStringAsFixed(2)}; ¿es un precio de prueba?');
       }
-
-      final agotado = !p.activo || p.stock <= 0;
-      if (agotado) {
+      if (f['availability'] == 'out of stock') {
         avisos.add('«${_corto(nombre)}»: sale como agotado (${p.activo ? 'sin stock' : 'producto inactivo'}).');
       }
-
-      hoja.appendRow([
-        TextCellValue(p.id),
-        TextCellValue(titulo),
-        TextCellValue(_descripcion(p, nombre)),
-        TextCellValue(agotado ? 'out of stock' : 'in stock'),
-        TextCellValue('new'),
-        TextCellValue('${p.precio.toStringAsFixed(2)} $moneda'),
-        TextCellValue('$urlProducto${p.id}'),
-        TextCellValue(principal),
-        TextCellValue(adicionales.join(',')),
-        TextCellValue(marca),
-        TextCellValue(p.rubro),
-      ]);
+      hoja.appendRow(encabezados.map((c) => TextCellValue(f[c]!)).toList());
     }
 
     // `Excel.createExcel()` crea una hoja "Sheet1" vacía: se la saca para que Meta lea la hoja del catálogo.
     if (libro.tables.containsKey('Sheet1')) libro.delete('Sheet1');
 
     return ResultadoExportMeta(libro.encode() ?? <int>[], avisos);
+  }
+
+  /// Imágenes del producto sin repetir: la principal primero (o, si falta, la primera de la galería).
+  static List<String> _imagenes(Producto p) {
+    final todas = <String>[
+      if (p.imagenUrl.trim().isNotEmpty) p.imagenUrl.trim(),
+      ...p.galeriaUrls.map((u) => u.trim()).where((u) => u.isNotEmpty),
+    ];
+    final unicas = <String>[];
+    for (final u in todas) {
+      if (!unicas.contains(u)) unicas.add(u);
+    }
+    return unicas;
+  }
+
+  /// Una fila del feed de Meta (columna → valor). La misma regla vive en la función `feed-meta` (supabase/functions/feed-meta/feed_meta.ts);
+  /// los dos se prueban con los casos de test/fixtures/feed_meta_casos.json.
+  static Map<String, String> fila(
+    Producto p, {
+    String marca = 'El Guía YA',
+    String urlProducto = 'https://app.elguiaya.com/#/producto/',
+    String moneda = 'ARS',
+  }) {
+    final nombre = p.nombre.trim();
+    final titulo = nombre.length > _maxTitulo ? nombre.substring(0, _maxTitulo) : nombre;
+    final imagenes = _imagenes(p);
+    final agotado = !p.activo || p.stock <= 0;
+    return {
+      'id': p.id,
+      'title': titulo,
+      'description': _descripcion(p, nombre),
+      'availability': agotado ? 'out of stock' : 'in stock',
+      'condition': 'new',
+      'price': '${p.precio.toStringAsFixed(2)} $moneda',
+      'link': '$urlProducto${p.id}',
+      'image_link': imagenes.isEmpty ? '' : imagenes.first,
+      'additional_image_link': imagenes.skip(1).take(_maxAdicionales).join(','),
+      'brand': marca,
+      'product_type': p.rubro,
+    };
   }
 
   static String _corto(String t) => t.length > 40 ? '${t.substring(0, 40)}…' : t;

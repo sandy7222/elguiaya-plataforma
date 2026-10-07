@@ -1,0 +1,250 @@
+{
+  "comentario": "Casos compartidos entre Dart (lib/services/exportacion_meta.dart) y la función feed-meta (supabase/functions/feed-meta/feed_meta.ts). Si cambia una regla, cambia acá y en los dos.",
+  "casos": [
+    {
+      "nombre_caso": "producto normal con galería",
+      "row": {
+        "id": "a1b2c3d4-0000-4000-8000-000000000001",
+        "nombre": "  La caña Kushiro de 3.6 metros (Acción Pesada)  ",
+        "descripcion": "Caña de pesca de acción pesada.",
+        "especificaciones": "Largo: 3.6 m",
+        "precio": 55000,
+        "stock": 15,
+        "rubro": "Pesca Deportiva",
+        "imagen_url": "https://x.supabase.co/storage/v1/object/public/productos/a.jpg",
+        "galeria_urls": [
+          "https://x.supabase.co/storage/v1/object/public/productos/b.jpg",
+          "https://x.supabase.co/storage/v1/object/public/productos/c.png"
+        ],
+        "activo": true
+      },
+      "esperado": {
+        "id": "a1b2c3d4-0000-4000-8000-000000000001",
+        "title": "La caña Kushiro de 3.6 metros (Acción Pesada)",
+        "description": "Caña de pesca de acción pesada.\n\nLargo: 3.6 m",
+        "availability": "in stock",
+        "condition": "new",
+        "price": "55000.00 ARS",
+        "link": "https://app.elguiaya.com/#/producto/a1b2c3d4-0000-4000-8000-000000000001",
+        "image_link": "https://x.supabase.co/storage/v1/object/public/productos/a.jpg",
+        "additional_image_link": "https://x.supabase.co/storage/v1/object/public/productos/b.jpg,https://x.supabase.co/storage/v1/object/public/productos/c.png",
+        "brand": "El Guía YA",
+        "product_type": "Pesca Deportiva"
+      }
+    },
+    {
+      "nombre_caso": "sin stock",
+      "row": {
+        "id": "a1b2c3d4-0000-4000-8000-000000000002",
+        "nombre": "Anzuelo N°15 sin ojal",
+        "descripcion": "Anzuelo para bogas.",
+        "especificaciones": "",
+        "precio": 10140,
+        "stock": 0,
+        "rubro": "Pesca Deportiva",
+        "imagen_url": "https://x.supabase.co/storage/v1/object/public/productos/d.jpg",
+        "galeria_urls": [],
+        "activo": true
+      },
+      "esperado": {
+        "id": "a1b2c3d4-0000-4000-8000-000000000002",
+        "title": "Anzuelo N°15 sin ojal",
+        "description": "Anzuelo para bogas.",
+        "availability": "out of stock",
+        "condition": "new",
+        "price": "10140.00 ARS",
+        "link": "https://app.elguiaya.com/#/producto/a1b2c3d4-0000-4000-8000-000000000002",
+        "image_link": "https://x.supabase.co/storage/v1/object/public/productos/d.jpg",
+        "additional_image_link": "",
+        "brand": "El Guía YA",
+        "product_type": "Pesca Deportiva"
+      }
+    },
+    {
+      "nombre_caso": "inactivo",
+      "row": {
+        "id": "a1b2c3d4-0000-4000-8000-000000000003",
+        "nombre": "Producto pausado",
+        "descripcion": "Pausado.",
+        "especificaciones": "",
+        "precio": 16224.5,
+        "stock": 9,
+        "rubro": "Outdoor & Camping",
+        "imagen_url": "https://x.supabase.co/storage/v1/object/public/productos/e.jpg",
+        "galeria_urls": [],
+        "activo": false
+      },
+      "esperado": {
+        "id": "a1b2c3d4-0000-4000-8000-000000000003",
+        "title": "Producto pausado",
+        "description": "Pausado.",
+        "availability": "out of stock",
+        "condition": "new",
+        "price": "16224.50 ARS",
+        "link": "https://app.elguiaya.com/#/producto/a1b2c3d4-0000-4000-8000-000000000003",
+        "image_link": "https://x.supabase.co/storage/v1/object/public/productos/e.jpg",
+        "additional_image_link": "",
+        "brand": "El Guía YA",
+        "product_type": "Outdoor & Camping"
+      }
+    },
+    {
+      "nombre_caso": "marcador de especificaciones dentro de la descripción",
+      "row": {
+        "id": "a1b2c3d4-0000-4000-8000-000000000004",
+        "nombre": "Farol LED",
+        "descripcion": "Farol portátil.\n\n<!--ESPECIFICACIONES-->\n\n200 lúmenes\nCarga solar",
+        "especificaciones": "",
+        "precio": 16224,
+        "stock": 20,
+        "rubro": "Outdoor & Camping",
+        "imagen_url": "https://x.supabase.co/storage/v1/object/public/productos/f.jpg",
+        "galeria_urls": [],
+        "activo": true
+      },
+      "esperado": {
+        "id": "a1b2c3d4-0000-4000-8000-000000000004",
+        "title": "Farol LED",
+        "description": "Farol portátil.\n\n200 lúmenes\nCarga solar",
+        "availability": "in stock",
+        "condition": "new",
+        "price": "16224.00 ARS",
+        "link": "https://app.elguiaya.com/#/producto/a1b2c3d4-0000-4000-8000-000000000004",
+        "image_link": "https://x.supabase.co/storage/v1/object/public/productos/f.jpg",
+        "additional_image_link": "",
+        "brand": "El Guía YA",
+        "product_type": "Outdoor & Camping"
+      }
+    },
+    {
+      "nombre_caso": "sin imagen principal: la primera de la galería pasa a principal",
+      "row": {
+        "id": "a1b2c3d4-0000-4000-8000-000000000005",
+        "nombre": "Reel Kushiro",
+        "descripcion": "Reel.",
+        "especificaciones": "",
+        "precio": 50700,
+        "stock": 25,
+        "rubro": "Pesca Deportiva",
+        "imagen_url": "",
+        "galeria_urls": [
+          "https://x.supabase.co/storage/v1/object/public/productos/g1.jpg",
+          "https://x.supabase.co/storage/v1/object/public/productos/g2.jpg"
+        ],
+        "activo": true
+      },
+      "esperado": {
+        "id": "a1b2c3d4-0000-4000-8000-000000000005",
+        "title": "Reel Kushiro",
+        "description": "Reel.",
+        "availability": "in stock",
+        "condition": "new",
+        "price": "50700.00 ARS",
+        "link": "https://app.elguiaya.com/#/producto/a1b2c3d4-0000-4000-8000-000000000005",
+        "image_link": "https://x.supabase.co/storage/v1/object/public/productos/g1.jpg",
+        "additional_image_link": "https://x.supabase.co/storage/v1/object/public/productos/g2.jpg",
+        "brand": "El Guía YA",
+        "product_type": "Pesca Deportiva"
+      }
+    },
+    {
+      "nombre_caso": "principal repetida en la galería y más de 10 adicionales",
+      "row": {
+        "id": "a1b2c3d4-0000-4000-8000-000000000006",
+        "nombre": "Navaja",
+        "descripcion": "Navaja.",
+        "especificaciones": "",
+        "precio": 12168,
+        "stock": 26,
+        "rubro": "Camping",
+        "imagen_url": "https://x.supabase.co/storage/v1/object/public/productos/p.jpg",
+        "galeria_urls": [
+          "https://x.supabase.co/storage/v1/object/public/productos/p.jpg",
+          "https://x.supabase.co/storage/v1/object/public/productos/x0.jpg",
+          "https://x.supabase.co/storage/v1/object/public/productos/x1.jpg",
+          "https://x.supabase.co/storage/v1/object/public/productos/x2.jpg",
+          "https://x.supabase.co/storage/v1/object/public/productos/x3.jpg",
+          "https://x.supabase.co/storage/v1/object/public/productos/x4.jpg",
+          "https://x.supabase.co/storage/v1/object/public/productos/x5.jpg",
+          "https://x.supabase.co/storage/v1/object/public/productos/x6.jpg",
+          "https://x.supabase.co/storage/v1/object/public/productos/x7.jpg",
+          "https://x.supabase.co/storage/v1/object/public/productos/x8.jpg",
+          "https://x.supabase.co/storage/v1/object/public/productos/x9.jpg",
+          "https://x.supabase.co/storage/v1/object/public/productos/x10.jpg",
+          "https://x.supabase.co/storage/v1/object/public/productos/x11.jpg",
+          "https://x.supabase.co/storage/v1/object/public/productos/x12.jpg"
+        ],
+        "activo": true
+      },
+      "esperado": {
+        "id": "a1b2c3d4-0000-4000-8000-000000000006",
+        "title": "Navaja",
+        "description": "Navaja.",
+        "availability": "in stock",
+        "condition": "new",
+        "price": "12168.00 ARS",
+        "link": "https://app.elguiaya.com/#/producto/a1b2c3d4-0000-4000-8000-000000000006",
+        "image_link": "https://x.supabase.co/storage/v1/object/public/productos/p.jpg",
+        "additional_image_link": "https://x.supabase.co/storage/v1/object/public/productos/x0.jpg,https://x.supabase.co/storage/v1/object/public/productos/x1.jpg,https://x.supabase.co/storage/v1/object/public/productos/x2.jpg,https://x.supabase.co/storage/v1/object/public/productos/x3.jpg,https://x.supabase.co/storage/v1/object/public/productos/x4.jpg,https://x.supabase.co/storage/v1/object/public/productos/x5.jpg,https://x.supabase.co/storage/v1/object/public/productos/x6.jpg,https://x.supabase.co/storage/v1/object/public/productos/x7.jpg,https://x.supabase.co/storage/v1/object/public/productos/x8.jpg,https://x.supabase.co/storage/v1/object/public/productos/x9.jpg",
+        "brand": "El Guía YA",
+        "product_type": "Camping"
+      }
+    },
+    {
+      "nombre_caso": "título de 250 caracteres y descripción vacía",
+      "row": {
+        "id": "a1b2c3d4-0000-4000-8000-000000000007",
+        "nombre": "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+        "descripcion": "   ",
+        "especificaciones": "",
+        "precio": 5070,
+        "stock": 20,
+        "rubro": "Pesca",
+        "imagen_url": "https://x.supabase.co/storage/v1/object/public/productos/t.jpg",
+        "galeria_urls": [],
+        "activo": true
+      },
+      "esperado": {
+        "id": "a1b2c3d4-0000-4000-8000-000000000007",
+        "title": "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+        "description": "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+        "availability": "in stock",
+        "condition": "new",
+        "price": "5070.00 ARS",
+        "link": "https://app.elguiaya.com/#/producto/a1b2c3d4-0000-4000-8000-000000000007",
+        "image_link": "https://x.supabase.co/storage/v1/object/public/productos/t.jpg",
+        "additional_image_link": "",
+        "brand": "El Guía YA",
+        "product_type": "Pesca"
+      }
+    },
+    {
+      "nombre_caso": "descripción con comillas, comas y saltos de línea",
+      "row": {
+        "id": "a1b2c3d4-0000-4000-8000-000000000008",
+        "nombre": "Set \"Matero\", completo",
+        "descripcion": "Mate, bombilla y yerbera.\nIncluye \"bolso\", color verde.",
+        "especificaciones": "",
+        "precio": 6084.005,
+        "stock": 30,
+        "rubro": "Camping",
+        "imagen_url": "https://x.supabase.co/storage/v1/object/public/productos/m.jpg",
+        "galeria_urls": [],
+        "activo": true
+      },
+      "esperado": {
+        "id": "a1b2c3d4-0000-4000-8000-000000000008",
+        "title": "Set \"Matero\", completo",
+        "description": "Mate, bombilla y yerbera.\nIncluye \"bolso\", color verde.",
+        "availability": "in stock",
+        "condition": "new",
+        "price": "6084.01 ARS",
+        "link": "https://app.elguiaya.com/#/producto/a1b2c3d4-0000-4000-8000-000000000008",
+        "image_link": "https://x.supabase.co/storage/v1/object/public/productos/m.jpg",
+        "additional_image_link": "",
+        "brand": "El Guía YA",
+        "product_type": "Camping"
+      }
+    }
+  ]
+}

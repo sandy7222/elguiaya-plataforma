@@ -162,6 +162,21 @@
       9 productos sin stock (salen como "out of stock"). Las columnas salen de guías de terceros: confirmar con la plantilla de Commerce Manager.
     - **Seguridad, a revisar:** las imágenes de los productos viven en el bucket de Supabase Storage `documentacion_privada` y se abren sin
       sesión (URL pública). Con ese nombre, verificar que NO haya documentos privados de usuarios en un bucket público.
+    - **Etapas 1 y 2 del catálogo de Meta (hechas en el código, SIN publicar/desplegar):**
+      · Feed automático: función `supabase/functions/feed-meta/` (CSV de solo lectura, productos activos y con imagen, clave anónima, `verify_jwt = false`,
+        caché 1 h, marca y enlace fijos). Reglas compartidas con el Excel mediante `test/fixtures/feed_meta_casos.json` (8 casos; Dart y TypeScript dan lo
+        mismo). Tests: `node --test supabase/functions/feed-meta/feed_meta.test.ts` (21). **Falta desplegarla (necesita OK del dueño)**; dirección:
+        `https://ymgsxwfwntbqvguvbhoa.supabase.co/functions/v1/feed-meta`. Los tests del lado TS se escribieron junto con el código (no se vieron en rojo antes).
+      · Pantalla de exportación: marca y enlace base editables (se guardan), botón "Excel Meta", dirección del feed con botón copiar, panel desplazable.
+        Se commitea el módulo entero de importación/exportación (`admin_importacion_screen.dart`, `exportacion_service.dart`, `importacion_service.dart`,
+        `utils/web_download*.dart`: eran archivos sin versionar que `main.dart` ya importaba). **Sin verificar visualmente** (hay que mirarlo con el admin).
+      · Pendiente: recompilar y publicar la web (`public/`) para verlo en app.elguiaya.com (necesita OK del dueño).
+    - **Meta AI confundió el canal:** el dueño subió el Excel a un chat con un asistente de Meta que lo guardó en su sección "Conocimiento" (no en el catálogo) y
+      pidió las fotos una por una. El catálogo se carga desde Commerce Manager (Fuentes de datos → Feed de datos), subiendo el archivo o con la dirección del feed.
+    - **SEGURIDAD CRÍTICA (hallada 2026-10-07, SIN corregir):** `public.productos` tiene la política `Admin full access productos` con `cmd = ALL`, `roles = {public}`
+      y `qual = true`: cualquiera con la clave anónima (que va en la app web) puede **insertar, modificar o borrar productos**. Corregir con una migración que la
+      elimine (la política `Admins gestionan productos` ya cubre a los administradores), probando antes que el panel de admin siga funcionando (revisar que el JWT
+      del admin traiga `role`/`rol` = admin). Necesita OK del dueño (migración en producción). Revisar también otras tablas con el mismo patrón.
     - El avatar viene **apagado** tras instalar (interruptor en Mi Identidad Pescador): confirmar si es lo deseado.
 
 0. **Fase R, R.1 hecho (informe en `docs/INFORME_MEMORIA_R1.md`):** la app llega a 700–1160 MB y Android la cierra en primer plano; el
