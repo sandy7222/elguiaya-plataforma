@@ -1,3 +1,4 @@
+import '../services/diag_memoria.dart';
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -248,7 +249,8 @@ class _CapitanAsistenteState extends State<CapitanAsistente> {
           return FadeTransition(opacity: animation, child: child);
         },
         child: Image.asset(
-          _currentGif,
+          // Diagnóstico R.3 (solo con --dart-define=DIAG_SIN_GIF=true): una imagen fija en lugar de los GIFs.
+          DiagMemoria.sinGif ? 'assets/images/guia_icon.png' : _currentGif,
           key: ValueKey<String>(_currentGif),
           fit: BoxFit.contain,
           gaplessPlayback: true,
@@ -277,6 +279,7 @@ class _CapitanAsistenteState extends State<CapitanAsistente> {
 
   /// Pre-carga un GIF en memoria antes de mostrarlo para evitar el flash blanco
   void _precacheGif(String path) {
+    if (DiagMemoria.sinGif) return; // diagnóstico R.3
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         precacheImage(AssetImage(path), context);

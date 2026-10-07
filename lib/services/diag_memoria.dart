@@ -11,6 +11,9 @@ import 'package:flutter/painting.dart';
 /// la memoria gráfica que mide Android (`dumpsys meminfo`, "Graphics") son imágenes decodificadas.
 class DiagMemoria {
   static const bool activo = bool.fromEnvironment('DIAG_MEM');
+
+  /// Diagnóstico R.3 (`--dart-define=DIAG_SIN_GIF=true`): el avatar usa una imagen fija en vez de los 22 GIFs.
+  static const bool sinGif = bool.fromEnvironment('DIAG_SIN_GIF');
   static Timer? _timer;
 
   static void iniciar() {

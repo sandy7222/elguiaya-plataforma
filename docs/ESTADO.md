@@ -33,6 +33,19 @@
 
 ## Qué sigue (en este orden)
 
+00. **Orden fijado por Opus (2026-10-07):** (1) **R.3** diagnóstico de memoria de a una variante, midiendo la curva de memoria
+    gráfica en el Moto G15: a) sin GIFs → si se aplana, corregir directo (una sola animación viva, no precargar todas, pausar
+    pestañas ocultas con `TickerMode`, GIFs más chicos); b) pestañas que se construyen al abrirlas; c) sin desenfoque en el Panel.
+    Aparte, aunque no sea la causa: las 110 `Image.network` sin `cacheWidth`/`cacheHeight`. (2) **1.8 hecho** (`9093f97`): la nube
+    no inventa datos (prompt + verificador + ruteo de "cómo está la pesca hoy" al lector). (3) **Después**, en este orden:
+    - el cartel **"Offline"** (barra superior) con wifi mientras el chat dice "ONLINE": deben leer la misma fuente de verdad, el
+      estado del breaker del 1.6;
+    - el **micrófono** que manda ruido a la nube: mitigación rápida = ignorar resultados del reconocedor de baja confianza o de
+      menos de 2 palabras (el resto queda en la Fase 4.M);
+    - el bloque de aprendizaje `|||APRENDO|||` de la nube no pasa por el verificador (puede guardar datos inventados).
+    **R.3 a) medido hasta ahora:** la pantalla de bienvenida (sin sesión) usa 210 MB y queda plana (Graphics 57 MB); falta la
+    medición con la sesión iniciada (el dueño tiene que iniciar sesión: no se escriben contraseñas).
+
 0. **Fase R, R.1 hecho (informe en `docs/INFORME_MEMORIA_R1.md`):** la app llega a 700–1160 MB y Android la cierra en primer plano; el
    65–70 % es **memoria gráfica** que crece ~5 MB/s en reposo. Descartados con datos: motor gráfico (Skia = Impeller), heap de Dart
    (41 MB), caché de imágenes de Flutter (73 MB, quieto), avatar visible y arranque del Guía. **Sin atribuir**: GIFs del avatar
