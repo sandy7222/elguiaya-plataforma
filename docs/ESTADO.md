@@ -149,6 +149,10 @@
       (`pedidos` + `marcadores_pedido` en la tabla: "podés…", "quiero que…", "me gustaría que…", sin negación y con casi nada después; "cómo
       tomar mate" o "pensá en una carnada…" siguen siendo preguntas), y el prompt de la nube ya no se niega ante una gracia de robot.
       Registro `[DIAG_PREGUNTA]` (solo APK de prueba) para ver la frase exacta. Tip: `adb logcat -G 16M` (el buffer de 256 KB se pisa rápido).
+    - **Admin → Importación / Exportación (pedido del dueño, 2026-10-07):** casilla "Seleccionar todos" (tres estados) en la pestaña Exportar. La lógica
+      está en `lib/utils/seleccion_catalogo.dart` (con test, commiteada). El cambio de la pantalla está en `lib/screens/admin_importacion_screen.dart`,
+      que **sigue sin commitear entera** (es un archivo nuevo del trabajo anterior; HEAD ya lo importa desde `main.dart`): hay que revisarlo y
+      commitearlo. Para verlo en app.elguiaya.com falta recompilar el bundle web (`public/`) y publicarlo: necesita OK del dueño.
     - El avatar viene **apagado** tras instalar (interruptor en Mi Identidad Pescador): confirmar si es lo deseado.
 
 0. **Fase R, R.1 hecho (informe en `docs/INFORME_MEMORIA_R1.md`):** la app llega a 700–1160 MB y Android la cierra en primer plano; el
