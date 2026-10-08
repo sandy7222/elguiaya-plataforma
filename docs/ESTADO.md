@@ -201,6 +201,19 @@
       lo limite (el cliente hoy confirma el pago desde la app: `confirmarPagoPedido`); (2) `pedido_items` (SELECT público de todos los ítems; INSERT abierto);
       (3) `categorias`, `rubros`, `envio_domicilio` (ALL abiertas), `guia_conocimiento_distribuido` / `guia_capacitacion` (INSERT abierto), `solicitudes_contacto`
       y `recordatorios` (UPDATE abierto); (4) el cliente guarda pagos con una columna que no existe (`cliente_id` en `pagos`): código muerto de `pago_service.dart`.
+    - **COLUMNAS SENSIBLES DE `pedidos` LIMITADAS (2026-10-07, OK del dueño):** migración `20261007220000_pedidos_proteger_columnas.sql` (aplicada): disparador
+      `trg_pedidos_proteger_columnas` (BEFORE UPDATE) que impide a un participante cambiar: capitan_id / pescador_id / cliente_id (usuario_id solo para ponerse a sí
+      mismo), cierre_manual_* y admin_observaciones, tracking_* / despachado_at / entregado_at, estado_logistico a algo que no sea pendiente_pago / preparando /
+      sin_envio, y —con un pago APROBADO registrado— mp_payment_id, monto_total, total, tarifa_envio, envio_tarifa_monto, envio_tarifa_id. Pasan: administradores
+      (`is_admin()`), clave de servicio, funciones SECURITY DEFINER y migraciones (solo se vigila a los roles `authenticated`/`anon`). Probado en transacción deshecha
+      y verificado en producción. Un pago rechazado no congela el importe (se puede reintentar).
+    - **LO QUE TODAVÍA NO SE PUEDE CERRAR (decisión del dueño):** `estado` y los datos `mp_*` de un pedido SIN pago aprobado siguen siendo escribibles por el
+      participante, porque hoy **la confirmación de un pago la hace la app del cliente** (`confirmarPagoPedido` en `viaje_lifecycle_service.dart`) y `webhook_logs`
+      tiene **0 filas**: el webhook de Mercado Pago (`mp-webhook`) nunca procesó nada (no está desplegado/registrado, o falta su secreto). Un cliente modificado podría
+      marcar su pedido como pagado sin pagar. Para cerrarlo: (1) desplegar `mp-webhook` y registrar su URL en Mercado Pago (hay que usar el secreto en Supabase, nunca
+      en el chat); (2) hacer que la confirmación la aplique el servidor (extender `consultar-pago-mp` o confiar en el webhook) y que la app solo consulte el estado;
+      (3) recién ahí bloquear `estado` y `mp_*` en el disparador. Mercado Pago está en producción: probarlo antes en sandbox. `crear-preferencia` ya toma el importe de la
+      base con un piso (`total_minimo_pedido`), no del cliente.
     - El avatar viene **apagado** tras instalar (interruptor en Mi Identidad Pescador): confirmar si es lo deseado.
 
 0. **Fase R, R.1 hecho (informe en `docs/INFORME_MEMORIA_R1.md`):** la app llega a 700–1160 MB y Android la cierra en primer plano; el
