@@ -253,6 +253,8 @@
     - **Push hecho el 2026-10-08 (OK del dueño):** 18 commits (de `696ca01` a `d7c1641`) a `origin/fase-0-contencion`, sin `--force`. Las migraciones de seguridad (`20261007200000`,
       `210000`, `220000`, `230000` y `20261008010000`) ya están APLICADAS en producción (el mensaje del commit `0e17efe` dice "sin aplicar" porque se escribió antes de aplicarla).
       El sitio (`C:\CapitanYA\elguiaya`) se subió aparte: commit `e7b68ae` (enlaces directos a producto), publicado y verificado en `www.elguiaya.com`.
+    - **Próximo: "el día del viaje"** (pedido del dueño, 2026-10-08): un día entero para perfeccionar la experiencia del viaje con el celular por cable USB, como se hizo con el asistente.
+      Borrador del plan, con el mapa del recorrido y lo que hay que preparar (cuentas de prueba, Mercado Pago en producción → sandbox o sin pagar, dos celulares): `docs/PLAN_DIA_DEL_VIAJE.md`.
     - El avatar viene **apagado** tras instalar (interruptor en Mi Identidad Pescador): confirmar si es lo deseado.
 
 0. **Fase R, R.1 hecho (informe en `docs/INFORME_MEMORIA_R1.md`):** la app llega a 700–1160 MB y Android la cierra en primer plano; el
