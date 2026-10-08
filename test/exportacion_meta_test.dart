@@ -95,7 +95,7 @@ void main() {
     test('marca por defecto', () => expect(f['brand'], 'El Guía YA'));
     test('rubro como product_type', () => expect(f['product_type'], 'Pesca Deportiva'));
     test('enlace a la página del producto', () {
-      expect(f['link'], 'https://app.elguiaya.com/#/producto/a1b2c3d4-0000-4000-8000-000000000001');
+      expect(f['link'], 'https://www.elguiaya.com/#/producto/a1b2c3d4-0000-4000-8000-000000000001');
     });
     test('imagen principal como enlace', () {
       expect(f['image_link'], 'https://x.supabase.co/storage/v1/object/public/productos/a.jpg');

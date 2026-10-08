@@ -30,7 +30,7 @@ export interface OpcionesMeta {
 
 export const OPCIONES_POR_DEFECTO: OpcionesMeta = {
   marca: "El Guía YA",
-  urlProducto: "https://app.elguiaya.com/#/producto/",
+  urlProducto: "https://www.elguiaya.com/#/producto/",
   moneda: "ARS",
 };
 

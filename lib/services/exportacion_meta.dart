@@ -25,7 +25,7 @@ class ExportacionMeta {
   static ResultadoExportMeta generarExcel(
     List<Producto> productos, {
     String marca = 'El Guía YA',
-    String urlProducto = 'https://app.elguiaya.com/#/producto/',
+    String urlProducto = 'https://www.elguiaya.com/#/producto/',
     String moneda = 'ARS',
   }) {
     final libro = Excel.createExcel();
@@ -80,7 +80,7 @@ class ExportacionMeta {
   static Map<String, String> fila(
     Producto p, {
     String marca = 'El Guía YA',
-    String urlProducto = 'https://app.elguiaya.com/#/producto/',
+    String urlProducto = 'https://www.elguiaya.com/#/producto/',
     String moneda = 'ARS',
   }) {
     final nombre = p.nombre.trim();

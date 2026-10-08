@@ -156,7 +156,7 @@
     - **Excel para Meta / catálogo de WhatsApp Business (pedido del dueño, 2026-10-07):** `lib/services/exportacion_meta.dart` (con
       `test/exportacion_meta_test.dart`, 29 tests) arma el Excel con las columnas del feed de Meta (id, title, description, availability,
       condition, price "55000.00 ARS", link, image_link, additional_image_link, brand, product_type); las imágenes van como enlaces. Valores por
-      defecto a confirmar con el dueño: marca "El Guía YA" y enlace `https://app.elguiaya.com/#/producto/<id>`. Botón "Excel Meta / WhatsApp
+      defecto a confirmar con el dueño: marca "El Guía YA" y enlace `https://www.elguiaya.com/#/producto/<id>`. Botón "Excel Meta / WhatsApp
       Business" en la pantalla (archivo `admin_importacion_screen.dart`, sin commitear entero). Archivo de prueba generado con los 78 productos
       reales: `build/exportacion_meta/catalogo_meta_whatsapp.xlsx` (no se commitea). Revisar: producto "Reel Frontal Kushiro Limay-3000" a $1;
       9 productos sin stock (salen como "out of stock"). Las columnas salen de guías de terceros: confirmar con la plantilla de Commerce Manager.
@@ -225,6 +225,12 @@
       `notificaciones` y `notificaciones_globales` (INSERT: cualquiera puede mandar notificaciones a cualquiera), `webhook_logs` (INSERT: se podrían falsificar
       registros del webhook), `logs_admin`, `tickets`, `eventos_web`, `descargas_app`, `papelera_archivos`, `papelera_cotizaciones` (INSERT; varias son formularios o
       métricas legítimos y se pueden dejar con límites). Un paso por tabla, mismo método.
+    - **Catálogo de Meta publicado (2026-10-07):** el dueño cargó `catalogo_meta_whatsapp.csv` en Commerce Manager del portfolio RIO NEGRO PESCA (catálogo "Artículos llegados",
+      origen "Nueva lista de datos": 78 productos, 0 problemas al subir; quedaron además 30 viejos cargados a mano, con ids cortos). El número de WhatsApp Business del dueño
+      (11 3818-7012) está en la app del celular, vinculado a la cuenta "rionegropesca", NO a "elguiaya": el catálogo se conecta desde la app (Herramientas → Catálogo →
+      Ajustes → Conectar catálogo). No registrar ese número en la API (lo saca de la app). **Pedido del dueño:** el enlace de cada producto va a `www.elguiaya.com`, no a
+      `app.elguiaya.com`; cambiado en Excel, función `feed-meta`, pantalla y tests (el CSV se regenera con `build/exportacion_meta/generar_csv.mjs`; falta confirmar que
+      `https://www.elguiaya.com/#/producto/<id>` abra el producto). Pendiente: revisar los 111 "problemas" que marca Meta, el producto a $1 y los 8 agotados.
     - El avatar viene **apagado** tras instalar (interruptor en Mi Identidad Pescador): confirmar si es lo deseado.
 
 0. **Fase R, R.1 hecho (informe en `docs/INFORME_MEMORIA_R1.md`):** la app llega a 700–1160 MB y Android la cierra en primer plano; el
