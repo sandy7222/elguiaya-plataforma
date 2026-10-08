@@ -250,6 +250,9 @@
       Agregado (SIN commitear, SIN publicar): `productoIdDesdeUrl()` + `abrirProductoDesdeUrl()` llamada tras `render()` y en `hashchange`; entiende `?producto=<id>`, `#/producto/<id>` y
       `/producto/<id>` (valida que sea un uuid). 13 tests en ese repo: `node --test test/deeplink.test.mjs`. Probado en un navegador contra la base real (abre el producto correcto; id inexistente no
       rompe). Para que los enlaces del catálogo de Meta funcionen: el dueño publica el sitio (ese repo está `ahead 1` de origin) y sube `catalogo_meta_con_enlace_a_producto.csv` (`?producto={id}`).
+    - **Push hecho el 2026-10-08 (OK del dueño):** 18 commits (de `696ca01` a `d7c1641`) a `origin/fase-0-contencion`, sin `--force`. Las migraciones de seguridad (`20261007200000`,
+      `210000`, `220000`, `230000` y `20261008010000`) ya están APLICADAS en producción (el mensaje del commit `0e17efe` dice "sin aplicar" porque se escribió antes de aplicarla).
+      El sitio (`C:\CapitanYA\elguiaya`) se subió aparte: commit `e7b68ae` (enlaces directos a producto), publicado y verificado en `www.elguiaya.com`.
     - El avatar viene **apagado** tras instalar (interruptor en Mi Identidad Pescador): confirmar si es lo deseado.
 
 0. **Fase R, R.1 hecho (informe en `docs/INFORME_MEMORIA_R1.md`):** la app llega a 700–1160 MB y Android la cierra en primer plano; el
