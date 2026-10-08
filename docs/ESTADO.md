@@ -177,6 +177,19 @@
       y `qual = true`: cualquiera con la clave anónima (que va en la app web) puede **insertar, modificar o borrar productos**. Corregir con una migración que la
       elimine (la política `Admins gestionan productos` ya cubre a los administradores), probando antes que el panel de admin siga funcionando (revisar que el JWT
       del admin traiga `role`/`rol` = admin). Necesita OK del dueño (migración en producción). Revisar también otras tablas con el mismo patrón.
+    - **SEGURIDAD `productos` CORREGIDA (2026-10-07, OK del dueño):** migración `20261007200000_productos_cerrar_escritura_publica.sql` (aplicada en producción con
+      `apply_migration`): `descontar_stock_pedido()` pasa a SECURITY DEFINER (el disparador de stock corría con los permisos del comprador y dependía de la política
+      abierta; de paso se arregla el stock de variantes), se borra "Admin full access productos" (ALL, public, true) y "Admins gestionan productos" pasa a usar
+      `public.is_admin()` (la anterior miraba claims `role`/`rol` que el token no trae). Probado antes en una transacción deshecha (anónimo: antes UPDATE=1, después
+      UPDATE=0, DELETE=0, INSERT bloqueado 42501; lectura pública 78 productos; admin@elguiaya.com UPDATE=1; usuario común 0) y verificado después en producción.
+      Quedan las políticas de lectura pública. Sin probar en la app real: entrar como admin y editar un producto, y hacer una compra de prueba (stock baja).
+    - **SEGURIDAD, MÁS AGUJEROS (SIN corregir, urgente):** políticas con `roles = {public}` y `true` que dejan escribir a cualquiera con la clave anónima:
+      `pagos` (INSERT y UPDATE), `pedidos` ("Admin gestiona pedidos", ALL), `categorias` y `rubros` (ALL), `envio_domicilio` (ALL), `solicitudes_contacto` (UPDATE),
+      `recordatorios` (UPDATE), `guia_conocimiento_distribuido` y `guia_capacitacion` (INSERT: cualquiera puede meter "conocimiento" al Guía), `pedido_items`
+      (INSERT; y SELECT público de todos los ítems), `notificaciones`/`notificaciones_globales`, `logs_admin`, `tickets`, `eventos_web`, `descargas_app`,
+      `papelera_*`, `webhook_logs` (INSERT). Algunas son legítimas (formularios públicos, eventos), pero `pagos`, `pedidos`, `categorias`, `rubros`,
+      `envio_domicilio` y la tabla del Guía hay que cerrarlas con el mismo método: probar en transacción deshecha, revisar quién escribe (disparadores sin
+      SECURITY DEFINER, Edge Functions con clave de servicio) y migrar con OK del dueño. Un paso por tabla.
     - El avatar viene **apagado** tras instalar (interruptor en Mi Identidad Pescador): confirmar si es lo deseado.
 
 0. **Fase R, R.1 hecho (informe en `docs/INFORME_MEMORIA_R1.md`):** la app llega a 700–1160 MB y Android la cierra en primer plano; el
