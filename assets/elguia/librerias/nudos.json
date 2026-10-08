@@ -71,6 +71,26 @@
       ],
       "respuesta_limpia": "Se debe seleccionar anzuelos según el pez que se quiere capturar y las condiciones del agua",
       "gif": "hablaConMate"
+    },
+    {
+      "intencion": "nudo_palomar",
+      "activadores": [
+        "nudo palomar",
+        "cómo hago el nudo palomar",
+        "atar anzuelo nudo palomar"
+      ],
+      "respuesta_limpia": "El nudo palomar: dobla la línea, pasa por el ojo, haz un nudo simple, pasa el anzuelo por el lazo y aprieta.",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "que_anzuelo_usar",
+      "activadores": [
+        "anzuelito mosquito",
+        "anzuelo para mojarra",
+        "qué anzuelo usar"
+      ],
+      "respuesta_limpia": "El anzuelito mosquito #12‑#14 es el anzuelo ideal para mojarra por su forma estrecha y punta fina.",
+      "gif": "exito"
     }
   ]
 }

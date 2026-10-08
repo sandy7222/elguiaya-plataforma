@@ -161,10 +161,11 @@
     {
       "intencion": "carnada_para_matungo",
       "activadores": [
-        "carnada para matungo",
-        "matungo con mojarra"
+        "matungo",
+        "pejerrey adulto",
+        "carnada efectiva"
       ],
-      "respuesta_limpia": "Mojarra es efectiva",
+      "respuesta_limpia": "Mojarra",
       "gif": "hablaConMate"
     }
   ]

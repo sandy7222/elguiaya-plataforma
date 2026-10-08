@@ -560,10 +560,11 @@
       "intencion": "donde_se_encuentran_matungos",
       "activadores": [
         "matungos en lagunas",
-        "donde viven los matungos"
+        "matungos en costas",
+        "matungos en río de la plata"
       ],
-      "respuesta_limpia": "Matungos en lagunas privadas y remotas",
-      "gif": "piensaLeve"
+      "respuesta_limpia": "Matungos en lagunas profundas, costas y río de la plata",
+      "gif": "hablaConMate"
     },
     {
       "intencion": "que_es_matungo",
@@ -589,13 +590,11 @@
       "intencion": "como_pescar_matungo",
       "activadores": [
         "pescar matungo",
-        "pejerrey adulto",
-        "la represa de san luis",
-        "boya paster noster",
+        "La Represa de San Luis",
         "mojarra"
       ],
-      "respuesta_limpia": "Pescar matungo en La Represa de San Luis requiere técnica y estrategia",
-      "gif": "hablaConMate"
+      "respuesta_limpia": "Utiliza mojarra como carnada con boya paster noster",
+      "gif": "exito"
     },
     {
       "intencion": "esperar_pique",
@@ -663,6 +662,85 @@
         "latitud y longitud"
       ],
       "respuesta_limpia": "Lat: 29,75° S, Long: 57,65° O",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "como_armar_mojarrero",
+      "activadores": [
+        "cómo armar mojarrero",
+        "mojarrero",
+        "montaje para mojarra"
+      ],
+      "respuesta_limpia": "Usá caña ligera, línea 0.12‑0.16 mm, leader 0.08 mm, anzuelo #12‑#14, plomo 2‑4 g, flotador 2‑3 cm y cebo vivo.",
+      "gif": "exito"
+    },
+    {
+      "intencion": "pescar_matungos",
+      "activadores": [
+        "pescar matungos",
+        "matungos en lagunas",
+        "matungos en mar argentino"
+      ],
+      "respuesta_limpia": "Los matungos se encuentran en lagunas profundas y costas del Mar Argentino.",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "perros_en_la_pesca",
+      "activadores": [
+        "perros en la pesca",
+        "pastor alemán en la pesca"
+      ],
+      "respuesta_limpia": "Pastor alemán, raza inteligente y activa.",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "que_es_un_matungo",
+      "activadores": [
+        "qué es un matungo",
+        "matungo pez",
+        "caracteristicas del matungo"
+      ],
+      "respuesta_limpia": "El matungo es un pez de agua dulce",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "donde_pescar_matungos",
+      "activadores": [
+        "matungos en lagunas",
+        "matungos en costas",
+        "matungos en represas"
+      ],
+      "respuesta_limpia": "Matungos en lagunas profundas, costas del Mar Argentino y represas de Córdoba y San Luis",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "sistemas_de_elevacion_en_represas",
+      "activadores": [
+        "represas",
+        "sistemas de elevación",
+        "peces"
+      ],
+      "respuesta_limpia": "Sistemas de elevación en represas para permitir a los peces pasar por encima",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "pesca_en_el_parana",
+      "activadores": [
+        "pesca en el parana",
+        "parana pesca",
+        "rio parana"
+      ],
+      "respuesta_limpia": "Dorado, surubí, boga, sábalo y bagre. Técnicas: fondo, spinning, trolling.",
+      "gif": "hablaConMate"
+    },
+    {
+      "intencion": "pesca_en_patagonia",
+      "activadores": [
+        "pesca en patagonia",
+        "trucha patagonica",
+        "salmon patagonico"
+      ],
+      "respuesta_limpia": "La Patagonia es un paraíso para pescar trucha, pejerrey y salmón.",
       "gif": "hablaConMate"
     }
   ]

@@ -10,27 +10,41 @@
     "chupetona": {
       "descripcion": "Boya redonda con palito",
       "uso": "Pesca de fondo y media agua en lagunas y ríos calmos",
-      "ideal_para": ["pejerrey", "boga", "carpa"]
+      "ideal_para": [
+        "pejerrey",
+        "boga",
+        "carpa"
+      ]
     },
     "palito": {
       "descripcion": "Boya alargada tipo palito",
       "uso": "Muy sensible a picadas leves, ideal para peces pequeños",
-      "ideal_para": ["pejerrey", "peces de escama pequeños"]
+      "ideal_para": [
+        "pejerrey",
+        "peces de escama pequeños"
+      ]
     },
     "yo_yo": {
       "descripcion": "Boya articulada tipo yo-yo",
       "uso": "Líneas largas de flote con múltiples anzuelos",
-      "ideal_para": ["pejerrey", "pesca desde costa"]
+      "ideal_para": [
+        "pejerrey",
+        "pesca desde costa"
+      ]
     },
     "luminosa": {
       "descripcion": "Boya con luz incorporada",
       "uso": "Pesca nocturna para ver la picada en la oscuridad",
-      "ideal_para": ["cualquier especie en pesca nocturna"]
+      "ideal_para": [
+        "cualquier especie en pesca nocturna"
+      ]
     },
     "corcho": {
       "descripcion": "Boya de corcho clásica",
       "uso": "Pesca artesanal en aguas tranquilas",
-      "ideal_para": ["variada en laguna"]
+      "ideal_para": [
+        "variada en laguna"
+      ]
     }
   },
   "por_condicion": {
@@ -49,5 +63,17 @@
     "¿Te quedaron bien alineadas las tres boyas cometa?",
     "¿Usás madera balsa o preferís telgopor livianito?",
     "¿Gareteás lejos con el pick-up del reel abierto?"
+  ],
+  "intenciones": [
+    {
+      "intencion": "como_hacer_boya_pejerrey",
+      "activadores": [
+        "cómo hacer la boya para pejerrey",
+        "boya para pejerrey",
+        "flotador pejerrey"
+      ],
+      "respuesta_limpia": "Usá una boya pequeña de espuma, haz nudo simple, añade split‑shot y ajusta profundidad 30‑60 cm.",
+      "gif": "exito"
+    }
   ]
 }

@@ -270,6 +270,16 @@
       ],
       "respuesta_limpia": "Los dorados y surubíes se encuentran en los ríos Paraná y Bermejo",
       "gif": "hablaConMate"
+    },
+    {
+      "intencion": "como_pescar_dorado",
+      "activadores": [
+        "dorado en Paso de la Patria",
+        "tecnica para pescar dorado",
+        "pescar dorado en corriente"
+      ],
+      "respuesta_limpia": "Pescar dorado con señuelos o moscas en corriente",
+      "gif": "hablaConMate"
     }
   ]
 }
