@@ -72,7 +72,7 @@ class _AdminImportacionScreenState extends State<AdminImportacionScreen>
   static const String _prefMarcaMeta = 'meta_marca';
   static const String _prefLinkMeta = 'meta_link_base';
   final TextEditingController _marcaMetaCtrl = TextEditingController(text: 'El Guía YA');
-  final TextEditingController _linkMetaCtrl = TextEditingController(text: 'https://www.elguiaya.com/#/producto/');
+  final TextEditingController _linkMetaCtrl = TextEditingController(text: 'https://elguiaya.com/tienda');
 
   /// Dirección pública del feed de Meta (se arma desde la URL del proyecto de Supabase que ya usa la app).
   String get _urlFeedMeta {
@@ -490,7 +490,7 @@ class _AdminImportacionScreenState extends State<AdminImportacionScreen>
     try {
       await _guardarPreferenciasMeta();
       final marca = _marcaMetaCtrl.text.trim().isEmpty ? 'El Guía YA' : _marcaMetaCtrl.text.trim();
-      final linkBase = _linkMetaCtrl.text.trim().isEmpty ? 'https://www.elguiaya.com/#/producto/' : _linkMetaCtrl.text.trim();
+      final linkBase = _linkMetaCtrl.text.trim().isEmpty ? 'https://elguiaya.com/tienda' : _linkMetaCtrl.text.trim();
       final r = ExportacionMeta.generarExcel(lista, marca: marca, urlProducto: linkBase);
       if (kIsWeb) {
         _downloadBytes(r.bytes, 'catalogo_meta_whatsapp.xlsx',
@@ -1175,7 +1175,7 @@ class _AdminImportacionScreenState extends State<AdminImportacionScreen>
                       controller: _linkMetaCtrl,
                       style: const TextStyle(color: Colors.white, fontSize: 13),
                       decoration: const InputDecoration(
-                          labelText: 'Enlace base del producto (se le suma el id)', isDense: true, labelStyle: TextStyle(color: Colors.white54)),
+                          labelText: 'Enlace de los productos (fijo, o con {id} / terminado en / para sumar el id)', isDense: true, labelStyle: TextStyle(color: Colors.white54)),
                     ),
                   ),
                 ],

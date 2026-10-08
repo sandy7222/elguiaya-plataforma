@@ -231,6 +231,10 @@
       Ajustes → Conectar catálogo). No registrar ese número en la API (lo saca de la app). **Pedido del dueño:** el enlace de cada producto va a `www.elguiaya.com`, no a
       `app.elguiaya.com`; cambiado en Excel, función `feed-meta`, pantalla y tests (el CSV se regenera con `build/exportacion_meta/generar_csv.mjs`; falta confirmar que
       `https://www.elguiaya.com/#/producto/<id>` abra el producto). Pendiente: revisar los 111 "problemas" que marca Meta, el producto a $1 y los 8 agotados.
+    - **Enlaces del catálogo de Meta (corrección, 2026-10-08):** `elguiaya.com` es un sitio aparte (repo propio en Vercel) y solo se ve la ruta `/tienda`; no hay páginas por
+      producto confirmadas. Los enlaces `/#/producto/<id>` eran de la app y no llevaban a ningún lado. Ahora todos los productos llevan a `https://elguiaya.com/tienda` (enlace fijo;
+      `ExportacionMeta` y `feed-meta` aceptan `{id}` o una base terminada en `/` si el sitio tiene páginas por producto). Falta que el dueño suba el CSV nuevo a Meta (se pisan por
+      id) y, si el sitio tiene páginas por producto, pasar su ruta. El prompt del Guía todavía menciona enlaces `elguiaya.com/#/tienda`, `/#/mapa`, `/#/clima`: revisar.
     - El avatar viene **apagado** tras instalar (interruptor en Mi Identidad Pescador): confirmar si es lo deseado.
 
 0. **Fase R, R.1 hecho (informe en `docs/INFORME_MEMORIA_R1.md`):** la app llega a 700–1160 MB y Android la cierra en primer plano; el

@@ -25,7 +25,7 @@ class ExportacionMeta {
   static ResultadoExportMeta generarExcel(
     List<Producto> productos, {
     String marca = 'El Guía YA',
-    String urlProducto = 'https://www.elguiaya.com/#/producto/',
+    String urlProducto = 'https://elguiaya.com/tienda',
     String moneda = 'ARS',
   }) {
     final libro = Excel.createExcel();
@@ -62,6 +62,14 @@ class ExportacionMeta {
     return ResultadoExportMeta(libro.encode() ?? <int>[], avisos);
   }
 
+  /// Enlace del producto. Si [base] trae `{id}` se reemplaza por el id; si termina en `/` se le suma el id (rutas por producto);
+  /// si no, es un enlace fijo para todos (por ejemplo la tienda: `https://elguiaya.com/tienda`).
+  static String _enlace(String base, String id) {
+    if (base.contains('{id}')) return base.replaceAll('{id}', id);
+    if (base.endsWith('/')) return '$base$id';
+    return base;
+  }
+
   /// Imágenes del producto sin repetir: la principal primero (o, si falta, la primera de la galería).
   static List<String> _imagenes(Producto p) {
     final todas = <String>[
@@ -80,7 +88,7 @@ class ExportacionMeta {
   static Map<String, String> fila(
     Producto p, {
     String marca = 'El Guía YA',
-    String urlProducto = 'https://www.elguiaya.com/#/producto/',
+    String urlProducto = 'https://elguiaya.com/tienda',
     String moneda = 'ARS',
   }) {
     final nombre = p.nombre.trim();
@@ -94,7 +102,7 @@ class ExportacionMeta {
       'availability': agotado ? 'out of stock' : 'in stock',
       'condition': 'new',
       'price': '${p.precio.toStringAsFixed(2)} $moneda',
-      'link': '$urlProducto${p.id}',
+      'link': _enlace(urlProducto, p.id),
       'image_link': imagenes.isEmpty ? '' : imagenes.first,
       'additional_image_link': imagenes.skip(1).take(_maxAdicionales).join(','),
       'brand': marca,

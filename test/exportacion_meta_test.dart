@@ -94,8 +94,12 @@ void main() {
     test('condición nuevo', () => expect(f['condition'], 'new'));
     test('marca por defecto', () => expect(f['brand'], 'El Guía YA'));
     test('rubro como product_type', () => expect(f['product_type'], 'Pesca Deportiva'));
-    test('enlace a la página del producto', () {
-      expect(f['link'], 'https://www.elguiaya.com/#/producto/a1b2c3d4-0000-4000-8000-000000000001');
+    test('enlace fijo a la tienda del sitio (el sitio no tiene página por producto)', () {
+      expect(f['link'], 'https://elguiaya.com/tienda');
+    });
+    test('el enlace admite {id} o una base que termina en /', () {
+      expect(ExportacionMeta.fila(_p(), urlProducto: 'https://x.com/p/{id}/ver')['link'], 'https://x.com/p/a1b2c3d4-0000-4000-8000-000000000001/ver');
+      expect(ExportacionMeta.fila(_p(), urlProducto: 'https://x.com/p/')['link'], 'https://x.com/p/a1b2c3d4-0000-4000-8000-000000000001');
     });
     test('imagen principal como enlace', () {
       expect(f['image_link'], 'https://x.supabase.co/storage/v1/object/public/productos/a.jpg');

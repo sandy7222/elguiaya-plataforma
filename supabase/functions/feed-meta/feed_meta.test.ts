@@ -3,7 +3,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { csvMeta, ENCABEZADOS, filaMeta, publicable } from "./feed_meta.ts";
+import { csvMeta, ENCABEZADOS, enlace, filaMeta, publicable } from "./feed_meta.ts";
 import { atender } from "./handler.ts";
 
 const casos = JSON.parse(readFileSync(new URL("../../../test/fixtures/feed_meta_casos.json", import.meta.url), "utf8")).casos;
@@ -13,6 +13,12 @@ for (const c of casos) {
     assert.deepEqual(filaMeta(c.row), c.esperado);
   });
 }
+
+test("enlace: fijo, con {id} o con base terminada en /", () => {
+  assert.equal(enlace("https://elguiaya.com/tienda", "abc"), "https://elguiaya.com/tienda");
+  assert.equal(enlace("https://x.com/p/{id}/ver", "abc"), "https://x.com/p/abc/ver");
+  assert.equal(enlace("https://x.com/p/", "abc"), "https://x.com/p/abc");
+});
 
 test("el encabezado son las 11 columnas del feed de Meta", () => {
   assert.deepEqual([...ENCABEZADOS], [

@@ -30,7 +30,7 @@ export interface OpcionesMeta {
 
 export const OPCIONES_POR_DEFECTO: OpcionesMeta = {
   marca: "El Guía YA",
-  urlProducto: "https://www.elguiaya.com/#/producto/",
+  urlProducto: "https://elguiaya.com/tienda",
   moneda: "ARS",
 };
 
@@ -74,6 +74,13 @@ function descripcion(p: ProductoFila, titulo: string): string {
   return partes.length === 0 ? titulo : partes.join("\n\n");
 }
 
+/** Enlace del producto: con `{id}` se reemplaza; si termina en `/` se le suma el id; si no, es un enlace fijo para todos. */
+export function enlace(base: string, id: string): string {
+  if (base.includes("{id}")) return base.replaceAll("{id}", id);
+  if (base.endsWith("/")) return `${base}${id}`;
+  return base;
+}
+
 /** Una fila del feed de Meta. */
 export function filaMeta(p: ProductoFila, opciones: OpcionesMeta = OPCIONES_POR_DEFECTO): FilaMeta {
   const nombre = (p.nombre ?? "").trim();
@@ -87,7 +94,7 @@ export function filaMeta(p: ProductoFila, opciones: OpcionesMeta = OPCIONES_POR_
     availability: agotado ? "out of stock" : "in stock",
     condition: "new",
     price: `${numero(p.precio).toFixed(2)} ${opciones.moneda}`,
-    link: `${opciones.urlProducto}${p.id}`,
+    link: enlace(opciones.urlProducto, p.id),
     image_link: imgs.length === 0 ? "" : imgs[0],
     additional_image_link: imgs.slice(1, 1 + MAX_ADICIONALES).join(","),
     brand: opciones.marca,
