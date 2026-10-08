@@ -25,6 +25,12 @@ otro en `app.elguiaya.com` en la computadora (la IA lo maneja con el navegador i
 escribe contraseñas ni crea cuentas); **la IA no paga** ni acepta condiciones de pago; con "No molestar" en el celular para que no se vean notificaciones de otras apps (la IA no las lee). Los viajes
 de prueba quedan en la base real: usar nombres reconocibles ("Viaje de prueba 1") y limpiarlos después con OK del dueño. Lo que solo existe en el APK (seguimiento por GPS, push) se prueba en el celular.
 
+## Pausas de debate
+
+Cuando algo no cierra, se **frena**, se anota en `docs/HALLAZGOS_DIA_DEL_VIAJE.md` (tipo: cartelería, función, privacidad o seguridad; con gravedad y propuesta) y el **dueño decide**: ahora, después o descartar.
+Textos de salud o seguridad en el agua → persona idónea; textos legales → revisión legal; dinero o datos personales → OK explícito y prueba previa. Riesgos a mirar sí o sí: cuándo se libera el teléfono entre
+pescador y capitán, quién ve la ubicación del capitán y hasta cuándo, y que nadie pueda saltarse el pago.
+
 ## Antes de arrancar el día (lo prepara el dueño)
 
 1. **Dos cuentas de prueba**, una de pescador y una de capitán (si no hay, crearlas; las contraseñas las escribe el dueño en el celular, nunca en el chat).
