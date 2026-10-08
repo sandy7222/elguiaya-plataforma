@@ -238,7 +238,7 @@
     - **TIENDA `elguiaya.com/tienda` ROTA (hallazgo 2026-10-08, causa anterior a mis cambios):** la página pide productos, categorías, banners y blog juntos; el blog falla para el
       visitante (`permission denied for table profiles`) porque su política de lectura consulta `profiles`, que la Fase 2 de seguridad (`20261001000000`) cerró al anónimo. Resultado:
       "Error al cargar la tienda" para todos. Probado como visitante: productos 78 OK, categorías 11 OK, banners 2 OK, blog ERROR. Arreglo escrito y probado en transacción deshecha
-      (`supabase/migrations/20261008010000_blog_lectura_publica_sin_profiles.sql`: visitante lee artículos activos; admin sigue leyendo todo): **FALTA APLICARLO (necesita OK del dueño)**.
+      (`supabase/migrations/20261008010000_blog_lectura_publica_sin_profiles.sql`: visitante lee artículos activos; admin sigue leyendo todo): **APLICADA el 2026-10-08 (OK del dueño) y verificada como visitante: productos 78, categorías 11, banners 2, blog 3; insertar en el blog sigue bloqueado (401).**
       Otras políticas públicas que consultan `profiles` (recordatorios, webhook_logs, calificaciones_viaje, transacciones_capitanes, tickets) no afectan a la tienda.
       Además `elguiaya.com/tienda` redirige a `https://www.elguiaya.com/` (el dominio canónico es www).
     - El avatar viene **apagado** tras instalar (interruptor en Mi Identidad Pescador): confirmar si es lo deseado.
