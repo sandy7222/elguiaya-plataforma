@@ -18,6 +18,13 @@
 | 9. Calificar | Ambos | — | `calificarPescador`, `calificarCapitan` |
 | 10. Cierre y cobro del capitán | Capitán / admin | `billetera_capitan_screen`, `capitan_saldos_screen`, `admin_detalle_viaje_screen` | `cerrarViaje`, acreditación |
 
+## Dos roles a la vez (idea del dueño)
+
+El dueño hace de **cliente** y la IA de **capitán**, y después se invierten. Es posible: un rol en el celular por cable USB (la IA toca, escribe y captura pantalla vía adb y mira el registro) y el
+otro en `app.elguiaya.com` en la computadora (la IA lo maneja con el navegador integrado, o lo maneja el dueño). Reglas que no se saltan: **el dueño inicia sesión y crea las cuentas** (la IA no
+escribe contraseñas ni crea cuentas); **la IA no paga** ni acepta condiciones de pago; con "No molestar" en el celular para que no se vean notificaciones de otras apps (la IA no las lee). Los viajes
+de prueba quedan en la base real: usar nombres reconocibles ("Viaje de prueba 1") y limpiarlos después con OK del dueño. Lo que solo existe en el APK (seguimiento por GPS, push) se prueba en el celular.
+
 ## Antes de arrancar el día (lo prepara el dueño)
 
 1. **Dos cuentas de prueba**, una de pescador y una de capitán (si no hay, crearlas; las contraseñas las escribe el dueño en el celular, nunca en el chat).
