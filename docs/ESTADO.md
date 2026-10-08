@@ -241,6 +241,11 @@
       (`supabase/migrations/20261008010000_blog_lectura_publica_sin_profiles.sql`: visitante lee artículos activos; admin sigue leyendo todo): **APLICADA el 2026-10-08 (OK del dueño) y verificada como visitante: productos 78, categorías 11, banners 2, blog 3; insertar en el blog sigue bloqueado (401).**
       Otras políticas públicas que consultan `profiles` (recordatorios, webhook_logs, calificaciones_viaje, transacciones_capitanes, tickets) no afectan a la tienda.
       Además `elguiaya.com/tienda` redirige a `https://www.elguiaya.com/` (el dominio canónico es www).
+    - **Enlaces del catálogo, estado 2026-10-08:** la tienda `www.elguiaya.com` (HTML estático con JS y supabase-js, repo aparte) carga bien tras arreglar el blog. El sitio entrega la misma página para
+      cualquier ruta y NO lee `?producto=`; en el celular del dueño, navegando adentro, aparece la dirección `https://www.elguiaya.com/#/producto/<id>` pero pegada en una pestaña nueva no abre el
+      producto. Archivos de prueba en `build/exportacion_meta/` (no se commitean): `catalogo_meta_whatsapp.csv` (enlace fijo a la tienda, el que está cargado en Meta),
+      `catalogo_meta_con_enlace_a_producto.csv` (`?producto={id}`), `catalogo_meta_con_enlace_hash.csv` (`#/producto/{id}`). Falta que el sitio lea la dirección al cargar (`abrirProducto(id)` ya existe;
+      `bootCuenta()` solo mira `#cuenta`). Regenerar: `node build/exportacion_meta/generar_csv.mjs "<plantilla con {id}>" <salida.csv>`.
     - El avatar viene **apagado** tras instalar (interruptor en Mi Identidad Pescador): confirmar si es lo deseado.
 
 0. **Fase R, R.1 hecho (informe en `docs/INFORME_MEMORIA_R1.md`):** la app llega a 700–1160 MB y Android la cierra en primer plano; el
