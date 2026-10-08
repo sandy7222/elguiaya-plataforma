@@ -190,6 +190,17 @@
       `papelera_*`, `webhook_logs` (INSERT). Algunas son legítimas (formularios públicos, eventos), pero `pagos`, `pedidos`, `categorias`, `rubros`,
       `envio_domicilio` y la tabla del Guía hay que cerrarlas con el mismo método: probar en transacción deshecha, revisar quién escribe (disparadores sin
       SECURITY DEFINER, Edge Functions con clave de servicio) y migrar con OK del dueño. Un paso por tabla.
+    - **SEGURIDAD `pagos` y `pedidos` CORREGIDAS (2026-10-07, OK del dueño):** migración `20261007210000_pagos_pedidos_cerrar_escritura_publica.sql` (aplicada con
+      `apply_migration`). Antes: un ANÓNIMO leía los 5 pedidos (dirección, CUIT/DNI, ids de Mercado Pago) y cualquier usuario con sesión los leía y modificaba;
+      `pagos` dejaba crear, cambiar y leer a cualquiera. Ahora: pedidos solo para sus participantes (usuario_id, pescador_id, cliente_id, capitan_id) y admin
+      (`is_admin()`); pagos para su dueño y admin. Los viajes se crean con `pescador_id` (los 5 pedidos tienen `usuario_id` nulo), por eso la política de crear
+      reconoce pescador y cliente. Las Edge Functions de Mercado Pago usan la clave de servicio (no pasan por RLS). Probado antes en transacción deshecha y
+      verificado después en producción (anónimo 0/0/0; ajeno logueado 0/0; pescador 1/1; capitán 1/1; admin 5/1). **Sin probar en la app real:** flujo de viaje
+      (aceptar presupuesto, iniciar, finalizar, calificar), carrito/checkout (NO comprar: Mercado Pago está en producción) y panel de pedidos del admin.
+    - **Pendiente de esta tanda:** (1) un participante todavía puede cambiar columnas sensibles de SU pedido (`estado`, montos, `mp_*`): falta un disparador que
+      lo limite (el cliente hoy confirma el pago desde la app: `confirmarPagoPedido`); (2) `pedido_items` (SELECT público de todos los ítems; INSERT abierto);
+      (3) `categorias`, `rubros`, `envio_domicilio` (ALL abiertas), `guia_conocimiento_distribuido` / `guia_capacitacion` (INSERT abierto), `solicitudes_contacto`
+      y `recordatorios` (UPDATE abierto); (4) el cliente guarda pagos con una columna que no existe (`cliente_id` en `pagos`): código muerto de `pago_service.dart`.
     - El avatar viene **apagado** tras instalar (interruptor en Mi Identidad Pescador): confirmar si es lo deseado.
 
 0. **Fase R, R.1 hecho (informe en `docs/INFORME_MEMORIA_R1.md`):** la app llega a 700–1160 MB y Android la cierra en primer plano; el
