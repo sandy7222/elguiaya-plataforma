@@ -235,6 +235,12 @@
       producto confirmadas. Los enlaces `/#/producto/<id>` eran de la app y no llevaban a ningún lado. Ahora todos los productos llevan a `https://elguiaya.com/tienda` (enlace fijo;
       `ExportacionMeta` y `feed-meta` aceptan `{id}` o una base terminada en `/` si el sitio tiene páginas por producto). Falta que el dueño suba el CSV nuevo a Meta (se pisan por
       id) y, si el sitio tiene páginas por producto, pasar su ruta. El prompt del Guía todavía menciona enlaces `elguiaya.com/#/tienda`, `/#/mapa`, `/#/clima`: revisar.
+    - **TIENDA `elguiaya.com/tienda` ROTA (hallazgo 2026-10-08, causa anterior a mis cambios):** la página pide productos, categorías, banners y blog juntos; el blog falla para el
+      visitante (`permission denied for table profiles`) porque su política de lectura consulta `profiles`, que la Fase 2 de seguridad (`20261001000000`) cerró al anónimo. Resultado:
+      "Error al cargar la tienda" para todos. Probado como visitante: productos 78 OK, categorías 11 OK, banners 2 OK, blog ERROR. Arreglo escrito y probado en transacción deshecha
+      (`supabase/migrations/20261008010000_blog_lectura_publica_sin_profiles.sql`: visitante lee artículos activos; admin sigue leyendo todo): **FALTA APLICARLO (necesita OK del dueño)**.
+      Otras políticas públicas que consultan `profiles` (recordatorios, webhook_logs, calificaciones_viaje, transacciones_capitanes, tickets) no afectan a la tienda.
+      Además `elguiaya.com/tienda` redirige a `https://www.elguiaya.com/` (el dominio canónico es www).
     - El avatar viene **apagado** tras instalar (interruptor en Mi Identidad Pescador): confirmar si es lo deseado.
 
 0. **Fase R, R.1 hecho (informe en `docs/INFORME_MEMORIA_R1.md`):** la app llega a 700–1160 MB y Android la cierra en primer plano; el
