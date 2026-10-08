@@ -246,6 +246,10 @@
       producto. Archivos de prueba en `build/exportacion_meta/` (no se commitean): `catalogo_meta_whatsapp.csv` (enlace fijo a la tienda, el que está cargado en Meta),
       `catalogo_meta_con_enlace_a_producto.csv` (`?producto={id}`), `catalogo_meta_con_enlace_hash.csv` (`#/producto/{id}`). Falta que el sitio lea la dirección al cargar (`abrirProducto(id)` ya existe;
       `bootCuenta()` solo mira `#cuenta`). Regenerar: `node build/exportacion_meta/generar_csv.mjs "<plantilla con {id}>" <salida.csv>`.
+    - **Enlaces directos a un producto en el SITIO (repo aparte `C:\CapitanYA\elguiaya`, 2026-10-08):** el sitio manda toda ruta a `public/tienda/index.html` (vercel.json `/(.*)`) y solo leía `#cuenta`.
+      Agregado (SIN commitear, SIN publicar): `productoIdDesdeUrl()` + `abrirProductoDesdeUrl()` llamada tras `render()` y en `hashchange`; entiende `?producto=<id>`, `#/producto/<id>` y
+      `/producto/<id>` (valida que sea un uuid). 13 tests en ese repo: `node --test test/deeplink.test.mjs`. Probado en un navegador contra la base real (abre el producto correcto; id inexistente no
+      rompe). Para que los enlaces del catálogo de Meta funcionen: el dueño publica el sitio (ese repo está `ahead 1` de origin) y sube `catalogo_meta_con_enlace_a_producto.csv` (`?producto={id}`).
     - El avatar viene **apagado** tras instalar (interruptor en Mi Identidad Pescador): confirmar si es lo deseado.
 
 0. **Fase R, R.1 hecho (informe en `docs/INFORME_MEMORIA_R1.md`):** la app llega a 700–1160 MB y Android la cierra en primer plano; el
