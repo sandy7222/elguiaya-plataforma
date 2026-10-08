@@ -214,6 +214,17 @@
       en el chat); (2) hacer que la confirmación la aplique el servidor (extender `consultar-pago-mp` o confiar en el webhook) y que la app solo consulte el estado;
       (3) recién ahí bloquear `estado` y `mp_*` en el disparador. Mercado Pago está en producción: probarlo antes en sandbox. `crear-preferencia` ya toma el importe de la
       base con un piso (`total_minimo_pedido`), no del cliente.
+    - **SEGURIDAD `pedido_items`, `categorias`, `rubros`, `envio_domicilio` CORREGIDAS (2026-10-07, OK del dueño):** migración
+      `20261007230000_pedido_items_catalogo_cerrar_escritura_publica.sql` (aplicada). Antes un anónimo leía los ítems de todos los pedidos y las direcciones de entrega
+      (nombre, teléfono, correo, dirección) y modificaba categorías y rubros. Ahora: categorías y rubros se leen públicamente y los escribe solo un admin
+      (`is_admin()`); `envio_domicilio` solo su dueño y admin; `pedido_items` los ven los participantes del pedido (usuario, pescador, cliente y capitán) y los crean
+      usuario/pescador/cliente (los viajes tienen `usuario_id` nulo); admin todo. Probado en transacción deshecha y verificado en producción. **Sin probar en la app real:**
+      el carrito/checkout (no comprar: Mercado Pago en producción), la pantalla de viajes programados (lee los ítems) y el panel de administrador de categorías.
+    - **Todavía abiertas (INSERT/UPDATE con `true` para `public`), por prioridad:** `guia_conocimiento_distribuido` y `guia_capacitacion` (INSERT: cualquiera mete
+      "conocimiento" al Guía), `solicitudes_contacto` (UPDATE: "Edición para capitanes" sin condición), `recordatorios` (INSERT/UPDATE `_service` sin condición),
+      `notificaciones` y `notificaciones_globales` (INSERT: cualquiera puede mandar notificaciones a cualquiera), `webhook_logs` (INSERT: se podrían falsificar
+      registros del webhook), `logs_admin`, `tickets`, `eventos_web`, `descargas_app`, `papelera_archivos`, `papelera_cotizaciones` (INSERT; varias son formularios o
+      métricas legítimos y se pueden dejar con límites). Un paso por tabla, mismo método.
     - El avatar viene **apagado** tras instalar (interruptor en Mi Identidad Pescador): confirmar si es lo deseado.
 
 0. **Fase R, R.1 hecho (informe en `docs/INFORME_MEMORIA_R1.md`):** la app llega a 700–1160 MB y Android la cierra en primer plano; el
